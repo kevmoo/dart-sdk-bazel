@@ -5,5 +5,6 @@ cria:project-dart-ci-task-accounts      	cria/project-dart-ci-task-accounts
 e3285d9fe120fcff2ce993ba00b9d4e979d76610	chrome-commit-bot
 global:Change-Owner                     	Change Owner
 mdb:dart-admin                          	mdb/dart-admin
+mdb:dart-repo-team                      	mdb/dart-repo-team
 mdb:dart-team                           	mdb/dart-team
 mdb:copybara-git-writers                	mdb/copybara-git-writers
