@@ -7,6 +7,5 @@ global:Anonymous-Users                  	Anonymous Users
 global:Change-Owner                     	Change Owner
 global:Registered-Users                 	Registered Users
 mdb:copybara-git-writers                	mdb/copybara-git-writers
-mdb:dart-admin                          	mdb/dart-admin
 mdb:dart-repo-team                      	mdb/dart-repo-team
 mdb:dart-team                           	mdb/dart-team
