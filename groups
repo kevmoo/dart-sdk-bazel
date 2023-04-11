@@ -1,14 +1,13 @@
 # UUID                                  	Group Name
 #
 4636b2cedb771fdd04c748095bac28b7e382994c	dart-sdk-merge
-b869a998b893d3c30d2dd3c284be3120c2e4a3f6	dart-sdk-release
 5905a4b5c2a0f504241cbcebcfb6f156b3339dd5	dart-sdk-external-committers
 6711bbd7f76b0a9db4dd98b26e6b6b01ea6bd3fd	dart-sdk-base-roller
 92ffc1dfdcf34d89fcc12648c9ef66780dba9136	dart-sdk-lkgr-roller
+b869a998b893d3c30d2dd3c284be3120c2e4a3f6	dart-sdk-release
 cria:project-dart-tryjob-access         	cria/project-dart-tryjob-access
 e3285d9fe120fcff2ce993ba00b9d4e979d76610	commit-queue
 global:Anonymous-Users                  	Anonymous Users
 global:Change-Owner                     	Change Owner
 global:Registered-Users                 	Registered Users
-mdb:dart-repo-team                      	mdb/dart-repo-team
 mdb:dart-team                           	mdb/dart-team
