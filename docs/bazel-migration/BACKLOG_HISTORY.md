@@ -396,22 +396,6 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [TASK_029] Streamline and Optimize Bazel Build Definitions
-- **Status**: `[COMPLETED]`
-- **Prerequisites**: `TASK_003`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `tools/bazel/dart/defs.bzl`
-  - `tools/bazel/rules.bzl`
-- **Description**:
-  Audit current Bazel build files and custom Starlark rules (`tools/bazel/dart/defs.bzl`, `tools/bazel/rules.bzl`) to simplify flag propagation, reduce macro complexity, and optimize build graph analysis times.
-- **Success Criteria**:
-  - [ ] macOS flag filtering moved from macro wrappers to toolchain definitions where possible.
-  - [ ] Starlark macro complexity reduced (audited by a senior engineer review).
-
----
-
 ### 🎯 [TASK_030] Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -640,6 +624,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-84z] VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #20](https://github.com/kevmoo/sdk/pull/20)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Fix pre-existing Buildifier lint warnings in utils/ddc/rules.bzl to unblock CI runs.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-90d] [M3] Wire up Dart Dev Compiler (DDC) Snapshots
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-oce`
@@ -653,19 +651,6 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
-- **Status**: `[COMPLETED]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Resolve the silent reliance on implicit include paths for ICU data headers (norm2_nfc_data.h, etc.). Either implement the regeneration step in GN/Bazel to match upstream, or explicitly expose the checked-in data tables in third_party/icu/BUILD.gn and document the divergence. Ref: docs/bazel-migration/todo_issues/issue_00006_icu_data_headers_inconsistency.md
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-g2l] [M3] Wire up Dart2JS and Dartdoc Snapshots
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-oce`
@@ -675,19 +660,6 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Replace the 6 dart2js_aot and dartdoc stubs in utils/compiler/BUILD.bazel with real Starlark snapshot rules to enable compiling Dart-to-JS under Bazel.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-gmk] Prune upstream Bazel files from vendored third_party
-- **Status**: `[COMPLETED]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Update SDK roll/import scripts to exclude BUILD, BUILD.bazel, WORKSPACE, and MODULE.bazel files. Prune the existing renamed *.disabled-for-dart-bazel-migration files from the tree. Ref: docs/bazel-migration/todo_issues/issue_00005_vendored_third_party_build_files.md
 - **Success Criteria**:
 
 ---
@@ -718,6 +690,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-rog] VM: Define formal GN target for public VM embedding C API
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #19](https://github.com/kevmoo/sdk/pull/19)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a header-only source_set('public_api_headers') in runtime/include/BUILD.gn containing only the public embedding API headers (dart_api.h, etc.). Update internal VM targets to depend on it, and align the Bazel translation to remove the hand-written shim. Ref: docs/bazel-migration/todo_issues/issue_00007_runtime_include_public_api_target.md
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-rwz] [M3] Wire up Sanitizer SDK AOT Runtimes
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -733,6 +719,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-w7m] VM: Eliminate preprocessor symbol toggles in dfe.cc
 - **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #18](https://github.com/kevmoo/sdk/pull/18)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`

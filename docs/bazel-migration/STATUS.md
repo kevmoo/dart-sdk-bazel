@@ -40,6 +40,12 @@ Session 131 — **(jetski) Implemented sdk-rog: VM: Define formal GN target for 
 - **Aligned Bazel Build**: Manually defined `cc_library(name = "public_api_headers")` in `runtime/include/BUILD.bazel` with the same headers and `includes = ["."]`. Refactored `runtime:dart_api` in `runtime/BUILD.bazel` to depend on it, removing the hand-written headers list.
 - **Verified Build E2E**: Successfully ran GN and Bazel builds. Verified `//runtime:dart_api` compiles and links perfectly under Bazel with the new transitive header dependency. Formatted all Bazel files using `buildifier`.
 
+Session 131 — **(jetski) Backlog Cleanup and Tool Synchronization.**
+- **Located Beads and Dolt**: Found the local installations of `beads` (`bd`) and `dolt` in `~/go/bin/`, which were missing from the Zsh PATH candidates. Documented their locations in Beads persistent memory (`beads-dolt-locations-linux`).
+- **Documented Git Push Policy**: Recorded the strict push policy in Beads persistent memory (`git-push-policy`) to ensure all future agents push only to `kevmoo/bazel` and never to `origin`.
+- **Synchronized Backlog**: Closed the merged tasks `sdk-rog` (PR #19), `sdk-w7m` (PR #18), and `sdk-84z` (PR #20) in the Beads database and regenerated the backlog board.
+- **Cleaned Up Workspace**: Removed 3 completed worktrees and deleted their corresponding local branches (`sdk-lint-fix`, `sdk-rog`, `sdk-w7m`), keeping only active work.
+
 Session 130 — **(jetski) Completed sdk-84z: VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl.**
 - **Identified Lint Blocker**: Discovered that the newly enabled `Buildifier` CI workflow was failing globally on all PRs due to a pre-existing lint warning in `utils/ddc/rules.bzl` (which was written before strict Starlark linting was enforced).
 - **Surgically Fixed Starlark Lints**: Added the missing module-level docstring and fully documented all arguments in the docstrings for `package_kernel_outline`, `ddc_compile`, and `ddc_compile_sdk` in `utils/ddc/rules.bzl`.

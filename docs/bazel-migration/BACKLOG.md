@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 40/60 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 43/60 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -73,7 +73,7 @@ graph TD
     TASK_041["TASK_041:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::pending
-    sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::inProgress
+    sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::pending
@@ -84,9 +84,9 @@ graph TD
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::inProgress
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
-    sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::inProgress
+    sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
-    sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::inProgress
+    sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::pending
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::pending
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
@@ -248,20 +248,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-84z] VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [PR #20](https://github.com/kevmoo/sdk/pull/20)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Fix pre-existing Buildifier lint warnings in utils/ddc/rules.bzl to unblock CI runs.
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-95q] Migrate leaf C++ integration tests (abstract_socket_test & process_test) to cc_test
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -336,34 +322,6 @@ graph TD
   - None
 - **Description**:
   Update SDK roll/import scripts to exclude BUILD, BUILD.bazel, WORKSPACE, and MODULE.bazel files. Prune the existing renamed *.disabled-for-dart-bazel-migration files from the tree. Ref: docs/bazel-migration/todo_issues/issue_00005_vendored_third_party_build_files.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-rog] VM: Define formal GN target for public VM embedding C API
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [PR #19](https://github.com/kevmoo/sdk/pull/19)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Create a header-only source_set('public_api_headers') in runtime/include/BUILD.gn containing only the public embedding API headers (dart_api.h, etc.). Update internal VM targets to depend on it, and align the Bazel translation to remove the hand-written shim. Ref: docs/bazel-migration/todo_issues/issue_00007_runtime_include_public_api_target.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-w7m] VM: Eliminate preprocessor symbol toggles in dfe.cc
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [PR #18](https://github.com/kevmoo/sdk/pull/18)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Refactor runtime/bin/dfe.cc to split the CFE/Kernel stubs into separate files (dfe_empty_kernel_stubs.cc and dfe_real_kernel_stubs.cc) and select them via GN/Bazel build files, eliminating the EXCLUDE_CFE_AND_KERNEL_PLATFORM preprocessor toggles. Ref: docs/bazel-migration/todo_issues/issue_00008_dfe_ifdef_toggled_symbol_definition.md
 - **Success Criteria**:
 
 ---
