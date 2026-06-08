@@ -26,6 +26,11 @@
 **Active claims (who is editing what right now):**
 - `[none]`
 
+Session 134 — **(jetski) Backlog Update: Added legacy Bazel branch audit task.**
+- **Synchronized Beads**: Successfully pulled the missing 19 beads from the remote database after you synced it. The database is now fully up-to-date with 60 issues.
+- **Added Branch Audit Bead**: Created a new task bead `sdk-xn9` ("Audit, integrate, and delete legacy Bazel branches") to track auditing, integrating, and deleting the legacy branches (`origin/bazel_mac_more`, `origin/bazel_other_agent_learnings`, `origin/kevmoo-bazel-mac-builds`).
+- **Regenerated Backlog**: Regenerated the backlog board and history files (`BACKLOG.md`, `BACKLOG_HISTORY.md`) using the Dart script.
+
 Session 133 — **(jetski) Implemented sdk-w7m: VM: Eliminate CFE preprocessor symbol toggles.**
 - **Audited CFE/Kernel stubs**: Investigated the usage of `EXCLUDE_CFE_AND_KERNEL_PLATFORM` preprocessor toggle. Identified a latent type-mismatch hazard where `kDartCoreSnapshotData` was declared as an array but defined as a pointer-to-null in stubs (masked only because JIT core snapshots are not accessed in AOT).
 - **Implemented Safe C++ Stubs**: Created `runtime/bin/dfe_empty_kernel_stubs.cc` defining the Dill symbols as real arrays of size 1 containing `0` (matching the `extern` declarations exactly) and size `0`.
