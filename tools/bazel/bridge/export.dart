@@ -138,8 +138,11 @@ void main(List<String> args) async {
     ':(exclude)tools/bazel',
     ':(exclude)*.bzl',
     ':(exclude)BUILD.bazel',
+    ':(exclude)BUILD',
     ':(exclude)WORKSPACE',
+    ':(exclude)WORKSPACE.bazel',
     ':(exclude)MODULE.bazel',
+    ':(exclude).bazelrc',
   ];
 
   final patchFile =
@@ -161,19 +164,23 @@ void main(List<String> args) async {
     print('Running: git ${formatPatchArgs.join(' ')}');
   }
 
-  final patchResult = await Process.run('git', formatPatchArgs);
+  final patchResult = await Process.run(
+    'git',
+    formatPatchArgs,
+    stdoutEncoding: null,
+  );
   if (patchResult.exitCode != 0) {
     print('❌ Error generating patch:\n${patchResult.stderr}');
     exit(1);
   }
 
-  final patchContent = patchResult.stdout as String;
-  if (patchContent.trim().isEmpty) {
+  final patchBytes = patchResult.stdout as List<int>;
+  if (patchBytes.isEmpty) {
     print('ℹ️ No Core SDK changes detected for $range. Nothing to export.');
     exit(0);
   }
 
-  patchFile.writeAsStringSync(patchContent);
+  patchFile.writeAsBytesSync(patchBytes);
   print(
       '✅ Filtered patch generated successfully (${patchFile.lengthSync()} bytes).');
 

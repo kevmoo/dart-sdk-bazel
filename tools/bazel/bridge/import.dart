@@ -66,7 +66,7 @@ void main(List<String> args) async {
   }
 
   final changeIdentifier = results.rest.first;
-  final baseBranch = results['base'] as String?;
+  final baseBranch = results['base'] as String;
   final explicitName = results['name'] as String?;
   final patchsetOpt = results['patchset'] as String?;
   final shouldSync = results['sync'] as bool;
@@ -111,8 +111,7 @@ void main(List<String> args) async {
   }
 
   print('Importing target ref: $targetRef');
-  print(
-      'Creating branch: $branchName${baseBranch != null ? " off $baseBranch" : ""}');
+  print('Creating branch: $branchName off $baseBranch');
 
   // 4. Fetch the ref
   print('Fetching ref $targetRef from origin...');
@@ -132,9 +131,26 @@ void main(List<String> args) async {
     exit(1);
   }
 
-  // 6. Apply the change (cherry-pick FETCH_HEAD)
+  // 6. Apply the change (cherry-pick range from merge-base to FETCH_HEAD)
   print('Applying change...');
-  final applySuccess = await gitCherryPick('FETCH_HEAD', verbose);
+  final mergeBaseResult =
+      await Process.run('git', ['merge-base', baseBranch, 'FETCH_HEAD']);
+  if (mergeBaseResult.exitCode != 0) {
+    stderr.writeln('Error: Failed to find merge base.');
+    exit(1);
+  }
+  final mergeBase = (mergeBaseResult.stdout as String).trim();
+
+  final countResult = await Process.run(
+      'git', ['rev-list', '--count', '$mergeBase..FETCH_HEAD']);
+  final count = int.tryParse((countResult.stdout as String).trim()) ?? 0;
+  if (count == 0) {
+    print('ℹ️ No new commits to apply.');
+    exit(0);
+  }
+
+  final applySuccess = await gitCherryPick(
+      count == 1 ? 'FETCH_HEAD' : '$mergeBase..FETCH_HEAD', verbose);
   if (!applySuccess) {
     stderr.writeln('Error: Failed to apply change. There might be conflicts.');
     stderr.writeln(
@@ -145,7 +161,7 @@ void main(List<String> args) async {
   }
 
   // 7. Detect BUILD.gn changes and warn
-  final modifiedFiles = await gitGetModifiedFilesInCommit('HEAD');
+  final modifiedFiles = await gitGetModifiedFiles(baseBranch, 'HEAD');
   final hasBuildGnChanges =
       modifiedFiles.any((f) => f.endsWith('BUILD.gn') || f.endsWith('.gni'));
   if (hasBuildGnChanges) {
@@ -347,9 +363,9 @@ Future<bool> gitCherryPick(String ref, bool verbose) async {
   return exitCode == 0;
 }
 
-Future<List<String>> gitGetModifiedFilesInCommit(String ref) async {
-  final result = await Process.run(
-      'git', ['diff-tree', '--no-commit-id', '--name-only', '-r', ref]);
+Future<List<String>> gitGetModifiedFiles(String base, String head) async {
+  final result =
+      await Process.run('git', ['diff', '--name-only', '$base...$head']);
   if (result.exitCode != 0) {
     return [];
   }
@@ -367,10 +383,12 @@ Future<bool> runGclientSync(bool verbose) async {
   try {
     // Use inheritStdio when verbose to let the OS handle streaming,
     // otherwise use normal and drain streams to prevent hangs.
+    // runInShell is required on Windows because gclient is a batch file.
     final result = await Process.start(
       'gclient',
       ['sync'],
       environment: Platform.environment,
+      runInShell: Platform.isWindows,
       mode: verbose ? ProcessStartMode.inheritStdio : ProcessStartMode.normal,
     );
 
@@ -385,16 +403,20 @@ Future<bool> runGclientSync(bool verbose) async {
 
     final exitCode = await result.exitCode;
 
+    // Always await stream futures to prevent background dangling streams
+    List<int> stderrBytes = [];
+    if (!verbose && stderrFuture != null) {
+      stderrBytes = await stderrFuture;
+    }
+    if (!verbose && stdoutFuture != null) {
+      await stdoutFuture;
+    }
+
     if (exitCode != 0) {
-      if (!verbose && stderrFuture != null && stdoutFuture != null) {
-        // Guarantee streams are completely finished draining before reading
-        final stderrBytes = await stderrFuture;
-        await stdoutFuture;
-        if (stderrBytes.isNotEmpty) {
-          stderr.writeln('\n❌ gclient sync failed with the following error:');
-          stderr.add(stderrBytes);
-          stderr.writeln();
-        }
+      if (stderrBytes.isNotEmpty) {
+        stderr.writeln('\n❌ gclient sync failed with the following error:');
+        stderr.add(stderrBytes);
+        stderr.writeln();
       }
       return false;
     }
