@@ -203,7 +203,8 @@ void main(List<String> args) async {
   final amResult = await Process.run('git', ['am', patchFile.path]);
 
   if (amResult.exitCode != 0) {
-    print('❌ Error applying patch via git am:\n${amResult.stderr}');
+    print(
+        '❌ Error applying patch via git am:\n${amResult.stdout}\n${amResult.stderr}');
     print('\n⚠️ Git is in the middle of an "am" session. You can:');
     print('  1. Resolve conflicts, git add, and run "git am --continue"');
     print('  2. Abort the export and return to your branch by running:');

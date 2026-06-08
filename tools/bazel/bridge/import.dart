@@ -29,8 +29,12 @@ import 'package:args/args.dart';
 /// ```
 void main(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('base',
-        abbr: 'b', help: 'Base branch to branch off. Defaults to current HEAD.')
+    ..addOption(
+      'base',
+      abbr: 'b',
+      help: 'Base branch to branch off.',
+      defaultsTo: 'bazel-fork/main',
+    )
     ..addOption('name',
         abbr: 'n', help: 'Explicit name for the created branch.')
     ..addOption('patchset',
@@ -161,7 +165,11 @@ void main(List<String> args) async {
     }
   } else if (shouldSync) {
     print('\nRunning gclient sync to ensure environment is aligned...');
-    await runGclientSync(verbose);
+    final syncSuccess = await runGclientSync(verbose);
+    if (!syncSuccess) {
+      stderr.writeln('Error: gclient sync failed.');
+      exit(3); // Exit code 3 for sync failure
+    }
   }
 
   print('\nSuccessfully imported change to branch $branchName! 🎉');
@@ -356,14 +364,15 @@ Future<bool> runGclientSync(bool verbose) async {
     print('Running: gclient sync');
   }
   try {
-    // Inherit environment to preserve PATH (so gclient can be found if it's in the user's PATH)
-    final result = await Process.start('gclient', ['sync'],
-        environment: Platform.environment);
-    if (verbose) {
-      result.stdout.listen(stdout.add);
-      result.stderr.listen(stderr.add);
-    } else {
-      // Drain streams to prevent process from hanging when OS buffer fills up
+    // Use inheritStdio when verbose to let the OS handle streaming,
+    // otherwise use normal and drain streams to prevent hangs.
+    final result = await Process.start(
+      'gclient',
+      ['sync'],
+      environment: Platform.environment,
+      mode: verbose ? ProcessStartMode.inheritStdio : ProcessStartMode.normal,
+    );
+    if (!verbose) {
       result.stdout.listen((_) {});
       result.stderr.listen((_) {});
     }
