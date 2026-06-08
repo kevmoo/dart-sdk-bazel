@@ -58,7 +58,7 @@ graph TD
     TASK_026["TASK_026:<br>CI LUCI Recipe Migration"]:::pending
     TASK_027["TASK_027:<br>Investigate Upstreaming Non-Bazel Fixes to Main"]:::completed
     TASK_028["TASK_028:<br>Investigate Google3 Alignment"]:::pending
-    TASK_029["TASK_029:<br>Streamline and Optimize Bazel Build Definitions"]:::inProgress
+    TASK_029["TASK_029:<br>Streamline and Optimize Bazel Build Definitions"]:::pending
     TASK_030["TASK_030:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
     TASK_031["TASK_031:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
     TASK_032["TASK_032:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
@@ -78,10 +78,10 @@ graph TD
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::pending
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::pending
-    sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::inProgress
+    sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::pending
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::pending
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
-    sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::inProgress
+    sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::pending
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
@@ -206,7 +206,7 @@ graph TD
 ---
 
 ### 🎯 [TASK_029] Streamline and Optimize Bazel Build Definitions
-- **Status**: `[IN_PROGRESS]`
+- **Status**: `[PENDING]`
 - **Prerequisites**: `TASK_003`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -289,7 +289,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
-- **Status**: `[IN_PROGRESS]`
+- **Status**: `[PENDING]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -315,7 +315,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-gmk] Prune upstream Bazel files from vendored third_party
-- **Status**: `[IN_PROGRESS]`
+- **Status**: `[PENDING]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
