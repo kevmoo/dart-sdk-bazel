@@ -61,3 +61,28 @@ All configuration files in this directory use placeholders:
 *   `gke-cluster.tf`: Terraform template for the heterogeneous GKE cluster (Linux + Windows pools).
 *   `buildfarm-values.yaml`: Helm values template for deploying Buildfarm.
 *   `bazelrc`: Template `.bazelrc` configuration for developers.
+
+---
+
+## Verification Status
+
+### Phase 1: GCS Remote Caching (VERIFIED & ACTIVE)
+*   **Status**: Completed on 2026-06-08
+*   **Target Project**: `dart-sdk-bazel-sandbox-265004`
+*   **Provisioned Buckets**:
+    *   Dev Cache: `bazel-global-cache-dev-dart-sdk-bazel-sandbox-265004` (14-day TTL)
+    *   Prod Cache: `bazel-global-cache-prod-dart-sdk-bazel-sandbox-265004` (180-day TTL)
+*   **Results**:
+    *   **Cold Build (Cache Miss)**: `40.251s` (5 processes: 1 internal, 4 linux-sandbox) - Populated GCS.
+    *   **Warm Build (Cache Hit)**: `8.248s` (5 processes: 1 internal, **4 remote cache hit**) - 100% hit rate.
+
+#### How to Re-Verify Locally
+Run the following command to force a clean build and pull everything from the GCS cache:
+```bash
+bazel clean --expunge && \
+bazel build //samples/embedder:futures_kernel_dill_compile \
+  --remote_cache=https://storage.googleapis.com/bazel-global-cache-dev-dart-sdk-bazel-sandbox-265004 \
+  --google_default_credentials=true \
+  --remote_upload_local_results=true
+```
+

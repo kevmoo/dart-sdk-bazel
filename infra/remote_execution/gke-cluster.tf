@@ -14,10 +14,7 @@ resource "google_container_cluster" "bazel_cluster" {
     channel = "REGULAR"
   }
 
-  ip_allocation_policy {
-    # Enabled for VPC-native cluster (required for modern GKE features)
-    use_ip_aliases = true
-  }
+  ip_allocation_policy {}
 
   # Enable Workload Identity for secure access to GCS without keys
   workload_identity_config {
