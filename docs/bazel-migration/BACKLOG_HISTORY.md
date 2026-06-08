@@ -651,6 +651,32 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-9qx] Design: Bazel-powered developer workflow bridge for upstream work
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `TASK_038`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Draft a design document detailing the workflow for importing upstream Gerrit CLs/PRs into a bazel-based branch, iterating/testing using Bazel, and exporting verified changes back to a main-based branch. Define CLI specs for bridge scripts.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-fnn] Tooling: Implement script to export Bazel-tested changes back to Main
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-9qx`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a developer script (e.g., tools/bazel/bridge/export.dart) to extract the core SDK changes from a Bazel branch and apply them cleanly to a main-based branch, filtering out Bazel-specific migration files.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-g2l] [M3] Wire up Dart2JS and Dartdoc Snapshots
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-oce`
@@ -727,6 +753,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Refactor runtime/bin/dfe.cc to split the CFE/Kernel stubs into separate files (dfe_empty_kernel_stubs.cc and dfe_real_kernel_stubs.cc) and select them via GN/Bazel build files, eliminating the EXCLUDE_CFE_AND_KERNEL_PLATFORM preprocessor toggles. Ref: docs/bazel-migration/todo_issues/issue_00008_dfe_ifdef_toggled_symbol_definition.md
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-zi3] Tooling: Implement script to import upstream CL/PR into Bazel workspace
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-9qx`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a developer script (e.g., tools/bazel/bridge/import.dart) to fetch a Gerrit CL or GitHub PR patch, create a local branch off bazel, and apply the patch cleanly.
 - **Success Criteria**:
 
 ---

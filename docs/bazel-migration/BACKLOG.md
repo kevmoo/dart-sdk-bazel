@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 43/62 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 46/62 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -77,10 +77,10 @@ graph TD
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::pending
-    sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::inProgress
+    sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::pending
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::pending
-    sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::inProgress
+    sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::pending
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
@@ -90,7 +90,7 @@ graph TD
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::pending
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::pending
-    sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::inProgress
+    sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
     TASK_017 --> TASK_006
@@ -276,19 +276,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-9qx] Design: Bazel-powered developer workflow bridge for upstream work
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: `TASK_038`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Draft a design document detailing the workflow for importing upstream Gerrit CLs/PRs into a bazel-based branch, iterating/testing using Bazel, and exporting verified changes back to a main-based branch. Define CLI specs for bridge scripts.
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -311,19 +298,6 @@ graph TD
   - None
 - **Description**:
   Resolve the silent reliance on implicit include paths for ICU data headers (norm2_nfc_data.h, etc.). Either implement the regeneration step in GN/Bazel to match upstream, or explicitly expose the checked-in data tables in third_party/icu/BUILD.gn and document the divergence. Ref: docs/bazel-migration/todo_issues/issue_00006_icu_data_headers_inconsistency.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-fnn] Tooling: Implement script to export Bazel-tested changes back to Main
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: `sdk-9qx`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Create a developer script (e.g., tools/bazel/bridge/export.dart) to extract the core SDK changes from a Bazel branch and apply them cleanly to a main-based branch, filtering out Bazel-specific migration files.
 - **Success Criteria**:
 
 ---
@@ -363,19 +337,6 @@ graph TD
   - None
 - **Description**:
   Go through legacy Bazel branches (origin/bazel_mac_more, origin/bazel_other_agent_learnings, origin/kevmoo-bazel-mac-builds) to ensure all useful knowledge and code have been integrated into the main branch, then delete them.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-zi3] Tooling: Implement script to import upstream CL/PR into Bazel workspace
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: `sdk-9qx`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Create a developer script (e.g., tools/bazel/bridge/import.dart) to fetch a Gerrit CL or GitHub PR patch, create a local branch off bazel, and apply the patch cleanly.
 - **Success Criteria**:
 
 ---
