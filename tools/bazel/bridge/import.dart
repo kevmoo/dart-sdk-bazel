@@ -159,7 +159,7 @@ void main(List<String> args) async {
   // 8. Run gclient sync if DEPS changed
   // 8. Run gclient sync if requested
   if (shouldSync) {
-    final hasDepsChanges = modifiedFiles.any((f) => f.endsWith('DEPS'));
+    final hasDepsChanges = modifiedFiles.any((f) => f == 'DEPS');
     if (hasDepsChanges) {
       print('\nDEPS file was modified. Running gclient sync...');
     } else {
@@ -230,8 +230,8 @@ ChangeInfo parseChangeIdentifier(String identifier, String? explicitPatchset) {
   // Gerrit CL number: 505900
   // GitHub PR number: 123 (if we default to Gerrit if it's just a number)
 
-  final gerritUrlRegExp =
-      RegExp(r'dart-review\.googlesource\.com/c/sdk/\+/(\d+)(?:/(\d+))?');
+  final gerritUrlRegExp = RegExp(
+      r'dart-review\.googlesource\.com/(?:c/sdk/\+/|c/)?(\d+)(?:/(\d+))?');
   final githubUrlRegExp = RegExp(r'github\.com/dart-lang/sdk/pull/(\d+)');
   final numberRegExp = RegExp(r'^\d+$');
 
