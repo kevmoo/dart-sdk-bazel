@@ -737,7 +737,6 @@ cc_binary(
         "-ffunction-sections",
         "-g3",
         "-ggdb3",
-        "-fPIE",
     ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
@@ -748,7 +747,6 @@ cc_binary(
     cxxopts = [
         "-fvisibility-inlines-hidden",
         "-fno-omit-frame-pointer",
-        "-std=c++20",
         "-std=c++20",
         "-fno-rtti",
     ] + select({
