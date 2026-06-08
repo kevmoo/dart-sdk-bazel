@@ -29,10 +29,14 @@ import 'package:args/args.dart';
 /// ```
 void main(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('base', abbr: 'b', help: 'Base branch to branch off. Defaults to current HEAD.')
-    ..addOption('name', abbr: 'n', help: 'Explicit name for the created branch.')
-    ..addOption('patchset', abbr: 'p', help: 'Specific Gerrit patchset to import.')
-    ..addFlag('sync', help: 'Whether to run gclient sync after importing.', defaultsTo: true)
+    ..addOption('base',
+        abbr: 'b', help: 'Base branch to branch off. Defaults to current HEAD.')
+    ..addOption('name',
+        abbr: 'n', help: 'Explicit name for the created branch.')
+    ..addOption('patchset',
+        abbr: 'p', help: 'Specific Gerrit patchset to import.')
+    ..addFlag('sync',
+        help: 'Whether to run gclient sync after importing.', defaultsTo: true)
     ..addFlag('verbose', abbr: 'v', help: 'Verbose output.', defaultsTo: false)
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show this help.');
 
@@ -51,7 +55,8 @@ void main(List<String> args) async {
   }
 
   if (results.rest.isEmpty) {
-    stderr.writeln('Error: Missing change identifier (Gerrit CL or GitHub PR).');
+    stderr
+        .writeln('Error: Missing change identifier (Gerrit CL or GitHub PR).');
     printUsage(parser);
     exit(1);
   }
@@ -65,7 +70,8 @@ void main(List<String> args) async {
 
   // 1. Verify git state is clean
   if (!await isGitClean()) {
-    stderr.writeln('Error: Git working directory is not clean. Commit or stash your changes.');
+    stderr.writeln(
+        'Error: Git working directory is not clean. Commit or stash your changes.');
     exit(1);
   }
 
@@ -90,26 +96,30 @@ void main(List<String> args) async {
     print('Resolving latest patchset for Gerrit CL ${changeInfo.id}...');
     final latestPatchset = await resolveLatestGerritPatchset(changeInfo.id);
     if (latestPatchset == null) {
-      stderr.writeln('Error: Could not resolve latest patchset for CL ${changeInfo.id}.');
+      stderr.writeln(
+          'Error: Could not resolve latest patchset for CL ${changeInfo.id}.');
       exit(1);
     }
     print('Latest patchset is $latestPatchset');
     targetRef = changeInfo.getRefForPatchset(latestPatchset);
-    branchName = explicitName ?? changeInfo.getBranchNameForPatchset(latestPatchset);
+    branchName =
+        explicitName ?? changeInfo.getBranchNameForPatchset(latestPatchset);
   }
 
   print('Importing target ref: $targetRef');
-  print('Creating branch: $branchName${baseBranch != null ? " off $baseBranch" : ""}');
+  print(
+      'Creating branch: $branchName${baseBranch != null ? " off $baseBranch" : ""}');
 
   // 4. Fetch the ref
   print('Fetching ref $targetRef from origin...');
   if (!await gitFetch('origin', targetRef, verbose)) {
-     // Try upstream if origin fails (Gerrit might be on upstream)
-     print('Fetch from origin failed, trying upstream...');
-     if (!await gitFetch('upstream', targetRef, verbose)) {
-       stderr.writeln('Error: Failed to fetch ref $targetRef from origin or upstream.');
-       exit(1);
-     }
+    // Try upstream if origin fails (Gerrit might be on upstream)
+    print('Fetch from origin failed, trying upstream...');
+    if (!await gitFetch('upstream', targetRef, verbose)) {
+      stderr.writeln(
+          'Error: Failed to fetch ref $targetRef from origin or upstream.');
+      exit(1);
+    }
   }
 
   // 5. Create branch and checkout
@@ -123,16 +133,20 @@ void main(List<String> args) async {
   final applySuccess = await gitCherryPick('FETCH_HEAD', verbose);
   if (!applySuccess) {
     stderr.writeln('Error: Failed to apply change. There might be conflicts.');
-    stderr.writeln('You are now on branch $branchName. Please resolve conflicts manually or abort.');
+    stderr.writeln(
+        'You are now on branch $branchName. Please resolve conflicts manually or abort.');
     exit(2); // Exit code 2 for conflicts
   }
 
   // 7. Detect BUILD.gn changes and warn
   final modifiedFiles = await gitGetModifiedFilesInCommit('HEAD');
-  final hasBuildGnChanges = modifiedFiles.any((f) => f.endsWith('BUILD.gn') || f.endsWith('.gni'));
+  final hasBuildGnChanges =
+      modifiedFiles.any((f) => f.endsWith('BUILD.gn') || f.endsWith('.gni'));
   if (hasBuildGnChanges) {
-    stderr.writeln('\n⚠️  WARNING: BUILD.gn or .gni files were modified in this patch.');
-    stderr.writeln('Bazel builds may fail until you manually update the corresponding BUILD.bazel files');
+    stderr.writeln(
+        '\n⚠️  WARNING: BUILD.gn or .gni files were modified in this patch.');
+    stderr.writeln(
+        'Bazel builds may fail until you manually update the corresponding BUILD.bazel files');
     stderr.writeln('or run tools/bazel/translate_gn_desc.py.');
   }
 
@@ -154,7 +168,8 @@ void main(List<String> args) async {
 }
 
 void printUsage(ArgParser parser) {
-  print('Usage: dart tools/bazel/bridge/import.dart [options] <change-identifier>');
+  print(
+      'Usage: dart tools/bazel/bridge/import.dart [options] <change-identifier>');
   print(parser.usage);
 }
 
@@ -206,7 +221,8 @@ ChangeInfo parseChangeIdentifier(String identifier, String? explicitPatchset) {
   // Gerrit CL number: 505900
   // GitHub PR number: 123 (if we default to Gerrit if it's just a number)
 
-  final gerritUrlRegExp = RegExp(r'dart-review\.googlesource\.com/c/sdk/\+/(\d+)(?:/(\d+))?');
+  final gerritUrlRegExp =
+      RegExp(r'dart-review\.googlesource\.com/c/sdk/\+/(\d+)(?:/(\d+))?');
   final githubUrlRegExp = RegExp(r'github\.com/dart-lang/sdk/pull/(\d+)');
   final numberRegExp = RegExp(r'^\d+$');
 
@@ -225,7 +241,8 @@ ChangeInfo parseChangeIdentifier(String identifier, String? explicitPatchset) {
 
   if (numberRegExp.hasMatch(identifier)) {
     // If it's just a number, default to Gerrit CL
-    return ChangeInfo(type: ChangeType.gerrit, id: identifier, patchset: explicitPatchset);
+    return ChangeInfo(
+        type: ChangeType.gerrit, id: identifier, patchset: explicitPatchset);
   }
 
   throw FormatException('Invalid change identifier: $identifier');
@@ -239,14 +256,14 @@ Future<bool> isGitClean() async {
 Future<String?> resolveLatestGerritPatchset(String clId) async {
   final lastTwo = (int.parse(clId) % 100).toString().padLeft(2, '0');
   final refPattern = 'refs/changes/$lastTwo/$clId/*';
-  
+
   // Try upstream first, then origin
   for (final remote in ['upstream', 'origin']) {
     final result = await Process.run('git', ['ls-remote', remote, refPattern]);
     if (result.exitCode == 0) {
       final stdout = result.stdout as String;
       if (stdout.isEmpty) continue;
-      
+
       int maxPatchset = 0;
       final lines = stdout.split('\n');
       for (final line in lines) {
@@ -276,18 +293,17 @@ Future<bool> gitFetch(String remote, String ref, bool verbose) async {
   if (verbose) {
     print('Running: git ${args.join(' ')}');
   }
-  final result = await Process.start('git', args);
-  if (verbose) {
-    result.stdout.listen(stdout.add);
-    result.stderr.listen(stderr.add);
-  }
+  final result =
+      await Process.start('git', args, mode: ProcessStartMode.inheritStdio);
   final exitCode = await result.exitCode;
   return exitCode == 0;
 }
 
-Future<bool> gitCheckoutAndBranch(String branchName, String? baseBranch, bool verbose) async {
+Future<bool> gitCheckoutAndBranch(
+    String branchName, String? baseBranch, bool verbose) async {
   // Check if branch already exists locally
-  final checkResult = await Process.run('git', ['show-ref', '--verify', 'refs/heads/$branchName']);
+  final checkResult = await Process.run(
+      'git', ['show-ref', '--verify', 'refs/heads/$branchName']);
   if (checkResult.exitCode == 0) {
     stderr.writeln('Error: Branch $branchName already exists.');
     return false;
@@ -297,7 +313,7 @@ Future<bool> gitCheckoutAndBranch(String branchName, String? baseBranch, bool ve
   if (baseBranch != null) {
     args.add(baseBranch);
   }
-  
+
   if (verbose) {
     print('Running: git ${args.join(' ')}');
   }
@@ -316,21 +332,23 @@ Future<bool> gitCherryPick(String ref, bool verbose) async {
   if (verbose) {
     print('Running: git ${args.join(' ')}');
   }
-  final result = await Process.start('git', args);
-  if (verbose) {
-    result.stdout.listen(stdout.add);
-    result.stderr.listen(stderr.add);
-  }
+  final result =
+      await Process.start('git', args, mode: ProcessStartMode.inheritStdio);
   final exitCode = await result.exitCode;
   return exitCode == 0;
 }
 
 Future<List<String>> gitGetModifiedFilesInCommit(String ref) async {
-  final result = await Process.run('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', ref]);
+  final result = await Process.run(
+      'git', ['diff-tree', '--no-commit-id', '--name-only', '-r', ref]);
   if (result.exitCode != 0) {
     return [];
   }
-  return (result.stdout as String).split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  return (result.stdout as String)
+      .split('\n')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
 }
 
 Future<bool> runGclientSync(bool verbose) async {
@@ -339,15 +357,21 @@ Future<bool> runGclientSync(bool verbose) async {
   }
   try {
     // Inherit environment to preserve PATH (so gclient can be found if it's in the user's PATH)
-    final result = await Process.start('gclient', ['sync'], environment: Platform.environment);
+    final result = await Process.start('gclient', ['sync'],
+        environment: Platform.environment);
     if (verbose) {
       result.stdout.listen(stdout.add);
       result.stderr.listen(stderr.add);
+    } else {
+      // Drain streams to prevent process from hanging when OS buffer fills up
+      result.stdout.listen((_) {});
+      result.stderr.listen((_) {});
     }
     final exitCode = await result.exitCode;
     return exitCode == 0;
   } on ProcessException catch (e) {
-    stderr.writeln('Error: Failed to execute "gclient". Make sure depot_tools is in your PATH.');
+    stderr.writeln(
+        'Error: Failed to execute "gclient". Make sure depot_tools is in your PATH.');
     if (verbose) {
       stderr.writeln('Details: $e');
     }

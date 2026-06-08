@@ -46,13 +46,15 @@ void main(List<String> args) async {
     ..addOption(
       'base',
       abbr: 'b',
-      help: 'The Bazel integration base branch to compare against (used when not exporting a specific commit).',
+      help:
+          'The Bazel integration base branch to compare against (used when not exporting a specific commit).',
       defaultsTo: 'bazel-fork/main',
     )
     ..addOption(
       'commit',
       abbr: 'c',
-      help: 'A specific commit hash to export. If provided, only this commit is exported.',
+      help:
+          'A specific commit hash to export. If provided, only this commit is exported.',
     )
     ..addOption(
       'target-base',
@@ -62,7 +64,8 @@ void main(List<String> args) async {
     ..addOption(
       'name',
       abbr: 'n',
-      help: 'The name of the exported branch to create. Defaults to export-<timestamp>.',
+      help:
+          'The name of the exported branch to create. Defaults to export-<timestamp>.',
     )
     ..addFlag(
       'upload',
@@ -103,7 +106,7 @@ void main(List<String> args) async {
   final targetBase = results['target-base'] as String;
   final upload = results['upload'] as bool;
   final verbose = results['verbose'] as bool;
-  
+
   final timestamp = DateTime.now().millisecondsSinceEpoch;
   final branchName = results['name'] as String? ?? 'export-$timestamp';
 
@@ -122,14 +125,15 @@ void main(List<String> args) async {
 
   // 1. Verify Git is clean
   if (!await _isGitClean()) {
-    print('❌ Error: Git working tree is not clean. Please commit or stash your changes before exporting.');
+    print(
+        '❌ Error: Git working tree is not clean. Please commit or stash your changes before exporting.');
     exit(1);
   }
 
   // 2. Generate the filtered patch
   final range = commit != null ? '$commit~1..$commit' : '$base..HEAD';
   print('📦 Generating filtered patch for $range...');
-  
+
   final excludes = [
     ':(exclude)tools/bazel',
     ':(exclude)*.bzl',
@@ -138,7 +142,8 @@ void main(List<String> args) async {
     ':(exclude)MODULE.bazel',
   ];
 
-  final patchFile = File('${Directory.systemTemp.path}/export_$timestamp.patch');
+  final patchFile =
+      File('${Directory.systemTemp.path}/export_$timestamp.patch');
   if (verbose) {
     print('Temporary patch file: ${patchFile.path}');
   }
@@ -169,7 +174,8 @@ void main(List<String> args) async {
   }
 
   patchFile.writeAsStringSync(patchContent);
-  print('✅ Filtered patch generated successfully (${patchFile.lengthSync()} bytes).');
+  print(
+      '✅ Filtered patch generated successfully (${patchFile.lengthSync()} bytes).');
 
   // Remember the current branch so we can return to it if needed
   final currentBranch = await _getCurrentBranch();
@@ -195,7 +201,7 @@ void main(List<String> args) async {
   // 4. Apply the patch using git am
   print('📥 Applying filtered patch via git am...');
   final amResult = await Process.run('git', ['am', patchFile.path]);
-  
+
   if (amResult.exitCode != 0) {
     print('❌ Error applying patch via git am:\n${amResult.stderr}');
     print('\n⚠️ Git is in the middle of an "am" session. You can:');
@@ -209,7 +215,8 @@ void main(List<String> args) async {
   }
 
   print('🎉 Export completed successfully!');
-  print('New branch $branchName contains the core SDK changes, cleanly separated.');
+  print(
+      'New branch $branchName contains the core SDK changes, cleanly separated.');
 
   _cleanup(patchFile);
 
@@ -248,7 +255,7 @@ void _cleanup(File file) {
 
 Future<bool> _isGitClean() async {
   final result = await Process.run('git', ['status', '--porcelain', '-uno']);
-  return (result.stdout as String).trim().isEmpty;
+  return result.exitCode == 0 && (result.stdout as String).trim().isEmpty;
 }
 
 Future<String> _getCurrentBranch() async {
