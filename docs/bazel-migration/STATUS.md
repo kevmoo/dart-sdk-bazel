@@ -26,6 +26,10 @@
 **Active claims (who is editing what right now):**
 - `[none]`
 
+Session 135 — **(jetski) Backlog Update: Added Buildfarm/Buildbarn evaluation decision bead.**
+- **Added RBE Evaluation Bead**: Created a new decision bead `sdk-3la` ("Investigate remote build and cache using Buildfarm or Buildbarn") to evaluate self-hosted RBE and remote caching alternatives.
+- **Regenerated Backlog**: Regenerated the backlog board and history files (`BACKLOG.md`, `BACKLOG_HISTORY.md`) using the Dart script.
+
 Session 134 — **(jetski) Backlog Update: Added legacy Bazel branch audit task.**
 - **Synchronized Beads**: Successfully pulled the missing 19 beads from the remote database after you synced it. The database is now fully up-to-date with 60 issues.
 - **Added Branch Audit Bead**: Created a new task bead `sdk-xn9` ("Audit, integrate, and delete legacy Bazel branches") to track auditing, integrating, and deleting the legacy branches (`origin/bazel_mac_more`, `origin/bazel_other_agent_learnings`, `origin/kevmoo-bazel-mac-builds`).
