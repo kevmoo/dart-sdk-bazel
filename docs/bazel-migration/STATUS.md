@@ -33,6 +33,13 @@ Session 133 — **(jetski) Implemented sdk-w7m: VM: Eliminate CFE preprocessor s
 - **Updated GN and Bazel builds**: Removed `EXCLUDE_CFE_AND_KERNEL_PLATFORM` from all GN/Bazel configs. Updated `BUILD.gn` and `BUILD.bazel` to conditionally compile/link `dfe_empty_kernel_stubs.cc` for all 8 `gen_snapshot` targets, `dartvm`, and `dart_libfuzzer` when CFE is excluded.
 - **Verified Build & Run E2E**: Successfully ran GN, regenerated all `gen_targets.bzl` files via the translator, and ran `buildifier` to format all Bazel files. Verified by compiling and linking `gen_snapshot` 100% green, and verified it starts up and prints its usage cleanly without crashing.
 
+Session 131 — **(jetski) Implemented sdk-rog: VM: Define formal GN target for public VM embedding C API.**
+- **Defined Public API Headers Target**: Created a header-only `source_set("public_api_headers")` in `runtime/include/BUILD.gn` containing all public embedding C API headers (including `bin/dart_io_api.h` and `bin/native_assets_api.h`).
+- **Exported Include Paths**: Configured `public_api_config` in `runtime/include/BUILD.gn` to export the `.` include path, allowing consumers to cleanly `#include "dart_api.h"` while preventing transitive header search path pollution.
+- **Refactored VM and Bin Targets**: Refactored `source_set("dart_api")` in `runtime/BUILD.gn` to remove the headers from `sources` and instead depend on `include:public_api_headers` via `public_deps`, keeping it strictly for compiling `dart_api_dl.c`.
+- **Aligned Bazel Build**: Manually defined `cc_library(name = "public_api_headers")` in `runtime/include/BUILD.bazel` with the same headers and `includes = ["."]`. Refactored `runtime:dart_api` in `runtime/BUILD.bazel` to depend on it, removing the hand-written headers list.
+- **Verified Build E2E**: Successfully ran GN and Bazel builds. Verified `//runtime:dart_api` compiles and links perfectly under Bazel with the new transitive header dependency. Formatted all Bazel files using `buildifier`.
+
 Session 130 — **(jetski) Completed sdk-84z: VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl.**
 - **Identified Lint Blocker**: Discovered that the newly enabled `Buildifier` CI workflow was failing globally on all PRs due to a pre-existing lint warning in `utils/ddc/rules.bzl` (which was written before strict Starlark linting was enforced).
 - **Surgically Fixed Starlark Lints**: Added the missing module-level docstring and fully documented all arguments in the docstrings for `package_kernel_outline`, `ddc_compile`, and `ddc_compile_sdk` in `utils/ddc/rules.bzl`.

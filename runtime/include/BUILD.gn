@@ -21,3 +21,30 @@ copy("copy_headers") {
   outputs =
       [ "$root_out_dir/$dart_sdk_output/include/{{source_target_relative}}" ]
 }
+
+config("public_api_config") {
+  include_dirs = [
+    ".",
+  ]
+}
+
+source_set("public_api_headers") {
+  visibility = [
+    ":copy_headers",
+    "../:*",
+  ]
+  sources = [
+    "analyze_snapshot_api.h",
+    "dart_api.h",
+    "dart_api_dl.h",
+    "dart_embedder_api.h",
+    "dart_native_api.h",
+    "dart_tools_api.h",
+    "dart_version.h",
+    "internal/dart_api_dl_impl.h",
+    "bin/dart_io_api.h",
+    "bin/native_assets_api.h",
+  ]
+  public_configs = [ ":public_api_config" ]
+}
+

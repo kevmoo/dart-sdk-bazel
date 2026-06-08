@@ -50,3 +50,23 @@ cc_library(
         allow_empty = True,
     ),
 )
+
+cc_library(
+    name = "public_api_headers",
+    hdrs = [
+        "analyze_snapshot_api.h",
+        "bin/dart_io_api.h",
+        "bin/native_assets_api.h",
+        "dart_api.h",
+        "dart_api_dl.h",
+        "dart_embedder_api.h",
+        "dart_native_api.h",
+        "dart_tools_api.h",
+        "dart_version.h",
+        "internal/dart_api_dl_impl.h",
+    ],
+    includes = [
+        ".",
+    ],
+    visibility = ["//visibility:public"],
+)
