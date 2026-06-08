@@ -1,0 +1,17 @@
+# Ignore local Terraform state and overrides
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Ignore local variable definitions (contains real GCP details)
+local.auto.tfvars
+*.local.tfvars
+
+# Ignore local Kubernetes/Helm overrides
+*.local.yaml
+kubeconfig.local
+
+# Ignore local environment files
+.env
+.env.local

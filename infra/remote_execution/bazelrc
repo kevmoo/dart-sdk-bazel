@@ -1,0 +1,49 @@
+# ==============================================================================
+# BAZEL REMOTE EXECUTION & CACHING CONFIGURATION TEMPLATE
+# ==============================================================================
+#
+# Copy these configurations into your project's root `.bazelrc` or import it:
+# try-import %workspace%/infra/remote_execution/bazelrc
+#
+# To use these configs, run:
+#   bazel build --config=remote //...
+#   or
+#   bazel build --config=remote-cache //...
+#
+# Authenticate before running:
+#   gcloud auth application-default login
+#
+
+# ------------------------------------------------------------------------------
+# 1. REMOTE CACHE ONLY (Run locally, share cache in GCS)
+# ------------------------------------------------------------------------------
+build:remote-cache --remote_cache=https://storage.googleapis.com/<DEV_CACHE_BUCKET_NAME>
+build:remote-cache --google_default_credentials=true
+
+# Enable upload to cache (CI should always do this, devs can optionally disable it if they have slow upload)
+build:remote-cache --remote_upload_local_results=true
+
+# Fallback to local execution if the remote cache is down
+build:remote-cache --remote_local_fallback=true
+
+# ------------------------------------------------------------------------------
+# 2. FULL REMOTE EXECUTION (Run in GKE, share cache)
+# ------------------------------------------------------------------------------
+# Point to the GKE Buildfarm Server LoadBalancer IP or Domain
+build:remote --remote_executor=grpcs://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
+build:remote --remote_cache=grpcs://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
+build:remote --google_default_credentials=true
+
+# Required for remote execution to map local toolchains to remote workers
+build:remote --spawn_strategy=remote
+build:remote --strategy=Javac=remote
+build:remote --strategy=Closure=remote
+
+# Enable bytes receiving/sending optimization
+build:remote --remote_download_outputs=toplevel # Only download final artifacts, not intermediate ones (massive speedup!)
+
+# Set timeout for remote actions
+build:remote --remote_timeout=3600
+
+# Fallback to local if remote execution fails unexpectedly
+build:remote --remote_local_fallback=true
