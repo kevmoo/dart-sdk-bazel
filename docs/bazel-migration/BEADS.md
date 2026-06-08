@@ -55,6 +55,14 @@ bd dolt push                              # ship the DB to the fork
 git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md  # commit the board
 ```
 
+## 🔄 Task Lifecycle & PR Alignment (CRITICAL)
+
+To keep the backlog board accurate and prevent desynchronization:
+
+1.  **READY / BLOCKED (Open):** The task is waiting in the backlog.
+2.  **IN PROGRESS (Active):** Claim the task (`bd update <id> --claim`) when you start working. **The task MUST remain in the `IN_PROGRESS` state throughout the entire development and PR review process.**
+3.  **CLOSED (Done):** Only close the task (`bd close <id>`) **AFTER the PR has successfully landed (merged) upstream.** Never close a task while its changes are still in a branch or active PR.
+
 ## Gotchas (learned the hard way — don't relearn these)
 
 - **Use `git+https://`, never `git+ssh://`** for the dolt remote. The ssh URL
@@ -70,3 +78,38 @@ git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md 
   push` is a **manual** step. Local `.beads/` history is always safe
   (`auto-commit=on`); the fork is the durable off-machine copy.
 - `.beads/` is gitignored and local — it is never committed.
+
+## 🕵️‍♂️ Troubleshooting Headless / Agent Environments
+
+When running `bd` or `dolt` commands in background agent sessions (such as JetSki daemons), you may encounter two common environmental hurdles:
+
+### 1. Database Resolution in Git Worktrees
+In a Git worktree layout, `bd` resolves the active database directory to the **bare repository root** (e.g., `.bare/.beads/`) rather than the active worktree directory (`sdk/.beads/`). 
+*   **Why:** This is a feature designed to keep the active database local-only and prevent it from being accidentally committed.
+*   **Impact:** Any raw `dolt` commands must be run inside `.bare/.beads/embeddeddolt/sdk/` to interact with the active database.
+
+### 2. SSH Push Failures (`Permission denied (publickey)`)
+If you have a global Git configuration that rewrites HTTPS pushes to SSH (using `pushinsteadof`):
+```ini
+url.git@github.com:.pushinsteadof=https://github.com/
+```
+Background agents will fail to push (`bd dolt push` or `git push`) because they lack access to your active SSH agent/keys (usually due to a missing or inaccessible `SSH_AUTH_SOCK` in the daemon environment).
+
+#### **The Permanent Solution (SSH Agent Symlink):**
+We have implemented a permanent solution that allows background agents to use your active SSH agent seamlessly:
+1.  **Static Symlink:** A static symlink is maintained at `~/.ssh/ssh_auth_sock` which always points to your active SSH agent socket. This is automatically updated upon login via your Zsh configuration (`~/.config/zsh/rc.d/linux-local.zsh`).
+2.  **Daemon Configuration:** The JetSki Hub Daemon is configured via `~/.config/jetski/hub.env` to inject `SSH_AUTH_SOCK=/usr/local/google/home/<username>/.ssh/ssh_auth_sock` into all spawned agent environments.
+
+With this setup, both `git push` and `bd dolt push` work out-of-the-box in background sessions without any manual intervention.
+
+#### **The Legacy Bypass (HTTPS Fallback):**
+If the SSH agent connection is ever broken, you can still temporarily bypass the global rewrite in a shell session to force Git and Dolt to use HTTPS (which authenticates silently via the `gh` credential helper):
+```bash
+# Temporarily unset pushinsteadof globally for this shell, and ensure it is restored on exit
+git config --global url.git@github.com:.pushinsteadof ""
+trap 'git config --global --unset url.git@github.com:.pushinsteadof' EXIT
+
+# Run your push commands
+PATH=$PATH:$HOME/go/bin bd dolt push
+```
+
