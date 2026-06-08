@@ -138,7 +138,9 @@ void main(List<String> args) async {
   if (!applySuccess) {
     stderr.writeln('Error: Failed to apply change. There might be conflicts.');
     stderr.writeln(
-        'You are now on branch $branchName. Please resolve conflicts manually or abort.');
+        'You are now on branch $branchName. Please resolve conflicts manually:\n'
+        '  1. Resolve conflicts in files, git add them, and run "git cherry-pick --continue"\n'
+        '  2. Or abort the import by running "git cherry-pick --abort"');
     exit(2); // Exit code 2 for conflicts
   }
 
@@ -155,16 +157,15 @@ void main(List<String> args) async {
   }
 
   // 8. Run gclient sync if DEPS changed
-  final hasDepsChanges = modifiedFiles.any((f) => f.endsWith('DEPS'));
-  if (hasDepsChanges && shouldSync) {
-    print('\nDEPS file was modified. Running gclient sync...');
-    final syncSuccess = await runGclientSync(verbose);
-    if (!syncSuccess) {
-      stderr.writeln('Error: gclient sync failed.');
-      exit(3); // Exit code 3 for sync failure
+  // 8. Run gclient sync if requested
+  if (shouldSync) {
+    final hasDepsChanges = modifiedFiles.any((f) => f.endsWith('DEPS'));
+    if (hasDepsChanges) {
+      print('\nDEPS file was modified. Running gclient sync...');
+    } else {
+      print('\nRunning gclient sync to ensure environment is aligned...');
     }
-  } else if (shouldSync) {
-    print('\nRunning gclient sync to ensure environment is aligned...');
+
     final syncSuccess = await runGclientSync(verbose);
     if (!syncSuccess) {
       stderr.writeln('Error: gclient sync failed.');
@@ -372,12 +373,32 @@ Future<bool> runGclientSync(bool verbose) async {
       environment: Platform.environment,
       mode: verbose ? ProcessStartMode.inheritStdio : ProcessStartMode.normal,
     );
+
+    // Set up stream capture futures immediately if not verbose
+    Future<List<int>>? stderrFuture;
+    Future<void>? stdoutFuture;
     if (!verbose) {
-      result.stdout.listen((_) {});
-      result.stderr.listen((_) {});
+      stderrFuture =
+          result.stderr.fold<List<int>>([], (buf, chunk) => buf..addAll(chunk));
+      stdoutFuture = result.stdout.drain();
     }
+
     final exitCode = await result.exitCode;
-    return exitCode == 0;
+
+    if (exitCode != 0) {
+      if (!verbose && stderrFuture != null && stdoutFuture != null) {
+        // Guarantee streams are completely finished draining before reading
+        final stderrBytes = await stderrFuture;
+        await stdoutFuture;
+        if (stderrBytes.isNotEmpty) {
+          stderr.writeln('\n❌ gclient sync failed with the following error:');
+          stderr.add(stderrBytes);
+          stderr.writeln();
+        }
+      }
+      return false;
+    }
+    return true;
   } on ProcessException catch (e) {
     stderr.writeln(
         'Error: Failed to execute "gclient". Make sure depot_tools is in your PATH.');

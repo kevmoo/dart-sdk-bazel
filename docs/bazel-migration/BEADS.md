@@ -98,7 +98,7 @@ Background agents will fail to push (`bd dolt push` or `git push`) because they 
 #### **The Permanent Solution (SSH Agent Symlink):**
 We have implemented a permanent solution that allows background agents to use your active SSH agent seamlessly:
 1.  **Static Symlink:** A static symlink is maintained at `~/.ssh/ssh_auth_sock` which always points to your active SSH agent socket. This is automatically updated upon login via your Zsh configuration (`~/.config/zsh/rc.d/linux-local.zsh`).
-2.  **Daemon Configuration:** The JetSki Hub Daemon is configured via `~/.config/jetski/hub.env` to inject `SSH_AUTH_SOCK=/usr/local/google/home/kevmoo/.ssh/ssh_auth_sock` into all spawned agent environments.
+2.  **Daemon Configuration:** The JetSki Hub Daemon is configured via `~/.config/jetski/hub.env` to inject `SSH_AUTH_SOCK=/usr/local/google/home/<username>/.ssh/ssh_auth_sock` into all spawned agent environments.
 
 With this setup, both `git push` and `bd dolt push` work out-of-the-box in background sessions without any manual intervention.
 
@@ -110,6 +110,6 @@ git config --global url.git@github.com:.pushinsteadof ""
 trap 'git config --global --unset url.git@github.com:.pushinsteadof' EXIT
 
 # Run your push commands
-PATH=$PATH:/usr/local/google/home/kevmoo/go/bin bd dolt push
+PATH=$PATH:$HOME/go/bin bd dolt push
 ```
 
