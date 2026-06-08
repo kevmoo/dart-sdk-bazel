@@ -55,6 +55,14 @@ bd dolt push                              # ship the DB to the fork
 git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md  # commit the board
 ```
 
+## 🔄 Task Lifecycle & PR Alignment (CRITICAL)
+
+To keep the backlog board accurate and prevent desynchronization:
+
+1.  **READY / BLOCKED (Open):** The task is waiting in the backlog.
+2.  **IN PROGRESS (Active):** Claim the task (`bd update <id> --claim`) when you start working. **The task MUST remain in the `IN_PROGRESS` state throughout the entire development and PR review process.**
+3.  **CLOSED (Done):** Only close the task (`bd close <id>`) **AFTER the PR has successfully landed (merged) upstream.** Never close a task while its changes are still in a branch or active PR.
+
 ## Gotchas (learned the hard way — don't relearn these)
 
 - **Use `git+https://`, never `git+ssh://`** for the dolt remote. The ssh URL
