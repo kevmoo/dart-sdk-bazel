@@ -1265,66 +1265,6 @@ def gen_targets():
         ],
     )
 
-    cc_binary(
-        name = "process_test",
-        srcs = [
-            "process_test.cc",
-        ],
-        deps = [
-            "//build/config/sanitizers:deps",
-            "//build/config:dart_mode",
-        ],
-        copts = [
-            "-fPIE",
-            "-fcolor-diagnostics",
-            "-Wall",
-            "-Wextra",
-            "-Werror",
-            "-Wendif-labels",
-            "-Wno-missing-field-initializers",
-            "-Wno-unused-parameter",
-            "-Wno-tautological-constant-compare",
-            "-Wno-unused-but-set-variable",
-            "-Wno-deprecated-non-prototype",
-            "-no-canonical-prefixes",
-            "-ffile-compilation-dir=.",
-            "-fvisibility=hidden",
-            "-D_FILE_OFFSET_BITS=64",
-            "-D_LARGEFILE_SOURCE",
-            "-D_LARGEFILE64_SOURCE",
-            "-Wheader-hygiene",
-            "-Wstring-conversion",
-            "-O2",
-            "-fdata-sections",
-            "-ffunction-sections",
-            "-g3",
-            "-ggdb3",
-            "-fPIE",
-        ] + select({
-            "//build/config:debug": [],
-            "//conditions:default": ["-fno-ident"],
-        }),
-        conlyopts = [
-            "-std=c17",
-        ],
-        cxxopts = [
-            "-fvisibility-inlines-hidden",
-            "-fno-omit-frame-pointer",
-            "-std=c++20",
-            "-std=c++20",
-            "-fno-rtti",
-        ] + select({
-            "//build/config:debug": [
-                "-Wno-tautological-undefined-compare",
-                "-Wno-undefined-bool-conversion",
-            ],
-            "//conditions:default": [],
-        }),
-        linkopts = [
-            "-ldl",
-            "-lpthread",
-        ],
-    )
 
     cc_binary(
         name = "run_vm_tests",
