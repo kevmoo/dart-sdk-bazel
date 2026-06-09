@@ -91,38 +91,38 @@ resource "google_container_node_pool" "linux_workers" {
 }
 
 # ------------------------------------------------------------------------------
-# 3. WINDOWS WORKER NODE POOL (Autoscaled to ZERO)
+# 3. WINDOWS WORKER NODE POOL (Commented out for PoC simplicity)
 # ------------------------------------------------------------------------------
-resource "google_container_node_pool" "windows_workers" {
-  name     = "worker-pool-windows"
-  location = var.region
-  cluster  = google_container_cluster.bazel_cluster.name
-
-  autoscaling {
-    min_node_count = 0
-    max_node_count = 5
-  }
-
-  initial_node_count = 0
-
-  node_config {
-    spot         = true
-    machine_type = "n2-standard-8" # 8 vCPU, 32GB RAM
-    image_type   = "WINDOWS_LTSC_CONTAINER" # Windows Server LTSC
-
-    labels = {
-      role = "worker"
-      os   = "windows"
-    }
-
-    taint {
-      key    = "bazel-worker"
-      value  = "true"
-      effect = "NO_SCHEDULE"
-    }
-
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-  }
-}
+# resource "google_container_node_pool" "windows_workers" {
+#   name     = "worker-pool-windows"
+#   location = var.region
+#   cluster  = google_container_cluster.bazel_cluster.name
+# 
+#   autoscaling {
+#     min_node_count = 0
+#     max_node_count = 5
+#   }
+# 
+#   initial_node_count = 0
+# 
+#   node_config {
+#     spot         = true
+#     machine_type = "n2-standard-8" # 8 vCPU, 32GB RAM
+#     image_type   = "WINDOWS_LTSC_CONTAINER" # Windows Server LTSC
+# 
+#     labels = {
+#       role = "worker"
+#       os   = "windows"
+#     }
+# 
+#     taint {
+#       key    = "bazel-worker"
+#       value  = "true"
+#       effect = "NO_SCHEDULE"
+#     }
+# 
+#     oauth_scopes = [
+#       "https://www.googleapis.com/auth/cloud-platform"
+#     ]
+#   }
+# }

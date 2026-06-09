@@ -26,6 +26,18 @@ variable "bucket_prefix" {
   default     = "bazel-global-cache"
 }
 
+variable "developer_member" {
+  type        = string
+  description = "The IAM member representing developers (e.g., group:developers@yourdomain.com or user:email@google.com)"
+  default     = "user:kevmoo@google.com"
+}
+
+variable "ci_service_account" {
+  type        = string
+  description = "The CI service account email (optional)"
+  default     = ""
+}
+
 provider "google" {
   project = var.project_id
   region  = var.region
@@ -79,31 +91,33 @@ resource "google_storage_bucket" "prod_cache" {
 # 3. IAM PERMISSIONS (TEMPLATE)
 # ------------------------------------------------------------------------------
 
-# Developer Group (e.g., developers@yourdomain.com)
+# Developer Member (e.g., group:developers@yourdomain.com or user:email@google.com)
 # - Read-Write on Dev Cache
 # - Read-Only on Prod Cache
 resource "google_storage_bucket_iam_member" "dev_cache_developer_writer" {
   bucket = google_storage_bucket.dev_cache.name
   role   = "roles/storage.objectAdmin" # Allows read, write, and delete (for cache eviction)
-  member = "group:developers@yourdomain.com" # PLACEHOLDER
+  member = var.developer_member
 }
 
 resource "google_storage_bucket_iam_member" "prod_cache_developer_reader" {
   bucket = google_storage_bucket.prod_cache.name
   role   = "roles/storage.objectViewer" # Read-only
-  member = "group:developers@yourdomain.com" # PLACEHOLDER
+  member = var.developer_member
 }
 
-# CI/CD Service Account (e.g., github-actions@project.iam.gserviceaccount.com)
+# CI/CD Service Account (optional, skipped if empty)
 # - Read-Write on both buckets
 resource "google_storage_bucket_iam_member" "dev_cache_ci_admin" {
+  count  = var.ci_service_account != "" ? 1 : 0
   bucket = google_storage_bucket.dev_cache.name
   role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:ci-builder@${var.project_id}.iam.gserviceaccount.com" # PLACEHOLDER
+  member = "serviceAccount:${var.ci_service_account}"
 }
 
 resource "google_storage_bucket_iam_member" "prod_cache_ci_admin" {
+  count  = var.ci_service_account != "" ? 1 : 0
   bucket = google_storage_bucket.prod_cache.name
   role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:ci-builder@${var.project_id}.iam.gserviceaccount.com" # PLACEHOLDER
+  member = "serviceAccount:${var.ci_service_account}"
 }
