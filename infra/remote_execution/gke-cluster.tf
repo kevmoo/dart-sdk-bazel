@@ -24,6 +24,13 @@ resource "google_container_cluster" "bazel_cluster" {
     }
   }
 
+  # Enable GKFE DNS Endpoint and allow external (corp) traffic to route through it
+  control_plane_endpoints_config {
+    dns_endpoint_config {
+      allow_external_traffic = true
+    }
+  }
+
   # We can't create a cluster without at least one node pool, so we create
   # a temporary one and delete it immediately.
   remove_default_node_pool = true
