@@ -16,3 +16,21 @@ resource "google_compute_subnetwork" "bazel_subnet" {
   # Required for GKE Private Clusters / Workload Identity
   private_ip_google_access = true
 }
+
+# ------------------------------------------------------------------------------
+# CLOUD NAT (Allows private GKE nodes to talk outbound to the internet)
+# ------------------------------------------------------------------------------
+
+resource "google_compute_router" "router" {
+  name    = "bazel-router"
+  region  = var.region
+  network = google_compute_network.bazel_vpc.id
+}
+
+resource "google_compute_router_nat" "nat" {
+  name                               = "bazel-nat"
+  router                             = google_compute_router.router.name
+  region                             = google_compute_router.router.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}

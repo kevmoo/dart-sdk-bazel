@@ -9,6 +9,13 @@ resource "google_container_cluster" "bazel_cluster" {
   network    = google_compute_network.bazel_vpc.name
   subnetwork = google_compute_subnetwork.bazel_subnet.name
 
+  # Satisfy Org Policy: Enable Private Nodes, but keep Master Public for Cloudtop access
+  private_cluster_config {
+    enable_private_nodes    = true
+    enable_private_endpoint = false
+    master_ipv4_cidr_block  = "172.16.0.0/28" # Small private range for the GKE master VMs
+  }
+
   # We can't create a cluster without at least one node pool, so we create
   # a temporary one and delete it immediately.
   remove_default_node_pool = true
