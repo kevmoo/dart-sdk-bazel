@@ -15,6 +15,7 @@ Future<String> getVersion(rootPath, bool noGitHash) {
     printVersionScript.toFilePath(),
     "--quiet",
     if (noGitHash) '--no-git-hash',
+    "--dart-dir=${rootPath.toFilePath()}",
   ];
   return Process.run("python3", args, runInShell: true).then((result) {
     if (result.exitCode != 0) {

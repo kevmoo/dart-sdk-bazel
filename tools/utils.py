@@ -91,6 +91,17 @@ BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
+# Global Bazel Symlink/Cache Bug Workaround:
+# If we are running in a Bazel sandbox/remote execution, __file__ might resolve
+# to a physical cache directory outside the logical workspace root where the
+# VERSION file does not exist. Fall back to the logical current working directory.
+if not os.path.exists(VERSION_FILE):
+    logical_dart_dir = os.getcwd()
+    logical_version_file = os.path.join(logical_dart_dir, 'tools', 'VERSION')
+    if os.path.exists(logical_version_file):
+        DART_DIR = logical_dart_dir
+        VERSION_FILE = logical_version_file
+
 
 def GetArchFamily(arch):
     return ARCH_FAMILY[arch]
