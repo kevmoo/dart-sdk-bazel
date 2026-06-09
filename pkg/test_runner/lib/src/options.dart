@@ -156,6 +156,21 @@ class OptionsParser {
     }
     var options = {for (var option in results.options) option: results[option]};
 
+    if (options['built-with-bazel'] == true) {
+      options['use-sdk'] = true;
+      options['build'] = false;
+      try {
+        var result = Process.runSync('bazel', ['info', 'bazel-bin']);
+        if (result.exitCode != 0) {
+          _fail('Bazel command failed: ${result.stderr.toString().trim()}');
+        }
+        var bazelBin = result.stdout.toString().trim();
+        options['build-directory'] = path.join(bazelBin, 'sdk');
+      } on ProcessException catch (e) {
+        _fail('Failed to execute bazel: $e');
+      }
+    }
+
     if (options['find-configurations'] as bool) {
       findConfigurations(options);
       return const [];
@@ -935,6 +950,10 @@ test options, specifying how tests should be run.''',
     'use-sdk',
     aliases: ['use_sdk'],
     help: 'Use compiler or runtime from the SDK.',
+  )
+  ..addFlag(
+    'built-with-bazel',
+    help: 'Run tests with the SDK built by Bazel.',
   )
   ..addOption(
     'build-directory',
