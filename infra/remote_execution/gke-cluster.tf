@@ -9,10 +9,10 @@ resource "google_container_cluster" "bazel_cluster" {
   network    = google_compute_network.bazel_vpc.name
   subnetwork = google_compute_subnetwork.bazel_subnet.name
 
-  # Satisfy Org Policy: Enable Private Nodes, but keep Master Public for Cloudtop access
+  # Satisfy Org Policies: Enable Private Nodes AND Private Endpoint
   private_cluster_config {
     enable_private_nodes    = true
-    enable_private_endpoint = false
+    enable_private_endpoint = true
     master_ipv4_cidr_block  = "172.16.0.0/28" # Small private range for the GKE master VMs
   }
 
