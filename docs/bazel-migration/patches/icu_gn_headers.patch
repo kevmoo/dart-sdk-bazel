@@ -1,0 +1,24 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index dad59595b..b2d769e90 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -357,7 +357,20 @@ template("generate_icuuc") {
+                              "visibility",
+                            ])
+ 
+-    sources = icuuc_sources
++    # Explicitly list the checked-in Unicode data headers to ensure they
++    # are tracked as dependencies by GN, removing the silent reliance on
++    # implicit include paths.
++    sources = icuuc_sources + [
++      "source/common/localefallback_data.h",
++      "source/common/norm2_nfc_data.h",
++      "source/common/propname_data.h",
++      "source/common/ubidi_props_data.h",
++      "source/common/ucase_props_data.h",
++      "source/common/uchar_props_data.h",
++      "source/common/ucol_data.h",
++    ]
+     public_deps = [ ":icuuc_public" ]
+ 
+     defines = [ "U_COMMON_IMPLEMENTATION" ]
