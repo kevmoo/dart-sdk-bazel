@@ -26,6 +26,7 @@ cc_library(
     ],
     hdrs = [
         ":copy_perfetto_build_flags",
+        "perfetto_build_flags.h",
     ] + glob(
         [
             "src/include/**/*.h",

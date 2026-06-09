@@ -116,7 +116,7 @@ genrule(
         ":vm_snapshot_files",
     ],
     outs = ["version.cc"],
-    cmd = "python3 $(execpath //tools:make_version.py) --quiet --no-git-hash --no-sdk-hash --output $@ --input $(execpath //runtime/vm:version_in.cc) --version-file $(execpath //tools:VERSION) --snapshot-files $$(echo $(execpaths :vm_snapshot_files) | tr ' ' ',')",
+    cmd = "python3 $(execpath //tools:make_version.py) --quiet --no-git-hash --no-sdk-hash --output $@ --input $(execpath //runtime/vm:version_in.cc) --dart-dir=. --snapshot-files $$(echo $(execpaths :vm_snapshot_files) | tr ' ' ',')",
     tools = ["//tools:make_version.py"],
 )
 

@@ -86,3 +86,52 @@ bazel build //samples/embedder:futures_kernel_dill_compile \
   --remote_upload_local_results=true
 ```
 
+---
+
+## Phase 2: Full Remote Execution (Buildfarm on GKE)
+
+### 1. Prerequisites & Authentication
+Before running remote builds, you must configure `kubectl` to communicate with the private GKE cluster.
+
+```bash
+gcloud container clusters get-credentials <GKE_CLUSTER_NAME> \
+  --region <GCP_REGION> \
+  --project <GCP_PROJECT_ID>
+```
+
+*(Note: For the sandbox environment, the active values are: cluster `bazel-hybrid-cluster`, region `us-central1`, project `dart-sdk-bazel-sandbox-265004`)*.
+
+### 2. Establish Port-Forwarding Tunnels
+Because the Buildfarm and Buildbuddy services inside GKE are deployed as private `ClusterIP` services, you must establish local port-forwarding tunnels. Keep these running in separate terminal windows during your build session:
+
+*   **Buildfarm Server (Remote Executor)** (Port 8980):
+    ```bash
+    kubectl port-forward -n bazel-buildfarm service/bazel-buildfarm-server 8980:8980 --insecure-skip-tls-verify
+    ```
+*   **Buildbuddy (BES & Dashboard)** (Ports 1985 & 8080):
+    ```bash
+    kubectl port-forward -n bazel-buildfarm service/buildbuddy 1985:1985 8080:8080 --insecure-skip-tls-verify
+    ```
+
+### 3. Executing Remote Builds
+Once the tunnels are active, you can run builds that execute entirely on the remote GKE worker nodes.
+
+#### Option A: Run with Remote Execution & Buildbuddy Dashboard (Recommended)
+This command runs the build remotely and outputs a clickable `http://localhost:8080/invocation/...` link to monitor the build in real-time:
+```bash
+bazel build \
+  --config=remote \
+  --config=buildbuddy \
+  --remote_executor=grpc://localhost:8980 \
+  --remote_cache=grpc://localhost:8980 \
+  //sdk:create_sdk
+```
+
+#### Option B: Run with Remote Execution Only (No Dashboard)
+```bash
+bazel build \
+  --config=remote \
+  --remote_executor=grpc://localhost:8980 \
+  --remote_cache=grpc://localhost:8980 \
+  //sdk:create_sdk
+```
