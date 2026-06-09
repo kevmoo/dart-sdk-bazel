@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: buildbuddy-config
+  namespace: bazel-buildfarm
+data:
+  config.yaml: |
+    app:
+      build_buddy_url: "http://localhost:8080"
+    server:
+      http_listen_addr: "0.0.0.0:8080"
+      grpc_listen_addr: "0.0.0.0:1985"
+    storage:
+      disk:
+        use_shared_volume: false
+    database:
+      dialect: "sqlite3"
+      datasource: "/data/buildbuddy.db"
+    # Enable the Build Event Service (BES) gRPC receiver
+    build_event_proxy:
+      enabled: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buildbuddy
+  namespace: bazel-buildfarm
+  labels:
+    app: buildbuddy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: buildbuddy
+  template:
+    metadata:
+      labels:
+        app: buildbuddy
+    spec:
+      nodeSelector:
+        role: control-plane # Run on the low-cost control plane pool to save cost
+      containers:
+      - name: buildbuddy
+        image: gcr.io/flame-public/buildbuddy-app-onprem:v2.11.2
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        args: ["--config_file=/config/config.yaml"]
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 1985
+          name: grpc-bes
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        - name: data-volume
+          mountPath: /data
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: buildbuddy-config
+      - name: data-volume
+        emptyDir: {} # SQLite DB is ephemeral for PoC. For persistence, use a PVC.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: buildbuddy
+  namespace: bazel-buildfarm
+spec:
+  type: ClusterIP
+  selector:
+    app: buildbuddy
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: grpc-bes
+    protocol: TCP
+    port: 1985
+    targetPort: 1985

@@ -47,3 +47,16 @@ build:remote --remote_timeout=3600
 
 # Fallback to local if remote execution fails unexpectedly
 build:remote --remote_local_fallback=true
+
+# ------------------------------------------------------------------------------
+# 3. BUILD EVENTS / DASHBOARD (Stream to local BuildBuddy tunnel)
+# ------------------------------------------------------------------------------
+# To use this, you must run the port-forwarding tunnels:
+#   kubectl port-forward -n bazel-buildfarm service/buildbuddy 1985:1985
+#   kubectl port-forward -n bazel-buildfarm service/buildbuddy 8080:8080
+#
+# Then run:
+#   bazel build --config=remote --config=buildbuddy //...
+#
+build:buildbuddy --bes_backend=grpc://localhost:1985
+build:buildbuddy --bes_results_url=http://localhost:8080/invocation/

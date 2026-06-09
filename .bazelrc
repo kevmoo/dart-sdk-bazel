@@ -5,3 +5,5 @@ common --deleted_packages=third_party/boringssl/src,third_party/perfetto/src,thi
 # Enforce Bazel 10 style source file visibility checks in Bazel 9
 build --incompatible_no_implicit_file_export
 
+# Import remote execution and dashboard configurations
+try-import %workspace%/infra/remote_execution/bazelrc
