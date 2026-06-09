@@ -78,7 +78,7 @@ graph TD
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
-    sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::pending
+    sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::pending
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
@@ -277,7 +277,8 @@ graph TD
 ---
 
 ### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
+- **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/510181)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
