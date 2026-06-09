@@ -107,6 +107,11 @@ def ResolveConfig(named_config):
 
 
 def TestWithBazel(args):
+    # Run the pruning script to remove conflicting upstream Bazel files
+    prune_script = os.path.join(
+        os.path.dirname(__file__), 'prune_third_party_bazel_files.py')
+    subprocess.check_call([sys.executable, prune_script])
+
     named_config = None
     remaining_args = []
     i = 0
