@@ -53,8 +53,10 @@ shardWorker:
   resources:
     limits:
       cpu: "7000m" # Leave some overhead on an 8-core VM
+      memory: "28Gi"
     requests:
       cpu: "6000m"
+      memory: "26Gi"
 
   config:
     port: 8982

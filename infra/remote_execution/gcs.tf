@@ -29,7 +29,7 @@ variable "bucket_prefix" {
 variable "developer_member" {
   type        = string
   description = "The IAM member representing developers (e.g., group:developers@yourdomain.com or user:email@google.com)"
-  default     = "user:kevmoo@google.com"
+  default     = "group:developers@yourdomain.com"
 }
 
 variable "ci_service_account" {

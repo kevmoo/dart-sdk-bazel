@@ -27,7 +27,7 @@ spec:
         serverAddress: http://prometheus-k8s.monitoring.svc:9090 # Path to your Prometheus server
         metricName: buildfarm_queue_size
         # Query to get the number of queued operations
-        query: sum(buildfarm_operations_queue_size{instance="buildfarm-server"})
+        query: sum(buildfarm_operations_queue_size{job="bazel-buildfarm-server"})
         # Scale up by 1 worker for every 5 operations in the queue
         threshold: '5'
 

@@ -30,8 +30,8 @@ build:remote-cache --remote_local_fallback=true
 # 2. FULL REMOTE EXECUTION (Run in GKE, share cache)
 # ------------------------------------------------------------------------------
 # Point to the GKE Buildfarm Server LoadBalancer IP or Domain
-build:remote --remote_executor=grpcs://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
-build:remote --remote_cache=grpcs://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
+build:remote --remote_executor=grpc://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
+build:remote --remote_cache=grpc://<BUILDFARM_SERVER_IP_OR_DOMAIN>:8980
 build:remote --google_default_credentials=true
 
 # Required for remote execution to map local toolchains to remote workers
