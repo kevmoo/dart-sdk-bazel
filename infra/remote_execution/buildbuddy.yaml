@@ -43,6 +43,11 @@ spec:
       - name: buildbuddy
         image: gcr.io/flame-public/buildbuddy-app-onprem:v2.11.2
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         args: ["--config_file=/config/config.yaml"]
         ports:
         - containerPort: 8080
