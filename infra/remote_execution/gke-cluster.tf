@@ -5,6 +5,10 @@ resource "google_container_cluster" "bazel_cluster" {
   name     = var.cluster_name
   location = var.region
 
+  # Use our custom VPC network and subnet
+  network    = google_compute_network.bazel_vpc.name
+  subnetwork = google_compute_subnetwork.bazel_subnet.name
+
   # We can't create a cluster without at least one node pool, so we create
   # a temporary one and delete it immediately.
   remove_default_node_pool = true
