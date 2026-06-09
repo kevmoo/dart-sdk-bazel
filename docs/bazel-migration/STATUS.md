@@ -42,6 +42,12 @@ Session 133 — **(jetski) Implemented sdk-w7m: VM: Eliminate CFE preprocessor s
 - **Updated GN and Bazel builds**: Removed `EXCLUDE_CFE_AND_KERNEL_PLATFORM` from all GN/Bazel configs. Updated `BUILD.gn` and `BUILD.bazel` to conditionally compile/link `dfe_empty_kernel_stubs.cc` for all 8 `gen_snapshot` targets, `dartvm`, and `dart_libfuzzer` when CFE is excluded.
 - **Verified Build & Run E2E**: Successfully ran GN, regenerated all `gen_targets.bzl` files via the translator, and ran `buildifier` to format all Bazel files. Verified by compiling and linking `gen_snapshot` 100% green, and verified it starts up and prints its usage cleanly without crashing.
 
+Session 132 — **(jetski) Completed sdk-gmk: Pruned upstream Bazel files from vendored third_party.**
+- **Created Pruning Script**: Created `tools/prune_third_party_bazel_files.py` to automatically scan and delete unused upstream Bazel files (`BUILD`, `BUILD.bazel`, `WORKSPACE`, `MODULE.bazel`) and legacy `.disabled-...` files from `third_party/perfetto/src` and `third_party/boringssl/src`.
+- **Integrated with Build/Test Tooling**: Hooked the pruning script directly into tools/build.py and tools/test.py when run with the --bazel flag. This ensures that any conflicting Bazel files are stripped before running Bazel builds or tests, without introducing merge friction in DEPS.
+- **Verified on Main Workspace**: Copied and ran the script on the main repository, successfully pruning 4 conflicting files from `perfetto/src` and 15 files from `boringssl/src` (including nested files in `googletest` and `benchmark` submodules), leaving the local workspace perfectly clean and free of package boundary conflicts.
+- **Preserved ICU**: Audited `third_party/icu` and determined that its upstream `BUILD.bazel` files are actively used by our custom append overlays in `tools/bazel/third_party.bzl`, so they were intentionally excluded from pruning.
+
 Session 131 — **(jetski) Implemented sdk-rog: VM: Define formal GN target for public VM embedding C API.**
 - **Defined Public API Headers Target**: Created a header-only `source_set("public_api_headers")` in `runtime/include/BUILD.gn` containing all public embedding C API headers (including `bin/dart_io_api.h` and `bin/native_assets_api.h`).
 - **Exported Include Paths**: Configured `public_api_config` in `runtime/include/BUILD.gn` to export the `.` include path, allowing consumers to cleanly `#include "dart_api.h"` while preventing transitive header search path pollution.
@@ -59,7 +65,7 @@ Session 130 — **(jetski) Completed sdk-84z: VM: Fix pre-existing buildifier li
 - **Identified Lint Blocker**: Discovered that the newly enabled `Buildifier` CI workflow was failing globally on all PRs due to a pre-existing lint warning in `utils/ddc/rules.bzl` (which was written before strict Starlark linting was enforced).
 - **Surgically Fixed Starlark Lints**: Added the missing module-level docstring and fully documented all arguments in the docstrings for `package_kernel_outline`, `ddc_compile`, and `ddc_compile_sdk` in `utils/ddc/rules.bzl`.
 - **Verified Globally**: Ran the strict global buildifier check locally and verified it now passes with zero errors and zero warnings across the entire repository. This guarantees the CI will go green once merged.
-- **Closed sdk-84z**: Closed the task in Beads and regenerated the backlog board.
+- **Closed sdk-84z**: Closed the task in Beads and regenerated the backlog board. ([bazel] Prune unused upstream Bazel files via build/test.py integration)
 
 Session 129 — **(jetski) Completed sdk-rwz: Wired up Sanitizer SDK AOT Runtimes.**
 - **Wired up Sanitizer Runtimes**: Replaced the placeholder `filegroup` targets for `copy_dart_aotruntime_asan`, `copy_dart_aotruntime_msan`, and `copy_dart_aotruntime_tsan` in `sdk/BUILD.bazel` with real `genrule` targets.

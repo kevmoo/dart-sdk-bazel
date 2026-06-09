@@ -690,6 +690,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-gmk] Prune upstream Bazel files from vendored third_party
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update SDK roll/import scripts to exclude BUILD, BUILD.bazel, WORKSPACE, and MODULE.bazel files. Prune the existing renamed *.disabled-for-dart-bazel-migration files from the tree. Ref: docs/bazel-migration/todo_issues/issue_00005_vendored_third_party_build_files.md
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-mv2] [M3] Wire up DevTools and Core Utility Binaries
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

@@ -328,6 +328,11 @@ BAZEL_TARGET_MAPPING = {
 
 
 def BuildWithBazel(options, targets, env):
+    # Run the pruning script to remove conflicting upstream Bazel files
+    prune_script = os.path.join(
+        os.path.dirname(__file__), 'prune_third_party_bazel_files.py')
+    subprocess.check_call([sys.executable, prune_script])
+
     bazel_targets = []
     for t in targets:
         if t in BAZEL_TARGET_MAPPING:
