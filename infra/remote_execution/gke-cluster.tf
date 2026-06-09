@@ -12,8 +12,13 @@ resource "google_container_cluster" "bazel_cluster" {
   # Satisfy Org Policies: Enable Private Nodes AND Private Endpoint
   private_cluster_config {
     enable_private_nodes    = true
-    enable_private_endpoint = true
+    enable_private_endpoint = false
     master_ipv4_cidr_block  = "172.16.0.0/28" # Small private range for the GKE master VMs
+  }
+
+  # Optimize for aggressive scale-down of idle nodes
+  cluster_autoscaling {
+    autoscaling_profile = "OPTIMIZE_UTILIZATION"
   }
 
   # Required when private endpoint is enabled
@@ -99,6 +104,10 @@ resource "google_container_node_pool" "linux_workers" {
     spot            = true
     machine_type    = "c2-standard-8" # Compute-optimized, 8 vCPU, 32GB RAM
     service_account = google_service_account.gke_nodes.email
+
+    # Allocate sufficient, high-performance SSD storage for heavy parallel builds
+    disk_size_gb = 200
+    disk_type    = "pd-ssd"
 
     labels = {
       role = "worker"

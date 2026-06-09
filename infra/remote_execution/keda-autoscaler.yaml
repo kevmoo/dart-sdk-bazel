@@ -24,7 +24,7 @@ spec:
     # Scales based on the actual queue size reported by the Buildfarm server.
     - type: prometheus
       metadata:
-        serverAddress: http://prometheus-k8s.monitoring.svc:9090 # Path to your Prometheus server
+        serverAddress: http://prometheus-server.monitoring.svc:80 # Path to your Prometheus server
         metricName: buildfarm_queue_size
         # Query to get the number of queued operations
         query: sum(buildfarm_operations_queue_size{job="bazel-buildfarm-server"})
