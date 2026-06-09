@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 48/62 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 48/63 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -73,6 +73,7 @@ graph TD
     TASK_041["TASK_041:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::pending
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
+    sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::pending
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::pending
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
@@ -93,30 +94,6 @@ graph TD
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
-    TASK_017 --> TASK_006
-    TASK_010 --> TASK_012
-    TASK_012 --> TASK_013
-    TASK_008 --> TASK_016
-    TASK_017 --> TASK_018
-    TASK_018 --> TASK_019
-    TASK_017 --> TASK_020
-    TASK_017 --> TASK_021
-    TASK_020 --> TASK_021
-    TASK_003 --> TASK_026
-    TASK_004 --> TASK_026
-    TASK_005 --> TASK_026
-    TASK_006 --> TASK_026
-    TASK_006 --> TASK_028
-    TASK_003 --> TASK_029
-    TASK_033 --> TASK_034
-    sdk_oce --> sdk_3ld
-    sdk_fnn --> sdk_4z8
-    sdk_zi3 --> sdk_4z8
-    sdk_oce --> sdk_90d
-    TASK_038 --> sdk_9qx
-    sdk_9qx --> sdk_fnn
-    sdk_oce --> sdk_g2l
-    sdk_9qx --> sdk_zi3
 ```
 
 <!-- END_DEP_GRAPH -->
@@ -162,7 +139,7 @@ graph TD
 
 ### 🎯 [TASK_006] RBE (Remote Build Execution) Verification
 - **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_017`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -178,7 +155,7 @@ graph TD
 
 ### 🎯 [TASK_026] CI LUCI Recipe Migration
 - **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_003`, `TASK_004`, `TASK_005`, `TASK_006`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -193,7 +170,7 @@ graph TD
 
 ### 🎯 [TASK_028] Investigate Google3 Alignment
 - **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_006`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -208,7 +185,7 @@ graph TD
 
 ### 🎯 [TASK_029] Streamline and Optimize Bazel Build Definitions
 - **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_003`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -250,9 +227,22 @@ graph TD
 
 ---
 
+### 🎯 [sdk-4mq] Align Bazel migration with recent upstream improvements
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Analyze and integrate recent upstream improvements by Ryan Macnak (rmacnak@) into the local Bazel migration. Key areas: RBE relative paths, macOS signing, AOT compiler bootstrapping, and GN cleanup. Detailed analysis in docs/bazel-migration/upstream_alignments.md.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
 - **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-fnn`, `sdk-zi3`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
