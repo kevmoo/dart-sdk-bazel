@@ -2,12 +2,12 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: buildfarm-worker-autoscaler
-  namespace: default
+  namespace: bazel-buildfarm
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
-    name: buildfarm-worker # Targets the worker deployment
+    kind: StatefulSet
+    name: bazel-buildfarm-shard-worker # Targets the shard-worker StatefulSet
 
   # Cost Control: Scale down to 0 when idle
   minReplicaCount: 0

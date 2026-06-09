@@ -1,22 +1,13 @@
 # ------------------------------------------------------------------------------
-# HELM VALUES TEMPLATE FOR BUILDFARM DEPLOYMENT
+# HELM VALUES FOR BAZEL BUILDFARM DEPLOYMENT (COMPATIBLE v0.4.1)
 # ------------------------------------------------------------------------------
 
-# 1. REDIS (Queue State - Deployed on Control Plane)
+# 1. REDIS (Disabled - Using Private Redis Deployment)
 redis:
-  enabled: true
-  architecture: standalone
-  master:
-    nodeSelector:
-      role: control-plane
-    tolerations: []
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-      requests:
-        cpu: 500m
-        memory: 1Gi
+  enabled: false
+
+externalRedis:
+  uri: "redis://redis-private:6379"
 
 # 2. BUILDFARM SERVER (Control Plane / Scheduler)
 server:
@@ -24,11 +15,9 @@ server:
   nodeSelector:
     role: control-plane
   
-  # Enable Workload Identity on the Server Pod to access GCS safely
   serviceAccount:
     create: true
-    annotations:
-      iam.gke.io/gcp-service-account: "ci-builder@<GCP_PROJECT_ID>.iam.gserviceaccount.com"
+    annotations: {}
 
   resources:
     limits:
@@ -38,29 +27,17 @@ server:
       cpu: 1000m
       memory: 2Gi
 
-  # Configures Buildfarm to use GCS for CAS and Action Cache
-  config: |
-    # (Simplified protobuf-style config representation for Helm)
-    instance:
-      name: "gke-buildfarm"
-      digest_function: SHA256
-      
-      # Content Addressable Storage (CAS) backed by GCS
-      cas:
-        gcs:
-          bucket_name: "<DEV_CACHE_BUCKET_NAME>"
-          # We can also configure fallback to the prod bucket here
-      
-      # Action Cache (AC) backed by GCS
-      action_cache:
-        gcs:
-          bucket_name: "<DEV_CACHE_BUCKET_NAME>"
-          delegate_read_cache: "<PROD_CACHE_BUCKET_NAME>" # Read-only fallback
+  config:
+    name: "gke-buildfarm"
+    recordBesEvents: true
 
 # 3. BUILDFARM WORKERS (Linux - Autoscaled)
-worker:
-  # We start with 0 replicas. KEDA will scale this up dynamically!
-  replicaCount: 0
+shardWorker:
+  replicaCount: 1
+  
+  # Disable built-in HPA so KEDA can handle autoscaling
+  autoscaling:
+    enabled: false
 
   nodeSelector:
     role: worker
@@ -73,19 +50,14 @@ worker:
       value: "true"
       effect: "NoSchedule"
 
-  # Resource requests are critical! GKE Autoscaler uses these to decide 
-  # how many VM nodes to spin up.
   resources:
     limits:
       cpu: "7000m" # Leave some overhead on an 8-core VM
-      memory: "28Gi"
     requests:
       cpu: "6000m"
-      memory: "24Gi"
 
-  config: |
-    # Worker configuration pointing to the Server
-    cluster_endpoint: "dns:///buildfarm-server:8980"
-    # Pull-based: Worker queries the server queue
-    operation_queue:
-      type: PULL
+  config:
+    port: 8982
+    capabilities:
+      execution: true
+      cas: true # Ensure worker has CAS enabled
