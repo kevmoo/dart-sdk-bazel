@@ -139,7 +139,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_012] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_010`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -156,7 +156,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_013] Unified Test Repository with Configuration Subtargets
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_012`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -210,7 +210,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_016] Migrate VM Platform and Kernel Service Dill Compilation to Starlark
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_008`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -251,7 +251,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_018] Compile `dart_engine` Shared Libraries JIT/AOT
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_017`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -266,7 +266,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_019] Port `samples/embedder` targets to Bazel
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_018`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -280,7 +280,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_020] Migrate `packages.bzl` target generation to a dynamic Bzlmod extension
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_017`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -299,7 +299,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_021] Retire `restore.sh` entirely
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_017`, `TASK_020`
 - **Owner**: `[jetski]`
 - **Commit**: `[be97c7e236f]`
 - **Target Files**:
@@ -466,7 +466,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [TASK_034] Add Chrome/Firefox test configurations to Bazel target generator
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_033`
 - **Owner**: `[local]`
 - **Commit**: `[local]`
 - **Target Files**:
@@ -613,7 +613,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-3ld] [M3] Wire up Dart MCP Server Snapshots
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `sdk-oce`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -640,7 +640,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-90d] [M3] Wire up Dart Dev Compiler (DDC) Snapshots
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `sdk-oce`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -653,7 +653,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-9qx] Design: Bazel-powered developer workflow bridge for upstream work
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `TASK_038`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -666,7 +666,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-fnn] Tooling: Implement script to export Bazel-tested changes back to Main
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `sdk-9qx`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -679,7 +679,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-g2l] [M3] Wire up Dart2JS and Dartdoc Snapshots
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `sdk-oce`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -785,7 +785,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-zi3] Tooling: Implement script to import upstream CL/PR into Bazel workspace
 - **Status**: `[COMPLETED]`
-- **Prerequisites**: None
+- **Prerequisites**: `sdk-9qx`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
