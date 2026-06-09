@@ -1,0 +1,11 @@
+apiVersion: v2
+appVersion: 2.15.0
+dependencies:
+- condition: redis.enabled
+  name: redis
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: ~18.14.2
+description: A Helm chart for buildfarm
+name: buildfarm
+type: application
+version: 0.4.1

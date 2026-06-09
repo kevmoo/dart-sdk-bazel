@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "buildfarm.fullname" . }}-server
+  labels:
+    name: {{ include "buildfarm.fullname" . }}-server
+    {{- include "buildfarm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+  annotations:
+    {{- toYaml .Values.server.annotations | nindent 4 }}
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  selector:
+    matchLabels:
+      name: {{ include "buildfarm.fullname" . }}-server
+      {{- include "buildfarm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/server-config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        name: {{ include "buildfarm.fullname" . }}-server
+        {{- include "buildfarm.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "buildfarm.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.server.securityContext | nindent 8 }}
+      containers:
+        - name: buildfarm-server
+          image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          env:
+            - name: CONFIG_PATH
+              value: /config/config.yml
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:+UseContainerSupport -XX:MaxRAMPercentage=80.0 -XX:+UseStringDeduplication -XX:+UseCompressedOops -XX:+HeapDumpOnOutOfMemoryError -Djava.util.logging.config.file=/server-log-props/logging.properties
+            {{- if .Values.server.extraEnv }}
+            {{- toYaml .Values.server.extraEnv | nindent 12 }}
+            {{- end }}
+          ports:
+            - containerPort: 8980
+              name: "server-comm"
+            - containerPort: 9090
+              name: "metrics"
+          {{- with .Values.server.livenessProbe}}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.server.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.server.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /config
+              name: config
+              readOnly: true
+            - mountPath: /server-log-props
+              name: server-log-props
+              readOnly: true
+            {{- with .Values.server.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 -}}
+            {{- end }}
+      {{- with .Values.server.runtimeClassName }}
+      runtimeClassName: {{ tpl . $ }}
+      {{- end }}
+      {{- with .Values.server.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.server.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: {{ include "buildfarm.fullname" . }}-config
+          name: config
+        - configMap:
+            defaultMode: 420
+            name: {{ include "buildfarm.fullname" . }}-server-log-props
+          name: server-log-props
+        {{- with .Values.server.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}

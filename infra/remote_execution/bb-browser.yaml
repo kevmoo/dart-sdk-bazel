@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bb-browser-config
+  namespace: bazel-buildfarm
+data:
+  config.json: |
+    {
+      "blobstore": {
+        "contentAddressableStorage": {
+          "grpc": {
+            "client": {
+              "address": "bazel-buildfarm-server.bazel-buildfarm.svc.cluster.local:8980"
+            }
+          }
+        },
+        "actionCache": {
+          "grpc": {
+            "client": {
+              "address": "bazel-buildfarm-server.bazel-buildfarm.svc.cluster.local:8980"
+            }
+          }
+        }
+      },
+      "httpServers": [
+        {
+          "listenAddresses": [":8080"],
+          "authenticationPolicy": {
+            "allow": {}
+          }
+        }
+      ],
+      "authorizer": {
+        "allow": {}
+      },
+      "requestMetadataLinksJmespathExpression": {
+        "expression": "`{}`"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bb-browser
+  namespace: bazel-buildfarm
+  labels:
+    app: bb-browser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bb-browser
+  template:
+    metadata:
+      labels:
+        app: bb-browser
+    spec:
+      nodeSelector:
+        role: control-plane # Run on the low-cost control plane pool
+      containers:
+      - name: browser
+        image: ghcr.io/buildbarn/bb-browser:20260319T101727Z-1731858
+        args: ["/config/config.json"]
+        ports:
+        - containerPort: 8080
+          name: web
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+      volumes:
+      - name: config-volume
+        configMap:
+          name: bb-browser-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bb-browser
+  namespace: bazel-buildfarm
+spec:
+  type: ClusterIP
+  selector:
+    app: bb-browser
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
