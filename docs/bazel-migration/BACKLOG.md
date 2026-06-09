@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 46/62 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 47/62 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -89,7 +89,7 @@ graph TD
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::pending
-    sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::pending
+    sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
@@ -324,19 +324,6 @@ graph TD
   - None
 - **Description**:
   Convert the monolithic Dart VM C++ test runner run_vm_tests into a canonical Bazel cc_test target. Audit and package all necessary runtime data dependencies (snapshots, test scripts, etc.) into its data attribute so they are available in the sandbox.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-xn9] Audit, integrate, and delete legacy Bazel branches
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Go through legacy Bazel branches (origin/bazel_mac_more, origin/bazel_other_agent_learnings, origin/kevmoo-bazel-mac-builds) to ensure all useful knowledge and code have been integrated into the main branch, then delete them.
 - **Success Criteria**:
 
 ---

@@ -199,6 +199,12 @@ Session 109 — **(jetski) Resolved workspace-wide wildcard target evaluation an
 - **Resolved DevTools Staging Path Conflict**: Modified `build_devtools` and `copy_prebuilt_devtools` to write to unique output directories under the `sdk` package. Appended a custom `copy_directory` Starlark rule to `tools/bazel/dart/defs.bzl` and introduced a `//sdk:copy_devtools` target to stage the selected DevTools output dynamically.
 - **Verified Build**: Confirmed `bazel fetch //...` completes successfully, and both `bazel build //sdk:create_sdk` and `bazel build //runtime/bin:dartvm` build 100% green.
 
+Session 49 — **(agy) Scoped product carrier in translator, fixed macOS build output filtering, and verified native Apple Silicon VM JIT completely green.**
+- **Reconciled Translator Product Carrier (TODO Resolved)**: Updated `tools/bazel/translate_gn_desc.py` to unconditionally strip `"PRODUCT"` from defines of C++ targets and restrict `"//build/config:dart_product_mode"` dependency carrier injection *only* to dedicated product target variants (matching the Session 48 hand-target alignment).
+- **Fixed macOS Build Output Filtering**: Discovered and resolved a deep cross-platform bug in the translator where it only filtered out generated files and include directories starting with `//out/`. On macOS, the GN build output directory is `//xcodebuild/`. Added `//xcodebuild/` to the path-filtering logic, ensuring generated snapshot assemblies (`core_snapshot_text_linkable.S` etc.) are excluded from generated source lists and keeping the generated targets 100% clean and platform-reproducible.
+- **Regenerated and Verified 100% Green native macOS ARM64 Build**: Regenerated `runtime/bin/gen_targets.bzl` using the updated translator over a freshly generated `desc.json` wildcard dump from `xcodebuild/ReleaseARM64`. Successfully verified `bazel build //runtime/bin:dartvm` natively on Apple Silicon (macos_arm64) with a 100% pristine, error-free compiler/linker completion of all 2,032 sandbox actions!
+
+
 Session 108 — **(jetski) Fixed dart2wasm compiler snapshot product compatibility mismatch.**
 - **Identified and Fixed Snapshot Product Mismatch**: Resolved a test failure where executing dart2wasm tests in Bazel would crash because `dartaotruntime` (always product mode) mismatched the compiler snapshot `dart2wasm_product.snapshot` (staged as non-product release mode).
 - **Updated BUILD.bazel**: Modified `copy_dart2wasm_snapshot` in `sdk/BUILD.bazel` to always source the product snapshot (`//utils/dart2wasm:dart2wasm_product_snapshot`).

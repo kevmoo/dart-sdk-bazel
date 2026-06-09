@@ -757,6 +757,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-xn9] Audit, integrate, and delete legacy Bazel branches
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Go through legacy Bazel branches (origin/bazel_mac_more, origin/bazel_other_agent_learnings, origin/kevmoo-bazel-mac-builds) to ensure all useful knowledge and code have been integrated into the main branch, then delete them.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-zi3] Tooling: Implement script to import upstream CL/PR into Bazel workspace
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-9qx`

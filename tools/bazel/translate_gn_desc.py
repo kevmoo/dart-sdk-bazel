@@ -317,15 +317,15 @@ def emit_cc_library(name, t, pkg, packages, rule="cc_library", args=None):
         has_product = '"PRODUCT"' in defines or is_dedicated_product
         if '"PRODUCT"' in defines:
             defines = [d for d in defines if d != '"PRODUCT"']
-        if is_dedicated_product:
-            if '"PRODUCT"' not in defines:
-                defines.append('"PRODUCT"')
         dart_mode_dep = '"//build/config:dart_mode_no_arch"' if is_cross_target else '"//build/config:dart_mode"'
         other_dart_mode = '"//build/config:dart_mode"' if is_cross_target else '"//build/config:dart_mode_no_arch"'
         if other_dart_mode in deps:
             deps = [d for d in deps if d != other_dart_mode]
         if dart_mode_dep not in deps:
             deps.append(dart_mode_dep)
+        if is_dedicated_product:
+            if '"//build/config:dart_product_mode"' not in deps:
+                deps.append('"//build/config:dart_product_mode"')
         copts = [c for c in copts if c != '"-fno-ident"']
 
     out = [f'{rule}(\n    name = "{name}",\n']
@@ -481,7 +481,7 @@ def _owned_target_names(build_path):
 # bare words "genrule"/"cc_shared_library" in a comment but never followed by
 # "(", so the open-paren anchors keep this from matching pure-machine output.
 _HAND_AUTHORED_MARKERS = re.compile(
-    r'load\("//tools/bazel/dart|genrule\(|linkshared|cc_shared_library\(')
+    r'//tools/bazel/dart|genrule\(|linkshared|cc_shared_library\(')
 
 
 def _is_hand_authored_overlay(build_path):
@@ -646,6 +646,8 @@ def main():
                 "samples/embedder",
                 "third_party/binaryen",
                 "utils/bazel",
+                "utils/dartdev",
+                "utils/dartpad",
         }:
             print(f"skipping {pkg} (hand-authored BUILD.bazel overlay)",
                   file=sys.stderr)
