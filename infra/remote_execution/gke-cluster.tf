@@ -16,6 +16,14 @@ resource "google_container_cluster" "bazel_cluster" {
     master_ipv4_cidr_block  = "172.16.0.0/28" # Small private range for the GKE master VMs
   }
 
+  # Required when private endpoint is enabled
+  master_authorized_networks_config {
+    cidr_blocks {
+      cidr_block   = "10.0.0.0/20"
+      display_name = "bazel-subnet-local"
+    }
+  }
+
   # We can't create a cluster without at least one node pool, so we create
   # a temporary one and delete it immediately.
   remove_default_node_pool = true
