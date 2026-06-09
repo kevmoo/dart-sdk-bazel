@@ -275,8 +275,8 @@ def _overlay_repository_impl(repository_ctx):
                 upstream_build = repository_ctx.path("source/{}/BUILD.bazel".format(subpkg))
             upstream_content = ""
             if upstream_build.exists:
-                upstream_content = repository_ctx.read(upstream_build)
-            repository_ctx.file("source/{}/BUILD.bazel".format(subpkg), upstream_content + "\n" + append_content)
+                upstream_content = repository_ctx.read(upstream_build) + "\n"
+            repository_ctx.file("source/{}/BUILD.bazel".format(subpkg), upstream_content + append_content)
 
         # 3. Stage flutter/BUILD.bazel overlay
         flutter_snap = root_snap_dir.get_child("flutter").get_child("BUILD.bazel.snap")

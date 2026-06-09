@@ -96,7 +96,7 @@ VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 # to a physical cache directory outside the logical workspace root where the
 # VERSION file does not exist. Fall back to the logical current working directory.
 if not os.path.exists(VERSION_FILE):
-    logical_dart_dir = os.path.abspath(os.curdir)
+    logical_dart_dir = os.getcwd()
     logical_version_file = os.path.join(logical_dart_dir, 'tools', 'VERSION')
     if os.path.exists(logical_version_file):
         DART_DIR = logical_dart_dir
