@@ -18,6 +18,7 @@ spec:
       containers:
       - name: redis
         image: mirror.gcr.io/library/redis:7.2
+        args: ["--maxmemory", "1500mb", "--maxmemory-policy", "noeviction"]
         ports:
         - containerPort: 6379
         resources:

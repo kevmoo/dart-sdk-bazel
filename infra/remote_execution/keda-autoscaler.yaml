@@ -36,7 +36,7 @@ spec:
     # Note: The actual key name depends on Buildfarm's internal Redis schema configuration.
     # - type: redis
     #   metadata:
-    #     host: buildfarm-redis-master.default.svc.cluster.local
+    #     host: redis-private.bazel-buildfarm.svc.cluster.local
     #     port: "6379"
     #     listName: "queued_operations"
     #     listLength: "5" # Scale up for every 5 items in the list

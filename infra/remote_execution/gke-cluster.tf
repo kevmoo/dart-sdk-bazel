@@ -6,8 +6,8 @@ resource "google_container_cluster" "bazel_cluster" {
   location = var.region
 
   # Use our custom VPC network and subnet
-  network    = google_compute_network.bazel_vpc.name
-  subnetwork = google_compute_subnetwork.bazel_subnet.name
+  network    = google_compute_network.bazel_vpc.id
+  subnetwork = google_compute_subnetwork.bazel_subnet.id
 
   # Satisfy Org Policies: Enable Private Nodes AND Private Endpoint
   private_cluster_config {
