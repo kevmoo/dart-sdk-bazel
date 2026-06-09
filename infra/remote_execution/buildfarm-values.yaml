@@ -1,0 +1,65 @@
+# ------------------------------------------------------------------------------
+# HELM VALUES FOR BAZEL BUILDFARM DEPLOYMENT (COMPATIBLE v0.4.1)
+# ------------------------------------------------------------------------------
+
+# 1. REDIS (Disabled - Using Private Redis Deployment)
+redis:
+  enabled: false
+
+externalRedis:
+  uri: "redis://redis-private:6379"
+
+# 2. BUILDFARM SERVER (Control Plane / Scheduler)
+server:
+  replicaCount: 1
+  nodeSelector:
+    role: control-plane
+  
+  serviceAccount:
+    create: true
+    annotations: {}
+
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "1000m"
+      memory: "2Gi"
+
+  config:
+    name: "gke-buildfarm"
+    recordBesEvents: true
+
+# 3. BUILDFARM WORKERS (Linux - Autoscaled)
+shardWorker:
+  replicaCount: 1
+  
+  # Disable built-in HPA so KEDA can handle autoscaling
+  autoscaling:
+    enabled: false
+
+  nodeSelector:
+    role: worker
+    os: linux
+
+  # Tolerate the taint on the worker node pool
+  tolerations:
+    - key: "bazel-worker"
+      operator: "Equal"
+      value: "true"
+      effect: "NoSchedule"
+
+  resources:
+    limits:
+      cpu: "7000m" # Leave some overhead on an 8-core VM
+      memory: "28Gi"
+    requests:
+      cpu: "6000m"
+      memory: "26Gi"
+
+  config:
+    port: 8982
+    capabilities:
+      execution: true
+      cas: true # Ensure worker has CAS enabled

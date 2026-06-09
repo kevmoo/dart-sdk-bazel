@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-private
+  namespace: bazel-buildfarm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-private
+  template:
+    metadata:
+      labels:
+        app: redis-private
+    spec:
+      nodeSelector:
+        role: control-plane
+      containers:
+      - name: redis
+        image: mirror.gcr.io/library/redis:7.2
+        args: ["--maxmemory", "1500mb", "--maxmemory-policy", "noeviction"]
+        ports:
+        - containerPort: 6379
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-private
+  namespace: bazel-buildfarm
+spec:
+  selector:
+    app: redis-private
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379

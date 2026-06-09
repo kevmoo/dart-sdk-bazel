@@ -1,0 +1,42 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: buildfarm-worker-autoscaler
+  namespace: bazel-buildfarm
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: bazel-buildfarm-shard-worker # Targets the shard-worker StatefulSet
+
+  # Cost Control: Scale down to 0 when idle
+  minReplicaCount: 0
+  maxReplicaCount: 20
+
+  # How long to wait before scaling down after the queue is empty (in seconds)
+  cooldownPeriod: 600 # 10 minutes
+
+  # How often KEDA should poll the metrics provider (in seconds)
+  pollingInterval: 15
+
+  triggers:
+    # OPTION A: Prometheus Metrics (Recommended for Buildfarm)
+    # Scales based on the actual queue size reported by the Buildfarm server.
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-k8s.monitoring.svc:9090 # Path to your Prometheus server
+        metricName: buildfarm_queue_size
+        # Query to get the number of queued operations
+        query: sum(buildfarm_operations_queue_size{job="bazel-buildfarm-server"})
+        # Scale up by 1 worker for every 5 operations in the queue
+        threshold: '5'
+
+    # OPTION B: Redis List (Alternative)
+    # If you don't have Prometheus, KEDA can monitor the Redis list directly.
+    # Note: The actual key name depends on Buildfarm's internal Redis schema configuration.
+    # - type: redis
+    #   metadata:
+    #     host: redis-private.bazel-buildfarm.svc.cluster.local
+    #     port: "6379"
+    #     listName: "queued_operations"
+    #     listLength: "5" # Scale up for every 5 items in the list
