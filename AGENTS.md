@@ -69,6 +69,7 @@ bd close <id>         # Complete work
 - **No Premature Completion & Closeout Protocol**: Do NOT mark issues as `closed` (completed) in the Beads database if their code changes have not yet been merged into the base integration branch (`kevmoo/bazel`).
   1. **During PR**: Keep the Bead in `in_progress` status while the Pull Request is open. This prevents backlog history drift and eliminates merge conflicts on feature branches.
   2. **After Merge (Batch Closeout)**: Once one or more PRs are officially merged into `kevmoo/bazel`, switch to the local `bazel` branch, pull the latest changes, run `bd close <id...>` for the merged tasks, run the board generator to regenerate the backlog, and commit/push this "Backlog Sync" commit directly to `kevmoo/bazel`.
+  3. **Track Cleanup (if applicable)**: Delete the completed Conductor track folders (e.g., `rm -rf conductor/tracks/<track_id>`) from the repository, as their detailed planning and specification history is already preserved in the merged PR's git history. Commit this cleanup in the same "Backlog Sync" commit to keep the `bazel`/`main` branch clean of finished plans.
 - **Document Pull Requests**: When a Pull Request is created for a task, immediately update the Bead in the database with the PR URL as an external reference:
   ```bash
   bd update <id> --external-ref <pr-url>

@@ -43,6 +43,7 @@ Every commit containing code changes MUST satisfy these gates before being prepa
     1.  Close the task in beads: `bd close <id>`.
     2.  Regenerate the board: `tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart`.
     3.  Stage and commit the code changes **and** the updated `BACKLOG.md` / `BACKLOG_HISTORY.md` in a single, atomic Git commit.
+    4.  **Track Cleanup (if applicable)**: Delete the completed Conductor track folders (e.g., `rm -rf conductor/tracks/<track_id>`) from the repository, as their detailed planning and specification history is already preserved in the merged PR's git history. Commit this cleanup in the same "Backlog Sync" commit to keep the `bazel`/`main` branch clean of finished plans.
 *   **Session Logging**: Every commit or logical block of work must have a corresponding entry in `docs/bazel-migration/STATUS.md` summarizing what was implemented, verified, and any handoff notes.
 
 ---
