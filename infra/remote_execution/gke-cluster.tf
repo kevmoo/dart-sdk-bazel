@@ -16,6 +16,11 @@ resource "google_container_cluster" "bazel_cluster" {
     master_ipv4_cidr_block  = "172.16.0.0/28" # Small private range for the GKE master VMs
   }
 
+  # Optimize for aggressive scale-down of idle nodes
+  cluster_autoscaling {
+    autoscaling_profile = "OPTIMIZE_UTILIZATION"
+  }
+
   # Required when private endpoint is enabled
   master_authorized_networks_config {
     cidr_blocks {
@@ -99,6 +104,10 @@ resource "google_container_node_pool" "linux_workers" {
     spot            = true
     machine_type    = "c2-standard-8" # Compute-optimized, 8 vCPU, 32GB RAM
     service_account = google_service_account.gke_nodes.email
+
+    # Allocate sufficient, high-performance SSD storage for heavy parallel builds
+    disk_size_gb = 200
+    disk_type    = "pd-ssd"
 
     labels = {
       role = "worker"

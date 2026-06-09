@@ -12,6 +12,9 @@ externalRedis:
 # 2. BUILDFARM SERVER (Control Plane / Scheduler)
 server:
   replicaCount: 1
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8981"
   nodeSelector:
     role: control-plane
   
