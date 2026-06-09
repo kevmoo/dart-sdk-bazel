@@ -159,11 +159,16 @@ class OptionsParser {
     if (options['built-with-bazel'] == true) {
       options['use-sdk'] = true;
       options['build'] = false;
-      var bazelBin = Process.runSync('bazel', ['info', 'bazel-bin'])
-          .stdout
-          .toString()
-          .trim();
-      options['build-directory'] = path.join(bazelBin, 'sdk');
+      try {
+        var result = Process.runSync('bazel', ['info', 'bazel-bin']);
+        if (result.exitCode != 0) {
+          _fail('Bazel command failed: ${result.stderr.toString().trim()}');
+        }
+        var bazelBin = result.stdout.toString().trim();
+        options['build-directory'] = path.join(bazelBin, 'sdk');
+      } on ProcessException catch (e) {
+        _fail('Failed to execute bazel: $e');
+      }
     }
 
     if (options['find-configurations'] as bool) {
