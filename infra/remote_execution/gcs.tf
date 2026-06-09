@@ -52,6 +52,7 @@ resource "google_storage_bucket" "dev_cache" {
   storage_class = "STANDARD"
 
   uniform_bucket_level_access = true
+  public_access_prevention    = "enforced"
   force_destroy               = true # Allow easy cleanup during PoC
 
   # Scale-to-zero / Cost control: Delete objects older than 14 days
@@ -74,6 +75,7 @@ resource "google_storage_bucket" "prod_cache" {
   storage_class = "STANDARD"
 
   uniform_bucket_level_access = true
+  public_access_prevention    = "enforced"
   force_destroy               = false # Protect production history
 
   # Long retention to preserve stable toolchains and CI builds
@@ -94,10 +96,14 @@ resource "google_storage_bucket" "prod_cache" {
 # Developer Member (e.g., group:developers@yourdomain.com or user:email@google.com)
 # - Read-Write on Dev Cache
 # - Read-Only on Prod Cache
-resource "google_storage_bucket_iam_member" "dev_cache_developer_writer" {
-  bucket = google_storage_bucket.dev_cache.name
-  role   = "roles/storage.objectAdmin" # Allows read, write, and delete (for cache eviction)
-  member = var.developer_member
+resource "google_storage_bucket_iam_member" "dev_cache_developer_access" {
+  for_each = toset([
+    "roles/storage.objectViewer",
+    "roles/storage.objectCreator"
+  ])
+  bucket   = google_storage_bucket.dev_cache.name
+  role     = each.key
+  member   = var.developer_member
 }
 
 resource "google_storage_bucket_iam_member" "prod_cache_developer_reader" {

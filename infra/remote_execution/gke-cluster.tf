@@ -63,8 +63,9 @@ resource "google_container_node_pool" "control_plane" {
   node_count = 1 # Always on to receive requests instantly
 
   node_config {
-    preemptible  = false
-    machine_type = "e2-standard-2" # 2 vCPU, 8GB RAM (sufficient for Redis + Queue)
+    preemptible     = false
+    machine_type    = "e2-standard-2" # 2 vCPU, 8GB RAM (sufficient for Redis + Queue)
+    service_account = google_service_account.gke_nodes.email
 
     labels = {
       role = "control-plane"
@@ -95,8 +96,9 @@ resource "google_container_node_pool" "linux_workers" {
 
   node_config {
     # Spot VMs (preemptible) are perfect for stateless build workers to save 60-80% cost
-    spot         = true
-    machine_type = "c2-standard-8" # Compute-optimized, 8 vCPU, 32GB RAM
+    spot            = true
+    machine_type    = "c2-standard-8" # Compute-optimized, 8 vCPU, 32GB RAM
+    service_account = google_service_account.gke_nodes.email
 
     labels = {
       role = "worker"
@@ -152,3 +154,36 @@ resource "google_container_node_pool" "linux_workers" {
 #     ]
 #   }
 # }
+
+# ------------------------------------------------------------------------------
+# GKE NODE SERVICE ACCOUNT & IAM ROLES (LEAST PRIVILEGE)
+# ------------------------------------------------------------------------------
+resource "google_service_account" "gke_nodes" {
+  account_id   = "bazel-gke-nodes"
+  display_name = "GKE Nodes Service Account for Bazel"
+}
+
+# Grant minimal roles required for GKE node operations
+resource "google_project_iam_member" "gke_nodes_log_writer" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.gke_nodes.email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_metric_writer" {
+  project = var.project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.gke_nodes.email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_monitoring_viewer" {
+  project = var.project_id
+  role    = "roles/monitoring.viewer"
+  member  = "serviceAccount:${google_service_account.gke_nodes.email}"
+}
+
+resource "google_project_iam_member" "gke_nodes_resource_metadata_writer" {
+  project = var.project_id
+  role    = "roles/stackdriver.resourceMetadata.writer"
+  member  = "serviceAccount:${google_service_account.gke_nodes.email}"
+}
