@@ -81,7 +81,7 @@ dart_app_jit_snapshot(
     main = "dart2js.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_compiler",
+    sources = "@dart_packages//pkg/compiler",
     training_args = [
         "--invoker=gn_build",
         "--packages=$(location //:package_config_json)",
@@ -105,7 +105,7 @@ dart_aot_snapshot(
     main = "dart2js.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_compiler",
+    sources = "@dart_packages//pkg/compiler",
 )
 
 # (dart2js_aot_dill is now emitted by the dart_aot_snapshot macro above
@@ -153,7 +153,7 @@ dart_aot_snapshot(
     main = "dart2js.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_compiler",
+    sources = "@dart_packages//pkg/compiler",
 )
 
 dart_aot_snapshot(
@@ -164,7 +164,7 @@ dart_aot_snapshot(
     main = "dart2js.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_compiler",
+    sources = "@dart_packages//pkg/compiler",
 )
 
 genrule(

@@ -34,7 +34,7 @@ exports_files(glob(
 # subsequent kernel compilations in the Bazel workspace.
 prebuilt_dart_aot_snapshot(
     name = "bootstrap_gen_kernel",
-    srcs = ["//:dart_pkg_vm"],
+    srcs = ["@dart_packages//pkg/vm"],
     main = "//:pkg/vm/bin/gen_kernel.dart",
 )
 
@@ -46,7 +46,7 @@ dart_aot_snapshot(
     main = "//:pkg/vm/bin/gen_kernel.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_vm",
+    sources = "@dart_packages//pkg/vm",
 )
 
 dart_aot_snapshot(
@@ -57,5 +57,5 @@ dart_aot_snapshot(
     main = "//:pkg/vm/bin/gen_kernel.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_vm",
+    sources = "@dart_packages//pkg/vm",
 )

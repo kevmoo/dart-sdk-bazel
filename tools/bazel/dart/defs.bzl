@@ -80,7 +80,7 @@ dart_library = rule(
     doc = "A Dart package: its own lib sources plus its transitive dep closure.",
     # buildifier: disable=unsorted-dict-items
     attrs = {
-        "srcs": attr.label_list(allow_files = [".dart"]),
+        "srcs": attr.label_list(allow_files = [".dart", ".yaml"]),
         "deps": attr.label_list(providers = [DartLibraryInfo]),
     },
 )

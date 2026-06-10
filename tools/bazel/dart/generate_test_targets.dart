@@ -352,14 +352,14 @@ void main(List<String> args) async {
       // Compute baseline deps for this config
       final baselineDeps = <String>{
         ':tests_metadata_$configName.json',
-        '@//:dart_pkg_async_helper',
-        '@//:dart_pkg_dart2js_tools',
-        '@//:dart_pkg_expect',
-        '@//:dart_pkg_ffi',
-        '@//:dart_pkg_js',
-        '@//:dart_pkg_meta',
-        '@//:dart_pkg_path',
-        '@//:dart_pkg_source_maps',
+        '@dart_packages//pkg/async_helper',
+        '@dart_packages//pkg/dart2js_tools',
+        '@dart_packages//pkg/expect',
+        '@dart_packages//pkg/ffi',
+        '@dart_packages//pkg/js',
+        '@dart_packages//pkg/meta',
+        '@dart_packages//pkg/path',
+        '@dart_packages//pkg/source_maps',
         '@//:package_config_json',
         '@//pkg/test_runner/bin:run_single_test.dart',
         '@//sdk:create_sdk',
@@ -372,7 +372,7 @@ void main(List<String> args) async {
       // Add pubspec deps
       for (final dep in pubspecDeps) {
         if (dep == pkgName) continue;
-        baselineDeps.add('@//:dart_pkg_$dep');
+        baselineDeps.add('@dart_packages//pkg/$dep');
 
         final toolEntryPoints = {
           'analyzer_cli': '@//:pkg/analyzer_cli/bin/analyzer.dart',
@@ -390,21 +390,21 @@ void main(List<String> args) async {
 
         final toolExtraPackages = {
           'analyzer_cli': {
-            '@//:dart_pkg_analyzer',
-            '@//:dart_pkg_convert',
-            '@//:dart_pkg_glob',
-            '@//:dart_pkg_pub_semver',
-            '@//:dart_pkg_source_span',
-            '@//:dart_pkg_watcher',
-            '@//:dart_pkg_yaml',
+            '@dart_packages//pkg/analyzer',
+            '@dart_packages//pkg/convert',
+            '@dart_packages//pkg/glob',
+            '@dart_packages//pkg/pub_semver',
+            '@dart_packages//pkg/source_span',
+            '@dart_packages//pkg/watcher',
+            '@dart_packages//pkg/yaml',
           },
           'analyzer': {
-            '@//:dart_pkg_convert',
-            '@//:dart_pkg_glob',
-            '@//:dart_pkg_pub_semver',
-            '@//:dart_pkg_source_span',
-            '@//:dart_pkg_watcher',
-            '@//:dart_pkg_yaml',
+            '@dart_packages//pkg/convert',
+            '@dart_packages//pkg/glob',
+            '@dart_packages//pkg/pub_semver',
+            '@dart_packages//pkg/source_span',
+            '@dart_packages//pkg/watcher',
+            '@dart_packages//pkg/yaml',
           },
         };
         final extraPkgs = toolExtraPackages[dep];
@@ -613,7 +613,7 @@ void main(List<String> args) async {
             final pWideTests = packageWideTests[pkgDir];
             if (pWideTests != null && pWideTests.contains(relPathInPkg)) {
               if (pkgName != null) {
-                targetDeps.add('@//:dart_pkg_$pkgName');
+                targetDeps.add('@dart_packages//pkg/$pkgName');
               }
             }
 
@@ -649,7 +649,7 @@ $targetDepsStr
 
         if (!useIndividualTargets) {
           if (pkgDir.startsWith('pkg/') && pkgName != null) {
-            otherDeps.add('@//:dart_pkg_$pkgName');
+            otherDeps.add('@dart_packages//pkg/$pkgName');
           }
 
           final baselineDepsSet = baselineDeps

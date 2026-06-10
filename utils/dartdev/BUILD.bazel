@@ -86,7 +86,7 @@ dart_aot_snapshot(
     main = "//:pkg/dartdev/bin/dartdev.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_dartdev",
+    sources = "@dart_packages//pkg/dartdev",
 )
 
 # aot_snapshot("dartdev_aot_profile_snapshot") has no force_product_mode ->
@@ -99,7 +99,7 @@ dart_aot_snapshot(
     main = "//:pkg/dartdev/bin/dartdev.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dartdev",
+    sources = "@dart_packages//pkg/dartdev",
 )
 
 # rules_dart Step 4 (app-jit variant). Ports
@@ -114,6 +114,6 @@ dart_app_jit_snapshot(
     main = "//:pkg/dartdev/bin/dartdev.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dartdev",
+    sources = "@dart_packages//pkg/dartdev",
     training_args = ["--help"],
 )

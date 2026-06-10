@@ -15,7 +15,7 @@ toolchain_type(name = "toolchain_type")
 dart_binary(
     name = "test_hello",
     main = "test_hello.dart",
-    sources = "//:dart_pkg_args",
+    sources = "@dart_packages//pkg/args",
 )
 
 dart_toolchain(
