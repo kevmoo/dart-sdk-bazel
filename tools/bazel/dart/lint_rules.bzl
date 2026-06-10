@@ -51,7 +51,7 @@ ws_root="${{rdir}}/{workspace_name}"
 # Stage and adjust package_config.json if it exists
 if [ -f "${{rdir}}/{package_config_path}" ]; then
   mkdir -p "${{ws_root}}/.dart_tool"
-  sed 's|\\.\\./\\.\\./\\.\\./|../|g' "${{rdir}}/{package_config_path}" > "${{ws_root}}/.dart_tool/package_config.json"
+  sed 's|"rootUri": "\\.\\./\\.\\./\\.\\./|"rootUri": "../|g' "${{rdir}}/{package_config_path}" > "${{ws_root}}/.dart_tool/package_config.json"
 fi
 
 # CD into the workspace root (needed for relative paths in package_config to resolve)
@@ -98,11 +98,26 @@ def _dart_format_test_impl(ctx):
     package_dir = ctx.attr.package_dir
     direct_srcs = []
 
-    # Filter the transitive sources to find only the direct sources of this package.
-    # Any file in transitive_srcs that starts with the package_dir is a direct source.
+    # Filter the transitive sources to find only the direct Dart sources of this package.
+    # Any file in transitive_srcs that starts with the package_dir and ends with .dart is a direct source.
     for f in ctx.attr.package[DartLibraryInfo].transitive_srcs.to_list():
-        if f.short_path.startswith(package_dir + "/"):
+        if f.short_path.startswith(package_dir + "/") and f.path.endswith(".dart"):
             direct_srcs.append(f)
+
+    if not direct_srcs:
+        # If there are no Dart files to format, return a dummy test runner that exits 0.
+        runner = ctx.actions.declare_file(ctx.label.name)
+        ctx.actions.write(
+            output = runner,
+            content = "#!/bin/bash\necho 'No Dart sources found to format.'\nexit 0\n",
+            is_executable = True,
+        )
+        return [
+            DefaultInfo(
+                executable = runner,
+                runfiles = ctx.runfiles(),
+            ),
+        ]
 
     file_paths = [_runfiles_path(ctx, f) for f in direct_srcs]
 
