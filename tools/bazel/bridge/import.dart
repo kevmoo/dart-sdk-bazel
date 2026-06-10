@@ -119,9 +119,13 @@ void main(List<String> args) async {
     // Try upstream if origin fails (Gerrit might be on upstream)
     print('Fetch from origin failed, trying upstream...');
     if (!await gitFetch('upstream', targetRef, verbose)) {
-      stderr.writeln(
-          'Error: Failed to fetch ref $targetRef from origin or upstream.');
-      exit(1);
+      print('Fetch from upstream failed, trying direct Gerrit URL...');
+      if (!await gitFetch(
+          'https://dart.googlesource.com/sdk', targetRef, verbose)) {
+        stderr.writeln(
+            'Error: Failed to fetch ref $targetRef from origin, upstream, or Gerrit URL.');
+        exit(1);
+      }
     }
   }
 
@@ -282,8 +286,12 @@ Future<String?> resolveLatestGerritPatchset(String clId) async {
   final lastTwo = (int.parse(clId) % 100).toString().padLeft(2, '0');
   final refPattern = 'refs/changes/$lastTwo/$clId/*';
 
-  // Try upstream first, then origin
-  for (final remote in ['upstream', 'origin']) {
+  // Try upstream, origin, and the direct Gerrit URL
+  for (final remote in [
+    'upstream',
+    'origin',
+    'https://dart.googlesource.com/sdk'
+  ]) {
     final result = await Process.run('git', ['ls-remote', remote, refPattern]);
     if (result.exitCode == 0) {
       final stdout = result.stdout as String;
