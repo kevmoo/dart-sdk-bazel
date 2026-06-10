@@ -93,6 +93,7 @@ def _packages_repo_impl(ctx):
     # Generate the macro in defs.bzl
     macro_lines = [
         "load(\"@//tools/bazel/dart:defs.bzl\", \"dart_library\")",
+        "load(\"@//tools/bazel/dart:lint_rules.bzl\", \"dart_analyze_test\", \"dart_format_test\")",
         "",
         "def declare_package_targets():",
     ]
@@ -117,6 +118,18 @@ def _packages_repo_impl(ctx):
         macro_lines.append("        name = \"dart_pkg_%s\"," % name)
         macro_lines.append("        srcs = native.glob([\"%s\"], allow_empty = True)," % glob_path)
         macro_lines.append("        deps = [%s]," % dep_labels)
+        macro_lines.append("    )")
+        macro_lines.append("")
+        macro_lines.append("    dart_analyze_test(")
+        macro_lines.append("        name = \"dart_pkg_%s_analyze\"," % name)
+        macro_lines.append("        package = \":dart_pkg_%s\"," % name)
+        macro_lines.append("        package_dir = \"%s\"," % pkg.reldir)
+        macro_lines.append("    )")
+        macro_lines.append("")
+        macro_lines.append("    dart_format_test(")
+        macro_lines.append("        name = \"dart_pkg_%s_format\"," % name)
+        macro_lines.append("        package = \":dart_pkg_%s\"," % name)
+        macro_lines.append("        package_dir = \"%s\"," % pkg.reldir)
         macro_lines.append("    )")
         macro_lines.append("")
 
