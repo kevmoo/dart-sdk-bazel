@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 54/64 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 55/64 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -88,7 +88,7 @@ graph TD
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
-    sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::pending
+    sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::completed
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::completed
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
@@ -249,19 +249,6 @@ graph TD
   - None
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-s7k] Investigate Bazel aspects for formatting and analysis checks
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Research and brainstorm the design for running static analysis (dart analyze) and formatting (dart format) via Bazel Aspects (similar to aspect_rules_lint) or macro-generated test targets. This will ensure that formatting and lints are checked as part of the Bazel test/build graph with proper caching, rather than relying solely on pre-commit hooks.
 - **Success Criteria**:
 
 ---

@@ -821,6 +821,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-s7k] Investigate Bazel aspects for formatting and analysis checks
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Research and brainstorm the design for running static analysis (dart analyze) and formatting (dart format) via Bazel Aspects (similar to aspect_rules_lint) or macro-generated test targets. This will ensure that formatting and lints are checked as part of the Bazel test/build graph with proper caching, rather than relying solely on pre-commit hooks.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-w7m] VM: Eliminate preprocessor symbol toggles in dfe.cc
 - **Status**: `[COMPLETED]`
 - **PR/External Ref**: [PR #18](https://github.com/kevmoo/sdk/pull/18)
