@@ -690,6 +690,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-95q] Migrate leaf C++ integration tests (abstract_socket_test & process_test) to cc_test
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Convert the remaining leaf C++ integration tests in runtime/bin (abstract_socket_test and process_test) into canonical Bazel cc_test targets. Package create_process_test_helper into the data attribute of process_test so it is available in the sandbox at runtime.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-9qx] Design: Bazel-powered developer workflow bridge for upstream work
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `TASK_038`
