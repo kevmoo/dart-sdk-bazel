@@ -36,6 +36,15 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
     return deps
 
 def _packages_repo_impl(ctx):
+    workspace_dir = ctx.workspace_root
+
+    # Register dependency on the sentinel file to force Bzlmod invalidation if the workspace is cleaned.
+    # This resolves the bug where Bazel restores the virtual repo from cache but the cloned files in the
+    # workspace were deleted by a clean CI run, leaving dangling symlinks.
+    sentinel = workspace_dir.get_child("third_party").get_child("pkg").get_child(".cloned_sentinel")
+    if sentinel.exists:
+        ctx.read(sentinel)
+
     # Dynamically clone third_party/pkg dependencies from DEPS if missing
     clone_script = ctx.path(Label("@dart_sdk//tools/bazel:clone_dependencies.py"))
     res = ctx.execute(["python3", str(clone_script)])
@@ -48,7 +57,6 @@ def _packages_repo_impl(ctx):
     if res.return_code != 0:
         fail("Failed to clone third-party Dart package dependencies: " + res.stderr)
 
-    workspace_dir = ctx.workspace_root
     package_config_path = workspace_dir.get_child(".dart_tool").get_child("package_config.json")
     if not package_config_path.exists:
         fail("Could not find package_config.json at: " + str(package_config_path))
@@ -140,10 +148,12 @@ def _packages_repo_impl(ctx):
             if physical_options.exists:
                 ctx.symlink(physical_options, virtual_pkg_dir + "/" + options_name)
 
-        # 4. Symlink 'bin' if it exists (for packages with executables)
-        physical_bin = physical_path.get_child("bin")
-        if physical_bin.exists:
-            ctx.symlink(physical_bin, virtual_pkg_dir + "/bin")
+        # 4. Symlink other common directories if they exist (bin, test, tool, web)
+        # This ensures that executables, tests, and tools are available and analyzed (resolves Comment #1)
+        for dir_name in ["bin", "test", "tool", "web"]:
+            physical_dir = physical_path.get_child(dir_name)
+            if physical_dir.exists:
+                ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
 
         # Generate BUILD.bazel content for this package
         build_lines = [

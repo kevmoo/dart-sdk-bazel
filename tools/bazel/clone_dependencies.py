@@ -260,6 +260,12 @@ def main():
                 continue
 
             clone_repo(os.path.join(sdk_root, repo), deps[dep_key])
+
+        # Create sentinel file to signal successful clone to Bzlmod
+        sentinel_path = os.path.join(sdk_root, 'third_party', 'pkg', '.cloned_sentinel')
+        os.makedirs(os.path.dirname(sentinel_path), exist_ok=True)
+        with open(sentinel_path, 'w') as f:
+            f.write('cloned')
     finally:
         try:
             os.remove(os.path.join(lock_dir, 'pid'))
