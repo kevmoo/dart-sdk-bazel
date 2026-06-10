@@ -102,6 +102,21 @@ If your task involves WebAssembly or `dart2wasm`:
 > 3. **HISTORY MODIFICATIONS:** The same rule applies to `git commit --amend`, `git rebase`, or any other history-modifying command. These are destructive operations and **MUST** be explicitly approved immediately before execution.
 > 4. **PENALTY:** Any violation of this rule is considered a critical breach of safety protocols and will result in immediate termination of the agent's session.
 
+### Pull Request Protocol (GitHub CLI)
+
+When you are ready to submit your work, you must create a Pull Request. Always use the GitHub CLI (`gh`) for this.
+
+*   **Target Repository Gotcha:** The repository `kevmoo/dart-sdk-bazel` is the primary development repo for this Bazel fork. However, `gh` may default to targeting the parent repository `kevmoo/sdk`, which will cause PR creation to fail with GraphQL errors.
+*   **Requirement:** Always explicitly specify the target repository (`--repo`), base branch (`--base`), and head branch (`--head`) when creating a PR:
+    ```bash
+    gh pr create \
+      --repo kevmoo/dart-sdk-bazel \
+      --base main \
+      --head feat/your-branch-name \
+      --title "Your PR Title" \
+      --body "Your PR Description"
+    ```
+
 ---
 
 ## 5. Beads & Dolt Integration for Agents
