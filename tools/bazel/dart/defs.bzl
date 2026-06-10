@@ -385,6 +385,7 @@ dart_compile_dill = rule(
         "platform_dill": attr.label(mandatory = True, allow_single_file = True),
         "product": attr.bool(default = False),
         "sources": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "_dartaotruntime": attr.label(default = Label("@prebuilt_dart_sdk//:bin/dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
@@ -392,6 +393,23 @@ dart_compile_dill = rule(
 def _dart_compile_dill_impl(ctx):
     toolchain = ctx.toolchains["//tools/bazel/dart:toolchain_type"].dartinfo
     out_file = ctx.outputs.out
+    boot_file = ctx.file.gen_kernel_dill
+
+    # Dynamically choose executor and inputs based on whether the bootstrap
+    # compiler is a JIT (.dill) or an AOT (.snapshot) binary.
+    if boot_file.extension == "dill":
+        compiler_cmd = "{dart} -Dsdk_hash={hash} {boot}".format(
+            dart = toolchain.dart_executable.path,
+            hash = toolchain.sdk_hash,
+            boot = boot_file.path,
+        )
+        extra_inputs = [toolchain.dart_executable]
+    else:
+        compiler_cmd = "{dartaotruntime} {boot}".format(
+            dartaotruntime = ctx.executable._dartaotruntime.path,
+            boot = boot_file.path,
+        )
+        extra_inputs = [ctx.executable._dartaotruntime]
 
     inputs = depset(
         direct = [
@@ -399,8 +417,7 @@ def _dart_compile_dill_impl(ctx):
             ctx.file.gen_kernel_dill,
             ctx.file.platform_dill,
             ctx.file.package_config,
-            toolchain.dart_executable,
-        ],
+        ] + extra_inputs,
         transitive = [
             toolchain.sdk_files[DefaultInfo].files,
             ctx.attr.sources[DartLibraryInfo].transitive_srcs,
@@ -413,19 +430,18 @@ def _dart_compile_dill_impl(ctx):
         outputs = [out_file],
         inputs = inputs,
         command = (
-            "{dart} -Dsdk_hash={hash} {boot} " +
+            "{compiler_cmd} " +
             "--packages={pkg} --platform={plat} {mode_flags} --output={out} " +
             "-Dsdk_hash={hash} -Ddart.vm.product={product} " +
             "-Ddart.vm.asan=false -Ddart.vm.msan=false -Ddart.vm.tsan=false " +
             "{extra} {main}"
         ).format(
-            dart = toolchain.dart_executable.path,
-            hash = toolchain.sdk_hash,
-            boot = ctx.file.gen_kernel_dill.path,
+            compiler_cmd = compiler_cmd,
             pkg = ctx.file.package_config.path,
             plat = ctx.file.platform_dill.path,
             mode_flags = " ".join(ctx.attr.mode_flags),
             out = out_file.path,
+            hash = toolchain.sdk_hash,
             product = "true" if ctx.attr.product else "false",
             extra = extra_args,
             main = ctx.file.main.path,
@@ -785,3 +801,78 @@ dart_binary = rule(
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
+
+# --- Prebuilt AOT Snapshot Compilation (Bootstrap) ---
+# Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510221
+
+def _prebuilt_dart_aot_snapshot_impl(ctx):
+    dill = ctx.actions.declare_file(ctx.label.name + ".dill")
+    elf = ctx.outputs.out
+
+    # Step 1: Compile to AOT kernel dill using prebuilt AOT compiler
+    ctx.actions.run(
+        inputs = ctx.files.srcs + [
+            ctx.file.main,
+            ctx.file._gen_kernel_aot,
+            ctx.file._platform,
+            ctx.file._package_config,
+        ],
+        outputs = [dill],
+        executable = ctx.executable._dartaotruntime,
+        arguments = [
+            ctx.file._gen_kernel_aot.path,
+            "--packages=" + ctx.file._package_config.path,
+            "--platform=" + ctx.file._platform.path,
+            "--aot",
+            "--output=" + dill.path,
+            ctx.file.main.path,
+        ],
+        mnemonic = "PrebuiltDartCompileKernelAOT",
+        progress_message = "Compiling %{label} to AOT Kernel (prebuilt)",
+    )
+
+    # Step 2: Compile dill to AOT ELF snapshot using prebuilt gen_snapshot
+    ctx.actions.run(
+        inputs = [dill],
+        outputs = [elf],
+        executable = ctx.executable._gen_snapshot,
+        arguments = [
+            "--deterministic",
+            "--snapshot-kind=app-aot-elf",
+            "--elf=" + elf.path,
+            dill.path,
+        ],
+        mnemonic = "PrebuiltDartAotElf",
+        progress_message = "Generating AOT ELF snapshot %{label} (prebuilt)",
+    )
+
+    return [DefaultInfo(files = depset([elf]))]
+
+prebuilt_dart_aot_snapshot_rule = rule(
+    implementation = _prebuilt_dart_aot_snapshot_impl,
+    attrs = {
+        "main": attr.label(mandatory = True, allow_single_file = [".dart"]),
+        "srcs": attr.label_list(allow_files = True),
+        "out": attr.output(mandatory = True),
+        "_dartaotruntime": attr.label(default = Label("@prebuilt_dart_sdk//:bin/dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
+        "_gen_kernel_aot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/snapshots/gen_kernel_aot.dart.snapshot"), allow_single_file = True),
+        "_gen_snapshot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/utils/gen_snapshot"), executable = True, allow_single_file = True, cfg = "exec"),
+        "_platform": attr.label(default = Label("@prebuilt_dart_sdk//:lib/_internal/vm_platform_product.dill"), allow_single_file = True),
+        "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
+    },
+)
+
+def prebuilt_dart_aot_snapshot(name, main, srcs = [], **kwargs):
+    """Compile a Dart script to an AOT ELF snapshot using the prebuilt SDK.
+
+    Used for bootstrapping compiler tools (like bootstrap_gen_kernel) to AOT
+    without relying on the JIT VM or custom-built tools.
+    """
+    prebuilt_dart_aot_snapshot_rule(
+        name = name,
+        main = main,
+        srcs = srcs,
+        out = name + ".snapshot",
+        **kwargs
+    )
+

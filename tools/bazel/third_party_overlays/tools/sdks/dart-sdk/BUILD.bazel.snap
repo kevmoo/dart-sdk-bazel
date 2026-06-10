@@ -24,4 +24,7 @@ filegroup(
 exports_files([
     "bin/dart",
     "bin/dartaotruntime",
+    "bin/utils/gen_snapshot",
+    "bin/snapshots/gen_kernel_aot.dart.snapshot",
+    "lib/_internal/vm_platform_product.dill",
 ])

@@ -3,11 +3,19 @@
 # bits and re-apply fixes from version control.
 
 # Empty build file to designate utils/ddc as a valid Bazel package.
-load("//tools/bazel/dart:defs.bzl", "dart_aot_snapshot", "dart_app_jit_snapshot", "dart_compile_platform")
+load(
+    "//tools/bazel/dart:defs.bzl",
+    "dart_aot_snapshot",
+    "dart_app_jit_snapshot",
+    "dart_compile_platform",
+    "prebuilt_dart_aot_snapshot",
+)
 load(
     ":rules.bzl",
     "ddc_compile",
+    "ddc_compile_aot",
     "ddc_compile_sdk",
+    "ddc_compile_sdk_aot",
     "package_kernel_outline",
 )
 
@@ -63,15 +71,13 @@ dart_app_jit_snapshot(
 # rules_dart Step 4: real DDC (dev_compiler) AOT snapshots over
 # pkg/dev_compiler/bin/dartdevc.dart. Ports utils/ddc/BUILD.gn:aot_snapshot.
 # //:ddc references dartdevc_aot directly via cc_library deps (bare genrule OK).
-dart_aot_snapshot(
+# Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510143
+# Compiled via prebuilt AOT compiler to ensure version compatibility with the
+# prebuilt dartaotruntime used to execute it in Bazel.
+prebuilt_dart_aot_snapshot(
     name = "dartdevc_aot",
-    out = "dartdevc_aot.dart.snapshot",
-    gen_kernel_dill = "//utils/gen_kernel:bootstrap_gen_kernel",
-    gen_snapshot = "//runtime/bin:gen_snapshot",
     main = "//:pkg/dev_compiler/bin/dartdevc.dart",
-    platform_dill = "//runtime/vm:vm_platform.dill",
-    product = False,
-    sources = "//:dart_pkg_dev_compiler",
+    srcs = ["//:dart_pkg_dev_compiler"],
 )
 
 dart_aot_snapshot(
@@ -353,4 +359,86 @@ genrule(
           "--packages=$(location //:package_config_json) " +
           "-o $(location dart_stack_trace_mapper.js) " +
           "$(location //:pkg/dev_compiler/web/stack_trace_mapper.dart)",
+)
+
+# --- Parallel AOT DDC Targets ---
+# Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510143
+
+ddc_compile_sdk_aot(
+    name = "ddc_stable_sdk_aot",
+    canary = False,
+    modules = [
+        "amd",
+        "common",
+        "es6",
+        "ddc",
+    ],
+)
+
+ddc_compile_sdk_aot(
+    name = "ddc_canary_sdk_aot",
+    canary = True,
+    modules = [
+        "amd",
+        "common",
+        "es6",
+        "ddc",
+    ],
+)
+
+ddc_compile_aot(
+    name = "expect_stable_js_aot",
+    canary = False,
+    extra_libraries = [
+        "async_helper",
+        "legacy/minitest",
+        "legacy/async_minitest",
+    ],
+    modules = [
+        "amd",
+        "ddc",
+    ],
+    package = "expect",
+)
+
+ddc_compile_aot(
+    name = "js_stable_js_aot",
+    canary = False,
+    extra_libraries = ["js_util"],
+    modules = [
+        "amd",
+        "ddc",
+    ],
+    package = "js",
+)
+
+ddc_compile_aot(
+    name = "meta_stable_js_aot",
+    canary = False,
+    modules = [
+        "amd",
+        "ddc",
+    ],
+    package = "meta",
+)
+
+filegroup(
+    name = "ddc_stable_test_aot_local",
+    srcs = [
+        "//utils/ddc:ddc_stable_sdk_aot",
+        "//utils/ddc:expect_stable_js_aot",
+        "//utils/ddc:js_stable_js_aot",
+        "//utils/ddc:meta_stable_js_aot",
+        "//utils/ddc:ddc_test_pkg_outline",
+    ],
+)
+
+filegroup(
+    name = "ddc_stable_test_aot",
+    srcs = [
+        "//:create_sdk",
+        "//utils/ddc:ddc_stable_test_aot_local",
+    ],
+    # Carries the AOT compiler snapshot as data dependency
+    data = ["//utils/ddc:dartdevc_aot"],
 )

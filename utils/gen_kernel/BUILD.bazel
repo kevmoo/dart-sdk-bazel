@@ -2,7 +2,12 @@
 # Hand-fixes belong in this file (M3); rerun the translator to refresh structural
 # bits and re-apply fixes from version control.
 
-load("//tools/bazel/dart:defs.bzl", "dart_aot_snapshot", "dart_kernel_snapshot")
+load(
+    "//tools/bazel/dart:defs.bzl",
+    "dart_aot_snapshot",
+    "dart_kernel_snapshot",
+    "prebuilt_dart_aot_snapshot",
+)
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,17 +29,14 @@ exports_files(glob(
     allow_empty = True,
 ))
 
-# rules_dart Step 0: real bootstrap_gen_kernel.dill, regenerated from the
-# current prebuilt SDK (the checked-in out/ blob is stale — wrong kernel format
-# version). Mirrors utils/gen_kernel/BUILD.gn:bootstrap_gen_kernel.
-dart_kernel_snapshot(
+# Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510221
+# rules_dart Step 0: real bootstrap_gen_kernel.snapshot, regenerated as an AOT
+# snapshot from the current prebuilt SDK. Provides instant startup for all
+# subsequent kernel compilations in the Bazel workspace.
+prebuilt_dart_aot_snapshot(
     name = "bootstrap_gen_kernel",
     main = "//:pkg/vm/bin/gen_kernel.dart",
-    # rules_dart Step 3: gen_kernel.dart imports only package:vm/kernel/args, all
-    # in the dart_pkg_vm closure (17 pkgs). Scoping off the opaque blob is what
-    # lets a tool dill be a cache hit when an unrelated package changes — this
-    # bootstrap dill is a shared upstream of every tool's kernel compile.
-    sources = "//:dart_pkg_vm",
+    srcs = ["//:dart_pkg_vm"],
 )
 
 dart_aot_snapshot(

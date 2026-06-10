@@ -152,3 +152,84 @@ def ddc_compile_sdk(name, canary, modules):
         cmd = cmd,
         tools = ["//runtime/bin:dartvm"],
     )
+
+# --- Parallel AOT DDC Compilation Rules ---
+# Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510143
+
+def ddc_compile_aot(name, package, canary, modules, extra_libraries = []):
+    """Compiles a package to JavaScript using the AOT-compiled dartdevc."""
+    srcs = _SOURCES_MAP[package]
+
+    js_dir = "canary_aot/pkg" if canary else "stable_aot/pkg"
+    outputs = []
+    for module in modules:
+        outputs.append("%s/%s/%s.js" % (js_dir, module, package))
+        outputs.append("%s/%s/%s.js.map" % (js_dir, module, package))
+
+    cmd = "$(location @prebuilt_dart_sdk//:bin/dartaotruntime) $(location //utils/ddc:dartdevc_aot) "
+
+    args = []
+    for module in modules:
+        out_js = "$(RULEDIR)/%s/%s/%s.js" % (js_dir, module, package)
+        args.append("--modules=%s" % module)
+        args.append("-o %s" % out_js)
+
+    cmd += " ".join(args)
+    cmd += " --no-summarize"
+    cmd += " --dart-sdk-summary $(location //utils/ddc:ddc_outline.dill)"
+    cmd += " --multi-root-output-path=$(RULEDIR)"
+    if canary:
+        cmd += " --canary"
+
+    cmd += " package:%s/%s.dart" % (package, package)
+    for lib in extra_libraries:
+        cmd += " package:%s/%s.dart" % (package, lib)
+
+    native.genrule(
+        name = name,
+        srcs = srcs + [
+            "//utils/ddc:dartdevc_aot",
+            "//utils/ddc:ddc_outline.dill",
+            "//:package_config_json",
+            "@prebuilt_dart_sdk//:bin/dartaotruntime",
+        ],
+        outs = outputs,
+        cmd = cmd + " --packages=$(location //:package_config_json)",
+        tools = ["@prebuilt_dart_sdk//:bin/dartaotruntime"],
+    )
+
+def ddc_compile_sdk_aot(name, canary, modules):
+    """Compiles the DDC SDK JavaScript modules from the platform .dill file using AOT dartdevc."""
+    js_dir = "canary_aot/sdk" if canary else "stable_aot/sdk"
+    outputs = []
+    for module in modules:
+        outputs.append("%s/%s/dart_sdk.js" % (js_dir, module))
+        outputs.append("%s/%s/dart_sdk.js.map" % (js_dir, module))
+
+    cmd = "$(location @prebuilt_dart_sdk//:bin/dartaotruntime) $(location //utils/ddc:dartdevc_aot) "
+
+    args = []
+    for module in modules:
+        out_js = "$(RULEDIR)/%s/%s/dart_sdk.js" % (js_dir, module)
+        args.append("--modules=%s" % module)
+        args.append("-o %s" % out_js)
+
+    cmd += " ".join(args)
+    cmd += " --multi-root-scheme org-dartlang-sdk"
+    cmd += " --multi-root-output-path=$(RULEDIR)/../../../dart-sdk"
+    if canary:
+        cmd += " --canary"
+
+    cmd += " $(location //utils/ddc:ddc_platform.dill)"
+
+    native.genrule(
+        name = name,
+        srcs = [
+            "//utils/ddc:dartdevc_aot",
+            "//utils/ddc:ddc_platform.dill",
+            "@prebuilt_dart_sdk//:bin/dartaotruntime",
+        ],
+        outs = outputs,
+        cmd = cmd,
+        tools = ["@prebuilt_dart_sdk//:bin/dartaotruntime"],
+    )
