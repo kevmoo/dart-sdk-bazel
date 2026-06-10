@@ -183,7 +183,10 @@ def _packages_repo_impl(ctx):
                 if default_dep in known and default_dep != name:
                     test_deps.append(default_dep)
 
-            all_test_deps = sorted(list(set(test_deps)))
+            unique_test_deps = {}
+            for d in test_deps:
+                unique_test_deps[d] = True
+            all_test_deps = sorted(unique_test_deps.keys())
             test_dep_labels = ", ".join(['"//pkg/%s"' % d for d in all_test_deps])
 
             build_lines.append("dart_analyze_test(")

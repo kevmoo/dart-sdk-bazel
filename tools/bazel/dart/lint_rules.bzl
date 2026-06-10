@@ -82,7 +82,6 @@ cd "${{ws_root}}"
 """.format(
         workspace_name = workspace_name,
         package_config_path = package_config_path,
-        dart_path = dart_path,
         exec_cmd = exec_cmd,
     )
 
