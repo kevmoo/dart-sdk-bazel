@@ -130,7 +130,7 @@ def _dart_format_test_impl(ctx):
     # Declare a params file to store the list of files to format.
     # This completely avoids the ARG_MAX command-line length limit.
     params_file = ctx.actions.declare_file(ctx.label.name + ".files.txt")
-    
+
     # Write the workspace-relative paths of the direct sources to the params file.
     # When xargs runs in CWD (ws_root), these paths resolve perfectly.
     ctx.actions.write(

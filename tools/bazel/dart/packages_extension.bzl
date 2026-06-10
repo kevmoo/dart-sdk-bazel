@@ -120,6 +120,7 @@ def _packages_repo_impl(ctx):
         macro_lines.append("        deps = [%s]," % dep_labels)
         macro_lines.append("    )")
         macro_lines.append("")
+
         # Only generate lint/format tests for local packages (not in third_party/)
         if not pkg.reldir.startswith("third_party/"):
             macro_lines.append("    dart_analyze_test(")

@@ -57,8 +57,8 @@ dart_toolchain = rule(
 DartLibraryInfo = provider(
     doc = "Transitive closure of a Dart package's library sources.",
     fields = {
-        "transitive_srcs": "depset of .dart files in this package + its deps",
         "srcs": "list of direct .dart files in this package",
+        "transitive_srcs": "depset of .dart files in this package + its deps",
     },
 )
 
