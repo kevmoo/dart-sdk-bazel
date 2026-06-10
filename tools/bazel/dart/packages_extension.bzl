@@ -35,6 +35,41 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
                         deps.append(dep_name)
     return deps
 
+def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
+    """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
+    if not physical_dir.exists:
+        return []
+    res = ctx.execute(["find", str(physical_dir), "-type", "f"])
+    if res.return_code != 0:
+        fail("Failed to list files in " + str(physical_dir) + ": " + res.stderr)
+
+    files = []
+    virtual_root_str = str(ctx.path(""))
+    for line in res.stdout.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+
+        # Filter by extension
+        matched = False
+        for ext in extensions:
+            if line.endswith(ext):
+                matched = True
+                break
+        if not matched:
+            continue
+
+        # Make path relative to the appropriate root
+        if line.startswith(virtual_root_str):
+            rel_path = line[len(virtual_root_str) + 1:]
+            files.append(rel_path)
+        elif line.startswith(workspace_root_str):
+            rel_path = line[len(workspace_root_str) + 1:]
+            files.append(rel_path)
+        else:
+            fail("File path " + line + " does not start with workspace root " + workspace_root_str + " or virtual root " + virtual_root_str)
+    return files
+
 def _packages_repo_impl(ctx):
     workspace_dir = ctx.workspace_root
 
@@ -45,9 +80,22 @@ def _packages_repo_impl(ctx):
     if sentinel.exists:
         ctx.read(sentinel)
 
-    # Dynamically clone third_party/pkg dependencies from DEPS if missing
+    # Check if we have a local third-party checkout in the workspace (developer mode).
+    # We use 'third_party/pkg/core' as a representative check.
+    local_third_party_core = workspace_dir.get_child("third_party").get_child("pkg").get_child("core")
+    use_local_third_party = local_third_party_core.exists
+
+    # Dynamically clone third_party/pkg dependencies from DEPS if missing.
     clone_script = ctx.path(Label("@dart_sdk//tools/bazel:clone_dependencies.py"))
-    res = ctx.execute(["python3", str(clone_script)])
+
+    if use_local_third_party:
+        # Developer mode: reuse the clones in the main workspace.
+        res = ctx.execute(["python3", str(clone_script)])
+    else:
+        # CI/Clean mode: clone the repositories directly INSIDE the virtual repository
+        # so they are cached and restored together with the symlinks.
+        res = ctx.execute(["python3", str(clone_script), "--dest", str(ctx.path(""))])
+
     if res.stdout:
         # buildifier: disable=print
         print("Clone stdout:\n" + res.stdout)
@@ -125,7 +173,13 @@ def _packages_repo_impl(ctx):
                 dev_deps.append(d)
 
         # Resolve physical path
-        physical_path = workspace_dir.get_child(pkg.reldir)
+        if pkg.reldir.startswith("third_party/pkg/") and not use_local_third_party:
+            # CI/Clean mode: resolve to the cloned directory inside the virtual repository
+            physical_path = ctx.path(pkg.reldir)
+        else:
+            # Developer mode / Local package: resolve to the main workspace
+            physical_path = workspace_dir.get_child(pkg.reldir)
+
         virtual_pkg_dir = "pkg/" + name
 
         # Safely symlink only the essential components of the Dart package.
@@ -135,25 +189,38 @@ def _packages_repo_impl(ctx):
         # 1. Symlink 'lib' (mandatory for dart_library)
         physical_lib = physical_path.get_child(pkg.lib)
         if physical_lib.exists:
-            ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
+            if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+                # Developer mode or Local package: use absolute symlink (stable on host)
+                ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
+            else:
+                # CI/Clean mode for third-party: use relative symlink (stable in sandbox)
+                ctx.symlink("../../" + pkg.reldir + "/" + pkg.lib, virtual_pkg_dir + "/" + pkg.lib)
 
         # 2. Symlink 'pubspec.yaml' (highly recommended for tooling)
         physical_pubspec = physical_path.get_child("pubspec.yaml")
         if physical_pubspec.exists:
-            ctx.symlink(physical_pubspec, virtual_pkg_dir + "/pubspec.yaml")
+            if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+                ctx.symlink(physical_pubspec, virtual_pkg_dir + "/pubspec.yaml")
+            else:
+                ctx.symlink("../../" + pkg.reldir + "/pubspec.yaml", virtual_pkg_dir + "/pubspec.yaml")
 
         # 3. Symlink 'analysis_options.yaml' and its common sibling configurations
         for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
             physical_options = physical_path.get_child(options_name)
             if physical_options.exists:
-                ctx.symlink(physical_options, virtual_pkg_dir + "/" + options_name)
+                if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+                    ctx.symlink(physical_options, virtual_pkg_dir + "/" + options_name)
+                else:
+                    ctx.symlink("../../" + pkg.reldir + "/" + options_name, virtual_pkg_dir + "/" + options_name)
 
         # 4. Symlink other common directories if they exist (bin, test, tool, web)
-        # This ensures that executables, tests, and tools are available and analyzed (resolves Comment #1)
         for dir_name in ["bin", "test", "tool", "web"]:
             physical_dir = physical_path.get_child(dir_name)
             if physical_dir.exists:
-                ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
+                if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+                    ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
+                else:
+                    ctx.symlink("../../" + pkg.reldir + "/" + dir_name, virtual_pkg_dir + "/" + dir_name)
 
         # Generate BUILD.bazel content for this package
         build_lines = [
@@ -166,23 +233,41 @@ def _packages_repo_impl(ctx):
             "",
         ]
 
-        # Include both .dart and .yaml files in the library sources.
-        # This ensures configuration files (like lints' recommended.yaml)
-        # are carried in the transitive sources and staged in runfiles for analysis.
-        glob_paths = ['"%s/**/*.dart"' % pkg.lib, '"%s/**/*.yaml"' % pkg.lib]
+        # Determine sources: Developer mode (glob) vs CI mode (explicit)
+        workspace_root_str = str(workspace_dir)
 
-        # Also include the package's own analysis options if they exist
-        for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
-            physical_options = physical_path.get_child(options_name)
-            if physical_options.exists:
-                glob_paths.append('"%s"' % options_name)
+        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            # Developer mode or Local package: use standard globbing
+            glob_paths = ['"%s/**/*.dart"' % pkg.lib, '"%s/**/*.yaml"' % pkg.lib]
+            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+                physical_options = physical_path.get_child(options_name)
+                if physical_options.exists:
+                    glob_paths.append('"%s"' % options_name)
+            srcs_val = "glob([%s], allow_empty = True)" % ", ".join(glob_paths)
+        else:
+            # CI/Clean mode for third-party: explicitly list all files recursively
+            # to avoid host-globbing and force Bazel to stage them in the sandbox.
+            lib_files = _list_files(ctx, physical_lib, workspace_root_str, [".dart", ".yaml"])
 
-        glob_str = ", ".join(glob_paths)
+            # Add analysis options explicitly if they exist
+            options_files = []
+            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+                physical_options = physical_path.get_child(options_name)
+                if physical_options.exists:
+                    options_files.append(pkg.reldir + "/" + options_name)
+
+            # The paths in srcs must be relative to this package's BUILD file (pkg/name/)
+            # So they must start with '../../' pointing to the root of the virtual repo
+            srcs_labels = []
+            for f in sorted(lib_files + options_files):
+                srcs_labels.append('"../../%s"' % f)
+            srcs_val = "[%s]" % ", ".join(srcs_labels)
+
         dep_labels = ", ".join(['"//pkg/%s"' % d for d in sorted(deps)])
 
         build_lines.append("dart_library(")
         build_lines.append('    name = "%s",' % name)
-        build_lines.append("    srcs = glob([%s], allow_empty = True)," % glob_str)
+        build_lines.append("    srcs = %s," % srcs_val)
         if dep_labels:
             build_lines.append("    deps = [%s]," % dep_labels)
         build_lines.append(")")
