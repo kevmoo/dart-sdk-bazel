@@ -829,13 +829,13 @@ prebuilt_dart_aot_snapshot_rule = rule(
     implementation = _prebuilt_dart_aot_snapshot_impl,
     attrs = {
         "main": attr.label(mandatory = True, allow_single_file = [".dart"]),
-        "srcs": attr.label_list(allow_files = True),
         "out": attr.output(mandatory = True),
+        "srcs": attr.label_list(allow_files = True),
         "_dartaotruntime": attr.label(default = Label("@prebuilt_dart_sdk//:bin/dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
         "_gen_kernel_aot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/snapshots/gen_kernel_aot.dart.snapshot"), allow_single_file = True),
         "_gen_snapshot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/utils/gen_snapshot"), executable = True, allow_single_file = True, cfg = "exec"),
-        "_platform": attr.label(default = Label("@prebuilt_dart_sdk//:lib/_internal/vm_platform_product.dill"), allow_single_file = True),
         "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
+        "_platform": attr.label(default = Label("@prebuilt_dart_sdk//:lib/_internal/vm_platform_product.dill"), allow_single_file = True),
     },
 )
 
