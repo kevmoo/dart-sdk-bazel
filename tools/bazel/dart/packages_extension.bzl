@@ -131,7 +131,6 @@ def _packages_repo_impl(ctx):
             macro_lines.append("    dart_format_test(")
             macro_lines.append("        name = \"dart_pkg_%s_format\"," % name)
             macro_lines.append("        package = \":dart_pkg_%s\"," % name)
-            macro_lines.append("        package_dir = \"%s\"," % pkg.reldir)
             macro_lines.append("    )")
             macro_lines.append("")
 

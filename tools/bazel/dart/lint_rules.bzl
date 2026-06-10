@@ -18,20 +18,20 @@ def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True, params_file = No
     toolchain = ctx.toolchains["//tools/bazel/dart:toolchain_type"].dartinfo
     runner = ctx.actions.declare_file(ctx.label.name)
 
-    # Default to "." if package_dir is empty (root package) to avoid passing empty string to dart analyze
-    package_dir = ctx.attr.package_dir or "."
+    # Use getattr to safely default to "." if package_dir is not defined on the rule (e.g. for format tests)
+    package_dir = getattr(ctx.attr, "package_dir", ".") or "."
     dart_path = _runfiles_path(ctx, toolchain.dart_executable)
     package_config_path = _runfiles_path(ctx, ctx.file._package_config)
 
     workspace_name = ctx.workspace_name or "_main"
 
     # Run the command.
-    # If params_file is provided, we use xargs to read files from it (prevents ARG_MAX limits).
+    # If params_file is provided, we use xargs with stdin redirection (portable across Linux and macOS).
     # If use_package_dir is True, we append the package_dir to the command (used for 'dart analyze').
     # Otherwise, we just run the command as is (args are already embedded).
     if params_file:
         params_path = _runfiles_path(ctx, params_file)
-        exec_cmd = 'exec xargs -a "${{rdir}}/{params_path}" "${{rdir}}/{dart_path}" {cmd_args}'.format(
+        exec_cmd = 'exec xargs "${{rdir}}/{dart_path}" {cmd_args} < "${{rdir}}/{params_path}"'.format(
             params_path = params_path,
             dart_path = dart_path,
             cmd_args = cmd_args,
@@ -161,7 +161,6 @@ dart_format_test = rule(
     test = True,
     attrs = {
         "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
-        "package_dir": attr.string(mandatory = True),
         "_package_config": attr.label(
             default = "//tools/bazel/dart:runfiles_package_config",
             allow_single_file = True,
