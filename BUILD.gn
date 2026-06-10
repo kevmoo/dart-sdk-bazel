@@ -125,10 +125,6 @@ group("create_sdk") {
   public_deps = [ "sdk:create_sdk" ]
 }
 
-group("create_platform_sdk") {
-  public_deps = [ "sdk:create_platform_sdk" ]
-}
-
 group("dart2js") {
   import("runtime/runtime_args.gni")
   if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
@@ -144,10 +140,10 @@ group("dart2js") {
 group("dart2wasm_platform") {
   deps = [
     ":runtime_precompiled",
-    "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:compile_dart2wasm_standalone_platform",
+    "utils/dart2wasm:dart2wasm_js_compatibility_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
+    "utils/dart2wasm:dart2wasm_standalone_platform",
   ]
   if (defined(is_product)) {
     if (is_product) {
@@ -202,8 +198,8 @@ group("analysis_server") {
 
 group("tools") {
   deps = [
-    "utils:compile_platform.exe",
-    "utils:gen_kernel.exe",
+    "utils:bootstrap_compile_platform.exe",
+    "utils:bootstrap_gen_kernel.exe",
   ]
 }
 
@@ -211,9 +207,42 @@ group("tools") {
 # It must depend on anything that is required by the dart2js
 # test suites.
 group("dart2js_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("dart2wasm_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dart2wasm:test_wasm_modules",
+  ]
+}
+
+group("front-end_bot") {
+  deps = [ "sdk:create_most_sdk" ]
+}
+
+group("analyzer_bot") {
+  deps = [
+    "sdk:create_most_sdk",
+    "utils/dartanalyzer",
+  ]
+}
+
+group("benchmark_bot") {
+  deps = [
+    ":dart2wasm_benchmark",
+    "runtime/bin:run_vm_tests",
+    "sdk:create_most_sdk",
+    "utils/ddc:ddc_canary_test",
+    "utils/ddc:ddc_stable_test",
+    "utils/kernel-service",
+  ]
+}
+
+group("pkg_bot") {
   deps = [
     ":create_sdk",
-    "utils/compiler:compile_dart2js_platform",
+    ":dartpad",
   ]
 }
 
@@ -236,8 +265,8 @@ group("dartfuzz") {
   deps = [
     "runtime/bin:dartaotruntime",
     "runtime/bin:dartvm",
-    "utils/compiler:compile_dart2js_platform",
-    "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/compiler:dart2js_platform",
+    "utils/dart2wasm:dart2wasm_platform",
     "utils/kernel-service",
   ]
 }

@@ -10,6 +10,7 @@ import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
 _dart_root = get_path_info("../..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
 
 if (dart_dynamic_modules) {
   _kernel_service_script = "pkg/dart2bytecode/bin/kernel_service.dart"
@@ -92,9 +93,14 @@ template("kernel_service_dill") {
     action("kernel_service" + target_name + "_dill") {
       if (defined(invoker.pool)) {
         pool = invoker.pool
+      } else if (_is_dart) {
+        pool = "//build/toolchain:local_action_pool($host_toolchain)"
+      } else {
+        pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
       }
 
-      gen_kernel_tool = "//utils:gen_kernel.exe($host_toolchain)"
+      gen_kernel_tool =
+          "$_dart_root/utils:bootstrap_gen_kernel.exe($host_toolchain)"
       kernel_service_script = "../../$_kernel_service_script"
 
       deps = [
@@ -113,7 +119,7 @@ template("kernel_service_dill") {
 
       script = "$_dart_root/build/gn_run_binary.py"
       args = [ rebase_path(get_label_info(gen_kernel_tool, "root_out_dir") +
-                               "/gen_kernel.exe",
+                               "/bootstrap_gen_kernel.exe",
                            root_build_dir) ]
       args += invoker.extra_args
       args += [

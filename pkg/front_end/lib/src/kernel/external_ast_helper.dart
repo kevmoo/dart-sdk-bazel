@@ -297,10 +297,14 @@ EqualsNull createEqualsNull(Expression expression, {required int fileOffset}) {
 }
 
 /// Creates an [ExpressionStatement] of [expression] using the file offset of
-/// [expression] for the file offset of the statement.
-ExpressionStatement createExpressionStatement(Expression expression) {
+/// [expression] for the file offset of the statement, unless provided directly
+/// through [fileOffset].
+ExpressionStatement createExpressionStatement(
+  Expression expression, {
+  int? fileOffset,
+}) {
   return new ExpressionStatement(expression)
-    ..fileOffset = expression.fileOffset;
+    ..fileOffset = fileOffset ?? expression.fileOffset;
 }
 
 FieldInitializer createFieldInitializer(
@@ -377,6 +381,19 @@ FunctionNode createFunctionNode(
     ..capturedContexts = capturedContexts
     ..fileOffset = fileOffset
     ..fileEndOffset = fileEndOffset ?? fileOffset;
+}
+
+IfCaseStatement createIfCaseStatement({
+  required Expression expression,
+  required PatternGuard patternGuard,
+  required Statement then,
+  required Statement? otherwise,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new IfCaseStatement(expression, patternGuard, then, otherwise)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an if statement with the [condition], [then] branch and [otherwise]
@@ -586,8 +603,9 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(Variable variable, Expression body) {
-  return new Let(variable, body)..fileOffset = variable.fileOffset;
+Let createLet(Variable variable, Expression body, {int? fileOffset}) {
+  return new Let(variable, body)
+    ..fileOffset = fileOffset ?? variable.fileOffset;
 }
 
 /// Creates a [Let] with the [effect] as the variable initializer and the
@@ -883,6 +901,77 @@ Variable createParameterVariable(
     ..isCovariantByClass = isCovariantByClass;
 }
 
+PatternAssignment createPatternAssignment({
+  required Pattern pattern,
+  required Expression expression,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new PatternAssignment(pattern, expression)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
+PatternGuard createPatternGuard({
+  required Pattern pattern,
+  required Expression? guard,
+  required int fileOffset,
+}) {
+  return new PatternGuard(pattern, guard)..fileOffset = fileOffset;
+}
+
+ContinueSwitchStatement createContinueSwitchStatement({
+  required int fileOffset,
+}) {
+  return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+}
+
+PatternSwitchCase createPatternSwitchCase({
+  required List<int> caseOffsets,
+  required List<PatternGuard> patternGuards,
+  required Statement body,
+  required bool isDefault,
+  required bool hasLabel,
+  required List<Variable> jointVariables,
+  required List<int>? jointVariableFirstUseOffsets,
+  required int fileOffset,
+}) {
+  return new PatternSwitchCase(
+    caseOffsets,
+    patternGuards,
+    body,
+    isDefault: isDefault,
+    hasLabel: hasLabel,
+    jointVariables: jointVariables,
+    jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
+  )..fileOffset = fileOffset;
+}
+
+PatternSwitchStatement createPatternSwitchStatement({
+  required Expression expression,
+  required List<PatternSwitchCase> cases,
+  required DartType expressionType,
+  required bool lastCaseTerminates,
+  required int fileOffset,
+}) {
+  return new PatternSwitchStatement(expression, cases)
+    ..expressionType = expressionType
+    ..lastCaseTerminates = lastCaseTerminates
+    ..fileOffset = fileOffset;
+}
+
+PatternVariableDeclaration createPatternVariableDeclaration({
+  required Pattern pattern,
+  required Expression initializer,
+  required bool isFinal,
+  required DartType matchedValueType,
+  required int fileOffset,
+}) {
+  return new PatternVariableDeclaration(pattern, initializer, isFinal: isFinal)
+    ..matchedValueType = matchedValueType
+    ..fileOffset = fileOffset;
+}
+
 PositionalParameter createPositionalParameter({
   String? cosmeticName,
   required DartType type,
@@ -1075,10 +1164,10 @@ SuperPropertySet createSuperPropertySet(
 
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
-SwitchCase createSwitchCase(
-  List<Expression> expressions,
-  List<int> expressionOffsets,
-  Statement body, {
+SwitchCase createSwitchCase({
+  required List<Expression> expressions,
+  required List<int> expressionOffsets,
+  required Statement body,
   required bool isDefault,
   required int fileOffset,
 }) {
@@ -1090,17 +1179,39 @@ SwitchCase createSwitchCase(
   )..fileOffset = fileOffset;
 }
 
+SwitchExpression createSwitchExpression({
+  required Expression expression,
+  required List<SwitchExpressionCase> cases,
+  required DartType expressionType,
+  required DartType staticType,
+  required int fileOffset,
+}) {
+  return new SwitchExpression(expression, cases)
+    ..expressionType = expressionType
+    ..staticType = staticType
+    ..fileOffset = fileOffset;
+}
+
+SwitchExpressionCase createSwitchExpressionCase({
+  required PatternGuard patternGuard,
+  required Expression expression,
+  required int fileOffset,
+}) {
+  return new SwitchExpressionCase(patternGuard, expression)
+    ..fileOffset = fileOffset;
+}
+
 /// Create a switch statement on the [expression] with the given [cases]. If
 /// the switch is known to be exhaustive and without a default case,
 /// [isExplicitlyExhaustive] should be set to `true`.
 ///
 /// The [expressionType] is the static type of the switch expression.
-SwitchStatement createSwitchStatement(
-  Expression expression,
-  List<SwitchCase> cases, {
+SwitchStatement createSwitchStatement({
+  required Expression expression,
+  required List<SwitchCase> cases,
   required bool isExplicitlyExhaustive,
-  required int fileOffset,
   required DartType expressionType,
+  required int fileOffset,
 }) {
   return new SwitchStatement(
       expression,
@@ -1175,8 +1286,14 @@ Variable createVariableCache(Expression expression, DartType type) {
     ..fileOffset = expression.fileOffset;
 }
 
-VariableDeclaration createVariableDeclaration(Variable variable) {
-  return new VariableDeclaration(variable)..fileOffset = variable.fileOffset;
+VariableDeclaration createVariableDeclaration(
+  Variable variable, {
+  List<VariableContext>? capturedContexts,
+  int? fileOffset,
+}) {
+  return new VariableDeclaration(variable)
+    ..capturedContexts = capturedContexts
+    ..fileOffset = fileOffset ?? variable.fileOffset;
 }
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
@@ -1224,9 +1341,12 @@ Expression createVariableSet(
   }
 }
 
-VariableStatement createVariableStatement(VariableDeclaration declaration) {
+VariableStatement createVariableStatement(
+  VariableDeclaration declaration, {
+  int? fileOffset,
+}) {
   return new VariableStatement(declaration)
-    ..fileOffset = declaration.fileOffset;
+    ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
 WildcardPattern createWildcardPattern({
@@ -1234,4 +1354,30 @@ WildcardPattern createWildcardPattern({
   required int fileOffset,
 }) {
   return new WildcardPattern(type)..fileOffset = fileOffset;
+}
+
+Catch createCatch({
+  required DartType guard,
+  required Variable? exception,
+  required Variable? stackTrace,
+  required Statement body,
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
+    ..scope = scope
+    ..fileOffset = fileOffset;
+}
+
+ForStatement createForStatement({
+  required List<VariableDeclaration> variables,
+  required Expression? condition,
+  required List<Expression> updates,
+  required Statement body,
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new ForStatement(variables, condition, updates, body)
+    ..scope = scope
+    ..fileOffset = fileOffset;
 }

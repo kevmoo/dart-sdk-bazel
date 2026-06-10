@@ -13,6 +13,7 @@ import 'package:front_end/src/dill/dill_library_builder.dart';
 import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
+import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
@@ -224,17 +225,31 @@ void main() {
 void _testVariableDeclarations() {
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration(new Variable('a')),
-      new VariableDeclaration(new Variable('b')),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl('a', fileOffset: TreeNode.noOffset),
+      ),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl('b', fileOffset: TreeNode.noOffset),
+      ),
     ], dummyUri),
     '''
 dynamic a, b;''',
   );
   testStatement(
     forest.variablesDeclaration([
-      new VariableDeclaration(new Variable('a', type: const VoidType())),
-      new VariableDeclaration(
-        new Variable('b', initializer: new NullLiteral()),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl(
+          'a',
+          type: const VoidType(),
+          fileOffset: TreeNode.noOffset,
+        ),
+      ),
+      new InternalVariableDeclaration(
+        new VariableDeclarationImpl(
+          'b',
+          initializer: new NullLiteral(),
+          fileOffset: TreeNode.noOffset,
+        ),
       ),
     ], dummyUri),
     '''
@@ -247,20 +262,27 @@ void _testTryStatement() {
   Block emptyBlock2 = new Block([]);
   Block returnBlock1 = new Block([new ReturnStatement()]);
   Block returnBlock2 = new Block([new ReturnStatement()]);
-  Catch emptyCatchBlock = new Catch(new Variable('e'), new Block([]));
-  Catch emptyCatchBlockOnVoid = new Catch(
-    new Variable('e'),
-    new Block([]),
-    guard: const VoidType(),
+  InternalCatch emptyCatchBlock = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([]),
+    fileOffset: TreeNode.noOffset,
   );
-  Catch returnCatchBlock = new Catch(
-    new Variable('e'),
-    new Block([new ReturnStatement()]),
-  );
-  Catch returnCatchBlockOnVoid = new Catch(
-    new Variable('e'),
-    new Block([new ReturnStatement()]),
+  InternalCatch emptyCatchBlockOnVoid = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([]),
     guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
+  );
+  InternalCatch returnCatchBlock = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([new ReturnStatement()]),
+    fileOffset: TreeNode.noOffset,
+  );
+  InternalCatch returnCatchBlockOnVoid = new InternalCatch(
+    exception: new VariableDeclarationImpl('e', fileOffset: TreeNode.noOffset),
+    body: new Block([new ReturnStatement()]),
+    guard: const VoidType(),
+    fileOffset: TreeNode.noOffset,
   );
 
   testStatement(new TryStatement(emptyBlock1, [], emptyBlock2), '''
@@ -370,7 +392,7 @@ void _testInternalForInStatement() {
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclaration(
+        variableDeclaration: new InternalVariableDeclaration(
           new VariableDeclarationImpl('e', fileOffset: -1),
         ),
         error: null,
@@ -388,7 +410,7 @@ for (var e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new SingleVariableDeclarationForInElement(
-        variableDeclaration: new VariableDeclaration(
+        variableDeclaration: new InternalVariableDeclaration(
           new VariableDeclarationImpl(
             'e',
             type: const VoidType(),
@@ -410,10 +432,27 @@ for (void e in null) {}''',
   testStatement(
     new InternalForInStatement(
       new PatternForInElement(
-        pattern: new RecordPattern([
-          new VariablePattern(const VoidType(), new LegacyVariable('a')),
-          new VariablePattern(null, new LegacyVariable('b')),
-        ]),
+        pattern: new InternalRecordPattern(
+          patterns: [
+            new InternalVariablePattern(
+              type: const VoidType(),
+              variable: new VariableDeclarationImpl(
+                'a',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+            new InternalVariablePattern(
+              type: null,
+              variable: new VariableDeclarationImpl(
+                'b',
+                fileOffset: TreeNode.noOffset,
+              ),
+              fileOffset: TreeNode.noOffset,
+            ),
+          ],
+          fileOffset: TreeNode.noOffset,
+        ),
         inOffset: -1,
       ),
       new NullLiteral(),
@@ -517,10 +556,10 @@ for (null in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('a', fileOffset: -1),
           ),
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],
@@ -540,14 +579,14 @@ for (var a, b in null) {}''',
     new InternalForInStatement(
       new MultiVariableDeclarationForInElement(
         variableDeclarations: [
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl(
               'a',
               type: const VoidType(),
               fileOffset: -1,
             ),
           ),
-          new VariableDeclaration(
+          new InternalVariableDeclaration(
             new VariableDeclarationImpl('b', fileOffset: -1),
           ),
         ],
@@ -600,9 +639,21 @@ void _testSwitchCaseImpl() {
   Block returnBlock2 = new Block([new ReturnStatement()]);
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl([0], [case0], [0], emptyBlock, hasLabel: false),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case0],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
@@ -612,16 +663,21 @@ switch (null) { case 0: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [],
-        [],
-        [0],
-        emptyBlock,
-        hasLabel: false,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [],
+          expressions: [],
+          expressionOffsets: [0],
+          body: emptyBlock,
+          labels: null,
+          isDefault: true,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   default:
@@ -631,34 +687,42 @@ switch (null) { default: }''',
   );
 
   testStatement(
-    new SwitchStatement(expression, [
-      new SwitchCaseImpl(
-        [0, 1],
-        [case0, case1],
-        [0, 1],
-        returnBlock1,
-        hasLabel: false,
-      ),
-      new SwitchCaseImpl(
-        [0],
-        [case2],
-        [0],
-        returnBlock2,
-        hasLabel: true,
-        isDefault: true,
-      ),
-    ]),
+    new InternalRegularSwitchStatement(
+      expression: expression,
+      cases: [
+        new InternalSwitchStatementCase(
+          caseOffsets: [0, 1],
+          expressions: [case0, case1],
+          expressionOffsets: [0, 1],
+          body: returnBlock1,
+          isDefault: false,
+          labels: null,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchStatementCase(
+          caseOffsets: [0],
+          expressions: [case2],
+          expressionOffsets: [0],
+          body: returnBlock2,
+          isDefault: true,
+          labels: [new Label('foo', TreeNode.noOffset)],
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) {
   case 0:
   case 1:
     return;
+  foo:
   case 2:
   default:
     return;
 }''',
     limited: '''
-switch (null) { case 0: case 1: return; case 2: default: return; }''',
+switch (null) { case 0: case 1: return; foo: case 2: default: return; }''',
   );
 }
 

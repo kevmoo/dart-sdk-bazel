@@ -1603,11 +1603,9 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 T2
-          firstFragment: #F5
       interfaces
         I1
-        I2<T2>
+        I2<InvalidType>
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -5118,8 +5116,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
 ''');
   }
 
@@ -5178,8 +5174,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
 ''');
   }
 
@@ -5248,10 +5242,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-        #E1 U
-          firstFragment: #F5
-        #E2 V
-          firstFragment: #F7
 ''');
   }
 
@@ -13463,9 +13453,6 @@ library
               firstFragment: #F6
               type: int
               field: <testLibrary>::@class::A::@field::n1
-            #E1 requiredNamed n2
-              firstFragment: #F8
-              type: int
       getters
         isOriginVariable n1
           reference: <testLibrary>::@class::A::@getter::n1
@@ -14339,9 +14326,6 @@ library
             #E0 requiredNamed n1
               firstFragment: #F4
               type: int
-            #E1 requiredNamed n1
-              firstFragment: #F6
-              type: int
   exportEntries
     declared <testLibrary>::@class::A
   exportNamespace
@@ -14413,9 +14397,6 @@ library
             #E0 requiredNamed n1
               firstFragment: #F4
               type: int
-            #E1 requiredNamed n2
-              firstFragment: #F6
-              type: int
   exportEntries
     declared <testLibrary>::@class::A
   exportNamespace
@@ -14483,10 +14464,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional p1
-              firstFragment: #F4
-              type: int
-            #E1 requiredNamed n1
+            #E0 requiredNamed n1
               firstFragment: #F6
               type: int
 ''');
@@ -14552,10 +14530,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional p1
-              firstFragment: #F4
-              type: int
-            #E1 requiredNamed n1
+            #E0 requiredNamed n1
               firstFragment: #F6
               type: int
 ''');
@@ -14621,10 +14596,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional p1
-              firstFragment: #F4
-              type: int
-            #E1 optionalNamed n1
+            #E0 optionalNamed n1
               firstFragment: #F6
               type: int
 ''');
@@ -14690,10 +14662,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
           formalParameters
-            #E0 optionalPositional p1
-              firstFragment: #F4
-              type: int
-            #E1 optionalNamed n1
+            #E0 optionalNamed n1
               firstFragment: #F6
               type: int
 ''');
@@ -15396,9 +15365,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredNamed n1
-              firstFragment: #F6
-              type: int
 ''');
   }
 
@@ -15464,9 +15430,6 @@ library
           formalParameters
             #E0 requiredPositional p1
               firstFragment: #F4
-              type: int
-            #E1 optionalNamed n1
-              firstFragment: #F6
               type: int
 ''');
   }
@@ -15534,9 +15497,6 @@ library
             #E0 optionalPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredNamed n1
-              firstFragment: #F6
-              type: int
 ''');
   }
 
@@ -15602,9 +15562,6 @@ library
           formalParameters
             #E0 optionalPositional p1
               firstFragment: #F4
-              type: int
-            #E1 optionalNamed n1
-              firstFragment: #F6
               type: int
 ''');
   }
@@ -15946,9 +15903,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F6
-              type: int
 ''');
   }
 
@@ -16146,9 +16100,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F6
-              type: int
   exportEntries
     declared <testLibrary>::@class::A
   exportNamespace
@@ -16219,9 +16170,6 @@ library
           formalParameters
             #E0 optionalPositional p1
               firstFragment: #F4
-              type: int
-            #E1 optionalPositional p2
-              firstFragment: #F6
               type: int
   exportEntries
     declared <testLibrary>::@class::A
@@ -16747,14 +16695,8 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F6
-              type: int
-            #E2 requiredNamed n1
+            #E1 requiredNamed n1
               firstFragment: #F8
-              type: int
-            #E3 requiredNamed n2
-              firstFragment: #F10
               type: int
 ''');
   }
@@ -16983,14 +16925,8 @@ library
             #E0 requiredPositional p1
               firstFragment: #F4
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F6
-              type: int
-            #E2 requiredNamed n1
+            #E1 requiredNamed n1
               firstFragment: #F8
-              type: int
-            #E3 requiredNamed n2
-              firstFragment: #F10
               type: int
   exportEntries
     declared <testLibrary>::@class::A
@@ -18283,9 +18219,6 @@ library
               firstFragment: #F7
               type: int
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
-            #E2 requiredNamed n2
-              firstFragment: #F9
-              type: int
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
   }
@@ -36872,32 +36805,6 @@ library
 ''');
   }
 
-  test_isComplete_constructor_complete() async {
-    var library = await buildLibrary(r'''
-class A {
-  A();
-}
-''');
-
-    var classA = library.classes.singleWhere((e) => e.name == 'A');
-    var constructor = classA.constructors.single;
-
-    expect(constructor.firstFragment.isComplete, isFalse);
-  }
-
-  test_isComplete_method_complete() async {
-    var library = await buildLibrary(r'''
-class A {
-  static void foo() {}
-}
-''');
-
-    var classA = library.classes.singleWhere((e) => e.name == 'A');
-    var method = classA.methods.singleWhere((e) => e.name == 'foo');
-
-    expect(method.firstFragment.isComplete, isTrue);
-  }
-
   test_method_abstract() async {
     var library = await buildLibrary(r'''
 abstract class C {
@@ -37877,9 +37784,6 @@ library
             #E0 requiredNamed n1
               firstFragment: #F5
               type: int
-            #E1 requiredNamed n2
-              firstFragment: #F7
-              type: int
           returnType: void
 ''');
   }
@@ -37955,9 +37859,6 @@ library
           formalParameters
             #E0 optionalNamed n1
               firstFragment: #F5
-              type: int
-            #E1 optionalNamed n2
-              firstFragment: #F7
               type: int
           returnType: void
 ''');
@@ -38139,9 +38040,6 @@ library
             #E0 requiredNamed n1
               firstFragment: #F5
               type: int
-            #E1 requiredNamed n1
-              firstFragment: #F7
-              type: int
           returnType: void
   exportEntries
     declared <testLibrary>::@class::A
@@ -38209,9 +38107,6 @@ library
             #E0 requiredNamed n1
               firstFragment: #F5
               type: int
-            #E1 requiredNamed n2
-              firstFragment: #F7
-              type: int
           returnType: void
   exportEntries
     declared <testLibrary>::@class::A
@@ -38277,9 +38172,6 @@ library
           formalParameters
             #E0 optionalNamed n1
               firstFragment: #F5
-              type: int
-            #E1 optionalNamed n2
-              firstFragment: #F7
               type: int
           returnType: void
 ''');
@@ -38815,13 +38707,10 @@ library
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F3
           formalParameters
-            #E0 requiredPositional p1
-              firstFragment: #F5
-              type: int
-            #E1 requiredNamed n1
+            #E0 requiredNamed n1
               firstFragment: #F7
               type: int
-            #E2 requiredNamed n2
+            #E1 requiredNamed n2
               firstFragment: #F9
               type: int
           returnType: void
@@ -39331,9 +39220,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F7
-              type: int
           returnType: void
 ''');
   }
@@ -39519,9 +39405,6 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F7
-              type: int
           returnType: void
   exportEntries
     declared <testLibrary>::@class::A
@@ -39588,9 +39471,6 @@ library
           formalParameters
             #E0 optionalPositional p1
               firstFragment: #F5
-              type: int
-            #E1 optionalPositional p2
-              firstFragment: #F7
               type: int
           returnType: void
   exportEntries
@@ -39671,9 +39551,6 @@ library
           formalParameters
             #E0 requiredPositional p1
               firstFragment: #F5
-              type: int
-            #E1 requiredPositional p2
-              firstFragment: #F7
               type: int
           returnType: void
 ''');
@@ -40010,14 +39887,8 @@ library
             #E0 requiredPositional p1
               firstFragment: #F5
               type: int
-            #E1 requiredPositional p2
-              firstFragment: #F7
-              type: int
-            #E2 requiredNamed n1
+            #E1 requiredNamed n1
               firstFragment: #F9
-              type: int
-            #E3 requiredNamed n2
-              firstFragment: #F11
               type: int
           returnType: void
   exportEntries
@@ -41554,8 +41425,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -41638,8 +41507,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -41732,10 +41599,6 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
-            #E1 U
-              firstFragment: #F7
-            #E2 V
-              firstFragment: #F9
           returnType: void
 ''');
   }

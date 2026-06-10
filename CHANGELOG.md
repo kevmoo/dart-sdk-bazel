@@ -120,7 +120,7 @@ To learn more about the feature, check out the
 
 - A `no_raw_types` lint rule is introduced, which replaces the
   `strict-raw-types` analysis option, offering a more consistent approach.
-- A `no_dynamic_types` lint rule is introduced, which replaces the
+- A `no_dynamic_casts` lint rule is introduced, which replaces the
   `strict-casts` analysis option, offering a more consistent approach.
 - The following lint rules have been determined to be low value, and are
   deprecated: `avoid_public_typedef_functions`, and `one_member_abstracts`.
@@ -128,8 +128,6 @@ To learn more about the feature, check out the
   [analyzer plugins][].
 
 [analyzer plugins]: https://dart.dev/tools/analyzer-plugins
-
-#### Dart format
 
 These changes are not language versioned and affect formatting all code:
 
@@ -230,7 +228,7 @@ certificates if the system certificates cannot be found.
 
 ## 3.12.0
 
-**Released on:** Unreleased
+**Released on:** 2026-05-20
 
 ### Language
 
