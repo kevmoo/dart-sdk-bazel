@@ -14,20 +14,29 @@ def _runfiles_path(ctx, file):
         workspace = "_main"
     return workspace + "/" + file.short_path
 
-def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True):
+def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True, params_file = None):
     toolchain = ctx.toolchains["//tools/bazel/dart:toolchain_type"].dartinfo
     runner = ctx.actions.declare_file(ctx.label.name)
 
-    package_dir = ctx.attr.package_dir
+    # Default to "." if package_dir is empty (root package) to avoid passing empty string to dart analyze
+    package_dir = ctx.attr.package_dir or "."
     dart_path = _runfiles_path(ctx, toolchain.dart_executable)
     package_config_path = _runfiles_path(ctx, ctx.file._package_config)
 
     workspace_name = ctx.workspace_name or "_main"
 
-    # Run the command. If use_package_dir is True, we append the package_dir
-    # to the command (used for 'dart analyze'). If False, the command already
-    # contains the explicit files (used for 'dart format').
-    if use_package_dir:
+    # Run the command.
+    # If params_file is provided, we use xargs to read files from it (prevents ARG_MAX limits).
+    # If use_package_dir is True, we append the package_dir to the command (used for 'dart analyze').
+    # Otherwise, we just run the command as is (args are already embedded).
+    if params_file:
+        params_path = _runfiles_path(ctx, params_file)
+        exec_cmd = 'exec xargs -a "${{rdir}}/{params_path}" "${{rdir}}/{dart_path}" {cmd_args}'.format(
+            params_path = params_path,
+            dart_path = dart_path,
+            cmd_args = cmd_args,
+        )
+    elif use_package_dir:
         exec_cmd = 'exec "${{rdir}}/{dart_path}" {cmd_args} "{package_dir}"'.format(
             dart_path = dart_path,
             cmd_args = cmd_args,
@@ -39,7 +48,9 @@ def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True):
             cmd_args = cmd_args,
         )
 
+    # Added set -e for fail-fast safety
     script_content = """#!/bin/bash
+set -e
 if [ -n "$RUNFILES_DIR" ]; then
   rdir="$RUNFILES_DIR"
 else
@@ -70,11 +81,15 @@ cd "${{ws_root}}"
         is_executable = True,
     )
 
+    extra_files = []
+    if params_file:
+        extra_files.append(params_file)
+
     runfiles = ctx.runfiles(
         files = [
             toolchain.dart_executable,
             ctx.file._package_config,
-        ],
+        ] + extra_files,
         transitive_files = depset(
             transitive = [
                 toolchain.sdk_files[DefaultInfo].files,
@@ -94,15 +109,8 @@ def _dart_analyze_test_impl(ctx):
     return _dart_lint_test_impl(ctx, "analyze")
 
 def _dart_format_test_impl(ctx):
-    package_dir = ctx.attr.package_dir
-    direct_srcs = []
-
-    # Filter the transitive sources to find only the direct Dart sources of this package.
-    # Any file in transitive_srcs that starts with the package_dir (handling root package) and ends with .dart is a direct source.
-    prefix = package_dir + "/" if package_dir else ""
-    for f in ctx.attr.package[DartLibraryInfo].transitive_srcs.to_list():
-        if f.short_path.startswith(prefix) and f.short_path.endswith(".dart"):
-            direct_srcs.append(f)
+    # Expose direct sources directly from the provider, avoiding expensive depset.to_list()
+    direct_srcs = ctx.attr.package[DartLibraryInfo].srcs
 
     if not direct_srcs:
         # If there are no Dart files to format, return a dummy test runner that exits 0.
@@ -119,13 +127,20 @@ def _dart_format_test_impl(ctx):
             ),
         ]
 
-    file_paths = [_runfiles_path(ctx, f) for f in direct_srcs]
+    # Declare a params file to store the list of files to format.
+    # This completely avoids the ARG_MAX command-line length limit.
+    params_file = ctx.actions.declare_file(ctx.label.name + ".files.txt")
+    
+    # Write the workspace-relative paths of the direct sources to the params file.
+    # When xargs runs in CWD (ws_root), these paths resolve perfectly.
+    ctx.actions.write(
+        output = params_file,
+        content = "\n".join([f.short_path for f in direct_srcs]),
+    )
 
-    # Construct the command arguments by pointing directly to the runfiles paths
-    # of the direct sources. This forces 'dart format' to follow the symlinks.
-    cmd_args = "format --output=none --set-exit-if-changed " + " ".join(["\"${rdir}/" + p + "\"" for p in file_paths])
+    cmd_args = "format --output=none --set-exit-if-changed"
 
-    return _dart_lint_test_impl(ctx, cmd_args, use_package_dir = False)
+    return _dart_lint_test_impl(ctx, cmd_args, use_package_dir = False, params_file = params_file)
 
 dart_analyze_test = rule(
     implementation = _dart_analyze_test_impl,
