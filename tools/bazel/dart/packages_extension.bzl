@@ -90,6 +90,12 @@ def _packages_repo_impl(ctx):
         )
         known.append(name)
 
+    # Symlink root analysis options so that package-level options can resolve relative includes (e.g. '../../analysis_options.yaml')
+    for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+        root_options = workspace_dir.get_child(options_name)
+        if root_options.exists:
+            ctx.symlink(root_options, options_name)
+
     packages_json = []
 
     for name in sorted(pkgs.keys()):
