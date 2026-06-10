@@ -701,29 +701,6 @@ build_devtools_rule = rule(
     },
 )
 
-def _copy_directory_impl(ctx):
-    in_dir = ctx.files.src_dir[0]
-    out_dir = ctx.actions.declare_directory(ctx.attr.out_dir)
-    ctx.actions.run_shell(
-        inputs = [in_dir],
-        outputs = [out_dir],
-        command = "rm -rf {out} && cp -R {src} {out}".format(
-            src = in_dir.path,
-            out = out_dir.path,
-        ),
-        mnemonic = "CopyDirectory",
-        progress_message = "Copying directory to %s" % ctx.attr.out_dir,
-    )
-    return [DefaultInfo(files = depset([out_dir]))]
-
-copy_directory = rule(
-    implementation = _copy_directory_impl,
-    attrs = {
-        "out_dir": attr.string(mandatory = True),
-        "src_dir": attr.label(mandatory = True),
-    },
-)
-
 def _runfiles_path(ctx, file):
     if file.short_path.startswith("../"):
         return file.short_path[3:]
@@ -875,4 +852,3 @@ def prebuilt_dart_aot_snapshot(name, main, srcs = [], **kwargs):
         out = name + ".snapshot",
         **kwargs
     )
-

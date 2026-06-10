@@ -1,31 +1,25 @@
-# Global approvers - only to be used as a last resort.
-athom@google.com #{LAST_RESORT_SUGGESTION}
-goderbauer@google.com #{LAST_RESORT_SUGGESTION}
-kustermann@google.com #{LAST_RESORT_SUGGESTION}
-leafp@google.com #{LAST_RESORT_SUGGESTION}
-natebiggs@google.com #{LAST_RESORT_SUGGESTION}
-sigmund@google.com #{LAST_RESORT_SUGGESTION}
-vegorov@google.com #{LAST_RESORT_SUGGESTION}
-vsm@google.com #{LAST_RESORT_SUGGESTION}
+# See go/thirdparty for the process to create
+# a new directory.  Use R=third-party-owners,third-party-dart.
 
-# DEPS
-per-file DEPS=file:/tools/OWNERS_ENG
-per-file pubspec.yaml=file:/tools/OWNERS_ENG
+# MTV/PDX/SEA
+het
+jacobr
+keertip
+sigmund
+nbosch
 
-# Updates fuchsia components only.
-per-file DEPS=file:/tools/OWNERS_FUCHSIA
+# AAR
+athom
+kustermann
+vegorov
 
-# Changelog, AUTHORS, and .git* do not require approval.
-per-file CHANGELOG.md,AUTHORS,WATCHLISTS,.gitattributes,.gitconfig,.gitignore,sdk.code-workspace=*
+# LON/ZRH
+davidmorgan
 
-# Product documentation
-per-file CONTRIBUTING.md,LICENSE,PATENT_GRANT,README.*,SECURITY.md,sdk_packages.yaml=file:/tools/OWNERS_PRODUCT
+# MUC - for Copybara setups
+mosum
 
-# Top level build files
-per-file .clang-format,.gn,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_BUILD
-
-# Infrastructure files.
-per-file .style.yapf,codereview.settings,PRESUBMIT.py=file:/tools/OWNERS_INFRA
-
-# Test status files
-per-file pkg.status=file:/tools/OWNERS_ENG
+# Include dart_lang OWNERS for maintenance during dart_lang updates.
+# If you're looking for more owners in your timezone, do follow the
+# link here.
+file://depot/google3/third_party/dart_lang/OWNERS
