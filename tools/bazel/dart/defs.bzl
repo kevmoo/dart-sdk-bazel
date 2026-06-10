@@ -56,7 +56,10 @@ dart_toolchain = rule(
 
 DartLibraryInfo = provider(
     doc = "Transitive closure of a Dart package's library sources.",
-    fields = {"transitive_srcs": "depset of .dart files in this package + its deps"},
+    fields = {
+        "srcs": "list of direct .dart files in this package",
+        "transitive_srcs": "depset of .dart files in this package + its deps",
+    },
 )
 
 def _dart_library_impl(ctx):
@@ -66,7 +69,10 @@ def _dart_library_impl(ctx):
     )
     return [
         DefaultInfo(files = transitive),
-        DartLibraryInfo(transitive_srcs = transitive),
+        DartLibraryInfo(
+            transitive_srcs = transitive,
+            srcs = ctx.files.srcs,
+        ),
     ]
 
 dart_library = rule(
