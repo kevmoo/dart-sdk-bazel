@@ -73,7 +73,7 @@ graph TD
     TASK_041["TASK_041:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::completed
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
-    sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::pending
+    sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::pending
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
@@ -238,18 +238,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-4mq] Align Bazel migration with recent upstream improvements
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Analyze and integrate recent upstream improvements by Ryan Macnak (rmacnak@) into the local Bazel migration. Key areas: RBE relative paths, macOS signing, AOT compiler bootstrapping, and GN cleanup. Detailed analysis in docs/bazel-migration/upstream_alignments.md.
-- **Success Criteria**:
-
----
 
 ### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
 - **Status**: `[PENDING]`
