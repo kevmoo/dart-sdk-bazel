@@ -21,7 +21,12 @@ def main():
                   file=sys.stderr)
             sys.exit(1)
 
-    cmd = [real_bin] + sys.argv[1:]
+    args = sys.argv[1:]
+    # Replace __BAZEL_EXECROOT__ placeholder with actual CWD
+    cwd = os.getcwd()
+    args = [arg.replace("__BAZEL_EXECROOT__", cwd) for arg in args]
+
+    cmd = [real_bin] + args
     sys.exit(subprocess.run(cmd).returncode)
 
 

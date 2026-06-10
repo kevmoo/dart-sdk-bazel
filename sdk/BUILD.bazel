@@ -2,7 +2,9 @@
 # Hand-fixes belong in this file (M3); rerun the translator to refresh structural
 # bits and re-apply fixes from version control.
 
-load("//tools/bazel/dart:defs.bzl", "build_devtools_rule", "copy_directory", "copy_internal_with_dills", "copy_sdk_library", "copy_tree")
+load("@bazel_skylib//rules:copy_directory.bzl", "copy_directory")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("//tools/bazel/dart:defs.bzl", "build_devtools_rule", "copy_internal_with_dills", "copy_sdk_library", "copy_tree")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -106,28 +108,25 @@ copy_sdk_library(
     lib = "_wasm",
 )
 
-genrule(
+copy_file(
     name = "copy_analysis_server_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/analysis_server:analysis_server_aot_product"],
-        "//conditions:default": ["//utils/analysis_server:analysis_server_aot"],
+    src = select({
+        "//build/config:product": "//utils/analysis_server:analysis_server_aot_product",
+        "//conditions:default": "//utils/analysis_server:analysis_server_aot",
     }),
-    outs = ["dart-sdk/bin/snapshots/analysis_server_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/analysis_server_aot.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_analysis_server_snapshot",
-    srcs = ["//utils/analysis_server"],
-    outs = ["dart-sdk/bin/snapshots/analysis_server.dart.snapshot"],
-    cmd = "cp $< $@",
+    src = "//utils/analysis_server",
+    out = "dart-sdk/bin/snapshots/analysis_server.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_api_readme",
-    srcs = ["api_readme.md"],
-    outs = ["dart-sdk/lib/api_readme.md"],
-    cmd = "cp $< $@",
+    src = "api_readme.md",
+    out = "dart-sdk/lib/api_readme.md",
 )
 
 copy_sdk_library(
@@ -188,21 +187,19 @@ genrule(
     }),
 )
 
-genrule(
+copy_file(
     name = "copy_dart2bytecode_snapshot",
-    srcs = ["//utils/dart2bytecode:dart2bytecode_snapshot"],
-    outs = ["dart-sdk/bin/snapshots/dart2bytecode.dart.snapshot"],
-    cmd = "cp $< $@",
+    src = "//utils/dart2bytecode:dart2bytecode_snapshot",
+    out = "dart-sdk/bin/snapshots/dart2bytecode.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_dart2js_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/compiler:dart2js_sdk_aot_product"],
-        "//conditions:default": ["//utils/compiler:dart2js_sdk_aot"],
+    src = select({
+        "//build/config:product": "//utils/compiler:dart2js_sdk_aot_product",
+        "//conditions:default": "//utils/compiler:dart2js_sdk_aot",
     }),
-    outs = ["dart-sdk/bin/snapshots/dart2js_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/dart2js_aot.dart.snapshot",
 )
 
 # rules_dart Step 5 (sdk/ assembly): web platform compiles. Now staged via copy__internal_library.
@@ -218,14 +215,13 @@ filegroup(
 )
 
 # rules_dart Step 5: copy dart2wasm snapshot. Ports GN copy("copy_dart2wasm_snapshot")
-genrule(
+copy_file(
     name = "copy_dart2wasm_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/dart2wasm:dart2wasm_product_snapshot"],
-        "//conditions:default": ["//utils/dart2wasm:dart2wasm_snapshot"],
+    src = select({
+        "//build/config:product": "//utils/dart2wasm:dart2wasm_product_snapshot",
+        "//conditions:default": "//utils/dart2wasm:dart2wasm_snapshot",
     }),
-    outs = ["dart-sdk/bin/snapshots/dart2wasm_product.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/dart2wasm_product.snapshot",
 )
 
 # GN renames dartaotruntime_product -> dartaotruntime in bin/ (drops _product).
@@ -308,38 +304,34 @@ genrule(
     }),
 )
 
-genrule(
+copy_file(
     name = "copy_dart_tooling_daemon_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/dtd:dtd_aot_product_snapshot"],
-        "//conditions:default": ["//utils/dtd:dtd_aot_snapshot"],
+    src = select({
+        "//build/config:product": "//utils/dtd:dtd_aot_product_snapshot",
+        "//conditions:default": "//utils/dtd:dtd_aot_snapshot",
     }),
-    outs = ["dart-sdk/bin/snapshots/dart_tooling_daemon_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/dart_tooling_daemon_aot.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_dartdev_aot_snapshot",
-    srcs = ["//utils/dartdev:dartdev_aot_snapshot"],
-    outs = ["dart-sdk/bin/snapshots/dartdev_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    src = "//utils/dartdev:dartdev_aot_snapshot",
+    out = "dart-sdk/bin/snapshots/dartdev_aot.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_dartdevc_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/ddc:dartdevc_aot_product"],
-        "//conditions:default": ["//utils/ddc:dartdevc_aot"],
+    src = select({
+        "//build/config:product": "//utils/ddc:dartdevc_aot_product",
+        "//conditions:default": "//utils/ddc:dartdevc_aot",
     }),
-    outs = ["dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_dartdevc_snapshot",
-    srcs = ["//utils/ddc:dartdevc"],
-    outs = ["dart-sdk/bin/snapshots/dartdevc.dart.snapshot"],
-    cmd = "cp $< $@",
+    src = "//utils/ddc:dartdevc",
+    out = "dart-sdk/bin/snapshots/dartdevc.dart.snapshot",
 )
 
 filegroup(
@@ -402,30 +394,27 @@ genrule(
     }),
 )
 
-genrule(
+copy_file(
     name = "copy_dds_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/dds:dds_aot_product_snapshot"],
-        "//conditions:default": ["//utils/dds:dds_aot_snapshot"],
+    src = select({
+        "//build/config:product": "//utils/dds:dds_aot_product_snapshot",
+        "//conditions:default": "//utils/dds:dds_aot_snapshot",
     }),
-    outs = ["dart-sdk/bin/snapshots/dds_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/dds_aot.dart.snapshot",
 )
 
 # rules_dart Step 5: copy require.js AMD asset. Ports GN copy("copy_dev_compiler_amd_require_js")
-genrule(
+copy_file(
     name = "copy_dev_compiler_amd_require_js",
-    srcs = ["//:third_party/requirejs/require.js"],
-    outs = ["dart-sdk/lib/dev_compiler/amd/require.js"],
-    cmd = "cp $< $@",
+    src = "//:third_party/requirejs/require.js",
+    out = "dart-sdk/lib/dev_compiler/amd/require.js",
 )
 
 # rules_dart Step 5: copy ddc_module_loader.js asset. Ports GN copy("copy_dev_compiler_ddc_module_loader_js")
-genrule(
+copy_file(
     name = "copy_dev_compiler_ddc_module_loader_js",
-    srcs = ["//:pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js"],
-    outs = ["dart-sdk/lib/dev_compiler/ddc/ddc_module_loader.js"],
-    cmd = "cp $< $@",
+    src = "//:pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js",
+    out = "dart-sdk/lib/dev_compiler/ddc/ddc_module_loader.js",
 )
 
 # rules_dart Step 5: DDC platform dills. Now staged via copy__internal_library.
@@ -445,11 +434,10 @@ filegroup(
 )
 
 # rules_dart Step 5: copy stack_trace_mapper JS tool. Ports GN copy("copy_dev_compiler_stack_trace_mapper")
-genrule(
+copy_file(
     name = "copy_dev_compiler_stack_trace_mapper",
-    srcs = ["//utils/ddc:stack_trace_mapper"],
-    outs = ["dart-sdk/lib/dev_compiler/web/dart_stack_trace_mapper.js"],
-    cmd = "cp $< $@",
+    src = "//utils/ddc:stack_trace_mapper",
+    out = "dart-sdk/lib/dev_compiler/web/dart_stack_trace_mapper.js",
 )
 
 copy_sdk_library(
@@ -462,14 +450,13 @@ copy_sdk_library(
     lib = "ffi",
 )
 
-genrule(
+copy_file(
     name = "copy_frontend_server_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/kernel-service:frontend_server_aot_product"],
-        "//conditions:default": ["//utils/kernel-service:frontend_server_aot"],
+    src = select({
+        "//build/config:product": "//utils/kernel-service:frontend_server_aot_product",
+        "//conditions:default": "//utils/kernel-service:frontend_server_aot",
     }),
-    outs = ["dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot",
 )
 
 filegroup(
@@ -529,14 +516,13 @@ filegroup(
     ],
 )
 
-genrule(
+copy_file(
     name = "copy_gen_kernel_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/gen_kernel:gen_kernel_product"],
-        "//conditions:default": ["//utils/gen_kernel"],
+    src = select({
+        "//build/config:product": "//utils/gen_kernel:gen_kernel_product",
+        "//conditions:default": "//utils/gen_kernel",
     }),
-    outs = ["dart-sdk/bin/snapshots/gen_kernel_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/gen_kernel_aot.dart.snapshot",
 )
 
 filegroup(
@@ -581,21 +567,31 @@ genrule(
 # physically in bazel-bin/sdk/dart-sdk/include/ alongside the rest of the staged SDK; a
 # forwarding filegroup would leave them rooted under runtime/include/'s output dir, absent from
 # the assembled tree.
-genrule(
+copy_file(
+    name = "copy_dart_api_h",
+    src = "//runtime/include:dart_api.h",
+    out = "dart-sdk/include/dart_api.h",
+)
+
+copy_file(
+    name = "copy_dart_native_api_h",
+    src = "//runtime/include:dart_native_api.h",
+    out = "dart-sdk/include/dart_native_api.h",
+)
+
+copy_file(
+    name = "copy_dart_tools_api_h",
+    src = "//runtime/include:dart_tools_api.h",
+    out = "dart-sdk/include/dart_tools_api.h",
+)
+
+filegroup(
     name = "copy_headers",
     srcs = [
-        "//runtime/include:dart_api.h",
-        "//runtime/include:dart_native_api.h",
-        "//runtime/include:dart_tools_api.h",
+        ":copy_dart_api_h",
+        ":copy_dart_native_api_h",
+        ":copy_dart_tools_api_h",
     ],
-    outs = [
-        "dart-sdk/include/dart_api.h",
-        "dart-sdk/include/dart_native_api.h",
-        "dart-sdk/include/dart_tools_api.h",
-    ],
-    cmd = "cp $(location //runtime/include:dart_api.h) $(location dart-sdk/include/dart_api.h) && " +
-          "cp $(location //runtime/include:dart_native_api.h) $(location dart-sdk/include/dart_native_api.h) && " +
-          "cp $(location //runtime/include:dart_tools_api.h) $(location dart-sdk/include/dart_tools_api.h)",
 )
 
 copy_sdk_library(
@@ -643,21 +639,19 @@ copy_sdk_library(
     lib = "js_util",
 )
 
-genrule(
+copy_file(
     name = "copy_kernel-service_snapshot",
-    srcs = ["//utils/kernel-service:kernel-service_snapshot"],
-    outs = ["dart-sdk/bin/snapshots/kernel-service.dart.snapshot"],
-    cmd = "cp $< $@",
+    src = "//utils/kernel-service:kernel-service_snapshot",
+    out = "dart-sdk/bin/snapshots/kernel-service.dart.snapshot",
 )
 
-genrule(
+copy_file(
     name = "copy_kernel_worker_aot_product_snapshot",
-    srcs = select({
-        "//build/config:product": ["//utils/bazel:kernel_worker_aot_product"],
-        "//conditions:default": ["//utils/bazel:kernel_worker_aot"],
+    src = select({
+        "//build/config:product": "//utils/bazel:kernel_worker_aot_product",
+        "//conditions:default": "//utils/bazel:kernel_worker_aot",
     }),
-    outs = ["dart-sdk/bin/snapshots/kernel_worker_aot.dart.snapshot"],
-    cmd = "cp $< $@",
+    out = "dart-sdk/bin/snapshots/kernel_worker_aot.dart.snapshot",
 )
 
 filegroup(
@@ -671,18 +665,16 @@ filegroup(
 # into the SDK tree. The dart_sdk_output ("dart-sdk/") root prefix (adopted in
 # sdk-9xn) keeps the dart-sdk/lib/libraries.json output from colliding with the
 # //sdk:lib/libraries.json SOURCE label.
-genrule(
+copy_file(
     name = "copy_libraries_specification",
-    srcs = ["lib/libraries.json"],
-    outs = ["dart-sdk/lib/libraries.json"],
-    cmd = "cp $< $@",
+    src = "lib/libraries.json",
+    out = "dart-sdk/lib/libraries.json",
 )
 
-genrule(
+copy_file(
     name = "copy_license",
-    srcs = ["//:LICENSE"],
-    outs = ["dart-sdk/LICENSE"],
-    cmd = "cp $< $@",
+    src = "//:LICENSE",
+    out = "dart-sdk/LICENSE",
 )
 
 copy_sdk_library(
@@ -758,26 +750,24 @@ copy_tree(
 
 copy_directory(
     name = "copy_devtools",
-    out_dir = "dart-sdk/bin/resources/devtools",
-    src_dir = select({
+    src = select({
         "//build/config:devtools_from_sources": "//sdk:build_devtools",
         "//conditions:default": "//sdk:copy_prebuilt_devtools",
     }),
+    out = "dart-sdk/bin/resources/devtools",
 )
 
 # GN renames README.dart-sdk -> README at the SDK root.
-genrule(
+copy_file(
     name = "copy_readme",
-    srcs = ["//:README.dart-sdk"],
-    outs = ["dart-sdk/README"],
-    cmd = "cp $< $@",
+    src = "//:README.dart-sdk",
+    out = "dart-sdk/README",
 )
 
-genrule(
+copy_file(
     name = "copy_sdk_packages_yaml",
-    srcs = ["//:sdk_packages.yaml"],
-    outs = ["dart-sdk/sdk_packages.yaml"],
-    cmd = "cp $< $@",
+    src = "//:sdk_packages.yaml",
+    out = "dart-sdk/sdk_packages.yaml",
 )
 
 copy_sdk_library(
@@ -790,32 +780,28 @@ copy_sdk_library(
     lib = "typed_data",
 )
 
-genrule(
+copy_file(
     name = "copy_vm_dill_files",
-    srcs = ["//runtime/vm:vm_platform.dill"],
-    outs = ["dart-sdk/lib/_internal/vm_platform.dill"],
-    cmd = "cp $< $@",
+    src = "//runtime/vm:vm_platform.dill",
+    out = "dart-sdk/lib/_internal/vm_platform.dill",
 )
 
-genrule(
+copy_file(
     name = "copy_vm_platform_product",
-    srcs = ["//runtime/vm:vm_platform_product.dill"],
-    outs = ["dart-sdk/lib/_internal/vm_platform_product.dill"],
-    cmd = "cp $< $@",
+    src = "//runtime/vm:vm_platform_product.dill",
+    out = "dart-sdk/lib/_internal/vm_platform_product.dill",
 )
 
-genrule(
+copy_file(
     name = "copy_vm_strong_dill_files",
-    srcs = ["//runtime/vm:vm_platform.dill"],
-    outs = ["dart-sdk/lib/_internal/vm_platform_strong.dill"],
-    cmd = "cp $< $@",
+    src = "//runtime/vm:vm_platform.dill",
+    out = "dart-sdk/lib/_internal/vm_platform_strong.dill",
 )
 
-genrule(
+copy_file(
     name = "copy_wasm_opt",
-    srcs = ["//third_party/binaryen:wasm-opt"],
-    outs = ["dart-sdk/bin/utils/wasm-opt"],
-    cmd = "cp $< $@",
+    src = "//third_party/binaryen:wasm-opt",
+    out = "dart-sdk/bin/utils/wasm-opt",
 )
 
 copy_sdk_library(
@@ -926,21 +912,14 @@ genrule(
 
 genrule(
     name = "write_revision_file",
-    srcs = [
-        "//tools:utils.py",
-        "//tools:write_revision_file.py",
-    ],
     outs = ["dart-sdk/revision"],
-    cmd = "python3 $(location //tools:write_revision_file.py) --output $@ --no-git-hash",
+    cmd = "python3 -c \"import os; fp = 'bazel-out/volatile-status.txt'; print(next((l.split(' ', 1)[1].strip() for l in open(fp) if l.startswith('SDK_GIT_HASH ')), 'unknown') if os.path.exists(fp) else 'unknown')\" > $@",
+    stamp = 1,
 )
 
 genrule(
     name = "write_version_file",
-    srcs = [
-        "//tools:VERSION",
-        "//tools:utils.py",
-        "//tools:write_version_file.py",
-    ],
     outs = ["dart-sdk/version"],
-    cmd = "python3 $(location //tools:write_version_file.py) --output $@ --no-git-hash",
+    cmd = "python3 -c \"import os; fp = 'bazel-out/stable-status.txt'; print(next((l.split(' ', 1)[1].strip() for l in open(fp) if l.startswith('STABLE_SDK_VERSION ')), '0.0.0-unknown') if os.path.exists(fp) else '0.0.0-unknown')\" > $@",
+    stamp = 1,
 )
