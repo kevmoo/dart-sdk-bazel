@@ -913,13 +913,13 @@ genrule(
 genrule(
     name = "write_revision_file",
     outs = ["dart-sdk/revision"],
-    cmd = "(grep SDK_GIT_HASH bazel-out/volatile-status.txt || echo \"SDK_GIT_HASH unknown\") | cut -d' ' -f2- > $@",
+    cmd = "python3 -c \"import os; fp = 'bazel-out/volatile-status.txt'; print(next((l.split(' ', 1)[1].strip() for l in open(fp) if l.startswith('SDK_GIT_HASH ')), 'unknown') if os.path.exists(fp) else 'unknown')\" > $@",
     stamp = 1,
 )
 
 genrule(
     name = "write_version_file",
     outs = ["dart-sdk/version"],
-    cmd = "(grep STABLE_SDK_VERSION bazel-out/stable-status.txt || echo \"STABLE_SDK_VERSION 0.0.0-unknown\") | cut -d' ' -f2- > $@",
+    cmd = "python3 -c \"import os; fp = 'bazel-out/stable-status.txt'; print(next((l.split(' ', 1)[1].strip() for l in open(fp) if l.startswith('STABLE_SDK_VERSION ')), '0.0.0-unknown') if os.path.exists(fp) else '0.0.0-unknown')\" > $@",
     stamp = 1,
 )

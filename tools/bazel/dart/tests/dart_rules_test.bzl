@@ -28,8 +28,6 @@ dart_library_test = analysistest.make(_dart_library_test_impl)
 # 2. copy_tree test
 def _copy_tree_test_impl(ctx):
     env = analysistest.begin(ctx)
-    target_under_test = analysistest.target_under_test(env)
-
     actions = analysistest.target_actions(env)
     copy_tree_action = None
     for action in actions:
@@ -50,8 +48,6 @@ copy_tree_test = analysistest.make(_copy_tree_test_impl)
 # 3. dart_compile_dill test
 def _dart_compile_dill_test_impl(ctx):
     env = analysistest.begin(ctx)
-    target_under_test = analysistest.target_under_test(env)
-
     actions = analysistest.target_actions(env)
     compile_action = None
     for action in actions:
@@ -76,6 +72,12 @@ dart_compile_dill_test = analysistest.make(
 
 # Macro to instantiate the tests
 def dart_rules_test_suite(name):
+    """Instantiates all analysis-phase tests for the custom Dart rules.
+
+    Args:
+      name: The name of the test suite target.
+    """
+
     # Setup dummy targets for dart_library test
     # (The actual files are created via write_file in the BUILD file)
     dart_library(

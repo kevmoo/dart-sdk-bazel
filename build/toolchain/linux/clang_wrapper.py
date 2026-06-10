@@ -13,12 +13,14 @@ def main():
     # We never delete this symlink during the build to avoid concurrency race conditions
     # where one parallel compile finishes and deletes it while others are still running.
     # Bazel will clean up the execroot at the end of the build anyway.
-    if not os.path.lexists("external"):
+    if not os.path.exists("external"):
         try:
+            if os.path.lexists("external"):
+                os.unlink("external")
             os.symlink("../../external", "external")
         except Exception:
-            # If another parallel instance created it just now, os.symlink might fail,
-            # which is fine, we just ignore the error.
+            # If another parallel instance created it just now, or we lack permissions,
+            # ignore the error and let the build proceed.
             pass
 
     # Dynamically find clang++ in the execroot.

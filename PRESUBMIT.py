@@ -529,7 +529,9 @@ def _CheckBuildifier(input_api, output_api):
         filename = os.path.basename(local_path)
         if (filename in ("BUILD", "BUILD.bazel", "WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel") or
                 local_path.endswith(".bzl")):
-            bazel_files.append(git_file.AbsoluteLocalPath())
+            abs_path = git_file.AbsoluteLocalPath()
+            if os.path.exists(abs_path):
+                bazel_files.append(abs_path)
 
     if not bazel_files:
         return []
@@ -543,10 +545,10 @@ def _CheckBuildifier(input_api, output_api):
                 "Buildifier found formatting or lint issues in Bazel files:\n" + e.stdout + e.stderr
             )
         ]
-    except FileNotFoundError:
+    except OSError as e:
         return [
             output_api.PresubmitPromptWarning(
-                "buildifier is not installed. Skipping Bazel lint checks. "
+                f"buildifier could not be run ({e}). Skipping Bazel lint checks. "
                 "Please install buildifier to ensure Bazel files are formatted correctly."
             )
         ]
