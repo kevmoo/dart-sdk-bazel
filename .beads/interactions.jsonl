@@ -32,3 +32,4 @@
 {"id":"int-c6e5931a56fd965dd85b3cba8b2fad22","kind":"field_change","created_at":"2026-06-08T16:34:10.165325Z","actor":"kevmoo@gmac","issue_id":"sdk-duv","extra":{"field":"assignee","new_value":"","old_value":"Kevin Moore"}}
 {"id":"int-e9023477286398956050d23b2df51194","kind":"field_change","created_at":"2026-06-08T16:34:10.563834Z","actor":"kevmoo@gmac","issue_id":"sdk-gmk","extra":{"field":"status","new_value":"open","old_value":"in_progress"}}
 {"id":"int-ad756a710285b45a0af3cf069a3334e4","kind":"field_change","created_at":"2026-06-08T16:34:10.564362Z","actor":"kevmoo@gmac","issue_id":"sdk-gmk","extra":{"field":"assignee","new_value":"","old_value":"Kevin Moore"}}
+{"id":"int-09a121689638db3e0909ee91c5d33a04","kind":"field_change","created_at":"2026-06-10T03:08:22.386827Z","actor":"kevmoo@gmac","issue_id":"sdk-4z8","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}

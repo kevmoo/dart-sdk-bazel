@@ -650,6 +650,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-fnn`, `sdk-zi3`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a custom Agent Skill (in .agents/skills/) that equips AI agents to autonomously execute the bridge workflow (fetch, import, test under Bazel, and report results) using the import/export scripts.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-84z] VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl
 - **Status**: `[COMPLETED]`
 - **PR/External Ref**: [PR #20](https://github.com/kevmoo/sdk/pull/20)
