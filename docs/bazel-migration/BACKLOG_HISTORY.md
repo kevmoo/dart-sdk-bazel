@@ -640,22 +640,13 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 ### 🎯 [sdk-4mq] Align Bazel migration with recent upstream improvements
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
-- **Owner**: `[jetski]`
-- **Commit**: `[ddabde845c6]`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
 - **Target Files**:
-  - `tools/bazel/third_party_overlays/tools/sdks/dart-sdk/BUILD.bazel.snap`
-  - `tools/bazel/dart/defs.bzl`
-  - `utils/gen_kernel/BUILD.bazel`
-  - `utils/ddc/rules.bzl`
-  - `utils/ddc/BUILD.bazel`
+  - None
 - **Description**:
-  Analyze and integrate recent upstream improvements by Ryan Macnak (rmacnak@) into the local Bazel migration. Key areas: RBE relative paths, macOS signing, AOT compiler bootstrapping, and GN cleanup.
+  Analyze and integrate recent upstream improvements by Ryan Macnak (rmacnak@) into the local Bazel migration. Key areas: RBE relative paths, macOS signing, AOT compiler bootstrapping, and GN cleanup. Detailed analysis in docs/bazel-migration/upstream_alignments.md.
 - **Success Criteria**:
-  - [x] Prebuilt AOT compiler snapshots, platform libraries, and gen_snapshot are exported from the prebuilt SDK overlay.
-  - [x] A Starlark macro `prebuilt_dart_aot_snapshot` is implemented for hermetic AOT bootstrapping.
-  - [x] `dart_compile_dill` dynamically detects and executes AOT compiler snapshots using `dartaotruntime`.
-  - [x] `bootstrap_gen_kernel` is migrated to AOT, providing native-speed bootstrapping for all kernel compiles in the workspace.
-  - [x] Parallel AOT DDC compilation rules and targets are defined, enabling full JIT/AOT coexistence to de-risk the upstream JIT DDC removal.
 
 ---
 
