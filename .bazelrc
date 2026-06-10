@@ -7,3 +7,10 @@ build --incompatible_no_implicit_file_export
 
 # Import remote execution and dashboard configurations
 try-import %workspace%/infra/remote_execution/bazelrc
+
+# Configure workspace status command for stamping
+build --workspace_status_command=tools/bazel/workspace_status.py
+
+# Run C++ compilations standalone to resolve local toolchain and sysroot symlinks on the host,
+# while keeping all other actions (Dart compiles, genrules, tests) fully sandboxed.
+build --strategy=CppCompile=standalone

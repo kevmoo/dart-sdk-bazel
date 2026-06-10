@@ -8,8 +8,24 @@ import os
 def main():
     args = sys.argv[1:]
 
-    # Dynamically find clang++ in the sandbox execroot
-    # It should be under external/<repo_name>/bin/clang++
+    # Detect and dynamically heal the Bazel standalone execroot external symlink bug.
+    # If 'external' is missing, create a temporary symlink pointing to '../../external'.
+    # We never delete this symlink during the build to avoid concurrency race conditions
+    # where one parallel compile finishes and deletes it while others are still running.
+    # Bazel will clean up the execroot at the end of the build anyway.
+    if not os.path.exists("external"):
+        try:
+            if os.path.lexists("external"):
+                os.unlink("external")
+            os.symlink("../../external", "external")
+        except Exception:
+            # If another parallel instance created it just now, or we lack permissions,
+            # ignore the error and let the build proceed.
+            pass
+
+    # Dynamically find clang++ in the execroot.
+    # Since we guaranteed that the 'external' symlink exists above, this glob
+    # will always succeed both for sandboxed and standalone builds!
     matches = glob.glob("external/*/bin/clang++")
     if matches:
         real_clang = matches[0]
@@ -33,8 +49,12 @@ def main():
     if "-fPIC" in args:
         args = [arg for arg in args if arg != "-fPIE"]
 
-    cmd = [real_clang] + args
+    # Replace __BAZEL_EXECROOT__ placeholder with actual CWD
+    cwd = os.getcwd()
+    args = [arg.replace("__BAZEL_EXECROOT__", cwd) for arg in args]
 
+    # Launch the real compiler relatively!
+    cmd = [real_clang] + args
     res = subprocess.run(cmd)
     sys.exit(res.returncode)
 

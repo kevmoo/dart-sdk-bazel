@@ -1,0 +1,32 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load(":dart_rules_test.bzl", "dart_rules_test_suite")
+
+# Generate dummy files required for test targets to satisfy rule attributes
+write_file(
+    name = "gen_a_dart",
+    out = "a.dart",
+    content = ["// dummy a"],
+)
+
+write_file(
+    name = "gen_b_dart",
+    out = "b.dart",
+    content = ["// dummy b"],
+)
+
+write_file(
+    name = "gen_dummy_dill",
+    out = "dummy.dill",
+    content = ["dummy dill"],
+)
+
+write_file(
+    name = "gen_dummy_package_config",
+    out = "dummy_package_config.json",
+    content = ["{}"],
+)
+
+# Instantiate the test suite
+dart_rules_test_suite(
+    name = "dart_rules_tests",
+)

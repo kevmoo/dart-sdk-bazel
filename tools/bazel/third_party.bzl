@@ -35,7 +35,13 @@ for root, dirs, files in os.walk(src, followlinks=True):
 """)
 
     # Run the symlinking script hermetically passing the prefix
-    res = repository_ctx.execute(["python3", str(py_script), str(src_dir), str(dest_dir), prefix])
+    res = repository_ctx.execute([
+        "python3",
+        str(py_script),
+        str(src_dir),
+        str(dest_dir),
+        prefix,
+    ])
     if res.return_code != 0:
         fail("Failed to recursively symlink third-party directory: " + res.stderr)
 

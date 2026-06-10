@@ -157,7 +157,15 @@ def ddc_compile_sdk(name, canary, modules):
 # Inspired by upstream CL: https://dart-review.googlesource.com/c/sdk/+/510143
 
 def ddc_compile_aot(name, package, canary, modules, extra_libraries = []):
-    """Compiles a package to JavaScript using the AOT-compiled dartdevc."""
+    """Compiles a package to JavaScript using the AOT-compiled dartdevc.
+
+    Args:
+      name: The name of the generated target.
+      package: The name of the Dart package.
+      canary: A boolean indicating whether to use canary features and paths.
+      modules: The list of module formats to compile (e.g. 'amd', 'ddc').
+      extra_libraries: Optional list of extra library entrypoints to include.
+    """
     srcs = _SOURCES_MAP[package]
 
     js_dir = "canary_aot/pkg" if canary else "stable_aot/pkg"
@@ -199,7 +207,13 @@ def ddc_compile_aot(name, package, canary, modules, extra_libraries = []):
     )
 
 def ddc_compile_sdk_aot(name, canary, modules):
-    """Compiles the DDC SDK JavaScript modules from the platform .dill file using AOT dartdevc."""
+    """Compiles the DDC SDK JavaScript modules from the platform .dill file using AOT dartdevc.
+
+    Args:
+      name: The name of the generated target.
+      canary: A boolean indicating whether to use canary features and paths.
+      modules: The list of module formats to compile (e.g. 'amd', 'ddc').
+    """
     js_dir = "canary_aot/sdk" if canary else "stable_aot/sdk"
     outputs = []
     for module in modules:

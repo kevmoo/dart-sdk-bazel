@@ -707,29 +707,6 @@ build_devtools_rule = rule(
     },
 )
 
-def _copy_directory_impl(ctx):
-    in_dir = ctx.files.src_dir[0]
-    out_dir = ctx.actions.declare_directory(ctx.attr.out_dir)
-    ctx.actions.run_shell(
-        inputs = [in_dir],
-        outputs = [out_dir],
-        command = "rm -rf {out} && cp -R {src} {out}".format(
-            src = in_dir.path,
-            out = out_dir.path,
-        ),
-        mnemonic = "CopyDirectory",
-        progress_message = "Copying directory to %s" % ctx.attr.out_dir,
-    )
-    return [DefaultInfo(files = depset([out_dir]))]
-
-copy_directory = rule(
-    implementation = _copy_directory_impl,
-    attrs = {
-        "out_dir": attr.string(mandatory = True),
-        "src_dir": attr.label(mandatory = True),
-    },
-)
-
 def _runfiles_path(ctx, file):
     if file.short_path.startswith("../"):
         return file.short_path[3:]
@@ -858,13 +835,13 @@ prebuilt_dart_aot_snapshot_rule = rule(
     implementation = _prebuilt_dart_aot_snapshot_impl,
     attrs = {
         "main": attr.label(mandatory = True, allow_single_file = [".dart"]),
-        "srcs": attr.label_list(allow_files = True),
         "out": attr.output(mandatory = True),
+        "srcs": attr.label_list(allow_files = True),
         "_dartaotruntime": attr.label(default = Label("@prebuilt_dart_sdk//:bin/dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
         "_gen_kernel_aot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/snapshots/gen_kernel_aot.dart.snapshot"), allow_single_file = True),
         "_gen_snapshot": attr.label(default = Label("@prebuilt_dart_sdk//:bin/utils/gen_snapshot"), executable = True, allow_single_file = True, cfg = "exec"),
-        "_platform": attr.label(default = Label("@prebuilt_dart_sdk//:lib/_internal/vm_platform_product.dill"), allow_single_file = True),
         "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
+        "_platform": attr.label(default = Label("@prebuilt_dart_sdk//:lib/_internal/vm_platform_product.dill"), allow_single_file = True),
     },
 )
 
@@ -881,4 +858,3 @@ def prebuilt_dart_aot_snapshot(name, main, srcs = [], **kwargs):
         out = name + ".snapshot",
         **kwargs
     )
-
