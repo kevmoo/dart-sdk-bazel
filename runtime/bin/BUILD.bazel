@@ -712,6 +712,9 @@ cc_binary(
     srcs = [
         "process_test.cc",
     ],
+    conlyopts = [
+        "-std=c17",
+    ],
     copts = [
         "-fPIE",
         "-fcolor-diagnostics",
@@ -741,9 +744,6 @@ cc_binary(
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),
-    conlyopts = [
-        "-std=c17",
-    ],
     cxxopts = [
         "-fvisibility-inlines-hidden",
         "-fno-omit-frame-pointer",
@@ -756,16 +756,16 @@ cc_binary(
         ],
         "//conditions:default": [],
     }),
+    data = [
+        ":create_process_test_helper",
+    ],
     linkopts = [
         "-ldl",
         "-lpthread",
     ],
     deps = [
-        "//build/config/sanitizers:deps",
         "//build/config:dart_mode",
-    ],
-    data = [
-        ":create_process_test_helper",
+        "//build/config/sanitizers:deps",
     ],
 )
 

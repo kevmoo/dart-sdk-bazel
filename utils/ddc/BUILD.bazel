@@ -76,8 +76,8 @@ dart_app_jit_snapshot(
 # prebuilt dartaotruntime used to execute it in Bazel.
 prebuilt_dart_aot_snapshot(
     name = "dartdevc_aot",
-    main = "//:pkg/dev_compiler/bin/dartdevc.dart",
     srcs = ["//:dart_pkg_dev_compiler"],
+    main = "//:pkg/dev_compiler/bin/dartdevc.dart",
 )
 
 dart_aot_snapshot(
@@ -426,10 +426,10 @@ filegroup(
     name = "ddc_stable_test_aot_local",
     srcs = [
         "//utils/ddc:ddc_stable_sdk_aot",
+        "//utils/ddc:ddc_test_pkg_outline",
         "//utils/ddc:expect_stable_js_aot",
         "//utils/ddc:js_stable_js_aot",
         "//utils/ddc:meta_stable_js_aot",
-        "//utils/ddc:ddc_test_pkg_outline",
     ],
 )
 

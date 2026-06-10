@@ -2,9 +2,9 @@ name: Buildifier
 
 on:
   push:
-    branches: [ bazel ]
+    branches: [ main ]
   pull_request:
-    branches: [ bazel ]
+    branches: [ main ]
 
 jobs:
   buildifier-lint:

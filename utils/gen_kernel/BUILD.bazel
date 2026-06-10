@@ -5,7 +5,6 @@
 load(
     "//tools/bazel/dart:defs.bzl",
     "dart_aot_snapshot",
-    "dart_kernel_snapshot",
     "prebuilt_dart_aot_snapshot",
 )
 
@@ -35,8 +34,8 @@ exports_files(glob(
 # subsequent kernel compilations in the Bazel workspace.
 prebuilt_dart_aot_snapshot(
     name = "bootstrap_gen_kernel",
-    main = "//:pkg/vm/bin/gen_kernel.dart",
     srcs = ["//:dart_pkg_vm"],
+    main = "//:pkg/vm/bin/gen_kernel.dart",
 )
 
 dart_aot_snapshot(
