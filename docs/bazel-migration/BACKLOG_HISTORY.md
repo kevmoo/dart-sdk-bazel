@@ -611,6 +611,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-3la] Investigate remote build and cache using Buildfarm or Buildbarn
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Evaluate and compare Bazel Buildfarm (Java/Redis-based, mature ecosystem) and Buildbarn (Go/Kubernetes-native, high-performance modular architecture) as open-source self-hosted Remote Build Execution (RBE) and remote caching solutions. Assess their deployment complexity, infrastructure requirements, maintenance overhead, and suitability for the Dart SDK Bazel migration workspace.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-3ld] [M3] Wire up Dart MCP Server Snapshots
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-oce`
@@ -660,6 +673,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Draft a design document detailing the workflow for importing upstream Gerrit CLs/PRs into a bazel-based branch, iterating/testing using Bazel, and exporting verified changes back to a main-based branch. Define CLI specs for bridge scripts.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Resolve the silent reliance on implicit include paths for ICU data headers (norm2_nfc_data.h, etc.). Either implement the regeneration step in GN/Bazel to match upstream, or explicitly expose the checked-in data tables in third_party/icu/BUILD.gn and document the divergence. Ref: docs/bazel-migration/todo_issues/issue_00006_icu_data_headers_inconsistency.md
 - **Success Criteria**:
 
 ---

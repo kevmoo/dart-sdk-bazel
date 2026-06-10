@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 48/63 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 50/63 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -71,7 +71,7 @@ graph TD
     TASK_039["TASK_039:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
     TASK_040["TASK_040:<br>Implement `bazel run` support for running Dart scripts"]:::completed
     TASK_041["TASK_041:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
-    sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::pending
+    sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::completed
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::pending
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::pending
@@ -80,7 +80,7 @@ graph TD
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
-    sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::pending
+    sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
@@ -238,19 +238,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-3la] Investigate remote build and cache using Buildfarm or Buildbarn
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Evaluate and compare Bazel Buildfarm (Java/Redis-based, mature ecosystem) and Buildbarn (Go/Kubernetes-native, high-performance modular architecture) as open-source self-hosted Remote Build Execution (RBE) and remote caching solutions. Assess their deployment complexity, infrastructure requirements, maintenance overhead, and suitability for the Dart SDK Bazel migration workspace.
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-4mq] Align Bazel migration with recent upstream improvements
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -300,19 +287,6 @@ graph TD
   - None
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Resolve the silent reliance on implicit include paths for ICU data headers (norm2_nfc_data.h, etc.). Either implement the regeneration step in GN/Bazel to match upstream, or explicitly expose the checked-in data tables in third_party/icu/BUILD.gn and document the divergence. Ref: docs/bazel-migration/todo_issues/issue_00006_icu_data_headers_inconsistency.md
 - **Success Criteria**:
 
 ---
