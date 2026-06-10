@@ -835,6 +835,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-xfm] Migrate Dart VM C++ test runner (run_vm_tests) to cc_test
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Convert the monolithic Dart VM C++ test runner run_vm_tests into a canonical Bazel cc_test target. Audit and package all necessary runtime data dependencies (snapshots, test scripts, etc.) into its data attribute so they are available in the sandbox.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-xn9] Audit, integrate, and delete legacy Bazel branches
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
