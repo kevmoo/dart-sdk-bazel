@@ -43,15 +43,14 @@ def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True):
 if [ -n "$RUNFILES_DIR" ]; then
   rdir="$RUNFILES_DIR"
 else
-  rdir="$0.runfiles"
+  rdir="$(cd "$(dirname "$0")" && pwd)/$(basename "$0").runfiles"
 fi
 
 ws_root="${{rdir}}/{workspace_name}"
 
-# Stage and adjust package_config.json if it exists
+# Set the package config environment variable pointing to the runfiles version
 if [ -f "${{rdir}}/{package_config_path}" ]; then
-  mkdir -p "${{ws_root}}/.dart_tool"
-  sed 's|"rootUri": "\\.\\./\\.\\./\\.\\./|"rootUri": "../|g' "${{rdir}}/{package_config_path}" > "${{ws_root}}/.dart_tool/package_config.json"
+  export DART_PACKAGE_CONFIG="${{rdir}}/{package_config_path}"
 fi
 
 # CD into the workspace root (needed for relative paths in package_config to resolve)
@@ -99,9 +98,10 @@ def _dart_format_test_impl(ctx):
     direct_srcs = []
 
     # Filter the transitive sources to find only the direct Dart sources of this package.
-    # Any file in transitive_srcs that starts with the package_dir and ends with .dart is a direct source.
+    # Any file in transitive_srcs that starts with the package_dir (handling root package) and ends with .dart is a direct source.
+    prefix = package_dir + "/" if package_dir else ""
     for f in ctx.attr.package[DartLibraryInfo].transitive_srcs.to_list():
-        if f.short_path.startswith(package_dir + "/") and f.path.endswith(".dart"):
+        if f.short_path.startswith(prefix) and f.short_path.endswith(".dart"):
             direct_srcs.append(f)
 
     if not direct_srcs:
