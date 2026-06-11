@@ -1,7 +1,10 @@
 # Bazel migration — status
 
 > **Not an `issue_NNNNN` file.** This is the living progress tracker for the
-> GN+Ninja → Bazel migration on branch `kevmoo/bazel`. It lives
+> GN+Ninja → Bazel migration. The work lives in the dedicated repo
+> `kevmoo/dart-sdk-bazel` (default branch `main`; local checkouts commonly track
+> it under a branch named `bazel`). The old `kevmoo/sdk:bazel` fork branch is
+> retired. It lives
 > here because `docs/bazel-migration/` is where this work stream keeps its durable,
 > reviewable artifacts. The `issue_*.md` files are *discovered SDK improvements*;
 > this file is *where the migration itself stands*.

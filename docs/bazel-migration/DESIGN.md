@@ -6,12 +6,13 @@
 > sequencing, `§5.x` risks).
 >
 > For **current progress** see [STATUS.md](STATUS.md). Several specifics here have
-> since been **refined or superseded** by decisions recorded in
-> [m4_multiconfig_scoping.md](m4_multiconfig_scoping.md) (product/config axis),
-> [m4_arch_axis_scoping.md](m4_arch_axis_scoping.md) (arch axis), and
-> [rules_dart_scoping.md](rules_dart_scoping.md) (the per-package deps graph) —
-> notably the product-variant end-state and the `dart-sdk/` assembly prefix. When
-> this doc and STATUS.md disagree, STATUS.md + the scoping docs win.
+> since been **refined or superseded** by decisions recorded in the scoping docs
+> `m4_multiconfig_scoping.md` (product/config axis), `m4_arch_axis_scoping.md`
+> (arch axis), and `rules_dart_scoping.md` (the per-package deps graph) — all
+> three were **deleted in the Session-120 docs prune**; recover them via git
+> history if needed. Notable superseded points: the product-variant end-state and
+> the `dart-sdk/` assembly prefix. When this doc and STATUS.md disagree,
+> STATUS.md wins.
 >
 > Synthesized from investigation beads; findings are cited inline by bead ID, e.g.
 > `(sdk-m3y)`. See Appendix A for the index.
@@ -1221,7 +1222,7 @@ selection mechanism (`linux-intel.cfg` vs `unix.cfg` vs
 > [!IMPORTANT]
 > **The target test integration design has evolved to a unified 4-Phase pure Bazel testing roadmap.**
 > Instead of executing status file parsing natively inside Starlark at analysis time, we utilize a dynamic dry-run JSON metadata exporter from the Dart test runner and a standalone hermetic wrapper executor.
-> For the comprehensive architecture, phase breakdown, and immediate refactoring items, see the dedicated deep-dive: **[Testing Migration Roadmap](deep_dives/testing_migration_roadmap.md)**.
+> For the comprehensive architecture, phase breakdown, and immediate refactoring items, see the dedicated deep-dive: **Testing Migration Roadmap** (`deep_dives/testing_migration_roadmap.md` — deleted in the Session-120 docs prune; recover via git history).
 
 **Capability-by-capability mapping** of `tools/test.py` + `pkg/test_runner`
 against `bazel test` (sdk-9jz, **high** confidence on the structural
