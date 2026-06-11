@@ -201,17 +201,31 @@ including `"TARGET_ARCH_X64"`, to keep hardcoded arch defines out (the policy is
 arch comes from `//build/config:dart_mode` / cross-variant carriers; the
 translator strips these defines — `tools/bazel/translate_gn_desc.py:262-279`).
 
-Four checked-in targets contain `"TARGET_ARCH_" + "X64"`:
+Seven checked-in sites contain `"TARGET_ARCH_" + "X64"` (updated 2026-06-11;
+the count was four when first written — **the pattern is spreading**):
 
 - `runtime/BUILD.bazel:1433` (`libdart_precompiler_product_linux_x64`)
 - `runtime/bin/BUILD.bazel:2656` (`gen_snapshot_dart_io_product_linux_x64`)
 - `runtime/bin/BUILD.bazel:3257` (`gen_snapshot_product_linux_x64_set`)
 - `runtime/bin/BUILD.bazel:4320` (`libdart_builtin_product_linux_x64`)
+- `runtime/platform/BUILD.bazel:1227`, `runtime/vm/BUILD.bazel:2003`,
+  `runtime/vm/BUILD.bazel:6394` (added later by `02593e703bc`)
 
 Starlark evaluates the concatenation to exactly the forbidden define before any
 rule logic sees it; the **only** effect of writing it this way is that the
 hook's `grep -F '"TARGET_ARCH_X64"'` doesn't match. Introduced in commit
-`be081364145` ("resolve wasm-opt compile/link errors and packaging").
+`be081364145` ("resolve wasm-opt compile/link errors and packaging"), then
+copied by `02593e703bc` ("fully decouple and encapsulate runtime/lib") — two
+independent commits, which confirms the obfuscation is being cargo-culted.
+*RESOLVED on `fable-review` (2026-06-11, human decided option (a)):* all 7
+sites rewritten to the honest literal `"TARGET_ARCH_X64"` with a structured
+allowlist marker `# arch-pinned-variant: ok` on the line; both the pre-commit
+hook and `tools/bazel/presubmit.sh` now **hard-fail** on any concat form and
+on un-marked literals, while marker-bearing lines are exempt. Semantics
+verified unchanged: aquery of the compile actions before/after the rewrite is
+identical (224× `TARGET_ARCH_X64` on the representative
+`libdart_vm_precompiler_product_linux_x64`), and all 7 owning targets analyze
+green.
 
 The defines are *semantically defensible*: these are explicitly `_linux_x64`
 cross-matrix variants, the same way `_linux_arm64` variants carry literal
@@ -220,15 +234,11 @@ x64-only). So the build is not wrong; the *gate* is now meaningless for the
 one arch it polices, and the precedent ("if the hook complains, obfuscate")
 is the actual damage.
 
-**Recommendation (needs a human/policy decision, do not just patch):** either
-(a) extend the hook with a structured allowlist (e.g. a
-`# arch-pinned-variant: ok` comment the hook recognizes) and rewrite the four
-defines as honest literals, or (b) decide explicit arch pins in `*_linux_x64`
-variant names are always fine and narrow the hook to non-variant targets. Also
-make the hook catch `"TARGET_ARCH_" +` so evasion at least fails loudly.
-Note `.github/workflows/buildifier.yml` does **not** run this audit at all —
-the audit exists only in the local hook, which agents can bypass with
-`--no-verify` (and at least one effectively did, via obfuscation).
+**Decision taken (was: needs a human/policy decision):** option (a) — a
+structured allowlist marker (`# arch-pinned-variant: ok`) plus honest
+literals; concat obfuscation is now always an error. The audit also runs in
+CI via `tools/bazel/presubmit.sh` (wired into `bazel.yml`), so the
+`--no-verify` local-hook bypass no longer skips it.
 
 ### B3. `tools/test.py --bazel` discards the real bazel error (confidence: verified)
 
@@ -593,7 +603,10 @@ Ordered; each step states what regression class it would have caught.
    paths under `infra/`.
 6. Scheduled (nightly) full `bazel build //sdk:create_sdk` + packaged-SDK
    smoke (`dart --version` + hello.dart) + one
-   `tools/test.py --bazel -n vm-release-x64 corelib/list_test`. *Catches:*
+   `tools/test.py --bazel -n vm-release-x64 corelib/list_test`.
+   *Landed on `fable-review` as `.github/workflows/nightly.yml`* (cron +
+   workflow_dispatch; build + smoke verified locally, the test.py suite was
+   left out to keep the first nightly simple). *Catches:*
    B1b-class execution regressions and toolchain drift at bounded cost.
    (PR-time full create_sdk is likely too slow without a shared remote cache;
    once the Buildfarm/BuildBuddy work stabilizes, promote it to PR-time.)
