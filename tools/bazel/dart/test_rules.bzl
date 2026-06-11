@@ -17,8 +17,12 @@ def _dynamic_test_repo_impl(repository_ctx):
     if not exporter_path.exists:
         fail("Could not locate test runner script at: " + str(exporter_path))
 
-    # Define the generator script path
-    generator_path = workspace_dir.get_child("tools").get_child("bazel").get_child("dart").get_child("generate_test_targets.dart")
+    # Watch the generator so edits to it automatically re-fetch this
+    # repository (previously that required hand-bumping the trigger comment at
+    # the bottom of this file). Resolving a Label to a path is NOT enough on
+    # Bazel 7+; the explicit watch() registers the invalidation dependency.
+    generator_path = repository_ctx.path(Label("@//tools/bazel/dart:generate_test_targets.dart"))
+    repository_ctx.watch(generator_path)
 
     repository_ctx.file("run_single_test.sh", content = """#!/bin/bash
 if [ -z "$TEST_SRCDIR" ]; then
@@ -103,4 +107,7 @@ def _test_ext_impl(ctx):
     return ctx.extension_metadata(reproducible = True)
 
 dart_tests_extension = module_extension(implementation = _test_ext_impl)
+# Edits to generate_test_targets.dart auto-invalidate via the Label resolution
+# above. This manual trigger remains ONLY for changes the extension does not
+# watch — e.g. adding/removing test files in the suites: bump it to re-scan.
 # Force refetch trigger: 21
