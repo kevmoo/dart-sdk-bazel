@@ -55,7 +55,7 @@ dart_app_jit_snapshot(
     main = "//:pkg/frontend_server/bin/frontend_server_starter.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
     training_args = [
         "--train",
         "--sdk-root=.",
@@ -79,7 +79,7 @@ dart_aot_snapshot(
     main = "//:pkg/frontend_server/bin/frontend_server_starter.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
 )
 
 dart_aot_snapshot(
@@ -90,7 +90,7 @@ dart_aot_snapshot(
     main = "//:pkg/frontend_server/bin/frontend_server_starter.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
 )
 
 # frontend_server_dill is now emitted by the dart_app_jit_snapshot macro above
@@ -125,7 +125,7 @@ dart_app_jit_snapshot(
     main = "//:pkg/vm/bin/kernel_service.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_vm",
+    sources = "@dart_packages//pkg/vm",
     training_args = [
         "--train",
         "$(location //:pkg/vm/bin/kernel_service.dart)",

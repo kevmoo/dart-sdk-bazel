@@ -34,7 +34,7 @@ dart_app_jit_snapshot(
     main = ":kernel_worker.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
     training_args = ["--help"],
 )
 
@@ -49,7 +49,7 @@ dart_aot_snapshot(
     main = ":kernel_worker.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
 )
 
 dart_aot_snapshot(
@@ -60,7 +60,7 @@ dart_aot_snapshot(
     main = ":kernel_worker.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_frontend_server",
+    sources = "@dart_packages//pkg/frontend_server",
 )
 
 # (kernel_worker_aot_product, _dill, _gen_snapshot stubs superseded by the

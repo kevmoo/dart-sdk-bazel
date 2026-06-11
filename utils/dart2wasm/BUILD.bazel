@@ -90,7 +90,7 @@ dart_aot_snapshot(
     main = "//:pkg/dart2wasm/bin/dart2wasm.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dart2wasm",
+    sources = "@dart_packages//pkg/dart2wasm",
 )
 
 # aot_snapshot("dart2wasm_asserts_snapshot") -> product = false, with
@@ -105,7 +105,7 @@ dart_aot_snapshot(
     main = "//:pkg/dart2wasm/bin/dart2wasm.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dart2wasm",
+    sources = "@dart_packages//pkg/dart2wasm",
 )
 
 # aot_snapshot("dart2wasm_product_snapshot") force_product_mode = true ->
@@ -118,7 +118,7 @@ dart_aot_snapshot(
     main = "//:pkg/dart2wasm/bin/dart2wasm.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_dart2wasm",
+    sources = "@dart_packages//pkg/dart2wasm",
 )
 
 genrule(

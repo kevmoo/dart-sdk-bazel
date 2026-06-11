@@ -38,5 +38,5 @@ dart_aot_snapshot(
     main = "//:pkg/dart2bytecode/bin/dart2bytecode.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_dart2bytecode",
+    sources = "@dart_packages//pkg/dart2bytecode",
 )

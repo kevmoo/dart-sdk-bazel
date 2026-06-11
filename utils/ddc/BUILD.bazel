@@ -55,7 +55,7 @@ dart_app_jit_snapshot(
     main = "//:pkg/dev_compiler/bin/dartdevc.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dev_compiler",
+    sources = "@dart_packages//pkg/dev_compiler",
     training_args = [
         "--packages",
         "$(location //:package_config_json)",
@@ -76,7 +76,7 @@ dart_app_jit_snapshot(
 # prebuilt dartaotruntime used to execute it in Bazel.
 prebuilt_dart_aot_snapshot(
     name = "dartdevc_aot",
-    srcs = ["//:dart_pkg_dev_compiler"],
+    srcs = ["@dart_packages//pkg/dev_compiler"],
     main = "//:pkg/dev_compiler/bin/dartdevc.dart",
 )
 
@@ -88,7 +88,7 @@ dart_aot_snapshot(
     main = "//:pkg/dev_compiler/bin/dartdevc.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_dev_compiler",
+    sources = "@dart_packages//pkg/dev_compiler",
 )
 
 # dartdevc_dill is emitted by the dart_app_jit_snapshot macro above (the stage-1
@@ -345,11 +345,11 @@ genrule(
         "//:pkg/dev_compiler/web/stack_trace_mapper.dart",
         "//:pkg/dev_compiler/web/source_map_stack_trace.dart",
         "//:package_config_json",
-        "//:dart_pkg_js",
-        "//:dart_pkg_path",
-        "//:dart_pkg_source_maps",
-        "//:dart_pkg_source_span",
-        "//:dart_pkg_stack_trace",
+        "@dart_packages//pkg/js",
+        "@dart_packages//pkg/path",
+        "@dart_packages//pkg/source_maps",
+        "@dart_packages//pkg/source_span",
+        "@dart_packages//pkg/stack_trace",
         "@prebuilt_dart_sdk//:sdk_files",
         "@prebuilt_dart_sdk//:bin/dart",
     ],

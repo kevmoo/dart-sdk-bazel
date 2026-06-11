@@ -7,6 +7,7 @@ import os
 import sys
 import subprocess
 import json
+import argparse
 
 # Repositories to clone
 REPOS = [
@@ -164,10 +165,17 @@ def clone_repo(repo_path, dep_val):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Clone third-party Dart dependencies')
+    parser.add_argument('--dest', type=str, default=None,
+                        help='Destination root directory for clones (defaults to SDK root)')
+    args = parser.parse_args()
+
     sdk_root = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
     deps_file = os.path.join(sdk_root, 'DEPS')
     deps = parse_deps(deps_file)
+
+    dest_root = args.dest if args.dest else sdk_root
 
     lock_dir = os.path.join(sdk_root, '.clone_dependencies.lock')
     acquired_lock = False
@@ -259,7 +267,13 @@ def main():
                     f"Warning: Repository {repo} not found in DEPS, skipping.")
                 continue
 
-            clone_repo(os.path.join(sdk_root, repo), deps[dep_key])
+            clone_repo(os.path.join(dest_root, repo), deps[dep_key])
+
+        # Create sentinel file to signal successful clone to Bzlmod
+        sentinel_path = os.path.join(dest_root, 'third_party', 'pkg', '.cloned_sentinel')
+        os.makedirs(os.path.dirname(sentinel_path), exist_ok=True)
+        with open(sentinel_path, 'w') as f:
+            f.write('cloned')
     finally:
         try:
             os.remove(os.path.join(lock_dir, 'pid'))

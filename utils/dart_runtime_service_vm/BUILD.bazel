@@ -65,7 +65,7 @@ dart_aot_snapshot(
     main = "//:pkg/dart_runtime_service_vm/bin/vm_service_entrypoint.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dart_runtime_service_vm",
+    sources = "@dart_packages//pkg/dart_runtime_service_vm",
 )
 
 # rules_dart Step 4 (app-jit variant). Ports utils/dart_runtime_service_vm/
@@ -80,6 +80,6 @@ dart_app_jit_snapshot(
     main = "//:pkg/dart_runtime_service_vm/bin/vm_service_entrypoint.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_dart_runtime_service_vm",
+    sources = "@dart_packages//pkg/dart_runtime_service_vm",
     training_args = ["--help"],
 )

@@ -40,7 +40,7 @@ dart_app_jit_snapshot(
     main = "//:pkg/analysis_server/bin/server.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_analysis_server",
+    sources = "@dart_packages//pkg/analysis_server",
     training_args = [
         "--sdk=sdk/",
         "--train-using=pkg/compiler/lib",
@@ -55,7 +55,7 @@ dart_app_jit_snapshot(
     training_srcs = [
         "//sdk:sdk_library_sources",
         "//sdk:version",
-        "//:dart_pkg_compiler",
+        "@dart_packages//pkg/compiler",
     ],
 )
 
@@ -75,7 +75,7 @@ dart_aot_snapshot(
     main = "//:pkg/analysis_server/bin/server.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_analysis_server",
+    sources = "@dart_packages//pkg/analysis_server",
 )
 
 # aot_snapshot("analysis_server_aot_product") force_product_mode = !dart_debug
@@ -89,5 +89,5 @@ dart_aot_snapshot(
     main = "//:pkg/analysis_server/bin/server.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = True,
-    sources = "//:dart_pkg_analysis_server",
+    sources = "@dart_packages//pkg/analysis_server",
 )

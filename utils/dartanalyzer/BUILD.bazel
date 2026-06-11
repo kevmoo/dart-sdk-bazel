@@ -50,6 +50,6 @@ dart_app_jit_snapshot(
     main = "//:pkg/analyzer_cli/bin/analyzer.dart",
     platform_dill = "//runtime/vm:vm_platform.dill",
     product = False,
-    sources = "//:dart_pkg_analyzer_cli",
+    sources = "@dart_packages//pkg/analyzer_cli",
     training_args = ["--help"],
 )
