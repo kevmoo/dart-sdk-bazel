@@ -242,7 +242,8 @@ def _packages_repo_impl(ctx):
                 physical_options = physical_path.get_child(options_name)
                 if physical_options.exists:
                     glob_paths.append('"%s"' % options_name)
-            if pubspec_path.exists:
+            physical_pubspec = physical_path.get_child("pubspec.yaml")
+            if physical_pubspec.exists:
                 glob_paths.append('"pubspec.yaml"')
             srcs_val = "glob([%s], allow_empty = True)" % ", ".join(glob_paths)
         else:
@@ -320,7 +321,7 @@ def _packages_repo_impl(ctx):
                 build_lines.append("dart_package_test(")
                 build_lines.append('    name = "pkg_test",')
                 build_lines.append('    package = ":%s",' % name)
-                build_lines.append('    srcs = glob(["test/**/*.dart"], allow_empty = True),')
+                build_lines.append('    srcs = glob(["test/**"], allow_empty = True),')
                 if test_dep_labels:
                     build_lines.append("    deps = [%s]," % test_dep_labels)
                 build_lines.append(")")

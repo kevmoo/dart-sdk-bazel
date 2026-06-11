@@ -165,7 +165,7 @@ def _dart_package_test_impl(ctx):
 
     workspace_name = ctx.workspace_name
     package_dir = ctx.attr.package_dir or ctx.label.package
-    
+
     repo_name = ctx.label.workspace_name
     if repo_name:
         package_dir = "../" + repo_name + "/" + package_dir
@@ -194,7 +194,10 @@ fi
 
 # Find and run all tests
 failed=0
-for test_file in $(find test -name "*_test.dart" 2>/dev/null); do
+while IFS= read -r test_file; do
+  if [ -z "$test_file" ]; then
+    continue
+  fi
   echo "----------------------------------------"
   echo "Running test: $test_file"
   echo "----------------------------------------"
@@ -202,7 +205,7 @@ for test_file in $(find test -name "*_test.dart" 2>/dev/null); do
     echo "FAIL: $test_file"
     failed=1
   fi
-done
+done < <(find test -name "*_test.dart" 2>/dev/null)
 
 if [ $failed -ne 0 ]; then
   echo "Some tests failed!"
@@ -246,13 +249,13 @@ dart_analyze_test = rule(
     implementation = _dart_analyze_test_impl,
     test = True,
     attrs = {
-        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
-        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
-        "package_dir": attr.string(default = ""),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "package_dir": attr.string(default = ""),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
@@ -261,12 +264,12 @@ dart_format_test = rule(
     implementation = _dart_format_test_impl,
     test = True,
     attrs = {
-        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
-        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
@@ -275,14 +278,14 @@ dart_package_test = rule(
     implementation = _dart_package_test_impl,
     test = True,
     attrs = {
-        "srcs": attr.label_list(allow_files = True, default = []),
-        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
-        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
-        "package_dir": attr.string(default = ""),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "package_dir": attr.string(default = ""),
+        "srcs": attr.label_list(allow_files = True, default = []),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
