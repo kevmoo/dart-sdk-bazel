@@ -366,9 +366,10 @@ def _packages_repo_impl(ctx):
         "    srcs = [\".dart_tool/package_config.json\"],",
         ")",
         "",
-        "exports_files([\"pubspec.yaml\"])",
-        "",
     ]
+    if workspace_dir.get_child("pubspec.yaml").exists:
+        root_build_lines.append("exports_files([\"pubspec.yaml\"])")
+        root_build_lines.append("")
     if all_cloned_files:
         root_build_lines.append("exports_files([")
         for f in sorted(all_cloned_files):

@@ -25,14 +25,11 @@ def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True, params_file = No
     if not package_dir:
         package_dir = "."
 
-    # If the target is in an external repository, adjust package_dir to point to the external repo in runfiles
-    repo_name = ctx.label.workspace_name
-    if repo_name:
-        package_dir = "../" + repo_name + "/" + package_dir
+    runfiles_repo = ctx.label.workspace_name or ctx.workspace_name or "_main"
+    runfiles_package_dir = runfiles_repo + "/" + package_dir
+
     dart_path = _runfiles_path(ctx, toolchain.dart_executable)
     package_config_path = _runfiles_path(ctx, ctx.file._package_config)
-
-    workspace_name = ctx.workspace_name or "_main"
 
     # Run the command.
     # If params_file is provided, we use xargs with stdin redirection (portable across Linux and macOS).
@@ -74,22 +71,20 @@ if [ -f "${{rdir}}/{package_config_path}" ]; then
   export DART_PACKAGE_CONFIG="${{rdir}}/{package_config_path}"
 fi
 
-ws_root="${{rdir}}/{workspace_name}"
-cd "${{ws_root}}"
+cd "${{rdir}}"
 
 # If we need to run in package dir, cd into it
-if [ "{use_package_dir}" = "True" ] && [ -n "{package_dir}" ]; then
-  cd "{package_dir}"
+if [ "{use_package_dir}" = "True" ] && [ -n "{runfiles_package_dir}" ]; then
+  cd "{runfiles_package_dir}"
 fi
 
 # Run the command
 {exec_cmd}
 """.format(
-        workspace_name = workspace_name,
         package_config_path = package_config_path,
         exec_cmd = exec_cmd,
         use_package_dir = use_package_dir,
-        package_dir = package_dir,
+        runfiles_package_dir = runfiles_package_dir,
     )
 
     ctx.actions.write(
@@ -163,12 +158,11 @@ def _dart_package_test_impl(ctx):
     toolchain = ctx.toolchains["//tools/bazel/dart:toolchain_type"].dartinfo
     runner = ctx.actions.declare_file(ctx.label.name)
 
-    workspace_name = ctx.workspace_name
+    runfiles_repo = ctx.label.workspace_name or ctx.workspace_name or "_main"
     package_dir = ctx.attr.package_dir or ctx.label.package
+    runfiles_package_dir = runfiles_repo + "/" + package_dir
 
-    repo_name = ctx.label.workspace_name
-    if repo_name:
-        package_dir = "../" + repo_name + "/" + package_dir
+    # Path resolved above
 
     package_config_path = _runfiles_path(ctx, ctx.file._package_config)
     dart_path = _runfiles_path(ctx, toolchain.dart_executable)
@@ -185,19 +179,20 @@ if [ -f "${{rdir}}/{package_config_path}" ]; then
   export DART_PACKAGE_CONFIG="${{rdir}}/{package_config_path}"
 fi
 
-ws_root="${{rdir}}/{workspace_name}"
-cd "${{ws_root}}"
+cd "${{rdir}}"
 
-if [ -n "{package_dir}" ]; then
-  cd "{package_dir}"
+if [ -n "{runfiles_package_dir}" ]; then
+  cd "{runfiles_package_dir}"
 fi
 
 # Find and run all tests
 failed=0
+tests_found=0
 while IFS= read -r test_file; do
   if [ -z "$test_file" ]; then
     continue
   fi
+  tests_found=$((tests_found + 1))
   echo "----------------------------------------"
   echo "Running test: $test_file"
   echo "----------------------------------------"
@@ -207,15 +202,19 @@ while IFS= read -r test_file; do
   fi
 done < <(find test -name "*_test.dart" 2>/dev/null)
 
+if [ $tests_found -eq 0 ]; then
+  echo "Error: No test files matching '*_test.dart' were found in the 'test' directory!"
+  exit 1
+fi
+
 if [ $failed -ne 0 ]; then
   echo "Some tests failed!"
   exit 1
 fi
-echo "All tests passed!"
+echo "All $tests_found tests passed!"
 """.format(
-        workspace_name = workspace_name,
         package_config_path = package_config_path,
-        package_dir = package_dir,
+        runfiles_package_dir = runfiles_package_dir,
         dart_path = dart_path,
     )
 
