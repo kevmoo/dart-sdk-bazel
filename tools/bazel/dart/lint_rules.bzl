@@ -249,13 +249,13 @@ dart_analyze_test = rule(
     implementation = _dart_analyze_test_impl,
     test = True,
     attrs = {
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "package_dir": attr.string(default = ""),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
-        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
-        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
-        "package_dir": attr.string(default = ""),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
@@ -264,12 +264,12 @@ dart_format_test = rule(
     implementation = _dart_format_test_impl,
     test = True,
     attrs = {
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
-        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
-        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
@@ -278,14 +278,14 @@ dart_package_test = rule(
     implementation = _dart_package_test_impl,
     test = True,
     attrs = {
-        "_package_config": attr.label(
-            default = "@dart_packages//:package_config_json",
-            allow_single_file = True,
-        ),
         "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
         "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
         "package_dir": attr.string(default = ""),
         "srcs": attr.label_list(allow_files = True, default = []),
+        "_package_config": attr.label(
+            default = "@dart_packages//:package_config_json",
+            allow_single_file = True,
+        ),
     },
     toolchains = ["//tools/bazel/dart:toolchain_type"],
 )
