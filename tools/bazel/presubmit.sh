@@ -58,15 +58,19 @@ audit_files=$(git ls-files '*BUILD.bazel' '*MODULE.bazel' '*.bzl' '*.snap' '*.ap
 # arch-pinned cross variants (e.g. *_product_linux_x64 targets) legitimately
 # carry their arch define; the marker keeps the exemption visible in review.
 for pattern in "${forbidden_patterns[@]}"; do
-  if echo "$audit_files" | xargs grep -H -F -n "$pattern" 2>/dev/null \
-    | grep -v '# arch-pinned-variant: ok' | grep .; then
+  matches=$(echo "$audit_files" | xargs grep -H -F -n "$pattern" 2>/dev/null \
+    | grep -v '# arch-pinned-variant: ok' || true)
+  if [ -n "$matches" ]; then
+    echo "$matches"
     fail "architecture audit: $pattern is hardcoded (parameterize via select(), or mark an arch-pinned variant with '# arch-pinned-variant: ok')"
   fi
 done
 # Obfuscated concat forms ("TARGET_ARCH_" + "X64") evaluate identically but
 # dodge the literal greps. Never allowed: write the honest literal (plus the
 # marker if the target is a deliberately arch-pinned variant).
-if echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null | grep .; then
+concat_matches=$(echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null || true)
+if [ -n "$concat_matches" ]; then
+  echo "$concat_matches"
   fail "architecture audit: concat-built TARGET_ARCH_ define evades the literal grep (write the honest literal + marker)"
 fi
 
