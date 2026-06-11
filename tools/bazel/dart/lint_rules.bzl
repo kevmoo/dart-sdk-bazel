@@ -40,19 +40,19 @@ def _dart_lint_test_impl(ctx, cmd_args, use_package_dir = True, params_file = No
     # Otherwise, we just run the command as is (args are already embedded).
     if params_file:
         params_path = _runfiles_path(ctx, params_file)
-        exec_cmd = 'exec xargs "${{rdir}}/{dart_path}" {cmd_args} < "${{rdir}}/{params_path}"'.format(
+        exec_cmd = 'exec xargs "${{rdir}}/{dart_path}" {cmd_args} < "${{rdir}}/{params_path}" "$@"'.format(
             params_path = params_path,
             dart_path = dart_path,
             cmd_args = cmd_args,
         )
     elif use_package_dir:
-        exec_cmd = 'exec "${{rdir}}/{dart_path}" {cmd_args} "{package_dir}"'.format(
+        # Run on "." because we will cd into the package directory
+        exec_cmd = 'exec "${{rdir}}/{dart_path}" {cmd_args} . "$@"'.format(
             dart_path = dart_path,
             cmd_args = cmd_args,
-            package_dir = package_dir,
         )
     else:
-        exec_cmd = 'exec "${{rdir}}/{dart_path}" {cmd_args}'.format(
+        exec_cmd = 'exec "${{rdir}}/{dart_path}" {cmd_args} "$@"'.format(
             dart_path = dart_path,
             cmd_args = cmd_args,
         )
@@ -77,12 +77,19 @@ fi
 ws_root="${{rdir}}/{workspace_name}"
 cd "${{ws_root}}"
 
+# If we need to run in package dir, cd into it
+if [ "{use_package_dir}" = "True" ] && [ -n "{package_dir}" ]; then
+  cd "{package_dir}"
+fi
+
 # Run the command
 {exec_cmd}
 """.format(
         workspace_name = workspace_name,
         package_config_path = package_config_path,
         exec_cmd = exec_cmd,
+        use_package_dir = use_package_dir,
+        package_dir = package_dir,
     )
 
     ctx.actions.write(
@@ -99,7 +106,7 @@ cd "${{ws_root}}"
         files = [
             toolchain.dart_executable,
             ctx.file._package_config,
-        ] + extra_files,
+        ] + extra_files + getattr(ctx.files, "srcs", []),
         transitive_files = depset(
             transitive = [
                 toolchain.sdk_files[DefaultInfo].files,
@@ -152,6 +159,89 @@ def _dart_format_test_impl(ctx):
 
     return _dart_lint_test_impl(ctx, cmd_args, use_package_dir = False, params_file = params_file)
 
+def _dart_package_test_impl(ctx):
+    toolchain = ctx.toolchains["//tools/bazel/dart:toolchain_type"].dartinfo
+    runner = ctx.actions.declare_file(ctx.label.name)
+
+    workspace_name = ctx.workspace_name
+    package_dir = ctx.attr.package_dir or ctx.label.package
+    
+    repo_name = ctx.label.workspace_name
+    if repo_name:
+        package_dir = "../" + repo_name + "/" + package_dir
+
+    package_config_path = _runfiles_path(ctx, ctx.file._package_config)
+    dart_path = _runfiles_path(ctx, toolchain.dart_executable)
+
+    script_content = """#!/bin/bash
+set -e
+if [ -n "$RUNFILES_DIR" ]; then
+  rdir="$RUNFILES_DIR"
+else
+  rdir="$(cd "$(dirname "$0")" && pwd)/$(basename "$0").runfiles"
+fi
+
+if [ -f "${{rdir}}/{package_config_path}" ]; then
+  export DART_PACKAGE_CONFIG="${{rdir}}/{package_config_path}"
+fi
+
+ws_root="${{rdir}}/{workspace_name}"
+cd "${{ws_root}}"
+
+if [ -n "{package_dir}" ]; then
+  cd "{package_dir}"
+fi
+
+# Find and run all tests
+failed=0
+for test_file in $(find test -name "*_test.dart" 2>/dev/null); do
+  echo "----------------------------------------"
+  echo "Running test: $test_file"
+  echo "----------------------------------------"
+  if ! "${{rdir}}/{dart_path}" "$test_file" "$@"; then
+    echo "FAIL: $test_file"
+    failed=1
+  fi
+done
+
+if [ $failed -ne 0 ]; then
+  echo "Some tests failed!"
+  exit 1
+fi
+echo "All tests passed!"
+""".format(
+        workspace_name = workspace_name,
+        package_config_path = package_config_path,
+        package_dir = package_dir,
+        dart_path = dart_path,
+    )
+
+    ctx.actions.write(
+        output = runner,
+        content = script_content,
+        is_executable = True,
+    )
+
+    runfiles = ctx.runfiles(
+        files = [
+            toolchain.dart_executable,
+            ctx.file._package_config,
+        ] + ctx.files.srcs,
+        transitive_files = depset(
+            transitive = [
+                toolchain.sdk_files[DefaultInfo].files,
+                ctx.attr.package[DartLibraryInfo].transitive_srcs,
+            ] + [dep[DartLibraryInfo].transitive_srcs for dep in getattr(ctx.attr, "deps", [])],
+        ),
+    )
+
+    return [
+        DefaultInfo(
+            executable = runner,
+            runfiles = runfiles,
+        ),
+    ]
+
 dart_analyze_test = rule(
     implementation = _dart_analyze_test_impl,
     test = True,
@@ -173,6 +263,22 @@ dart_format_test = rule(
     attrs = {
         "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
         "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "_package_config": attr.label(
+            default = "@dart_packages//:package_config_json",
+            allow_single_file = True,
+        ),
+    },
+    toolchains = ["//tools/bazel/dart:toolchain_type"],
+)
+
+dart_package_test = rule(
+    implementation = _dart_package_test_impl,
+    test = True,
+    attrs = {
+        "srcs": attr.label_list(allow_files = True, default = []),
+        "deps": attr.label_list(default = [], providers = [DartLibraryInfo]),
+        "package": attr.label(mandatory = True, providers = [DartLibraryInfo]),
+        "package_dir": attr.string(default = ""),
         "_package_config": attr.label(
             default = "@dart_packages//:package_config_json",
             allow_single_file = True,
