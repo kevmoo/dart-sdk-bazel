@@ -42,5 +42,13 @@ if [ -n "$files_to_audit" ]; then
     echo "👉 Cross-compilation targeting ARM64 will fail if host cflags are hardcoded."
     exit 1
   fi
+
+  # Report-only: string-concat forms like "TARGET_ARCH_" + "X64" evaluate
+  # identically but evade the literal grep above. Surfaced as a warning, not a
+  # failure, until the policy decision in bead sdk-u2u (allowlist the existing
+  # arch-pinned cross variants vs. narrow the audit) is made.
+  if echo "$files_to_audit" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null; then
+    echo "⚠️  WARNING: concat-built TARGET_ARCH_ define(s) above evade the literal audit (policy pending: bead sdk-u2u)."
+  fi
 fi
 

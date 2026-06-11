@@ -59,6 +59,12 @@ for pattern in "${forbidden_patterns[@]}"; do
     fail "architecture audit: $pattern is hardcoded (parameterize via select())"
   fi
 done
+# Report-only: string-concat forms like "TARGET_ARCH_" + "X64" evaluate
+# identically but evade the literal greps. Warning, not failure, until the
+# policy decision in bead sdk-u2u (allowlist vs. narrow the audit) is made.
+if echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null; then
+  echo "WARNING: concat-built TARGET_ARCH_ define(s) above evade the literal audit (policy pending: bead sdk-u2u)."
+fi
 
 step "python helpers byte-compile"
 if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py_compile; then
