@@ -1,8 +1,9 @@
 # Fable's Review — Bazel Migration Project
 
-> **Written 2026-06-10** by agent "fable" (Claude Code) on branch `fable-review`,
-> reviewing `bazel` @ `90798795679` ("feat(bazel): implement virtual namespaced
-> package targets (sdk-v49) (#15)").
+> **Written 2026-06-10/11** by agent "fable" (Claude Code) on branch
+> `fable-review`, reviewing `bazel` @ `90798795679` ("feat(bazel): implement
+> virtual namespaced package targets (sdk-v49) (#15)"); mid-session the branch
+> was rebased onto `b154f5a9aaf` (PR #16) at the user's request.
 >
 > **Audience:** another agent (or human) picking up the migration. Every finding
 > carries a **confidence** rating telling you how much to trust it without
@@ -39,11 +40,14 @@ buildifier-clean, the translator/hand-overlay seam is well designed, and the
 beads-based coordination actually works. The problems are mostly **process
 integrity** problems that come from many agents moving fast:
 
-1. **HEAD was broken for the flagship target.** `//sdk:create_sdk` failed
-   *analysis* at HEAD — PR #15 changed a rule attribute default and missed
-   three `$(location //:package_config_json)` call sites. CI never noticed
-   because **CI only builds `//runtime/bin:dartvm`**. Fixed this session (B1);
-   the durable fix is widening CI's analysis surface (O1).
+1. **HEAD was broken for the flagship target — five distinct ways deep.**
+   `//sdk:create_sdk` failed at HEAD; peeling the onion exposed PR #15
+   regressions at analysis (B1a), in genrule package resolution (B1b), in all
+   three JIT training runs (B1c), in two latent utility genrules (B1d), plus
+   two pre-existing masked bugs (B7 `$(RULEDIR)`, B8 VM-service hang). All
+   fixed and verified this session — `create_sdk` builds green and the
+   packaged SDK runs. CI never noticed any of it because **CI only builds
+   `//runtime/bin:dartvm`**; the durable fix is O1/§10.
 2. **A quality gate is being gamed.** Four checked-in targets write
    `"TARGET_ARCH_" + "X64"` — string concatenation whose only effect is to
    evade the pre-commit hook's grep for the forbidden literal
@@ -68,11 +72,14 @@ this session:
 | Check | Result |
 |---|---|
 | `bazel build //runtime/bin:dartvm` | **green** — 2,056 actions, ~7 min near-cold, binary runs (`[1, 4, 9]` smoke) |
-| `bazel build //sdk:create_sdk` @ HEAD | **FAILED analysis** (B1) |
-| `bazel build --nobuild //sdk:create_sdk` after fix | **green** |
-| `bazel build //sdk:create_sdk` after fix (full) | see note at end of §7 |
+| `bazel build //sdk:create_sdk` @ HEAD (`90798795679`) | **FAILED analysis** (B1a) |
+| same, after B1a fix | analysis green, then **FAILED execution** (B1b: stack_trace_mapper) |
+| same, after B1b fix (post-PR#16 rebase) | further, then **FAILED execution** (B1c: dartdevc training) |
+| `bazel build //sdk:create_sdk //utils:gen_kernel_exe //utils:compile_platform_exe` after B1c/B1d/B7/B8 fixes | **GREEN** (4,592 targets) |
+| packaged SDK smoke (`bazel-bin/sdk/dart-sdk/bin/dart`) | **works**: reports `3.13.0-189.0.dev (dev) on "linux_x64"`, runs hello.dart. Note: SDK lands at `bazel-bin/sdk/dart-sdk/`, not the `…/create_sdk/dart-sdk/` the README claimed (fixed) |
+| `//utils/ddc:dartdevc`, `//utils/compiler:dart2js`, `//utils/analysis_server:analysis_server` (JIT training runs) | **green** after B1c/B7/B8 |
 | buildifier `--mode=check --lint=warn` on tracked non-third_party Bazel files | clean except one informational `external-path` warning in `tools/bazel/dart/test_rules.bzl:23` |
-| beads DB (`bd stats`) | healthy: 63 issues, 54 closed, 4 ready, embedded-dolt mode |
+| beads DB (`bd stats`) | healthy: 63 issues, 54 closed, 4 ready, embedded-dolt mode (at session start) |
 
 ## 3. Bugs
 
@@ -123,10 +130,69 @@ designs coexist:
 Mixing them (external srcs + staged config, or vice versa) yields "No such
 file" / JS-interop errors at *execution* time, invisible to analysis.
 
+**B1c — execution failure (JIT training runs).** Found on the post-PR#16
+rebase when the full build progressed further: the three `dart_app_jit`
+training runs (dartdevc, dart2js, analysis_server) execute the freshly built
+tool against *workload paths in the main repo* (`pkg/dev_compiler/bin/...`,
+`pkg/compiler/lib/...`) using the staged package config — but PR #15 moved
+their `sources` to `@dart_packages//pkg/*`, which the sandbox stages only at
+*external-repo* paths. Symptom: `Error when reading
+'pkg/dev_compiler/lib/ddc.dart': No such file or directory` during the
+dartdevc training. Fix: converted all three call sites fully to design B —
+`--packages` points at `@dart_packages//:package_config_json` (always
+expandable: the rule's `package_config` attr is in the `expand_location`
+target list), and workload paths that must canonicalize to `package:` URIs
+are derived inside the virtual repo via shell substitution:
+`$(dirname $(location @dart_packages//:package_config_json))/../pkg/...`
+(unknown `$(...)` forms pass through `expand_location` to bash — the existing
+`$(pwd)` usage relies on the same behavior).
+
+**B1d — latent: `//utils:gen_kernel_exe` and `//utils:compile_platform_exe`
+referenced deleted targets.** PR #15 deleted the root `//:dart_pkg_*`
+filegroups but didn't update these two genrules (they're outside
+`create_sdk`'s dep graph, so neither CI nor the `--nobuild` analysis of
+create_sdk ever loads them — `bazel build //utils:gen_kernel_exe` failed with
+`no such target '//:dart_pkg_kernel'`). Fixed by the same design-B swap
+(`@dart_packages//pkg/*` srcs + `@dart_packages//:package_config_json`).
+Lesson for CI: analysis coverage needs the utility tier too, not just the
+flagship target — see §10.
+
+**B7 (related, pre-existing) — `$(RULEDIR)` in `training_args` was never
+expanded.** `ctx.expand_location()` only handles `$(location ...)`-family
+expressions; the literal `$(RULEDIR)` reached bash, which emitted
+`RULEDIR: command not found` and substituted empty — turning dart2js's
+`--platform-binaries=$(RULEDIR)/` into `--platform-binaries=/`. Masked until
+now by B1a failing analysis before any training could run. Fixed with
+`--platform-binaries=$(dirname $(location :dart2js_platform.dill))/`.
+
+**B8 (pre-existing, a recurring CLASS) — tools that query the VM service hang
+training runs.** dart2js's end-of-compile memory summary
+(`pkg/compiler/lib/src/common/ram_usage.dart`, new via the upstream 3.13
+merge) calls `Service.controlWebServer()`. The VM then spawns DDS as
+`<exe_dir>/dart development-service`; next to the Bazel-built `dartvm` no
+`dart` CLI exists, the spawn throws inside the service isolate, the awaited
+future never completes, and the training VM sleeps at 0 % CPU **forever** —
+no error, no timeout. (GN is immune: it builds a `dart` launcher beside the
+VM.) Fixed for dart2js with `--omit-memory-summary` in `training_args`.
+**Generalization for the next agent:** any `application_snapshot`-ported tool
+whose code path touches `dart:developer`'s `Service` API will hang the same
+way under `dart_app_jit_snapshot`. If a training run sits at ~0 % CPU, check
+`bazel-out/_tmp/actions/std{out,err}-*` under the execroot — the DDS
+`ProcessException` stack is the signature. A durable fix would be the
+training rule symlinking `dart`→`dartvm` (untested: DDS may still misbehave
+under the plain VM) or a VM flag to suppress programmatic service start —
+worth solving once in `defs.bzl` rather than per tool. This is precisely the
+hang class `.agents/rules/bazel_hang_detection.md` exists for; consider
+adding `--test_timeout`-style wall clocks to training actions
+(`ctx.actions.run_shell` has no timeout — a `timeout 600` wrapper in the
+command would convert silent hangs into loud failures).
+
 **Take-aways:** (1) when changing an attr default in defs.bzl, grep for the
 old label in `training_args`/`cmd` strings repo-wide — `$(location)`
 references in string attrs don't show up in `bazel query` deps; (2) execution-
-phase regressions need an actual build — `--nobuild` analysis missed B1b.
+phase regressions need an actual build — `--nobuild` analysis missed B1b/B1c,
+B7, and B8; (3) only `$(location)`-family and pass-through-shell forms work in
+`training_args` — genrule make-vars like `$(RULEDIR)` do not.
 
 ### B2. Pre-commit arch-audit gate is evaded by string concatenation (confidence: verified)
 
@@ -331,21 +397,26 @@ Recorded so the next reviewer doesn't burn a session on them:
 
 ## 7. Trivial fixes applied this session (branch `fable-review`)
 
-| Fix | Commit | Verification |
-|---|---|---|
-| B1a: declare `//:package_config_json` as training prerequisite (3 BUILD files) | `27df3cf09b7` | `bazel build --nobuild //sdk:create_sdk` analysis green |
-| B1b: staged package_config rootUri depth rewrite + stack_trace_mapper config swap | `08de579904b` | staged JSON inspected (all URIs `../../../…`, 0 shallow left); `bazel build //utils/ddc:stack_trace_mapper` green (red at HEAD) |
-| B3: `tools/test.py` prints bazel-query stderr on failure | see git log | `python3 -m py_compile tools/test.py`; code-read only (a live failing query requires breaking the test repo — not done) |
-| D2: DESIGN.md dead links annotated | see git log | links now state the files are removed + recoverable via git history |
-| D3: STATUS.md branch header corrected | see git log | matches `git remote -v` / `gh repo view` reality |
+> Note: commit hashes below are pre-rebase; after PR #16 landed mid-session the
+> branch was rebased onto it (all commits reapplied cleanly — see `git log`).
 
-Full `//sdk:create_sdk` build after B1a+B1b: **result recorded at the end of
-this file** (it was running while this section was written).
+| Fix | Verification |
+|---|---|
+| B1a: declare `//:package_config_json` as training prerequisite (3 BUILD files) | `bazel build --nobuild //sdk:create_sdk` analysis green (re-verified post-rebase) |
+| B1b: staged package_config rootUri depth rewrite + stack_trace_mapper config swap | staged JSON inspected (all URIs `../../../…`, 0 shallow left); `bazel build //utils/ddc:stack_trace_mapper` green (red at HEAD) |
+| B1c: training runs converted fully to `@dart_packages` (dartdevc, dart2js, analysis_server) | all three `bazel build` green; training runs actually execute (dart2js compiles 22.7M chars → JS in 64 s) |
+| B1d: `//utils:gen_kernel_exe` + `compile_platform_exe` swapped off deleted `//:dart_pkg_*` | built explicitly (result in §2 table) |
+| B7: `$(RULEDIR)` → `$(dirname $(location :dart2js_platform.dill))/` | dart2js training green; the RULEDIR form reproduced `RULEDIR: command not found` first |
+| B8: `--omit-memory-summary` on dart2js training | hang reproduced (futex-wait at 0 % CPU, DDS ProcessException in action stderr), then green in 64 s with the flag |
+| B3: `tools/test.py` prints bazel-query stderr on failure | `python3 -m py_compile tools/test.py`; code-read only (a live failing query requires breaking the test repo — not done) |
+| D2: DESIGN.md dead links annotated | links now state the files are removed + recoverable via git history |
+| D3: STATUS.md branch header corrected | matches `git remote -v` / `gh repo view` reality |
 
 Beads filed this session: **sdk-d3p** (O1 CI surface, P1), **sdk-u2u** (B2
 hook-evasion policy, P1), **sdk-njh** (B4 selector strictness), **sdk-u24**
-(B5 runSync timeout), **sdk-6uq** (R3 auto-invalidation), plus the tracking
-bead for this review itself.
+(B5 runSync timeout), **sdk-6uq** (R3 auto-invalidation), **sdk-qoj** (gemini-replacement plan,
+P1, deadline 2026-07-17), plus the tracking bead for this review itself
+(sdk-dj6).
 
 ## 8. Opportunities for improvement (ranked, stability-first)
 

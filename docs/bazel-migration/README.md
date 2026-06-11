@@ -22,7 +22,7 @@ Execute these from the repository root:
     ```bash
     bazel build //sdk:create_sdk
     ```
-    This assembles the complete Dart SDK (binaries, snapshots, libraries) under `bazel-bin/sdk/create_sdk/dart-sdk/`.
+    This assembles the complete Dart SDK (binaries, snapshots, libraries) under `bazel-bin/sdk/dart-sdk/`.
 
 *   **Build the standalone Dart VM:**
     ```bash
