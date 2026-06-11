@@ -186,6 +186,11 @@ if [ -n "{runfiles_package_dir}" ]; then
 fi
 
 # Find and run all tests
+if [ ! -d "test" ]; then
+  echo "Error: 'test' directory does not exist in runfiles!"
+  exit 1
+fi
+
 failed=0
 tests_found=0
 while IFS= read -r test_file; do
