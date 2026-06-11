@@ -25,6 +25,13 @@ jobs:
         repository-cache: true
         bazelisk-cache: true
 
+    # Same gate contributors run locally before a PR. Analysis-only coverage of
+    # //sdk:create_sdk + utils exes and evaluation of both module extensions:
+    # catches the regression classes (missing $(location) prerequisites,
+    # Starlark errors in extensions) that a dartvm-only build misses.
+    - name: Presubmit (analysis, module extensions, audits)
+      run: ./tools/bazel/presubmit.sh
+
     - name: Build Dart VM
       run: |
         bazel build //runtime/bin:dartvm
