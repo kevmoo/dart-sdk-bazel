@@ -182,14 +182,17 @@ exits 0. Silent coverage loss for CI invocations with multiple suites.
 Needs a small design call (hard-fail vs `--strict-selectors` flag), so I filed
 it rather than fixing: bead **sdk-njh**.
 
-### B5. `--built-with-bazel` test-runner path can hang indefinitely (confidence: high)
+### B5. `--built-with-bazel` test-runner probe has no timeout (confidence: verified; downgraded after re-check)
 
-`pkg/test_runner/lib/src/options.dart:163` runs
-`Process.runSync('bazel', ['info', 'bazel-bin'])` — synchronous, no timeout,
-and `'bazel'` from PATH rather than `tools/utils.py`'s `ResolveBazelPath()`
-logic (which has fallbacks). If the bazel server is wedged (the repo even has
-`.agents/rules/bazel_hang_detection.md` acknowledging this failure mode), the
-test runner blocks forever with no message. Filed as bead **sdk-u24**.
+`pkg/test_runner/lib/src/options.dart:~162` runs
+`Process.runSync('bazel', ['info', 'bazel-bin'])`. **Correction to an earlier
+draft of this finding:** error handling *is* present (try/catch on
+`ProcessException` + exit-code check — added in response to gemini's PR #11
+review). What remains: no timeout (a wedged bazel server hangs the test runner
+forever — the repo's own `.agents/rules/bazel_hang_detection.md` documents this
+failure mode), and the PATH-only `'bazel'` lookup ignores
+`tools/utils.py:ResolveBazelPath()`'s fallback locations. Filed as bead
+**sdk-u24**.
 
 ### B6. Dead placeholder pair `dart_jit_library` / `dart_jit_library_copy` (confidence: verified)
 
@@ -372,7 +375,177 @@ bead for this review itself.
    It already defers to STATUS.md, but a short "what's still authoritative"
    banner would stop new agents from planning against stale sequencing.
 
-## 9. What I did NOT review
+## 9. Gemini review-feedback mining (all 15 merged PRs)
+
+> Method: pulled every gemini-code-assist inline comment and review summary
+> from PRs #2–#16 via `gh api` (PR #1 was a closed dependabot PR; #14 had no
+> comments) — ~90 inline findings — and categorized them. Confidence:
+> **verified** (the comments are quoted source data; categorization is mine).
+>
+> **Urgent context: gemini-code-assist (consumer) is being sunset — new
+> installs blocked 2026-06-18, ALL review activity ceases 2026-07-17.** Every
+> banner on every review says so. In five weeks this safety net is gone, which
+> turns "nice to formalize" into "must front-load". Either substitute another
+> automated reviewer (e.g. a Claude-based review action / `/code-review` in the
+> agents' workflow) or convert the recurring catch classes below into
+> mechanical gates. Ideally both.
+
+### 9.1 What gemini actually catches, ranked by impact
+
+**Class 1 — Generated/embedded code that was never executed before push
+(the #1 source of `critical` badges).**
+- PR #15: Starlark `set()` constructor (doesn't exist in Starlark) — would
+  have broken every build.
+- PR #16: undefined variable `pubspec_path` in `packages_extension.bzl` —
+  Starlark evaluation error at fetch time.
+- PR #13: generated bash test-runner wrote into the read-only runfiles tree;
+  `rdir` became a dead relative path after `cd`.
+- Root cause in all cases: module-extension / rule code paths that plain
+  `bazel build //runtime/bin:dartvm` (the only CI job) never evaluates.
+- **Front-load:** CI + local presubmit must *evaluate* the extensions:
+  `bazel query @dart_packages//pkg/...` and a `bazel query @dart_tests//...`
+  (or `bazel fetch` of both), plus actually *run* one generated
+  analyze/format/package test. See §10.
+
+**Class 2 — Silent failure / silent success.**
+- PR #6: prune script printed errors but exited 0.
+- PR #16: test runner passes green when zero test files are found.
+- PR #2: `gclient sync` failure ignored on one branch of an if/else;
+  `_isGitClean` returning clean on git *failure*.
+- This is the same disease as my B3/B4 findings in `tools/test.py`. It is the
+  project's most persistent bad habit across both humans' and agents' code.
+- **Front-load:** a one-line rule in `.agents/rules/` (and CONTRIBUTING):
+  *"A script that detects a problem must exit non-zero. A runner that runs
+  zero of the things it was asked to run must fail, not pass."* Cheap to
+  state, easy for a reviewer (human or AI) to check mechanically.
+
+**Class 3 — Subprocess hygiene in Dart/Python tooling.**
+- PR #2 (×8 comments): `Process.start` without draining stdout/stderr (hang
+  when the pipe buffer fills), string-decoding binary patch output (corruption),
+  unchecked exit codes, missing `runInShell` for Windows batch files,
+  single-commit assumptions (`FETCH_HEAD`, `diff-tree HEAD`) silently dropping
+  multi-commit PR content.
+- PR #11: unguarded `Process.runSync` (fixed in response — good).
+- **Front-load:** a tiny shared helper (`tools/bazel/bridge/proc.dart` or
+  similar) wrapping run/start with: drained streams, exit-code check, optional
+  timeout, `runInShell: Platform.isWindows`. Then ban raw `Process.start` in
+  tools via an agent rule. The same 4 bugs have now been written 3+ times.
+
+**Class 4 — Portability assumptions.**
+- `grep`/`cut` in genrule cmds (PR #12), GNU `xargs -a` (breaks macOS BSD
+  xargs, PR #13), `find` in repository rules (Windows, PR #15), `for f in
+  $(find …)` word-splitting (PR #16), ARG_MAX overflow risk (PR #13).
+- **Front-load:** rule: genrule `cmd` / repository-rule `execute` must use
+  `python3` one-liners (already the repo's own convention) or
+  bazel-skylib `run_binary`; no bare GNU-only flags. Greppable in review.
+
+**Class 5 — Hand-file clobbering by generators.**
+- PR #15 (×5 `critical`): generated per-package BUILD files overwrote
+  hand-written `utils/BUILD.bazel`, `samples/ffi/*/BUILD.bazel`,
+  `tools/BUILD.bazel`, `runtime/tools/BUILD.bazel` — deleting
+  `compile_platform_exe`, `gen_kernel_exe`, FFI sample libs, `exports_files`.
+  Gemini caught it pre-merge; the same accident class previously happened
+  in-session (the translator now has `_is_hand_authored_overlay` guards).
+- **Front-load:** extend the pre-commit hook (and CI mirror) with a protected-
+  files manifest: fail if a PR deletes or empties any hand-authored
+  BUILD.bazel listed in it. The list already implicitly exists as "files with
+  hand-fix headers".
+
+**Class 6 — Hardcoded environment specifics & secrets-adjacent leaks.**
+- `kevmoo` home paths in docs (PR #2), real GCP project ID + bucket names in a
+  README *that itself said never to commit them* (PR #5), hardcoded developer
+  email as a Terraform default (PR #5).
+- **Front-load:** add greps to the pre-commit audit: `/usr/local/google/home/`,
+  `home/kevmoo`, the real project-ID pattern, `user:.*@google.com`.
+
+**Class 7 — Infra config invented against an imagined schema.**
+- PR #5 (×6 `high`): Helm values keys that don't exist in the Buildfarm chart
+  (`worker:` vs `shardWorker:`, `externalRedis.uri`), string blocks where the
+  chart expects maps, KEDA targeting the wrong kind/name/namespace, Terraform
+  provider constraint older than the features used, `grpcs://` with no TLS
+  termination anywhere.
+- PR #8/#9: GKE scheduling/policy mistakes (nodeSelector that can never match;
+  org-policy violation on private endpoints).
+- **Front-load:** for `infra/`: `terraform validate` + `helm template
+  --validate` (+ ideally `kubeconform`) as a CI job and a documented local
+  step. These are exactly the checks that would have caught all six.
+- Note: agents writing config for external systems should be required to cite
+  the schema source (chart version, provider docs) in the PR description —
+  cheap accountability that catches hallucinated keys.
+
+**Class 8 — Hermeticity regressions.**
+- PR #10: replacing a tracked `$(execpath //tools:VERSION)` input with a
+  cwd-relative assumption. Gemini pushed back correctly.
+- **Front-load:** this is review-judgment territory; encode as an agent rule:
+  *"never replace a declared Bazel input with an implicit filesystem path"*.
+
+**Class 9 — Low-value-but-constant nags the tooling should absorb.**
+- Duplicate copts (`-fPIE`, `-std=c++20`) — flagged in PR #4 and present 43×
+  in `runtime/bin/BUILD.bazel` (§6): one translator dedup pass removes the
+  entire nag class.
+- Doc/impl drift inside the same PR (STATUS.md describing a DEPS hook that the
+  PR didn't ship, PR #6; doc'd default ≠ actual default, PR #2): reviewer
+  checklist item — "does the STATUS.md session entry match the diff?"
+
+### 9.2 Did the feedback get applied? (spot-check)
+
+Three spot checks: PR #11's runSync error handling — applied. PR #15's
+criticals — applied pre-merge (the hand files exist at HEAD). PR #16's
+`pubspec_path` critical — applied pre-merge (no reference at HEAD). So the
+loop *does* close on `critical`/`high`; the repeated-offender classes (2–4)
+keep recurring anyway because they're *new instances*, not unfixed old ones.
+That's exactly what formalization fixes — and what disappears entirely when
+gemini sunsets unless replaced.
+
+## 10. CI & local validation roadmap (consolidates O1/O2 with §9)
+
+Ordered; each step states what regression class it would have caught.
+
+**CI (`.github/workflows/bazel.yml`), cheap → expensive:**
+1. `bazel build --nobuild //sdk:create_sdk //runtime/bin:dartvm` — full
+   analysis, ~30 s warm. *Would have caught:* B1a, PR #15's `set()`, PR #16's
+   undefined var (extension evaluates during loading), every missing-prereq
+   error.
+2. `bazel query @dart_packages//pkg/... | head` and
+   `bazel query "@dart_tests//..."` (or `bazel fetch`) — forces both module
+   extensions to execute end-to-end. *Catches:* generator crashes the
+   `--nobuild` of step 1 might skip if nothing depends on them.
+3. Run the cheapest generated tests:
+   `bazel test @dart_packages//pkg/expect:analyze @dart_packages//pkg/expect:format`
+   (pick one small package) + `bazel run //tools/bazel/dart:test_hello`.
+   *Catches:* PR #13's read-only-runfiles & rdir bugs, PR #16's runner bugs —
+   the class that only manifests at execution.
+4. Mirror the pre-commit audit in CI (hook is `--no-verify`-skippable), with
+   the audit extended per §9 Class 5/6 and B2 (concat evasion, protected
+   files, env-specific strings).
+5. `infra/` job: `terraform validate` + `helm template --validate`. Gated on
+   paths under `infra/`.
+6. Scheduled (nightly) full `bazel build //sdk:create_sdk` + packaged-SDK
+   smoke (`dart --version` + hello.dart) + one
+   `tools/test.py --bazel -n vm-release-x64 corelib/list_test`. *Catches:*
+   B1b-class execution regressions and toolchain drift at bounded cost.
+   (PR-time full create_sdk is likely too slow without a shared remote cache;
+   once the Buildfarm/BuildBuddy work stabilizes, promote it to PR-time.)
+
+**Local validation (one entry point, documented in README):**
+- Add `tools/bazel/presubmit.sh` bundling: buildifier check on changed files →
+  extended audit → step 1 + 2 above → `python3 -m py_compile` on touched
+  `tools/**/*.py` → `dart analyze` on touched `tools/bazel/**/*.dart`.
+  Target: < 2 min warm. The README already documents buildifier; this makes
+  "what must pass before a PR" a single command instead of tribal knowledge —
+  which matters double once the agents lose their automated reviewer.
+- PRESUBMIT.py already runs buildifier (PR #12); fold the audit + analysis
+  steps in there too so `git cl presubmit`-style flows get it for free.
+
+**Process:**
+- Replace gemini before 2026-07-17 (Class-by-class: 1–6 are mechanizable
+  above; 7–8 need a model-based reviewer or human). The `.agents/` framework
+  could grow a `review_checklist.md` rule encoding §9's classes 2, 3, 4, 8 —
+  they're one-liners for a reviewing agent to check.
+- Require PR descriptions for `infra/` changes to cite the external schema
+  (chart/provider version) being targeted.
+
+## 11. What I did NOT review
 
 - **macOS path** (rules generalization, `xcodebuild/` handling) — Linux only.
 - **Remote execution / GKE Buildfarm infra** (PRs #5, #8, #9, #10) — no
