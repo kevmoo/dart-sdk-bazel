@@ -54,16 +54,20 @@ forbidden_patterns=(
 )
 audit_files=$(git ls-files '*BUILD.bazel' '*MODULE.bazel' '*.bzl' '*.snap' '*.append' \
   | grep -E -v 'gen_targets\.bzl|rules\.bzl|^build/config/' || true)
+# Lines carrying '# arch-pinned-variant: ok' are exempt: explicitly
+# arch-pinned cross variants (e.g. *_product_linux_x64 targets) legitimately
+# carry their arch define; the marker keeps the exemption visible in review.
 for pattern in "${forbidden_patterns[@]}"; do
-  if echo "$audit_files" | xargs grep -H -F -n "$pattern" 2>/dev/null; then
-    fail "architecture audit: $pattern is hardcoded (parameterize via select())"
+  if echo "$audit_files" | xargs grep -H -F -n "$pattern" 2>/dev/null \
+    | grep -v '# arch-pinned-variant: ok' | grep .; then
+    fail "architecture audit: $pattern is hardcoded (parameterize via select(), or mark an arch-pinned variant with '# arch-pinned-variant: ok')"
   fi
 done
-# Report-only: string-concat forms like "TARGET_ARCH_" + "X64" evaluate
-# identically but evade the literal greps. Warning, not failure, until the
-# policy decision in bead sdk-u2u (allowlist vs. narrow the audit) is made.
-if echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null; then
-  echo "WARNING: concat-built TARGET_ARCH_ define(s) above evade the literal audit (policy pending: bead sdk-u2u)."
+# Obfuscated concat forms ("TARGET_ARCH_" + "X64") evaluate identically but
+# dodge the literal greps. Never allowed: write the honest literal (plus the
+# marker if the target is a deliberately arch-pinned variant).
+if echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null | grep .; then
+  fail "architecture audit: concat-built TARGET_ARCH_ define evades the literal grep (write the honest literal + marker)"
 fi
 
 step "python helpers byte-compile"
