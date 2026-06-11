@@ -20,6 +20,9 @@ def _dynamic_test_repo_impl(repository_ctx):
     # Define the generator script path
     generator_path = workspace_dir.get_child("tools").get_child("bazel").get_child("dart").get_child("generate_test_targets.dart")
 
+    # The embedded script's "/external/" is runfiles-path string matching, not
+    # a fragile external-repo dependency (newer buildifiers flag string contents).
+    # buildifier: disable=external-path
     repository_ctx.file("run_single_test.sh", content = """#!/bin/bash
 if [ -z "$TEST_SRCDIR" ]; then
   echo "Error: TEST_SRCDIR environment variable is not set!"
