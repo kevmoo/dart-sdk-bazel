@@ -93,6 +93,7 @@ dart_app_jit_snapshot(
     training_srcs = [
         ":dart2js_platform.dill",
         ":dart2js_outline.dill",
+        "//:package_config_json",
         "//sdk:sdk_library_sources",
     ],
 )

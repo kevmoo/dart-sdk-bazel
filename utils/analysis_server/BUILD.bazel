@@ -53,6 +53,7 @@ dart_app_jit_snapshot(
     # materialized too — under the opaque blob it came for free; with a per-package
     # `sources` it must be declared, or the analyzer spins on missing files.
     training_srcs = [
+        "//:package_config_json",
         "//sdk:sdk_library_sources",
         "//sdk:version",
         "@dart_packages//pkg/compiler",

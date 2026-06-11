@@ -65,7 +65,10 @@ dart_app_jit_snapshot(
         "dartdevc.js",
         "pkg/dev_compiler/bin/dartdevc.dart",
     ],
-    training_srcs = [":ddc_outline.dill"],
+    training_srcs = [
+        ":ddc_outline.dill",
+        "//:package_config_json",
+    ],
 )
 
 # rules_dart Step 4: real DDC (dev_compiler) AOT snapshots over
