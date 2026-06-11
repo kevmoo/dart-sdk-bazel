@@ -210,6 +210,7 @@ def TestWithBazel(args):
         print(
             f"Error: Failed to query Bazel targets for repository '@{repo_name}'. Make sure the named configuration is valid."
         )
+        print(f"bazel query stderr:\n{err.decode('utf-8', errors='replace')}")
         return 1
     all_targets = [
         t.strip() for t in out.decode('utf-8').splitlines() if t.strip()
