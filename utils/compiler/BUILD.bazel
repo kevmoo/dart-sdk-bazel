@@ -84,16 +84,27 @@ dart_app_jit_snapshot(
     sources = "@dart_packages//pkg/compiler",
     training_args = [
         "--invoker=gn_build",
-        "--packages=$(location //:package_config_json)",
+        # Skip the end-of-compile RAM query: it calls Service.controlWebServer,
+        # which makes the VM spawn `<exe_dir>/dart development-service` (DDS).
+        # Next to the Bazel-built dartvm no `dart` CLI exists, the spawn throws,
+        # and the awaiting future never completes — hanging the training run.
+        "--omit-memory-summary",
+        "--packages=$(location @dart_packages//:package_config_json)",
         "--libraries-spec=sdk/lib/libraries.json",
-        # Elides running the CFE on the sdk sources (GN comment).
-        "--platform-binaries=$(RULEDIR)/",
-        "pkg/compiler/lib/src/util/memory_compiler.dart",
+        # Elides running the CFE on the sdk sources (GN comment). $(RULEDIR) is
+        # a genrule make-var and is NOT expanded in training_args (bash would
+        # see a literal `$(RULEDIR)` and emit "RULEDIR: command not found"), so
+        # derive the directory from the platform dill's expandable location.
+        "--platform-binaries=$(dirname $(location :dart2js_platform.dill))/",
+        # Resolve the training entry inside the @dart_packages virtual repo (its
+        # pkg/ symlinks back into the workspace) so the CFE canonicalizes it to
+        # package:compiler/... and sibling relative imports resolve. The dirname
+        # is shell-substituted at training time from the package config's path.
+        "$(dirname $(location @dart_packages//:package_config_json))/../pkg/compiler/lib/src/util/memory_compiler.dart",
     ],
     training_srcs = [
         ":dart2js_platform.dill",
         ":dart2js_outline.dill",
-        "//:package_config_json",
         "//sdk:sdk_library_sources",
     ],
 )

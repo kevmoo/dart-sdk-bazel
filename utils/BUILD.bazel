@@ -29,20 +29,20 @@ genrule(
         "//:front_end_tool_files",
         "//:pkg/front_end/test/coverage_helper.dart",
         "//:pkg/front_end/test/vm_service_helper.dart",
-        "//:dart_pkg_front_end",
-        "//:dart_pkg__fe_analyzer_shared",
-        "//:dart_pkg_kernel",
-        "//:dart_pkg_compiler",
-        "//:dart_pkg_dart2wasm",
-        "//:dart_pkg_dev_compiler",
-        "//:dart_pkg_vm",
-        "//:dart_pkg_vm_service",
-        "//:dart_pkg_build_integration",
-        "//:package_config_json",
+        "@dart_packages//pkg/front_end",
+        "@dart_packages//pkg/_fe_analyzer_shared",
+        "@dart_packages//pkg/kernel",
+        "@dart_packages//pkg/compiler",
+        "@dart_packages//pkg/dart2wasm",
+        "@dart_packages//pkg/dev_compiler",
+        "@dart_packages//pkg/vm",
+        "@dart_packages//pkg/vm_service",
+        "@dart_packages//pkg/build_integration",
+        "@dart_packages//:package_config_json",
     ],
     outs = ["compile_platform.exe"],
     cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile exe " +
-          "--packages=$(location //:package_config_json) " +
+          "--packages=$(location @dart_packages//:package_config_json) " +
           "-o $@ $(location //:pkg/front_end/tool/compile_platform.dart)",
     tools = ["@prebuilt_dart_sdk//:bin/dart"],
 )
@@ -52,15 +52,15 @@ genrule(
     srcs = [
         "//:pkg/vm/bin/gen_kernel.dart",
         "//:vm_bin_files",
-        "//:dart_pkg_vm",
-        "//:dart_pkg_kernel",
-        "//:dart_pkg_front_end",
-        "//:dart_pkg__fe_analyzer_shared",
-        "//:package_config_json",
+        "@dart_packages//pkg/vm",
+        "@dart_packages//pkg/kernel",
+        "@dart_packages//pkg/front_end",
+        "@dart_packages//pkg/_fe_analyzer_shared",
+        "@dart_packages//:package_config_json",
     ],
     outs = ["gen_kernel.exe"],
     cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile exe " +
-          "--packages=$(location //:package_config_json) " +
+          "--packages=$(location @dart_packages//:package_config_json) " +
           "-o $@ $(location //:pkg/vm/bin/gen_kernel.dart)",
     tools = ["@prebuilt_dart_sdk//:bin/dart"],
 )
