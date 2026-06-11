@@ -37,6 +37,9 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
 
 def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
     """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
+
+    # buildifier: disable=print
+    print("RUNNING FIND ON: " + str(physical_dir))
     if not physical_dir.exists:
         return []
     res = ctx.execute(["find", str(physical_dir), "-type", "f"])
@@ -82,8 +85,16 @@ def _packages_repo_impl(ctx):
 
     # Check if we have a local third-party checkout in the workspace (developer mode).
     # We use 'third_party/pkg/core' as a representative check.
+    # Detect if we are running in a CI environment.
+    is_ci = ctx.os.environ.get("CI") == "true"
+
+    # Check if we have a local third-party checkout in the workspace (developer mode).
+    # We use 'third_party/pkg/core' as a representative check.
+    # If we are in the CI, we force CI Mode (use_local_third_party = False) to ensure
+    # we use relative symlinks and explicit srcs, even if the WORKSPACE downloader
+    # has already cloned the files into the workspace.
     local_third_party_core = workspace_dir.get_child("third_party").get_child("pkg").get_child("core")
-    use_local_third_party = local_third_party_core.exists
+    use_local_third_party = local_third_party_core.exists and not is_ci
 
     # Dynamically clone third_party/pkg dependencies from DEPS if missing.
     clone_script = ctx.path(Label("@dart_sdk//tools/bazel:clone_dependencies.py"))
@@ -153,6 +164,7 @@ def _packages_repo_impl(ctx):
             ctx.symlink(root_options, options_name)
 
     packages_json = []
+    all_cloned_files = []
 
     for name in sorted(pkgs.keys()):
         pkg = pkgs[name]
@@ -180,47 +192,34 @@ def _packages_repo_impl(ctx):
             # Developer mode / Local package: resolve to the main workspace
             physical_path = workspace_dir.get_child(pkg.reldir)
 
+        physical_lib = physical_path.get_child(pkg.lib)
+
         virtual_pkg_dir = "pkg/" + name
 
-        # Safely symlink only the essential components of the Dart package.
-        # This prevents polluting the virtual repository with main-repo Bazel infrastructure
-        # (like tools/bazel) which contains BUILD files that would conflict.
-
-        # 1. Symlink 'lib' (mandatory for dart_library)
-        physical_lib = physical_path.get_child(pkg.lib)
-        if physical_lib.exists:
-            if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
-                # Developer mode or Local package: use absolute symlink (stable on host)
+        # We only create symlinks in Developer Mode or for local SDK packages.
+        # In CI Mode for third-party packages, we map them directly to their cloned paths
+        # in package_config.json, eliminating the need for symlinks entirely!
+        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            # 1. Symlink 'lib' (mandatory for dart_library)
+            if physical_lib.exists:
                 ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
-            else:
-                # CI/Clean mode for third-party: use relative symlink (stable in sandbox)
-                ctx.symlink("../../" + pkg.reldir + "/" + pkg.lib, virtual_pkg_dir + "/" + pkg.lib)
 
-        # 2. Symlink 'pubspec.yaml' (highly recommended for tooling)
-        physical_pubspec = physical_path.get_child("pubspec.yaml")
-        if physical_pubspec.exists:
-            if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            # 2. Symlink 'pubspec.yaml' (highly recommended for tooling)
+            physical_pubspec = physical_path.get_child("pubspec.yaml")
+            if physical_pubspec.exists:
                 ctx.symlink(physical_pubspec, virtual_pkg_dir + "/pubspec.yaml")
-            else:
-                ctx.symlink("../../" + pkg.reldir + "/pubspec.yaml", virtual_pkg_dir + "/pubspec.yaml")
 
-        # 3. Symlink 'analysis_options.yaml' and its common sibling configurations
-        for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
-            physical_options = physical_path.get_child(options_name)
-            if physical_options.exists:
-                if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            # 3. Symlink 'analysis_options.yaml' and its common sibling configurations
+            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+                physical_options = physical_path.get_child(options_name)
+                if physical_options.exists:
                     ctx.symlink(physical_options, virtual_pkg_dir + "/" + options_name)
-                else:
-                    ctx.symlink("../../" + pkg.reldir + "/" + options_name, virtual_pkg_dir + "/" + options_name)
 
-        # 4. Symlink other common directories if they exist (bin, test, tool, web)
-        for dir_name in ["bin", "test", "tool", "web"]:
-            physical_dir = physical_path.get_child(dir_name)
-            if physical_dir.exists:
-                if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            # 4. Symlink other common directories if they exist (bin, test, tool, web)
+            for dir_name in ["bin", "test", "tool", "web"]:
+                physical_dir = physical_path.get_child(dir_name)
+                if physical_dir.exists:
                     ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
-                else:
-                    ctx.symlink("../../" + pkg.reldir + "/" + dir_name, virtual_pkg_dir + "/" + dir_name)
 
         # Generate BUILD.bazel content for this package
         build_lines = [
@@ -245,6 +244,9 @@ def _packages_repo_impl(ctx):
                     glob_paths.append('"%s"' % options_name)
             srcs_val = "glob([%s], allow_empty = True)" % ", ".join(glob_paths)
         else:
+            # buildifier: disable=print
+            print("ENTERED ELSE BRANCH FOR PACKAGE: " + name + " (reldir: " + pkg.reldir + ")")
+
             # CI/Clean mode for third-party: explicitly list all files recursively
             # to avoid host-globbing and force Bazel to stage them in the sandbox.
             lib_files = _list_files(ctx, physical_lib, workspace_root_str, [".dart", ".yaml"])
@@ -256,11 +258,15 @@ def _packages_repo_impl(ctx):
                 if physical_options.exists:
                     options_files.append(pkg.reldir + "/" + options_name)
 
-            # The paths in srcs must be relative to this package's BUILD file (pkg/name/)
-            # So they must start with '../../' pointing to the root of the virtual repo
+            # Accumulate all cloned files for exports_files in the root BUILD.bazel
+            for f in lib_files + options_files:
+                all_cloned_files.append(f)
+
+            # The paths in srcs must be root-relative labels in the same repository
+            # starting with '//:' to comply with Bazel label constraints (no '..' allowed).
             srcs_labels = []
             for f in sorted(lib_files + options_files):
-                srcs_labels.append('"../../%s"' % f)
+                srcs_labels.append('"//:%s"' % f)
             srcs_val = "[%s]" % ", ".join(srcs_labels)
 
         dep_labels = ", ".join(['"//pkg/%s"' % d for d in sorted(deps)])
@@ -311,9 +317,12 @@ def _packages_repo_impl(ctx):
 
         # Reconstruct package_config entry pointing to the virtual location.
         # Since the config will be written to .dart_tool/package_config.json,
-        # we must use '../pkg/name' to escape the .dart_tool directory and
-        # point to the pkg directory at the root of the virtual repository.
-        root_uri = "../pkg/%s" % name
+        # we must use '../pkg/name' for local/developer packages, or point
+        # directly to the cloned 'third_party/' directory in CI Mode.
+        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+            root_uri = "../pkg/%s" % name
+        else:
+            root_uri = "../%s" % pkg.reldir
         package_uri = pkg.lib + "/"
         pkg_entry = {
             "name": name,
@@ -331,8 +340,8 @@ def _packages_repo_impl(ctx):
     }
     ctx.file(".dart_tool/package_config.json", json.encode(package_config_content) + "\n")
 
-    # Write BUILD.bazel (only holds the filegroup for package_config.json)
-    ctx.file("BUILD.bazel", "\n".join([
+    # Write BUILD.bazel (holds the filegroup for package_config.json and exports_files for CI Mode)
+    root_build_lines = [
         "# Generated by tools/bazel/dart/packages_extension.bzl. DO NOT EDIT.",
         "",
         "package(default_visibility = [\"//visibility:public\"])",
@@ -341,14 +350,27 @@ def _packages_repo_impl(ctx):
         "    name = \"package_config_json\",",
         "    srcs = [\".dart_tool/package_config.json\"],",
         ")",
-    ]) + "\n")
+        "",
+    ]
+    if all_cloned_files:
+        root_build_lines.append("exports_files([")
+        for f in sorted(all_cloned_files):
+            root_build_lines.append("    \"%s\"," % f)
+        root_build_lines.append("])")
+        root_build_lines.append("")
+
+    ctx.file("BUILD.bazel", "\n".join(root_build_lines) + "\n")
 
 dart_packages_repo = repository_rule(
     implementation = _packages_repo_impl,
+    environ = ["CI"],
 )
 
 def _packages_ext_impl(ctx):
     dart_packages_repo(name = "dart_packages")
     return ctx.extension_metadata(reproducible = True)
 
-dart_packages_extension = module_extension(implementation = _packages_ext_impl)
+dart_packages_extension = module_extension(
+    implementation = _packages_ext_impl,
+    environ = ["CI"],
+)
