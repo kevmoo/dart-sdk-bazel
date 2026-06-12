@@ -31,6 +31,12 @@
 **Active claims (who is editing what right now):**
 - `[none]`
 
+Session 138 — **(fable) Merged upstream origin/dev Version 3.13.0-201.0.dev.**
+- **Merged 90 upstream commits** (3.13.0-189 → 3.13.0-201) per `.agents/skills/merge_main_to_bazel.md`. Three conflicts: kept our deletions of the unrelated `.github/workflows/{no-response,scorecards-analysis}.yml`, took upstream's `assigned_variables_test.dart` (superset of our format-only edit + `Variable` → `InternalVariable` rename). Zero hand-maintained Bazel files touched by the merge.
+- **gclient sync gotcha**: the boringssl/perfetto prune deletions (from `tools/prune_third_party_bazel_files.py`) block `gclient sync` from rolling those subrepo pins — `git checkout -- .` inside the subrepo first, sync, then re-run the prune script.
+- **boringssl roll fallout fixed** (follow-up commit): upstream boringssl ba76be9c7 replaced the P-256 nistz code with C — `BUILD.bazel.snap` source list updated (`p256-nistz.{cc.inc,h}`, `fiat/p256_field.c.inc` → `p256_internal.h`) and the now-required `p256-x86_64-asm` / `p256_beeu-*-asm` assembly added to every platform branch (the old callers were `OPENSSL_SMALL`-excluded; the new ones aren't).
+- **Validated**: `//runtime/bin:dartvm` builds, runs scripts, reports 3.13.0-201.0.dev; `tools/bazel/presubmit.sh` fully green.
+
 Session 137 — **(fable) Full project review → PRs #17–#23 all merged; CI hardened.**
 - **Review artifact**: `fable_thoughts.md` (confidence-rated bugs/risks/opportunities, gemini feedback mining, CI roadmap). Read it for orientation.
 - **Repaired `//sdk:create_sdk`** (broken 5 layers deep by PR #15: analysis prerequisite, rootUri depth, training-run resolution, deleted filegroups, plus pre-existing `$(RULEDIR)` and DDS-hang bugs). Packaged SDK builds and runs.
