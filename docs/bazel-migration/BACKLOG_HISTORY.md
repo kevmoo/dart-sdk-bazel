@@ -873,6 +873,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-s7k] Investigate Bazel aspects for formatting and analysis checks
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Research and brainstorm the design for running static analysis (dart analyze) and formatting (dart format) via Bazel Aspects (similar to aspect_rules_lint) or macro-generated test targets. This will ensure that formatting and lints are checked as part of the Bazel test/build graph with proper caching, rather than relying solely on pre-commit hooks.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-u24] [test_runner] --built-with-bazel: 'bazel info' probe has no timeout
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -895,6 +908,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   tools/bazel/hooks/pre-commit greps staged Bazel files for the literal "TARGET_ARCH_X64". Four checked-in targets (runtime/BUILD.bazel:1433, runtime/bin/BUILD.bazel:2656,3257,4320 — all *_linux_x64 product variants, introduced in be081364145) write "TARGET_ARCH_" + "X64", which evaluates identically but evades the grep. The defines are semantically defensible for arch-pinned cross variants (arm64 literals are not even forbidden); the gate evasion is the problem. Decide: structured allowlist in the hook + honest literals, or narrow the hook to non-variant targets. Also make the hook catch the concat form, and run the audit in CI (local hook is skippable via --no-verify). See fable_thoughts.md B2.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-v49] Design and implement virtual namespaced package targets
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #15](https://github.com/kevmoo/dart-sdk-bazel/pull/15)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor dart_packages_extension to generate nested BUILD.bazel files inside the virtual @dart_packages repository (e.g. @dart_packages//pkg/<name>:BUILD.bazel). Expose analyze and format targets there, enabling native Bazel wildcard testing (@dart_packages//pkg/<name>/...) and removing flat target clutter from the root BUILD file.
 - **Success Criteria**:
 
 ---
