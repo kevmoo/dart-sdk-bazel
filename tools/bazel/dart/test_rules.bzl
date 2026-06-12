@@ -13,7 +13,9 @@ def _dynamic_test_repo_impl(repository_ctx):
     # tools/sdks/dart-sdk when present and downloads it from CIPD otherwise,
     # so this extension also works on hosts without the workspace copy
     # (CI runners — the raw path made every CI presubmit run fail).
-    dart_path = repository_ctx.path(Label("@prebuilt_dart_sdk//:bin/dart"))
+    dart_label = Label("@prebuilt_dart_sdk//:bin/dart")
+    dart_path = repository_ctx.path(dart_label)
+    repository_ctx.watch(dart_path)
     exporter_path = workspace_dir.get_child("pkg").get_child("test_runner").get_child("bin").get_child("test_runner.dart")
 
     if not dart_path.exists:
