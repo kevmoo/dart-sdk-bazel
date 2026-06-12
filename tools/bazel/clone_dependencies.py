@@ -28,6 +28,7 @@ REPOS = [
     "third_party/pkg/tar",
     "third_party/pkg/vector_math",
     "third_party/pkg/webdev",
+    "third_party/pkg/webdriver",
     "third_party/pkg/web",
 ]
 
