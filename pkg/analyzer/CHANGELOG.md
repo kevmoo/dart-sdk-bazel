@@ -1,9 +1,23 @@
-## 13.2.0-dev
+## 14.0.0-dev
+
+* **Breaking Change:** Removed `FormalParameterElement.isInitializingFormal`. Use type checks (`element is FieldFormalParameterElement`) instead.
+* **Breaking Change:** Removed `FormalParameterElement.isSuperFormal`. Use type checks (`element is SuperFormalParameterElement`) instead.
+* **Breaking Change:** Removed `PackageConfigFileBuilder` from `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
+* **Breaking Change:** Removed `FormalParameterElement.formalParameters`. Use `FormalParameterElement.type` instead.
+* **Breaking Change:** Removed `FormalParameterElement.typeParameters`. Use `FormalParameterElement.type` instead.
+
+## 13.3.0
+
+* Add `Folder.getFile`, deprecate `Folder.getChildAssumingFile`.
+* Add `Folder.getFolder`, deprecate `Folder.getChildAssumingFolder`.
+
+## 13.2.0
 
 * Allow package_config `3.x.x`.
 * Deprecate `FormalParameterElement.formalParameters` and `typeParameters`. Use `FormalParameterElement.type` instead.
 * Added `isComplete` to `ConstructorDeclaration`, `FunctionDeclaration`, and `MethodDeclaration`.
 * Deprecated `MethodDeclaration.isAbstract`. Use `!isComplete` instead.
+* Deprecate the `excludedPaths` parameter in `AnalysisContextCollection`. Use `analysis_options.yaml` to configure excluded paths instead.
 
 ## 13.1.0
 

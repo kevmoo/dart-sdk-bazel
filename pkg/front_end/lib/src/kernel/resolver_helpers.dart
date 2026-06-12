@@ -41,7 +41,7 @@ class ResolverForTesting extends Resolver {
     required InternalVariable? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
     required ConstantContext constantContext,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
   }) {
     return bodyBuilderCreator(
       libraryBuilder: context.libraryBuilder,
@@ -126,9 +126,6 @@ class _ResolverContext {
     required SingleTargetAnnotations singleTarget,
   }) {
     Annotatable target = singleTarget.target;
-    if (target is InternalVariable) {
-      target = target.astVariable;
-    }
     _inferAnnotations(
       annotatable: target,
       indices: singleTarget.indicesOfAnnotationsToBeInferred,
@@ -217,7 +214,7 @@ class _InitializerBuilder {
   ScopeProviderInfo? _inferInitializers(
     List<Initializer> initializers, {
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
     required bool isConstructorWithoutBody,
   }) {
@@ -247,7 +244,7 @@ class _InitializerBuilder {
     required AsyncModifier asyncModifier,
     required bool forPrimaryConstructor,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
     required bool isConstructorWithoutBody,
   }) {
@@ -602,7 +599,7 @@ class _InitializerBuilder {
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
     required List<InternalVariable> parameters,
-    required ThisVariable? internalThisVariable,
+    required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
     required ContextAllocationStrategy contextAllocationStrategy,
     required bool isFirstInitializer,

@@ -30,7 +30,6 @@ class VerifyTests {
     var collection = AnalysisContextCollection(
       resourceProvider: provider,
       includedPaths: <String>[testDirPath],
-      excludedPaths: excludedPaths,
     );
     var singleAnalysisContext = collection.contexts
         .where(analysisContextPredicate ?? (_) => true)
@@ -86,8 +85,7 @@ class VerifyTests {
     );
     for (var child in children) {
       if (child is Folder) {
-        if (child.getChildAssumingFile('test_all.dart').exists &&
-            !isExpensive(child)) {
+        if (child.getFile('test_all.dart').exists && !isExpensive(child)) {
           testFileNames.add('${child.shortName}/test_all.dart');
         }
         _buildTestsIn(session, testDirPath, child);

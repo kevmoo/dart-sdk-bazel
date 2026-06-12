@@ -204,15 +204,21 @@ class Translator with KernelNodes {
     w.StructType("void"),
     nullable: true,
   );
-  // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = mainModule.memories.import(
-    "ffi",
-    "memory",
-    options.importSharedMemory,
-    0,
-    options.sharedMemoryMaxPages,
-  );
   final Map<Procedure, w.Memory> _memories = {};
+
+  // Lazily import FFI memory if used.
+  final _ffiMemoryImports = <w.ModuleBuilder, w.Memory>{};
+  w.Memory ffiMemory(w.ModuleBuilder usingModule) {
+    return _ffiMemoryImports.putIfAbsent(usingModule, () {
+      return usingModule.memories.import(
+        "ffi",
+        "memory",
+        options.importSharedMemory,
+        0,
+        options.sharedMemoryMaxPages,
+      );
+    });
+  }
 
   /// Maps record shapes to the record class for the shape. Classes generated
   /// by `record_class_generator` library.
@@ -408,7 +414,6 @@ class Translator with KernelNodes {
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
   bool get hasMultipleModules => _moduleOutputData.hasMultipleModules;
-  final Map<w.ModuleBuilder, w.Global> _thisModuleGlobals = {};
 
   w.ModuleBuilder moduleForReference(Reference reference) {
     final module = _moduleOutputData.moduleForReference(reference);
@@ -500,35 +505,6 @@ class Translator with KernelNodes {
     }
   }
 
-  w.Global getThisModuleGlobal(w.ModuleBuilder module) {
-    return _thisModuleGlobals.putIfAbsent(module, () {
-      final global = module.globals.define(
-        w.GlobalType(w.RefType.extern(nullable: true)),
-        'thisModule',
-      );
-      final gb = global.initializer;
-      gb.ref_null(w.HeapType.extern);
-      gb.end();
-
-      final thisModuleSetter = module.functions.define(
-        typesBuilder.defineFunction(const [
-          w.RefType.extern(nullable: false),
-        ], const []),
-        "setThisModule",
-      );
-      module.exports.export(
-        interopMemberNamer.thisModuleSetterName,
-        thisModuleSetter,
-      );
-      final fb = thisModuleSetter.body;
-      fb.local_get(thisModuleSetter.locals[0]);
-      fb.global_set(global);
-      fb.end();
-
-      return global;
-    });
-  }
-
   void drainCompletionQueue() {
     while (!compilationQueue.isEmpty) {
       final task = compilationQueue.pop();
@@ -599,11 +575,6 @@ class Translator with KernelNodes {
       loadList.removeWhere(
         (moduleMetadata) => !_outputToBuilder.containsKey(moduleMetadata),
       );
-    }
-
-    // Ensure non-empty modules expose `$setThisModule` function.
-    for (final moduleBuilder in _outputToBuilder.values) {
-      getThisModuleGlobal(moduleBuilder);
     }
 
     // This getter will be null if we pass e.g. `--use-load-ids` as the
@@ -2177,10 +2148,10 @@ class Translator with KernelNodes {
 
     final member = target.asMember;
     if (member.isExternal) return InliningDecision(false, 'external');
-    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+    if (util.getWasmNeverInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(false, '@pragma("wasm:never-inline")');
     }
-    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+    if (util.getWasmPreferInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(true, '@pragma("wasm:prefer-inline")');
     }
     if (member is Field) {
@@ -2192,10 +2163,7 @@ class Translator with KernelNodes {
     return _shouldInlineProcedureCall(target, signature, member as Procedure);
   }
 
-  InliningDecision _shouldInlineFieldAccessor(
-    Reference target,
-    Field field,
-  ) {
+  InliningDecision _shouldInlineFieldAccessor(Reference target, Field field) {
     if (field.isInstanceMember) {
       // Implicit instance getters are just loads.
       if (target.isImplicitGetter) {
