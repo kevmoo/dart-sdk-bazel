@@ -835,6 +835,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-njh] [bazel] tools/test.py: unmatched test selectors only warn — silent coverage loss
 - **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #25](https://github.com/kevmoo/dart-sdk-bazel/pull/25)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
