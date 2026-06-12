@@ -77,7 +77,14 @@ To prevent communication breakdowns and avoid merge collisions (especially when 
 *   Push your branch and submit a GitHub Pull Request targeting `bazel`.
 *   **Never push to the remote `bazel` branch without explicit human approval.**
 
-### 2. Formatting & Linting (Buildifier)
+### 2. Pre-PR Validation (One Command)
+Before sending a PR, run the presubmit gate — CI runs the same script, so a local pass should closely predict a green PR:
+```bash
+./tools/bazel/presubmit.sh
+```
+It bundles (cheap → expensive): buildifier format+lint, the hardcoded-architecture audit, python byte-compile, `--nobuild` analysis of `//sdk:create_sdk` + `//runtime/bin:dartvm` + the utils exes, evaluation of both module extensions (`@dart_packages`, `@dart_tests`), and `dart analyze` over the Bazel tooling scripts. Takes ~1.5 minutes warm.
+
+### 3. Formatting & Linting (Buildifier)
 We enforce standard Starlark formatting and linting repository-wide.
 *   **Automated Gate:** A pre-commit hook is active. On a fresh clone, activate it via:
     ```bash
@@ -93,7 +100,7 @@ We enforce standard Starlark formatting and linting repository-wide.
     buildifier --lint=fix path/to/BUILD.bazel
     ```
 
-### 3. Programmatic Edits (Buildozer)
+### 4. Programmatic Edits (Buildozer)
 For scripted, bulk edits to BUILD files, use `buildozer`:
 ```bash
 # Inspect dependencies of a target

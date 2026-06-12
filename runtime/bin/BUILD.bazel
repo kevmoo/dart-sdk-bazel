@@ -2653,7 +2653,7 @@ cc_library(
         "SUPPORT_PERFETTO",
         "DART_PRECOMPILER",
         "DART_TARGET_OS_LINUX",
-        "TARGET_ARCH_" + "X64",
+        "TARGET_ARCH_X64",  # arch-pinned-variant: ok
     ],
     implementation_deps = [
         "//runtime/include:headers",
@@ -3254,7 +3254,7 @@ cc_library(
         "SUPPORT_PERFETTO",
         "DART_PRECOMPILER",
         "DART_TARGET_OS_LINUX",
-        "TARGET_ARCH_" + "X64",
+        "TARGET_ARCH_X64",  # arch-pinned-variant: ok
     ],
     implementation_deps = [
         "//runtime/include:headers",
@@ -4317,7 +4317,7 @@ cc_library(
         "PRODUCT",
         "SUPPORT_PERFETTO",
         "DART_TARGET_OS_LINUX",
-        "TARGET_ARCH_" + "X64",
+        "TARGET_ARCH_X64",  # arch-pinned-variant: ok
     ],
     implementation_deps = [
         "//runtime/include:headers",

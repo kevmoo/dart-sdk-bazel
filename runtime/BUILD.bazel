@@ -1430,7 +1430,7 @@ cc_library(
     local_defines = [
         "SUPPORT_PERFETTO",
         "DART_TARGET_OS_LINUX",
-        "TARGET_ARCH_" + "X64",
+        "TARGET_ARCH_X64",  # arch-pinned-variant: ok
         "DART_PRECOMPILER",
         "DART_SHARED_LIB",
         "PRODUCT",

@@ -28,17 +28,33 @@ if [ -n "$files_to_audit" ]; then
   
   failed=0
   for pattern in "${forbidden_patterns[@]}"; do
-    # Check if the pattern exists in any of the staged files
-    if echo "$files_to_audit" | xargs grep -F "$pattern" >/dev/null 2>&1; then
+    # Lines carrying the structured allowlist marker are exempt: explicitly
+    # arch-pinned cross variants (e.g. *_product_linux_x64 targets)
+    # legitimately carry their arch define. The marker keeps the exemption
+    # honest and visible in review instead of obfuscated.
+    matches=$(echo "$files_to_audit" | xargs grep -H -F -n "$pattern" 2>/dev/null \
+      | grep -v '# arch-pinned-variant: ok' || true)
+    if [ -n "$matches" ]; then
       echo "🚨 ERROR: Staged Bazel file contains hardcoded host architecture flag/define: $pattern"
-      # Find the exact files and line numbers that failed
-      echo "$files_to_audit" | xargs grep -H -F -n "$pattern" || true
+      echo "$matches"
       failed=1
     fi
   done
 
+  # Obfuscated concat forms ("TARGET_ARCH_" + "X64") evaluate identically but
+  # dodge the literal greps. Never allowed: write the honest literal (plus the
+  # marker if the target is a deliberately arch-pinned variant).
+  concat_matches=$(echo "$files_to_audit" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null || true)
+  if [ -n "$concat_matches" ]; then
+    echo "🚨 ERROR: concat-built TARGET_ARCH_ define(s) evade the literal audit:"
+    echo "$concat_matches"
+    failed=1
+  fi
+
   if [ "$failed" -eq 1 ]; then
     echo "👉 Please remove these flags or parameterize them dynamically using select()."
+    echo "👉 For a deliberately arch-pinned cross variant, write the honest literal"
+    echo "   and append '  # arch-pinned-variant: ok' to the line."
     echo "👉 Cross-compilation targeting ARM64 will fail if host cflags are hardcoded."
     exit 1
   fi
