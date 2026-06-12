@@ -14,16 +14,36 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
+    # clone_dependencies.py (run by the module extensions) shallow-clones 18
+    # DEPS repos into the workspace — invisible to every bazel-level cache.
+    # EXACT key only, deliberately no restore-keys: the script skips existing
+    # non-empty dirs without checking their revision, so a stale partial
+    # restore would silently pin wrong revisions.
+    - name: Cache third_party/pkg clones
+      uses: actions/cache@v4
+      with:
+        path: third_party/pkg
+        key: third-party-pkg-${{ hashFiles('DEPS') }}
+
     - name: Generate Synthetic Package Configuration
       run: |
         python3 tools/bazel/generate_debug_package_config.py
 
+    # external-cache covers output_base/external (clang toolchain, sysroot,
+    # CIPD prebuilt SDK, browsers): no download in third_party.bzl or
+    # clang_repo.bzl passes a sha256, so Bazel's own repository cache can
+    # never hold them. disk-cache is keyed per workflow so the nightly's
+    # multi-GB cache and this job's stay out of each other's way in the
+    # 10 GB repo budget, and PR runs restore but never write (saves only
+    # happen on main), which stops per-branch near-duplicate entries.
     - name: Set up Bazel
       uses: bazel-contrib/setup-bazel@0.19.0
       with:
-        disk-cache: true
-        repository-cache: true
         bazelisk-cache: true
+        cache-save: ${{ github.event_name != 'pull_request' }}
+        disk-cache: ${{ github.workflow }}
+        external-cache: true
+        repository-cache: true
 
     # Same gate contributors run locally before a PR. Analysis-only coverage of
     # //sdk:create_sdk + utils exes and evaluation of both module extensions:
