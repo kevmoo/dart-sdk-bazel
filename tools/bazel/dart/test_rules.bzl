@@ -88,7 +88,13 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
     res = repository_ctx.execute(generator_args)
 
     if res.return_code != 0:
-        fail("Failed to generate test targets:\n" + res.stderr + "\n" + res.stdout)
+        # The generator reports most errors only into debug.log in its output
+        # dir (this repo), not stdout/stderr — without reading it back, CI
+        # failures are blank "Failed to generate test targets" messages.
+        debug_log = repository_ctx.path("debug.log")
+        log_content = repository_ctx.read(debug_log) if debug_log.exists else "(no debug.log written)"
+        fail("Failed to generate test targets:\n" + res.stderr + "\n" + res.stdout +
+             "\n--- debug.log ---\n" + log_content)
 
 # Define the dynamic repository rule.
 dynamic_test_repository = repository_rule(
