@@ -2,9 +2,9 @@
 
 > **Not an `issue_NNNNN` file.** This is the living progress tracker for the
 > GN+Ninja → Bazel migration. The work lives in the dedicated repo
-> `kevmoo/dart-sdk-bazel` (default branch `main`; local checkouts commonly track
-> it under a branch named `bazel`). The old `kevmoo/sdk:bazel` fork branch is
-> retired. It lives
+> `kevmoo/dart-sdk-bazel` (default branch `main`; local checkout layouts vary
+> per machine — do not assume a particular local branch or remote name).
+> The old `kevmoo/sdk:bazel` fork branch is retired. It lives
 > here because `docs/bazel-migration/` is where this work stream keeps its durable,
 > reviewable artifacts. The `issue_*.md` files are *discovered SDK improvements*;
 > this file is *where the migration itself stands*.
@@ -25,9 +25,18 @@
 
 **Open handoffs / residuals:**
 - **Blocked on NDK for TASK_004**: Android cross-compilation target `android_arm64` requires the Android NDK to be installed on the host or `download_android_deps` checked out.
+- **Nightly Full SDK Build has never executed** (landed PR #21; first cron fires 08:00 UTC). Recommend one manual `workflow_dispatch` so a human sees its maiden failure mode; check the free-disk numbers and cache save lines in the log.
+- **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**
 - `[none]`
+
+Session 137 — **(fable) Full project review → PRs #17–#23 all merged; CI hardened.**
+- **Review artifact**: `fable_thoughts.md` (confidence-rated bugs/risks/opportunities, gemini feedback mining, CI roadmap). Read it for orientation.
+- **Repaired `//sdk:create_sdk`** (broken 5 layers deep by PR #15: analysis prerequisite, rootUri depth, training-run resolution, deleted filegroups, plus pre-existing `$(RULEDIR)` and DDS-hang bugs). Packaged SDK builds and runs.
+- **Validation gates**: `tools/bazel/presubmit.sh` (single pre-PR command, CI runs the same script), TARGET_ARCH audit with `# arch-pinned-variant: ok` allowlist + concat forms now hard errors, `@dart_tests` auto-invalidation via `watch()` (generator + SDK binary), test_runner bazel-probe hang fix, nightly full-build workflow + CI caching overhaul (external-cache, per-workflow disk keys, DEPS-keyed clone cache).
+- **Hotfix #23**: presubmit's first main run exposed non-hermetic `@dart_tests` SDK resolution + `clone_dependencies.py` missing `third_party/pkg/webdriver`; both fixed, generator failures now surface `debug.log`.
+- **Branch policy modernized**: PRs target `main` on `kevmoo/dart-sdk-bazel`; local `bazel` tracking-branch convention retired (bd memories `git-push-policy`/`primary-branch-bazel` updated to match).
 
 Session 136 — **(Antigravity) Completed sdk-4z8: Created Bazel Bridge Triage Agent Skill.**
 - **Created Bazel Bridge Triage Skill**: Created a new custom agent skill at `.agents/skills/bazel_bridge/SKILL.md` to guide AI agents in using the import/export developer bridge scripts (`import.dart` and `export.dart`).

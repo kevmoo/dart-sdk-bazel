@@ -71,11 +71,12 @@ To prevent communication breakdowns and avoid merge collisions (especially when 
 
 ## 🛠️ Developer Workflow & Tooling
 
-### 1. Branching & PR Workflow (No Direct Commits to `bazel`)
-*   The `bazel` branch is our main development target. **Do not commit directly to `bazel`.**
-*   Create a feature branch for your task: `git checkout -b task-037-cleanup bazel`
-*   Push your branch and submit a GitHub Pull Request targeting `bazel`.
-*   **Never push to the remote `bazel` branch without explicit human approval.**
+### 1. Branching & PR Workflow (No Direct Commits to `main`)
+*   `main` on `kevmoo/dart-sdk-bazel` is the development target. **Do not commit directly to `main`.**
+*   Create a feature branch from the latest remote `main` for your task, e.g.: `git checkout -b task-037-cleanup <remote>/main`
+*   Push your branch and submit a GitHub Pull Request targeting `main`.
+*   **Never push to `main` without explicit human approval.**
+*   Local branch names and git remote names vary per machine — do not assume a particular layout (the old local `bazel` tracking-branch convention is retired). Check `git remote -v` and `git branch -vv` instead of hardcoding.
 
 ### 2. Pre-PR Validation (One Command)
 Before sending a PR, run the presubmit gate — CI runs the same script, so a local pass should closely predict a green PR:
