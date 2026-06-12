@@ -833,6 +833,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-njh] [bazel] tools/test.py: unmatched test selectors only warn — silent coverage loss
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  tools/test.py:283-296 (--bazel path): a selector matching zero Bazel targets prints a warning and is dropped; the run fails only if ALL selectors are empty. A CI invocation with one typo'd suite silently runs partial coverage and exits 0. Decide: hard-fail on any unmatched selector, or add --strict-selectors. See fable_thoughts.md B4.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-oce] [M3] Wire up Kernel Worker Snapshot
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

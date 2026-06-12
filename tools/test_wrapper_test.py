@@ -134,6 +134,10 @@ class TestTestWithBazel(unittest.TestCase):
             '@dart_tests//web/wasm:tests_wasm_release',
             '@dart_tests//web/wasm:ffi_test_wasm_release',
         ]
+        # Mock subprocess.check_call to prevent running the pruning script during unit tests
+        self.patcher_check_call = patch('subprocess.check_call')
+        self.mock_check_call = self.patcher_check_call.start()
+        self.addCleanup(self.patcher_check_call.stop)
 
     def _mock_popen(self,
                     query_stdout=b'',
@@ -304,10 +308,11 @@ class TestTestWithBazel(unittest.TestCase):
             exit_code = test.TestWithBazel(['nonexistent/test'])
             self.assertEqual(exit_code, 1)
             self.assertIn(
-                "Warning: No matching Bazel test targets found for selector 'nonexistent/test'",
+                "Error: No matching Bazel test targets found for selector 'nonexistent/test'",
                 captured_output.getvalue())
-            self.assertIn("Error: No valid Bazel test targets were resolved",
-                          captured_output.getvalue())
+            self.assertIn(
+                "Error: The following selectors did not match any Bazel targets: nonexistent/test",
+                captured_output.getvalue())
         finally:
             sys.stdout = sys.__stdout__
 

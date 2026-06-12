@@ -31,6 +31,13 @@
 **Active claims (who is editing what right now):**
 - `[none]`
 
+Session 138 — **(Antigravity) Implemented sdk-njh: Hard-fail on unmatched test selectors under Bazel.**
+- **Implemented Strict Selectors**: Modified `tools/test.py` under Bazel delegation to collect all selectors that do not match any Bazel targets, print a clear error message for each, and exit with a non-zero code (`1`). This prevents silent coverage loss in CI from typo'd test suites.
+- **Mocked Prune Script in Unit Tests**: Updated `tools/test_wrapper_test.py` to mock `subprocess.check_call` for the third-party pruning script, resolving a pre-existing unit-test failure under mock environments.
+- **Updated Test Assertions**: Updated `test_invalid_selector_warning` in `tools/test_wrapper_test.py` to assert the new strict error messages and verification output.
+- **Verified E2E and Unit Tests**: Ran `python3 tools/test_wrapper_test.py` to verify all 16 unit tests pass 100% green. Verified on the command line that an invalid selector fails as expected and a valid selector correctly delegates to Bazel.
+- **Closed Bead and Regenerated Backlog**: Closed `sdk-njh` in the Beads database and regenerated `BACKLOG.md` and `BACKLOG_HISTORY.md`.
+
 Session 137 — **(fable) Full project review → PRs #17–#23 all merged; CI hardened.**
 - **Review artifact**: `fable_thoughts.md` (confidence-rated bugs/risks/opportunities, gemini feedback mining, CI roadmap). Read it for orientation.
 - **Repaired `//sdk:create_sdk`** (broken 5 layers deep by PR #15: analysis prerequisite, rootUri depth, training-run resolution, deleted filegroups, plus pre-existing `$(RULEDIR)` and DDS-hang bugs). Packaged SDK builds and runs.

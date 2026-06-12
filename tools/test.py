@@ -108,8 +108,8 @@ def ResolveConfig(named_config):
 
 def TestWithBazel(args):
     # Run the pruning script to remove conflicting upstream Bazel files
-    prune_script = os.path.join(
-        os.path.dirname(__file__), 'prune_third_party_bazel_files.py')
+    prune_script = os.path.join(os.path.dirname(__file__),
+                                'prune_third_party_bazel_files.py')
     subprocess.check_call([sys.executable, prune_script])
 
     named_config = None
@@ -218,6 +218,7 @@ def TestWithBazel(args):
 
     bazel_targets = []
     filter_parts = []
+    unmatched_selectors = []
     for selector in selectors:
         name = selector
         if name.startswith('tests/'):
@@ -286,8 +287,15 @@ def TestWithBazel(args):
 
             if not matched:
                 print(
-                    f"Warning: No matching Bazel test targets found for selector '{selector}' under configuration '{repo_name}' with suffix '{suffix}'"
+                    f"Error: No matching Bazel test targets found for selector '{selector}' under configuration '{repo_name}' with suffix '{suffix}'"
                 )
+                unmatched_selectors.append(selector)
+
+    if unmatched_selectors:
+        print(
+            f"Error: The following selectors did not match any Bazel targets: {', '.join(unmatched_selectors)}"
+        )
+        return 1
 
     if not bazel_targets:
         print(

@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 63/75 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 64/75 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -89,7 +89,7 @@ graph TD
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
-    sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::pending
+    sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
@@ -260,19 +260,6 @@ graph TD
   - None
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-njh] [bazel] tools/test.py: unmatched test selectors only warn — silent coverage loss
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  tools/test.py:283-296 (--bazel path): a selector matching zero Bazel targets prints a warning and is dropped; the run fails only if ALL selectors are empty. A CI invocation with one typo'd suite silently runs partial coverage and exits 0. Decide: hard-fail on any unmatched selector, or add --strict-selectors. See fable_thoughts.md B4.
 - **Success Criteria**:
 
 ---
