@@ -52,15 +52,13 @@ void main(List<String> args) async {
   debugBuf.writeln('Output Dir: $outputDir');
   debugBuf.writeln('Suites from Starlark: $suites');
 
-  final dartPath = '$workspaceDir/tools/sdks/dart-sdk/bin/dart';
+  // Use the dart binary this generator is already running under (the .bzl
+  // resolves it via @prebuilt_dart_sdk and spawns us with it). The previous
+  // hardcoded $workspaceDir/tools/sdks/dart-sdk path does not exist on hosts
+  // without the gclient-synced SDK, such as CI runners.
+  final dartPath = Platform.resolvedExecutable;
   final exporterPath = '$workspaceDir/pkg/test_runner/bin/test_runner.dart';
 
-  if (!File(dartPath).existsSync()) {
-    debugBuf.writeln('Error: Could not locate prebuilt Dart SDK at: $dartPath');
-    debugLog.writeAsStringSync(debugBuf.toString());
-    exitCode = 2;
-    return;
-  }
   if (!File(exporterPath).existsSync()) {
     debugBuf.writeln(
       'Error: Could not locate test runner script at: $exporterPath',

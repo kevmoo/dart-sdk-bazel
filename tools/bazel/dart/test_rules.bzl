@@ -8,8 +8,14 @@ def _dynamic_test_repo_impl(repository_ctx):
     # repo_ctx.workspace_root is the main repository root (requires Bazel 7+)
     workspace_dir = repository_ctx.workspace_root
 
-    # Locate the prebuilt Dart SDK executable and exporter script
-    dart_path = workspace_dir.get_child("tools").get_child("sdks").get_child("dart-sdk").get_child("bin").get_child("dart")
+    # Resolve the Dart binary through @prebuilt_dart_sdk instead of the raw
+    # workspace path: the overlay repo symlinks the gclient-synced
+    # tools/sdks/dart-sdk when present and downloads it from CIPD otherwise,
+    # so this extension also works on hosts without the workspace copy
+    # (CI runners — the raw path made every CI presubmit run fail).
+    dart_label = Label("@prebuilt_dart_sdk//:bin/dart")
+    dart_path = repository_ctx.path(dart_label)
+    repository_ctx.watch(dart_path)
     exporter_path = workspace_dir.get_child("pkg").get_child("test_runner").get_child("bin").get_child("test_runner.dart")
 
     if not dart_path.exists:
@@ -84,7 +90,13 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
     res = repository_ctx.execute(generator_args)
 
     if res.return_code != 0:
-        fail("Failed to generate test targets:\n" + res.stderr + "\n" + res.stdout)
+        # The generator reports most errors only into debug.log in its output
+        # dir (this repo), not stdout/stderr — without reading it back, CI
+        # failures are blank "Failed to generate test targets" messages.
+        debug_log = repository_ctx.path("debug.log")
+        log_content = repository_ctx.read(debug_log) if debug_log.exists else "(no debug.log written)"
+        fail("Failed to generate test targets:\n" + res.stderr + "\n" + res.stdout +
+             "\n--- debug.log ---\n" + log_content)
 
 # Define the dynamic repository rule.
 dynamic_test_repository = repository_rule(
