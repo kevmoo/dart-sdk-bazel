@@ -663,6 +663,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-6uq] [bazel] @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  tools/bazel/dart/test_rules.bzl ends with '# Force refetch trigger: 21' — a hand-bumped counter that is the only way to invalidate the reproducible module extension after generator changes (21 bumps so far). Forgetting the bump means tests silently run against stale generated targets. Make invalidation automatic, e.g. depend on the generator sources via ctx.path(Label(...))/digest so edits re-fetch. See fable_thoughts.md R3.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-84z] VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl
 - **Status**: `[COMPLETED]`
 - **PR/External Ref**: [PR #20](https://github.com/kevmoo/sdk/pull/20)
@@ -716,6 +729,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-9zx] [ci] caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Implements the three cache fixes from the 2026-06-11 caching review (same PR as nightly.yml): (1) setup-bazel external-cache:true in both workflows — caches output_base/external (clang, sysroot, CIPD prebuilt SDK, browsers), which Bazel's own repository cache can NEVER hold because no download in third_party.bzl/clang_repo.bzl passes sha256; (2) disk-cache keyed per workflow + cache-save only on non-PR events so the nightly's multi-GB disk cache and PR-branch duplicates stop evicting each other inside the 10GB repo budget; (3) actions/cache on third_party/pkg keyed on hashFiles(DEPS) — clone_dependencies.py's 18 shallow clones land in the workspace, invisible to all bazel-level caches. EXACT key only, NO restore-keys: clone_dependencies.py skips existing non-empty dirs without revision-checking, so a stale partial restore would silently pin wrong revisions.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -725,6 +751,32 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Resolve the silent reliance on implicit include paths for ICU data headers (norm2_nfc_data.h, etc.). Either implement the regeneration step in GN/Bazel to match upstream, or explicitly expose the checked-in data tables in third_party/icu/BUILD.gn and document the divergence. Ref: docs/bazel-migration/todo_issues/issue_00006_icu_data_headers_inconsistency.md
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-d3p] [bazel] CI: widen analysis surface beyond //runtime/bin:dartvm
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  bazel.yml builds only dartvm. PR #15 merged while breaking //sdk:create_sdk at ANALYSIS time (missing $(location) prerequisite) and at execution time (package_config rootUri depth) — caught only by fable's review session 2026-06-10. Add 'bazel build --nobuild //sdk:create_sdk' (pure analysis, ~17s warm) and a bazel query of @dart_tests//... to CI; consider a scheduled full create_sdk + smoke job with disk cache. See docs/bazel-migration/fable_thoughts.md O1/R1.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-dj6] Full project review: bugs + improvement opportunities (fable_thoughts.md)
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Comprehensive stability-focused review of the Bazel migration branch; artifact at docs/bazel-migration/fable_thoughts.md. Requested by kevmoo 2026-06-10.
 - **Success Criteria**:
 
 ---
@@ -821,7 +873,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [sdk-s7k] Investigate Bazel aspects for formatting and analysis checks
+### 🎯 [sdk-u24] [test_runner] --built-with-bazel: 'bazel info' probe has no timeout
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -829,7 +881,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 - **Target Files**:
   - None
 - **Description**:
-  Research and brainstorm the design for running static analysis (dart analyze) and formatting (dart format) via Bazel Aspects (similar to aspect_rules_lint) or macro-generated test targets. This will ensure that formatting and lints are checked as part of the Bazel test/build graph with proper caching, rather than relying solely on pre-commit hooks.
+  pkg/test_runner/lib/src/options.dart ~162: Process.runSync('bazel',['info','bazel-bin']) HAS proper error handling (try/catch + exit-code check, added after gemini review on PR #11) but no timeout — a wedged bazel server hangs the test runner forever (.agents/rules/bazel_hang_detection.md documents this exact failure mode), and the PATH-only lookup ignores tools/utils.py ResolveBazelPath() fallbacks. Add a timeout; consider sharing bazel resolution logic. See fable_thoughts.md B5 (corrected).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-u2u] [bazel] pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  tools/bazel/hooks/pre-commit greps staged Bazel files for the literal "TARGET_ARCH_X64". Four checked-in targets (runtime/BUILD.bazel:1433, runtime/bin/BUILD.bazel:2656,3257,4320 — all *_linux_x64 product variants, introduced in be081364145) write "TARGET_ARCH_" + "X64", which evaluates identically but evades the grep. The defines are semantically defensible for arch-pinned cross variants (arm64 literals are not even forbidden); the gate evasion is the problem. Decide: structured allowlist in the hook + honest literals, or narrow the hook to non-variant targets. Also make the hook catch the concat form, and run the audit in CI (local hook is skippable via --no-verify). See fable_thoughts.md B2.
 - **Success Criteria**:
 
 ---
@@ -870,6 +935,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Go through legacy Bazel branches (origin/bazel_mac_more, origin/bazel_other_agent_learnings, origin/kevmoo-bazel-mac-builds) to ensure all useful knowledge and code have been integrated into the main branch, then delete them.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-xw2] [bazel] CI: scheduled nightly full //sdk:create_sdk build + packaged-SDK smoke
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Expensive tier of fable_thoughts.md §10 (step 6), split from sdk-d3p when its analysis tier landed in presubmit.sh. Add a scheduled GitHub Actions job: full bazel build //sdk:create_sdk with disk cache, then smoke the packaged SDK (bazel-bin/sdk/dart-sdk/bin/dart --version + hello.dart), optionally one tools/test.py --bazel suite. Catches B1b-class execution regressions and toolchain drift at bounded cost. Promote to PR-time once remote caching (Buildfarm/BuildBuddy) stabilizes.
 - **Success Criteria**:
 
 ---

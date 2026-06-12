@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 55/65 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 61/73 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -75,24 +75,32 @@ graph TD
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
+    sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::completed
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
+    sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::completed
+    sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
+    sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
+    sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::pending
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
+    sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
-    sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::completed
-    sdk_v49["sdk-v49:<br>Design and implement virtual namespaced package targets"]:::pending
+    sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
+    sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
+    sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::completed
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
+    sdk_xw2["sdk-xw2:<br>{bazel} CI: scheduled nightly full //sdk:create_sdk build + packaged-SDK smoke"]:::completed
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
@@ -254,7 +262,7 @@ graph TD
 
 ---
 
-### 🎯 [sdk-v49] Design and implement virtual namespaced package targets
+### 🎯 [sdk-njh] [bazel] tools/test.py: unmatched test selectors only warn — silent coverage loss
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -262,7 +270,33 @@ graph TD
 - **Target Files**:
   - None
 - **Description**:
-  Refactor dart_packages_extension to generate nested BUILD.bazel files inside the virtual @dart_packages repository (e.g. @dart_packages//pkg/<name>:BUILD.bazel). Expose analyze and format targets there, enabling native Bazel wildcard testing (@dart_packages//pkg/<name>/...) and removing flat target clutter from the root BUILD file.
+  tools/test.py:283-296 (--bazel path): a selector matching zero Bazel targets prints a warning and is dropped; the run fails only if ALL selectors are empty. A CI invocation with one typo'd suite silently runs partial coverage and exits 0. Decide: hard-fail on any unmatched selector, or add --strict-selectors. See fable_thoughts.md B4.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-qoj] [process] Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  gemini-code-assist consumer code review is sunset: new installs blocked 2026-06-18, ALL review activity ceases 2026-07-17. It has been the only reviewer catching critical pre-merge bugs (Starlark set() in PR #15, undefined var in PR #16, hand-BUILD clobbering in PR #15, read-only-runfiles writes in PR #13). Plan per docs/bazel-migration/fable_thoughts.md §9-§10: (a) mechanize classes 1-6 (extension-evaluating CI steps, exit-code rules, subprocess helper, portability greps, protected-files manifest, env-specific-string audit), (b) add tools/bazel/presubmit.sh single-command local gate, (c) substitute a model-based reviewer (e.g. Claude review action / .agents review checklist) for judgment classes 7-8. Deadline-driven: P1.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-sjn] [bazel] Windows-host portability debt: shell-isms throughout genrules/macros/presubmit
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
 - **Success Criteria**:
 
 ---
