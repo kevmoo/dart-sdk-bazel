@@ -316,6 +316,28 @@ class TestTestWithBazel(unittest.TestCase):
         finally:
             sys.stdout = sys.__stdout__
 
+    @patch('subprocess.Popen')
+    @patch('utils.ResolveBazelPath', return_value='bazel')
+    def test_duplicate_invalid_selectors_deduplicated(self, mock_resolve_bazel,
+                                                      mock_popen):
+        query_output = '\n'.join(self.mock_targets).encode('utf-8')
+        mock_popen.side_effect = self._mock_popen(query_stdout=query_output)
+
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+        try:
+            # Pass duplicate invalid selectors
+            exit_code = test.TestWithBazel(
+                ['nonexistent/test', 'nonexistent/test'])
+            self.assertEqual(exit_code, 1)
+            # Verify they are only listed once in the final error message
+            self.assertIn(
+                "Error: The following selectors did not match any Bazel targets: nonexistent/test",
+                captured_output.getvalue())
+        finally:
+            sys.stdout = sys.__stdout__
+
 
 if __name__ == '__main__':
     unittest.main()

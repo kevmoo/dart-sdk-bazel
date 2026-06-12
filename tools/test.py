@@ -292,8 +292,9 @@ def TestWithBazel(args):
                 unmatched_selectors.append(selector)
 
     if unmatched_selectors:
+        unique_unmatched = list(dict.fromkeys(unmatched_selectors))
         print(
-            f"Error: The following selectors did not match any Bazel targets: {', '.join(unmatched_selectors)}"
+            f"Error: The following selectors did not match any Bazel targets: {', '.join(unique_unmatched)}"
         )
         return 1
 
