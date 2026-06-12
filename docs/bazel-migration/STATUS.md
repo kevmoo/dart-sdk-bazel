@@ -31,12 +31,18 @@
 **Active claims (who is editing what right now):**
 - `[none]`
 
-Session 138 — **(Antigravity) Implemented sdk-njh: Hard-fail on unmatched test selectors under Bazel.**
+Session 139 — **(Antigravity) Implemented sdk-njh: Hard-fail on unmatched test selectors under Bazel.**
 - **Implemented Strict Selectors**: Modified `tools/test.py` under Bazel delegation to collect all selectors that do not match any Bazel targets, print a clear error message for each, and exit with a non-zero code (`1`). This prevents silent coverage loss in CI from typo'd test suites.
 - **Mocked Prune Script in Unit Tests**: Updated `tools/test_wrapper_test.py` to mock `subprocess.check_call` for the third-party pruning script, resolving a pre-existing unit-test failure under mock environments.
 - **Updated Test Assertions**: Updated `test_invalid_selector_warning` in `tools/test_wrapper_test.py` to assert the new strict error messages and verification output.
 - **Verified E2E and Unit Tests**: Ran `python3 tools/test_wrapper_test.py` to verify all 16 unit tests pass 100% green. Verified on the command line that an invalid selector fails as expected and a valid selector correctly delegates to Bazel.
 - **Closed Bead and Regenerated Backlog**: Closed `sdk-njh` in the Beads database and regenerated `BACKLOG.md` and `BACKLOG_HISTORY.md`.
+
+Session 138 — **(fable) Merged upstream origin/dev Version 3.13.0-201.0.dev.**
+- **Merged 90 upstream commits** (3.13.0-189 → 3.13.0-201) per `.agents/skills/merge_main_to_bazel.md`. Three conflicts: kept our deletions of the unrelated `.github/workflows/{no-response,scorecards-analysis}.yml`, took upstream's `assigned_variables_test.dart` (superset of our format-only edit + `Variable` → `InternalVariable` rename). Zero hand-maintained Bazel files touched by the merge.
+- **gclient sync gotcha**: the boringssl/perfetto prune deletions (from `tools/prune_third_party_bazel_files.py`) block `gclient sync` from rolling those subrepo pins — `git checkout -- .` inside the subrepo first, sync, then re-run the prune script.
+- **boringssl roll fallout fixed** (follow-up commit): upstream boringssl ba76be9c7 replaced the P-256 nistz code with C — `BUILD.bazel.snap` source list updated (`p256-nistz.{cc.inc,h}`, `fiat/p256_field.c.inc` → `p256_internal.h`) and the now-required `p256-x86_64-asm` / `p256_beeu-*-asm` assembly added to every platform branch (the old callers were `OPENSSL_SMALL`-excluded; the new ones aren't).
+- **Validated**: `//runtime/bin:dartvm` builds, runs scripts, reports 3.13.0-201.0.dev; `tools/bazel/presubmit.sh` fully green.
 
 Session 137 — **(fable) Full project review → PRs #17–#23 all merged; CI hardened.**
 - **Review artifact**: `fable_thoughts.md` (confidence-rated bugs/risks/opportunities, gemini feedback mining, CI roadmap). Read it for orientation.

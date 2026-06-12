@@ -17,7 +17,12 @@ import '../diagnostic.dart' as diag;
 const _desc = r'Use a declaring parameter.';
 
 class UseDeclaringParameters extends AnalysisRule {
-  new() : super(name: LintNames.use_declaring_parameters, description: _desc);
+  new()
+    : super(
+        name: LintNames.use_declaring_parameters,
+        description: _desc,
+        state: .experimental(since: .new(3, 13, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.useDeclaringParameters;
@@ -64,7 +69,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       var field = parameterElement.field;
       if (field != null &&
           (parameterHasNoType || field.type == parameterElement.type)) {
-        if (field.documentationComment != null) return;
         rule.reportAtToken(parameter.name);
       }
     }
@@ -88,7 +92,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parameterElement = parameter.declaredFragment?.element;
       if (parameterElement != null &&
           assignedField.type == parameterElement.type) {
-        if (assignedField.documentationComment != null) return;
         rule.reportAtToken(name);
       }
     }
