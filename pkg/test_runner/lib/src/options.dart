@@ -160,7 +160,18 @@ class OptionsParser {
       options['use-sdk'] = true;
       options['build'] = false;
       try {
-        var result = Process.runSync('bazel', ['info', 'bazel-bin']);
+        // Process.runSync has no wall-clock timeout, so guard against the
+        // documented bazel hang modes (.agents/rules/bazel_hang_detection.md)
+        // with bazel's own startup options: --noblock_for_lock fails
+        // immediately when another command holds the server lock instead of
+        // waiting forever, and --local_startup_timeout_secs bounds a wedged
+        // server startup.
+        var result = Process.runSync('bazel', [
+          '--noblock_for_lock',
+          '--local_startup_timeout_secs=120',
+          'info',
+          'bazel-bin',
+        ]);
         if (result.exitCode != 0) {
           _fail('Bazel command failed: ${result.stderr.toString().trim()}');
         }
@@ -951,10 +962,7 @@ test options, specifying how tests should be run.''',
     aliases: ['use_sdk'],
     help: 'Use compiler or runtime from the SDK.',
   )
-  ..addFlag(
-    'built-with-bazel',
-    help: 'Run tests with the SDK built by Bazel.',
-  )
+  ..addFlag('built-with-bazel', help: 'Run tests with the SDK built by Bazel.')
   ..addOption(
     'build-directory',
     aliases: ['build_directory'],
