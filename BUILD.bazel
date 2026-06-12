@@ -58,7 +58,12 @@ genrule(
     name = "package_config_json_staged",
     srcs = ["@dart_packages//:package_config_json"],
     outs = ["package_config.json"],
-    cmd = "cp $< $@",
+    # The @dart_packages config lives at <repo>/.dart_tool/package_config.json and
+    # uses rootUris like "../pkg/<name>" that resolve inside that virtual repo.
+    # This staged copy sits at bazel-out/<config>/bin/package_config.json, three
+    # levels below the execroot, so rewrite the URI depth to keep the entries
+    # pointing at the main-repo source tree (pkg/, third_party/, …).
+    cmd = "sed 's|\"rootUri\":\"\\.\\./|\"rootUri\":\"../../../|g' $< > $@",
 )
 
 alias(

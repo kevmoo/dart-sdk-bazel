@@ -58,7 +58,7 @@ dart_app_jit_snapshot(
     sources = "@dart_packages//pkg/dev_compiler",
     training_args = [
         "--packages",
-        "$(location //:package_config_json)",
+        "$(location @dart_packages//:package_config_json)",
         "--dart-sdk-summary",
         "$(location :ddc_outline.dill)",
         "-o",
@@ -344,7 +344,7 @@ genrule(
     srcs = [
         "//:pkg/dev_compiler/web/stack_trace_mapper.dart",
         "//:pkg/dev_compiler/web/source_map_stack_trace.dart",
-        "//:package_config_json",
+        "@dart_packages//:package_config_json",
         "@dart_packages//pkg/js",
         "@dart_packages//pkg/path",
         "@dart_packages//pkg/source_maps",
@@ -356,7 +356,7 @@ genrule(
     outs = ["dart_stack_trace_mapper.js"],
     cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile js " +
           "-O2 " +
-          "--packages=$(location //:package_config_json) " +
+          "--packages=$(location @dart_packages//:package_config_json) " +
           "-o $(location dart_stack_trace_mapper.js) " +
           "$(location //:pkg/dev_compiler/web/stack_trace_mapper.dart)",
 )

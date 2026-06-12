@@ -43,8 +43,12 @@ dart_app_jit_snapshot(
     sources = "@dart_packages//pkg/analysis_server",
     training_args = [
         "--sdk=sdk/",
-        "--train-using=pkg/compiler/lib",
-        "--packages=$(pwd)/$(location //:package_config_json)",
+        # Analyze the compiler sources through the @dart_packages virtual repo
+        # (pkg/ symlinks back into the workspace); the main-repo pkg/ tree is
+        # not staged in the training sandbox. dirname is shell-substituted at
+        # training time from the package config's execroot-relative path.
+        "--train-using=$(dirname $(location @dart_packages//:package_config_json))/../pkg/compiler/lib",
+        "--packages=$(pwd)/$(location @dart_packages//:package_config_json)",
     ],
     # The --sdk training run reads sdk/lib/** (libraries.dart, dart:core, …) plus
     # the sdk/version stamp — all outside the pkg/ closure in `sources`; declare
