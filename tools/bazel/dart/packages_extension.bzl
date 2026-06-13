@@ -38,8 +38,6 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
 def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
     """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
 
-    # buildifier: disable=print
-    print("RUNNING FIND ON: " + str(physical_dir))
     if not physical_dir.exists:
         return []
     res = ctx.execute(["find", str(physical_dir), "-type", "f"])
@@ -247,9 +245,6 @@ def _packages_repo_impl(ctx):
                 glob_paths.append('"pubspec.yaml"')
             srcs_val = "glob([%s], allow_empty = True)" % ", ".join(glob_paths)
         else:
-            # buildifier: disable=print
-            print("ENTERED ELSE BRANCH FOR PACKAGE: " + name + " (reldir: " + pkg.reldir + ")")
-
             # CI/Clean mode for third-party: explicitly list all files recursively
             # to avoid host-globbing and force Bazel to stage them in the sandbox.
             lib_files = _list_files(ctx, physical_lib, workspace_root_str, [".dart", ".yaml"])
@@ -378,6 +373,9 @@ def _packages_repo_impl(ctx):
         root_build_lines.append("")
 
     ctx.file("BUILD.bazel", "\n".join(root_build_lines) + "\n")
+
+    # buildifier: disable=print
+    print("Generated Bazel targets for %d Dart packages (CI Mode: %s)." % (len(pkgs), str(not use_local_third_party)))
 
 dart_packages_repo = repository_rule(
     implementation = _packages_repo_impl,
