@@ -91,6 +91,11 @@ def fetch_cipd_dep(dest_path, dep_val):
         return False
 
     pkg_info = packages[0]
+    # Defensive check: ensure pkg_info is a dict (Comment #2)
+    if not isinstance(pkg_info, dict):
+        print(f"Error: Invalid package info format for {dest_path}", file=sys.stderr)
+        return False
+
     package = pkg_info.get('package')
     version = pkg_info.get('version')
 
@@ -112,35 +117,34 @@ def fetch_cipd_dep(dest_path, dep_val):
 
     # Download URL
     url = f"https://chrome-infra-packages.appspot.com/dl/{package}/+/{version}"
-
-    print(f"Downloading {url} to {dest_path}...")
     zip_path = dest_path + ".zip"
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 
+    # Robust outer try...finally for guaranteed zip cleanup (Comment #3)
+    success = False
     try:
+        print(f"Downloading {url} to {dest_path}...")
         urllib.request.urlretrieve(url, zip_path)
-    except Exception as e:
-        print(f"Failed to download {url}: {e}", file=sys.stderr)
-        return False
 
-    print(f"Extracting {zip_path} to {dest_path}...")
-    try:
-        # Ensure dest_path exists and is empty before extracting
+        print(f"Extracting {zip_path} to {dest_path}...")
         os.makedirs(dest_path, exist_ok=True)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(dest_path)
+
+        write_local_version(dest_path, version)
+        print(f"Successfully fetched {dest_path} (version {version})")
+        success = True
     except Exception as e:
-        print(f"Failed to extract {zip_path}: {e}", file=sys.stderr)
-        # Clean up partial extraction if possible
+        print(f"Failed to fetch {dest_path}: {e}", file=sys.stderr)
         clean_dir(dest_path)
-        return False
     finally:
         if os.path.exists(zip_path):
-            os.remove(zip_path)
+            try:
+                os.remove(zip_path)
+            except Exception:
+                pass
 
-    write_local_version(dest_path, version)
-    print(f"Successfully fetched {dest_path} (version {version})")
-    return True
+    return success
 
 
 def main():
