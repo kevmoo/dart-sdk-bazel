@@ -46,6 +46,40 @@ def is_empty_dir(path):
         return False
 
 
+def get_local_version(dest_path):
+    version_file = os.path.join(dest_path, '.cipd_version')
+    if os.path.exists(version_file):
+        try:
+            with open(version_file, 'r') as f:
+                return f.read().strip()
+        except Exception:
+            pass
+    return None
+
+
+def write_local_version(dest_path, version):
+    version_file = os.path.join(dest_path, '.cipd_version')
+    try:
+        with open(version_file, 'w') as f:
+            f.write(version)
+    except Exception as e:
+        print(f"Warning: Failed to write version file for {dest_path}: {e}", file=sys.stderr)
+
+
+def clean_dir(path):
+    try:
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                # Preserve the git-tracked README.md placeholder at the root
+                if name == 'README.md' and root == path:
+                    continue
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+    except Exception as e:
+        print(f"Warning: Failed to clean directory {path}: {e}", file=sys.stderr)
+
+
 def fetch_cipd_dep(dest_path, dep_val):
     if not isinstance(dep_val, dict) or dep_val.get('dep_type') != 'cipd':
         print(f"Error: {dest_path} is not a CIPD dependency in DEPS", file=sys.stderr)
@@ -63,6 +97,18 @@ def fetch_cipd_dep(dest_path, dep_val):
     if not package or not version:
         print(f"Error: Invalid package info for {dest_path}", file=sys.stderr)
         return False
+
+    # Check if we already have the correct version
+    local_version = get_local_version(dest_path)
+    if local_version == version and not is_empty_dir(dest_path):
+        print(f"Directory {dest_path} is up to date (version {version}), skipping fetch.")
+        return True
+
+    # If version mismatched or empty, we need to fetch.
+    # Clean the directory first to avoid mixing files from different versions.
+    if os.path.exists(dest_path) and not is_empty_dir(dest_path):
+        print(f"Directory {dest_path} is out of date or dirty. Cleaning before fetch...")
+        clean_dir(dest_path)
 
     # Download URL
     url = f"https://chrome-infra-packages.appspot.com/dl/{package}/+/{version}"
@@ -86,20 +132,14 @@ def fetch_cipd_dep(dest_path, dep_val):
     except Exception as e:
         print(f"Failed to extract {zip_path}: {e}", file=sys.stderr)
         # Clean up partial extraction if possible
-        try:
-            for root, dirs, files in os.walk(dest_path, topdown=False):
-                for name in files:
-                    os.remove(os.path.join(root, name))
-                for name in dirs:
-                    os.rmdir(os.path.join(root, name))
-        except Exception:
-            pass
+        clean_dir(dest_path)
         return False
     finally:
         if os.path.exists(zip_path):
             os.remove(zip_path)
 
-    print(f"Successfully fetched {dest_path}")
+    write_local_version(dest_path, version)
+    print(f"Successfully fetched {dest_path} (version {version})")
     return True
 
 
@@ -112,12 +152,6 @@ def main():
     success = True
     for local_path, dep_key in CIPD_DEPS.items():
         dest_path = os.path.join(sdk_root, local_path)
-        if os.path.exists(dest_path) and not is_empty_dir(dest_path):
-            print(
-                f"Directory {dest_path} already exists and is not empty, skipping fetch."
-            )
-            continue
-
         if dep_key not in deps:
             print(
                 f"Warning: Dependency key {dep_key} not found in DEPS, skipping."
