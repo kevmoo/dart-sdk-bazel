@@ -396,6 +396,8 @@ def _third_party_ext_impl(ctx):
 
     # Dynamically fetch CIPD dependencies from DEPS if missing
     fetch_cipd_script = ctx.path(Label("@//tools/bazel:fetch_cipd_dependencies.py"))
+    ctx.watch(fetch_cipd_script)
+    ctx.watch(Label("@//:DEPS"))
     res = ctx.execute(["python3", str(fetch_cipd_script)])
     if res.stdout:
         # buildifier: disable=print

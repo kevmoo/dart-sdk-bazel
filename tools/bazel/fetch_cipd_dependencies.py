@@ -48,21 +48,21 @@ def is_empty_dir(path):
 
 def fetch_cipd_dep(dest_path, dep_val):
     if not isinstance(dep_val, dict) or dep_val.get('dep_type') != 'cipd':
-        print(f"Error: {dest_path} is not a CIPD dependency in DEPS")
-        return
+        print(f"Error: {dest_path} is not a CIPD dependency in DEPS", file=sys.stderr)
+        return False
 
     packages = dep_val.get('packages')
     if not packages or not isinstance(packages, list) or len(packages) == 0:
-        print(f"Error: No packages found for {dest_path}")
-        return
+        print(f"Error: No packages found for {dest_path}", file=sys.stderr)
+        return False
 
     pkg_info = packages[0]
     package = pkg_info.get('package')
     version = pkg_info.get('version')
 
     if not package or not version:
-        print(f"Error: Invalid package info for {dest_path}")
-        return
+        print(f"Error: Invalid package info for {dest_path}", file=sys.stderr)
+        return False
 
     # Download URL
     url = f"https://chrome-infra-packages.appspot.com/dl/{package}/+/{version}"
@@ -75,7 +75,7 @@ def fetch_cipd_dep(dest_path, dep_val):
         urllib.request.urlretrieve(url, zip_path)
     except Exception as e:
         print(f"Failed to download {url}: {e}", file=sys.stderr)
-        return
+        return False
 
     print(f"Extracting {zip_path} to {dest_path}...")
     try:
@@ -94,12 +94,13 @@ def fetch_cipd_dep(dest_path, dep_val):
                     os.rmdir(os.path.join(root, name))
         except Exception:
             pass
-        return
+        return False
     finally:
         if os.path.exists(zip_path):
             os.remove(zip_path)
 
     print(f"Successfully fetched {dest_path}")
+    return True
 
 
 def main():
@@ -108,6 +109,7 @@ def main():
     deps_file = os.path.join(sdk_root, 'DEPS')
     deps = parse_deps(deps_file)
 
+    success = True
     for local_path, dep_key in CIPD_DEPS.items():
         dest_path = os.path.join(sdk_root, local_path)
         if os.path.exists(dest_path) and not is_empty_dir(dest_path):
@@ -122,7 +124,11 @@ def main():
             )
             continue
 
-        fetch_cipd_dep(dest_path, deps[dep_key])
+        if not fetch_cipd_dep(dest_path, deps[dep_key]):
+            success = False
+
+    if not success:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
