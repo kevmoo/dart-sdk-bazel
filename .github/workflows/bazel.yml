@@ -20,7 +20,7 @@ jobs:
     # non-empty dirs without checking their revision, so a stale partial
     # restore would silently pin wrong revisions.
     - name: Cache third_party/pkg clones
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: third_party/pkg
         key: third-party-pkg-${{ hashFiles('DEPS') }}
