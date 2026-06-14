@@ -362,14 +362,17 @@ with open(file_path, "w") as f:
 
     elif repository_ctx.attr.repo_type == "binaryen":
         root_snap = repository_ctx.path(repository_ctx.attr.build_file)
+        if hasattr(repository_ctx, "watch"):
+            repository_ctx.watch(repository_ctx.attr.build_file)
         root_content = repository_ctx.read(root_snap)
+
         # Escape main workspace references to avoid them being hit by the local package redirection
         root_content = root_content.replace("@//third_party/binaryen:", "__MAIN_BINARYEN__")
         root_content = root_content.replace("//third_party/binaryen:", ":")
         root_content = root_content.replace("__MAIN_BINARYEN__", "@//third_party/binaryen:")
         root_content = root_content.replace("//runtime/", "@//runtime/")
         root_content = root_content.replace("//build/", "@//build/")
-        root_content = root_content.replace("-Ithird_party/binaryen/src/", "-Iexternal/+third_party_extension+binaryen/src/")
+        root_content = root_content.replace("-Ithird_party/binaryen/src/", "-Iexternal/" + repository_ctx.name + "/src/")
         root_content = root_content.replace("//tools/bazel:rules.bzl", "@//tools/bazel:rules.bzl")
         repository_ctx.file("BUILD.bazel", root_content)
 
