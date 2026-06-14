@@ -360,6 +360,19 @@ with open(file_path, "w") as f:
         root_content = root_content.replace("//tools/bazel:rules.bzl", "@//tools/bazel:rules.bzl")
         repository_ctx.file("BUILD.bazel", root_content)
 
+    elif repository_ctx.attr.repo_type == "binaryen":
+        root_snap = repository_ctx.path(repository_ctx.attr.build_file)
+        root_content = repository_ctx.read(root_snap)
+        # Escape main workspace references to avoid them being hit by the local package redirection
+        root_content = root_content.replace("@//third_party/binaryen:", "__MAIN_BINARYEN__")
+        root_content = root_content.replace("//third_party/binaryen:", ":")
+        root_content = root_content.replace("__MAIN_BINARYEN__", "@//third_party/binaryen:")
+        root_content = root_content.replace("//runtime/", "@//runtime/")
+        root_content = root_content.replace("//build/", "@//build/")
+        root_content = root_content.replace("-Ithird_party/binaryen/src/", "-Iexternal/+third_party_extension+binaryen/src/")
+        root_content = root_content.replace("//tools/bazel:rules.bzl", "@//tools/bazel:rules.bzl")
+        repository_ctx.file("BUILD.bazel", root_content)
+
     else:
         # General case (e.g. perfetto, prebuilt_dart_sdk)
         root_snap = repository_ctx.path(repository_ctx.attr.build_file)
@@ -475,6 +488,16 @@ def _third_party_ext_impl(ctx):
         repo_type = "firefox",
         path = "third_party/browsers/firefox",
         build_file = "@//tools/bazel:third_party_overlays/firefox/BUILD.bazel.snap",
+    )
+
+    # 9. Binaryen Dynamic Overlay Repository
+    overlay_repository(
+        name = "binaryen",
+        repo_type = "binaryen",
+        path = "third_party/binaryen/src",
+        prefix = "src",
+        build_file = "@//tools/bazel:third_party_overlays/binaryen/BUILD.bazel.snap",
+        clean_upstream_build_files = True,
     )
     return ctx.extension_metadata(reproducible = True)
 
