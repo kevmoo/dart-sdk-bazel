@@ -75,7 +75,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   if (firstConf.dumpTestMetadata != null) {
-    await dumpConfigurationsMetadata(
+    await _dumpConfigurationsMetadata(
       configurations,
       firstConf.dumpTestMetadata!,
     );
@@ -328,7 +328,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   );
 }
 
-Future<void> dumpConfigurationsMetadata(
+Future<void> _dumpConfigurationsMetadata(
   List<TestConfiguration> configurations,
   String outputPath,
 ) async {
