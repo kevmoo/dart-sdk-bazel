@@ -29,8 +29,12 @@
 - **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**
-- `sdk-trr` (Antigravity): Bump Bazel to 9.1.1 (PR pending)
-- `sdk-brm` (Antigravity): Merge upstream Dart SDK at 3.13.0-207.0.dev (PR pending)
+- None right now.
+
+Session 141 — **(Antigravity) Built fork_delta.dart tool to audit fork delta and upstream CL candidates.**
+- **Built `fork_delta.dart`**: Implemented a standalone, highly polished Dart CLI utility (`tools/bazel/fork_delta.dart`) that automatically finds the merge base with upstream (`official/main`) and categorizes all fork differences into clear logical buckets (Bazel build infrastructure, AI Agent tracking, Modified SDK C++/Dart files, deleted files).
+- **Added Upstream CL Mode**: Implemented `--upstream-cl` mode to completely filter out Bazel and Agent noise, revealing exactly the 98 modified and 4 deleted source files that represent our true maintenance drift and candidate upstream patches.
+- **Documented Workflow**: Added comprehensive usage instructions for `fork_delta.dart` to `docs/bazel-migration/README.md` and authored a complete, scannable tooling map in `tools/bazel/README.md` to explain all migration utilities.
 
 Session 140 — **(Antigravity) Bumped Bazel to 9.1.1 and Merged Upstream Dart SDK 3.13.0-207.0.dev.**
 - **Bumped Bazel to 9.1.1**: Updated `.bazelversion` to `9.1.1`. Verified that it compiles cleanly on Apple Silicon.

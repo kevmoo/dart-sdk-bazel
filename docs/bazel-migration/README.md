@@ -111,6 +111,19 @@ buildozer 'print deps' //runtime/bin:dartvm
 buildozer 'add deps //some:lib' //runtime/bin:dartvm
 ```
 
+### 5. Inspecting Fork Delta vs. Upstream SDK (`fork_delta.dart`)
+Because our long-running Bazel fork contains hundreds of new Bazel configuration files alongside surgical modifications to the upstream Dart SDK source code, you can use our dedicated inspection tool to instantly see what changed:
+```bash
+# See a categorized, scannable summary of the entire fork delta
+dart tools/bazel/fork_delta.dart
+
+# Display precisely the non-Bazel Dart SDK source files modified or deleted to form an upstream CL
+dart tools/bazel/fork_delta.dart --upstream-cl
+
+# View the actual Git code diff for our modified SDK tooling or C++ files
+dart tools/bazel/fork_delta.dart --diff modified-tools
+```
+
 ---
 
 ## 🗺️ Directory Map
