@@ -22,7 +22,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
       continue;
     }
     final inner = configuration.configuration;
-    buildTargets.addAll(_selectBuildTargets(inner));
+    buildTargets.addAll(selectBuildTargets(inner));
     modes.add(inner.mode);
     architectures.add(inner.architecture);
     systems.add(inner.system);
@@ -80,7 +80,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
   return exitCode == 0;
 }
 
-List<String> _selectBuildTargets(Configuration inner) {
+List<String> selectBuildTargets(Configuration inner) {
   final compiler = inner.compiler;
   const targetsForCompilers = {
     Compiler.dartk: ['runtime'],

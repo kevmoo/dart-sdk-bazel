@@ -7,21 +7,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:status_file/expectation.dart';
-
-import 'command.dart';
-import 'test_case.dart';
-import 'test_file.dart';
-
 import 'android.dart';
 import 'browser_controller.dart';
+import 'build_configurations.dart';
 import 'co19_test_config.dart';
+import 'command.dart';
 import 'configuration.dart';
 import 'fuchsia.dart';
 import 'path.dart';
 import 'process_queue.dart';
 import 'service/web_driver_service.dart';
 import 'terminal.dart';
+import 'test_case.dart';
+import 'test_file.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -377,39 +375,17 @@ Future<void> dumpConfigurationsMetadata(
   for (var suite in testSuites) {
     var testCache = <String, List<TestFile>>{};
     suite.findTestCases((TestCase testCase) {
-      var resolvedExpectations = testCase.realExpected != Expectation.pass
-          ? {testCase.realExpected}
-          : testCase.expectedOutcomes;
-
-      var concreteOutcomes = [
-        Expectation.pass,
-        Expectation.compileTimeError,
-        Expectation.runtimeError,
-        Expectation.crash,
-        Expectation.timeout,
-      ];
-
-      var expectedOutcomeStrings = concreteOutcomes
-          .where(
-            (outcome) => resolvedExpectations.any(
-              (expected) => outcome.canBeOutcomeOf(expected),
-            ),
-          )
-          .map((e) => e.toString())
-          .toList();
-
-      if (expectedOutcomeStrings.isEmpty) {
-        expectedOutcomeStrings = [Expectation.pass.toString()];
-      }
-
       allTestCases.add({
         "name": testCase.displayName,
+        "compiler": testCase.configuration.compiler.name,
+        "runtime": testCase.configuration.runtime.name,
+        "build_targets": selectBuildTargets(
+          testCase.configuration.configuration,
+        ),
         "file_path": testCase.testFile.path.toNativePath(),
-        "original_file_path": testCase.testFile.originPath.toNativePath(),
-        "expected_outcome": expectedOutcomeStrings,
-        "shared_objects": testCase.testFile.sharedObjects,
-        "is_static_error_test": testCase.testFile.isStaticErrorTest,
-        "other_resources": testCase.testFile.otherResources,
+        "expected_outcome": testCase.expectedOutcomes
+            .map((e) => e.toString())
+            .toList(),
         "commands": testCase.commands.map((cmd) {
           if (cmd is ProcessCommand) {
             return {

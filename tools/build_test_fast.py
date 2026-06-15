@@ -30,36 +30,25 @@ def get_host_arch():
     return 'x64'
 
 
-def get_minimal_build_targets(compiler, test_paths):
-    targets = set()
 
-    # 1. Base compiler targets (Minimal!)
-    if compiler == 'dart2wasm':
-        targets.update([
-            'dartaotruntime', 'dart2wasm_platform.dill', 'dart2wasm',
-            'create_common_sdk', 'wasm-opt'
-        ])
-    elif compiler == 'dart2js':
-        # Often dart2js_bot or dart2js_platform.dill is enough, rather than create_sdk
-        targets.update(
-            ['dartaotruntime', 'dart2js_platform.dill', 'create_common_sdk'])
-    elif compiler == 'ddc':
-        targets.update(['ddc_stable_test_local', 'create_common_sdk'])
-    elif compiler in ['analyzer', 'dart2analyzer']:
-        pass  # Often no build needed, or just dartanalyzer
-    elif compiler == 'dartkp':
-        targets.update(['runtime', 'runtime_precompiled'])
-    elif compiler in ['vm', 'dartk', 'app_jitk', 'none']:
-        targets.update(['runtime'])
-    else:
-        targets.update(['runtime'])
-
-    # 2. Path-specific add-ons
+def guess_compiler_from_paths(test_paths):
+    # Try to guess the best compiler based on the test paths
     for path in test_paths:
-        if 'tests/ffi' in path:
-            targets.update(['ffi_test_functions', 'ffi_test_dynamic_library'])
+        # Wasm tests
+        if 'tests/web/wasm' in path or 'pkg/dart2wasm' in path:
+            return 'dart2wasm'
+        # DDC specific tests
+        elif 'tests/dartdevc' in path or 'pkg/dev_compiler' in path:
+            return 'ddc'
+        # General web / dart2js tests
+        elif 'tests/web' in path or 'pkg/compiler' in path:
+            return 'dart2js'
+        # Analyzer / language server tests
+        elif 'pkg/analyzer' in path or 'pkg/analysis_server' in path:
+            return 'dart2analyzer'
 
-    return list(targets)
+    # Default to the VM's JIT compiler
+    return 'dartk'
 
 
 def main():
@@ -114,8 +103,16 @@ def main():
         except:
             pass
 
-    meta_cmd = [sys.executable, test_script] + args + [f'--dump-test-metadata={meta_json_path}']
-    print(f"🔍 Discovering test graph: python3 tools/test.py {' '.join(args)} --dump-test-metadata=...")
+    # If compiler wasn't explicitly passed, guess the compiler to seed test discovery correctly
+    inferred = False
+    meta_args = list(args)
+    if compiler is None:
+        guessed = guess_compiler_from_paths(test_paths)
+        meta_args = ['-c', guessed] + meta_args
+        inferred = True
+
+    meta_cmd = [sys.executable, test_script] + meta_args + [f'--dump-test-metadata={meta_json_path}']
+    print(f"🔍 Discovering test graph: python3 tools/test.py {' '.join(meta_args)} --dump-test-metadata=...")
     meta_result = subprocess.run(meta_cmd, stdout=subprocess.DEVNULL)
     if meta_result.returncode != 0 or not os.path.exists(meta_json_path):
         print("❌ Test discovery failed! Please check your test selectors and arguments.")
@@ -130,12 +127,10 @@ def main():
         sys.exit(0)
 
     # Extract all required compilers from the discovered test cases
-    inferred = False
     if compiler is None:
         discovered_compilers = set(tc.get('compiler', 'dartk').lower() for tc in test_cases)
         discovered_compilers = set('dartk' if c == 'dart2bytecode' else c for c in discovered_compilers)
         compiler = list(discovered_compilers)[0] if discovered_compilers else 'dartk'
-        inferred = True
         print(f"🔮 Empirically discovered compilers from test matrix: {' '.join(f'[{c}]' for c in discovered_compilers)}")
     else:
         discovered_compilers = {compiler.lower()}
@@ -148,9 +143,8 @@ def main():
         print(f"🔮 Inferred runtime '\033[1m{runtime}\033[0m' for web compiler to reduce noise.")
 
     build_args = set()
-    for comp in discovered_compilers:
-        mapped_comp = 'vm' if comp in ['dartk', 'dart2bytecode'] else comp
-        build_args.update(get_minimal_build_targets(mapped_comp, test_paths))
+    for tc in test_cases:
+        build_args.update(tc.get('build_targets', []))
 
     build_args = list(build_args)
     targets_str = ' '.join(build_args) if build_args else '(none)'
