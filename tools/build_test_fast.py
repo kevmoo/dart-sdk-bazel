@@ -62,26 +62,6 @@ def get_minimal_build_targets(compiler, test_paths):
     return list(targets)
 
 
-def guess_compiler_from_paths(test_paths):
-    # Try to guess the best compiler based on the test paths
-    for path in test_paths:
-        # Wasm tests
-        if 'tests/web/wasm' in path or 'pkg/dart2wasm' in path:
-            return 'dart2wasm'
-        # DDC specific tests
-        elif 'tests/dartdevc' in path or 'pkg/dev_compiler' in path:
-            return 'ddc'
-        # General web / dart2js tests
-        elif 'tests/web' in path or 'pkg/compiler' in path:
-            return 'dart2js'
-        # Analyzer / language server tests
-        elif 'pkg/analyzer' in path or 'pkg/analysis_server' in path:
-            return 'dart2analyzer'
-
-    # Default to the VM's JIT compiler
-    return 'dartk'
-
-
 def main():
     args = sys.argv[1:]
 
@@ -125,39 +105,63 @@ def main():
         elif not arg.startswith('-'):
             test_paths.append(arg)
 
-    # Infer the compiler if not explicitly provided
+    # 1. Discover tests and exact metadata via dump-test-metadata
+    test_script = os.path.join(os.path.dirname(__file__), 'test.py')
+    meta_json_path = '/tmp/build_test_fast_meta.json'
+    if os.path.exists(meta_json_path):
+        try:
+            os.remove(meta_json_path)
+        except:
+            pass
+
+    meta_cmd = [sys.executable, test_script] + args + [f'--dump-test-metadata={meta_json_path}']
+    print(f"🔍 Discovering test graph: python3 tools/test.py {' '.join(args)} --dump-test-metadata=...")
+    meta_result = subprocess.run(meta_cmd, stdout=subprocess.DEVNULL)
+    if meta_result.returncode != 0 or not os.path.exists(meta_json_path):
+        print("❌ Test discovery failed! Please check your test selectors and arguments.")
+        sys.exit(meta_result.returncode if meta_result.returncode != 0 else 1)
+
+    import json
+    with open(meta_json_path, 'r') as f:
+        test_cases = json.load(f)
+
+    if not test_cases:
+        print("❓ No tests matched your selectors! Please check your test paths/arguments.\n")
+        sys.exit(0)
+
+    # Extract all required compilers from the discovered test cases
     inferred = False
     if compiler is None:
-        compiler = guess_compiler_from_paths(test_paths)
+        discovered_compilers = set(tc.get('compiler', 'dartk').lower() for tc in test_cases)
+        discovered_compilers = set('dartk' if c == 'dart2bytecode' else c for c in discovered_compilers)
+        compiler = list(discovered_compilers)[0] if discovered_compilers else 'dartk'
         inferred = True
-
-    if inferred:
-        print(
-            f"🔮 Inferred compiler '\033[1m{compiler}\033[0m' from test paths.")
+        print(f"🔮 Empirically discovered compilers from test matrix: {' '.join(f'[{c}]' for c in discovered_compilers)}")
+    else:
+        discovered_compilers = {compiler.lower()}
 
     # Default to d8 for web tests to reduce noise, if no runtime specified
     inferred_runtime = False
-    if runtime is None and compiler in ['dart2js', 'dart2wasm', 'ddc']:
+    if runtime is None and any(c in ['dart2js', 'dart2wasm', 'ddc'] for c in discovered_compilers):
         runtime = 'd8'
         inferred_runtime = True
-        print(
-            f"🔮 Inferred runtime '\033[1m{runtime}\033[0m' for web compiler to reduce noise."
-        )
+        print(f"🔮 Inferred runtime '\033[1m{runtime}\033[0m' for web compiler to reduce noise.")
 
-    build_args = get_minimal_build_targets(compiler, test_paths)
+    build_args = set()
+    for comp in discovered_compilers:
+        mapped_comp = 'vm' if comp in ['dartk', 'dart2bytecode'] else comp
+        build_args.update(get_minimal_build_targets(mapped_comp, test_paths))
 
+    build_args = list(build_args)
     targets_str = ' '.join(build_args) if build_args else '(none)'
-    print(
-        f"🎯 Determined minimal build targets for compiler '\033[1m{compiler}\033[0m': \033[1m{targets_str}\033[0m"
-    )
+    print(f"🎯 Determined minimal build targets: \033[1m{targets_str}\033[0m")
 
     stars_line = "🔹 " * 35
 
     if build_args:
         # 3. Build Dart using the minimal targets, matching test.py's mode and arch defaults
         build_script = os.path.join(os.path.dirname(__file__), 'build.py')
-        build_cmd = [sys.executable, build_script, '-m', mode, '-a', arch
-                    ] + build_args
+        build_cmd = [sys.executable, build_script, '-m', mode, '-a', arch] + build_args
         print(f"🚀 Building: python3 tools/build.py {' '.join(build_cmd[2:])}")
         print(stars_line)
 
@@ -173,13 +177,17 @@ def main():
         print("❓ No build targets required!\n")
 
     # 4. Run the tests
-    test_script = os.path.join(os.path.dirname(__file__), 'test.py')
-
     if inferred:
         args = ['-c', compiler] + args
 
     if inferred_runtime:
         args = ['-r', runtime] + args
+
+    # Ensure mode and arch match our build execution exactly
+    if not any(a in ['-m', '--mode'] for a in args):
+        args = ['-m', mode] + args
+    if not any(a in ['-a', '--arch'] for a in args):
+        args = ['-a', arch] + args
 
     test_cmd = [sys.executable, test_script] + args
     print(f"🧪 Running tests: python3 tools/test.py {' '.join(args)}")
