@@ -495,6 +495,7 @@ def _third_party_ext_impl(ctx):
         repo_type = "devtools",
         path = "third_party/devtools",
         build_file = "@//tools/bazel:third_party_overlays/devtools/BUILD.bazel.snap",
+        force_remote = True,
     )
     return ctx.extension_metadata(reproducible = True)
 
