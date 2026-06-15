@@ -29,7 +29,14 @@
 - **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**
-- `[none]`
+- `sdk-trr` (Antigravity): Bump Bazel to 9.1.1 (PR pending)
+- `sdk-brm` (Antigravity): Merge upstream Dart SDK at 3.13.0-207.0.dev (PR pending)
+
+Session 140 — **(Antigravity) Bumped Bazel to 9.1.1 and Merged Upstream Dart SDK 3.13.0-207.0.dev.**
+- **Bumped Bazel to 9.1.1**: Updated `.bazelversion` to `9.1.1`. Verified that it compiles cleanly on Apple Silicon.
+- **Synced Subrepositories**: Resolved `boringssl` compilation error (`missing p256_internal.h`) by running `gclient sync` and re-executing the third-party pruning script (`tools/prune_third_party_bazel_files.py`). Forced Bazel to re-evaluate the local external repository by clearing its cached directory.
+- **Merged Upstream Dart SDK 3.13.0-207.0.dev**: Merged tag `3.13.0-207.0.dev` cleanly without any conflicts.
+- **Validated Full SDK Build E2E**: Successfully compiled the standalone Dart VM binary (`//runtime/bin:dart`) and built the full packaged Dart SDK (`//sdk:create_sdk`), completing all 3,806 actions green under Bazel 9.1.1.
 
 Session 139 — **(Antigravity) Implemented sdk-njh: Hard-fail on unmatched test selectors under Bazel.**
 - **Implemented Strict Selectors**: Modified `tools/test.py` under Bazel delegation to collect all selectors that do not match any Bazel targets, print a clear error message for each, and exit with a non-zero code (`1`). This prevents silent coverage loss in CI from typo'd test suites.

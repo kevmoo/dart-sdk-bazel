@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 65/76 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 64/77 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -82,13 +82,13 @@ graph TD
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
+    sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::inProgress
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::completed
     sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
     sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
-    sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
@@ -97,6 +97,7 @@ graph TD
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::completed
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
+    sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::inProgress
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_v49["sdk-v49:<br>Design and implement virtual namespaced package targets"]:::completed
@@ -265,6 +266,19 @@ graph TD
 
 ---
 
+### 🎯 [sdk-brm] Merge upstream Dart SDK at 3.13.0-207.0.dev
+- **Status**: `[IN_PROGRESS]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-qoj] [process] Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -287,6 +301,19 @@ graph TD
   - None
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-trr] Bump Bazel to 9.1.1
+- **Status**: `[IN_PROGRESS]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
 - **Success Criteria**:
 
 ---
