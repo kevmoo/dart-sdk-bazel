@@ -820,6 +820,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-hw2] Merge upstream origin/dev 3.13.0-201.0.dev
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #24](https://github.com/kevmoo/dart-sdk-bazel/pull/24)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Routine upstream merge per merge_main_to_bazel skill. 90 commits since 3.13.0-189. Includes boringssl roll fallout fix in the BUILD.bazel.snap overlay (P-256 nistz code replaced with C upstream; asm sources now required). Validated: dartvm builds+runs 3.13.0-201, tools/bazel/presubmit.sh green. Landed on branch merge-dev-3.13.0-201.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-mv2] [M3] Wire up DevTools and Core Utility Binaries
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

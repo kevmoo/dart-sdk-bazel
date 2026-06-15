@@ -57,3 +57,15 @@ For outstanding, unresolved SDK-internal issues and architectural debt surfaced 
 - **File**: [entry_points.dart](file:///usr/local/google/home/kevmoo/github/sdk/pkg/front_end/tool/entry_points.dart#L567-L575)
 - **Change**: Read `Platform.packageConfig` in `computeHostDependencies` and pass it to `getDependencies`.
 - **Why upstream**: Ensures host dependencies are resolved using the actual packages configuration file in use, rather than assuming standard layout.
+
+### 6. Test Runner: Metadata Dumping Optimization
+- **Bead**: `sdk-65j`
+- **File**: [test_runner.dart](file:///usr/local/google/home/kevmoo/github/sdk/pkg/test_runner/bin/test_runner.dart#L38-L46)
+- **Change**: Check if the test runner is only invoked for metadata dumping (`--dump-test-metadata`); if so, skip `buildConfigurations`.
+- **Why upstream**: Eliminates unnecessary Bazel/Ninja target build checks when CI or external IDE tools only need to dump test metadata.
+
+### 7. Standalone IO Tests: Sandboxed Runfiles Resource Declarations
+- **Bead**: `sdk-4kr`
+- **Files**: Over 25 test files under `tests/standalone/io/*.dart` (such as `process_check_arguments_test.dart`).
+- **Change**: Add `// OtherResources=...` companion resource file annotations to test files that spawn subprocess scripts.
+- **Why upstream**: Absolutely critical for hermetic sandboxed test execution (Bazel/RBE/Buildfarm) so the test runner knows to stage companion scripts in the sandbox runfiles tree.

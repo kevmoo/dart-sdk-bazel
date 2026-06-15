@@ -31,6 +31,11 @@
 **Active claims (who is editing what right now):**
 - None right now.
 
+Session 142 — **(Antigravity) Created non-Bazel general cleanup and upstream candidate backlog tasks.**
+- **Authored New Upstream Candidate Beads**: Created Beads `sdk-65j` (Test runner metadata dumping optimization) and `sdk-4kr` (Hermetic `OtherResources` resource declarations across `tests/standalone/io/`) to formally track undocumented local SDK enhancements.
+- **Appended to Upstream Candidates List**: Appended formal Task specifications to `docs/bazel-migration/UPSTREAM_CANDIDATES.md`.
+- **Regenerated Board & Pushed Dolt DB**: Regenerated `BACKLOG.md` and `BACKLOG_HISTORY.md` and successfully executed `bd dolt push` to store the new task records durably on the remote Dolt database.
+
 Session 141 — **(Antigravity) Built fork_delta.dart tool to audit fork delta and upstream CL candidates.**
 - **Built `fork_delta.dart`**: Implemented a standalone, highly polished Dart CLI utility (`tools/bazel/fork_delta.dart`) that automatically finds the merge base with upstream (`official/main`) and categorizes all fork differences into clear logical buckets (Bazel build infrastructure, AI Agent tracking, Modified SDK C++/Dart files, deleted files).
 - **Added Upstream CL Mode**: Implemented `--upstream-cl` mode to completely filter out Bazel and Agent noise, revealing exactly the 98 modified and 4 deleted source files that represent our true maintenance drift and candidate upstream patches.
