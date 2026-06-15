@@ -29,7 +29,7 @@
 - **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**
-- None right now.
+- `sdk-65j` (Antigravity): Upstream Test Runner Metadata Dumping Optimization (PR pending)
 
 Session 142 — **(Antigravity) Created non-Bazel general cleanup and upstream candidate backlog tasks.**
 - **Authored New Upstream Candidate Beads**: Created Beads `sdk-65j` (Test runner metadata dumping optimization) and `sdk-4kr` (Hermetic `OtherResources` resource declarations across `tests/standalone/io/`) to formally track undocumented local SDK enhancements.
