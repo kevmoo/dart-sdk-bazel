@@ -96,7 +96,7 @@ def _copy_tree_impl(ctx):
     src_dir = ctx.attr.src_dir
     if ctx.files.srcs:
         first_file = ctx.files.srcs[0]
-        if first_file.owner.workspace_name:
+        if first_file.owner and first_file.owner.workspace_name:
             workspace_root = first_file.owner.workspace_root
             if workspace_root:
                 src_dir = workspace_root + "/" + ctx.attr.src_dir
