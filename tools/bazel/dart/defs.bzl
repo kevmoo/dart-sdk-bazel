@@ -93,10 +93,18 @@ _SDK_LIB_EXCLUDE = "*.svn,doc,*.py,*.gypi,*.sh,.git*,*.gn,*.gni"
 
 def _copy_tree_impl(ctx):
     out = ctx.actions.declare_directory(ctx.attr.out_dir)
+    src_dir = ctx.attr.src_dir
+    if ctx.files.srcs:
+        first_file = ctx.files.srcs[0]
+        if first_file.owner.workspace_name:
+            workspace_root = first_file.owner.workspace_root
+            if workspace_root:
+                src_dir = workspace_root + "/" + ctx.attr.src_dir
+
     ctx.actions.run_shell(
         command = "python3 {tool} --from {src} --to {to} --exclude '{exclude}'".format(
             tool = ctx.file._tool.path,
-            src = ctx.attr.src_dir,
+            src = src_dir,
             to = out.path,
             exclude = ctx.attr.exclude,
         ),

@@ -745,7 +745,7 @@ copy_tree(
     name = "copy_prebuilt_devtools",
     srcs = ["//:prebuilt_devtools_files"],
     out_dir = "dart-sdk/bin/resources/devtools_prebuilt",
-    src_dir = "third_party/devtools/web",
+    src_dir = "web",
 )
 
 copy_directory(

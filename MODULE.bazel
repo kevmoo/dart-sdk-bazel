@@ -28,7 +28,7 @@ use_repo(
 )
 
 third_party = use_extension("//tools/bazel:third_party.bzl", "third_party_extension")
-use_repo(third_party, "binaryen", "boringssl", "chrome", "chromedriver", "firefox", "icu", "perfetto", "prebuilt_dart_sdk", "zlib")
+use_repo(third_party, "binaryen", "boringssl", "chrome", "chromedriver", "devtools", "firefox", "icu", "perfetto", "prebuilt_dart_sdk", "zlib")
 
 dart_packages = use_extension("//tools/bazel/dart:packages_extension.bzl", "dart_packages_extension")
 use_repo(dart_packages, "dart_packages")

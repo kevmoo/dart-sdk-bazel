@@ -48,6 +48,7 @@ def parse_deps(deps_file_path, dep_name):
         "chrome": "sdk/third_party/browsers/chrome",
         "chromedriver": "sdk/third_party/webdriver/chrome",
         "firefox": "sdk/third_party/browsers/firefox",
+        "devtools": "sdk/third_party/devtools",
     }
 
     if dep_name in mappings:
