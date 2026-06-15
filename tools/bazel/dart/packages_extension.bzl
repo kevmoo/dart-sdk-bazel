@@ -73,6 +73,7 @@ def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".
 
 def _packages_repo_impl(ctx):
     workspace_dir = ctx.workspace_root
+    devtools_root = ctx.path(ctx.attr.devtools_marker).dirname
 
     # Register dependency on the sentinel file to force Bzlmod invalidation if the workspace is cleaned.
     # This resolves the bug where Bazel restores the virtual repo from cache but the cloned files in the
@@ -167,8 +168,11 @@ def _packages_repo_impl(ctx):
     for name in sorted(pkgs.keys()):
         pkg = pkgs[name]
 
-        # Parse dependencies from pubspec in the workspace
-        pubspec_path = workspace_dir.get_child(pkg.reldir).get_child("pubspec.yaml")
+        # Parse dependencies from pubspec
+        if name == "devtools_shared" and not use_local_third_party:
+            pubspec_path = devtools_root.get_child("devtools_shared").get_child("pubspec.yaml")
+        else:
+            pubspec_path = workspace_dir.get_child(pkg.reldir).get_child("pubspec.yaml")
 
         # Parse regular dependencies for dart_library
         deps = []
@@ -183,12 +187,26 @@ def _packages_repo_impl(ctx):
                 dev_deps.append(d)
 
         # Resolve physical path
-        if pkg.reldir.startswith("third_party/pkg/") and not use_local_third_party:
-            # CI/Clean mode: resolve to the cloned directory inside the virtual repository
-            physical_path = ctx.path(pkg.reldir)
+        is_third_party_pkg = pkg.reldir.startswith("third_party/pkg/")
+
+        if is_third_party_pkg and not use_local_third_party:
+            # Check if it was actually cloned into the virtual repository
+            cloned_path = ctx.path(pkg.reldir)
+            if cloned_path.exists:
+                physical_path = cloned_path
+                is_cloned = True
+            else:
+                # It's a Git-tracked package in the main workspace (e.g. third_party/pkg/dap)
+                physical_path = workspace_dir.get_child(pkg.reldir)
+                is_cloned = False
+        elif name == "devtools_shared" and not use_local_third_party:
+            # CI Mode for devtools_shared: resolve to the external @devtools repository
+            physical_path = devtools_root.get_child("devtools_shared")
+            is_cloned = False
         else:
             # Developer mode / Local package: resolve to the main workspace
             physical_path = workspace_dir.get_child(pkg.reldir)
+            is_cloned = False
 
         physical_lib = physical_path.get_child(pkg.lib)
 
@@ -197,7 +215,7 @@ def _packages_repo_impl(ctx):
         # We only create symlinks in Developer Mode or for local SDK packages.
         # In CI Mode for third-party packages, we map them directly to their cloned paths
         # in package_config.json, eliminating the need for symlinks entirely!
-        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+        if not is_cloned:
             # 1. Symlink 'lib' (mandatory for dart_library)
             if physical_lib.exists:
                 ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
@@ -233,7 +251,7 @@ def _packages_repo_impl(ctx):
         # Determine sources: Developer mode (glob) vs CI mode (explicit)
         workspace_root_str = str(workspace_dir)
 
-        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+        if not is_cloned:
             # Developer mode or Local package: use standard globbing
             glob_paths = ['"%s/**/*.dart"' % pkg.lib, '"%s/**/*.yaml"' % pkg.lib]
             for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
@@ -329,7 +347,7 @@ def _packages_repo_impl(ctx):
         # Since the config will be written to .dart_tool/package_config.json,
         # we must use '../pkg/name' for local/developer packages, or point
         # directly to the cloned 'third_party/' directory in CI Mode.
-        if use_local_third_party or not pkg.reldir.startswith("third_party/pkg/"):
+        if not is_cloned:
             root_uri = "../pkg/%s" % name
         else:
             root_uri = "../%s" % pkg.reldir
@@ -380,6 +398,9 @@ def _packages_repo_impl(ctx):
 dart_packages_repo = repository_rule(
     implementation = _packages_repo_impl,
     environ = ["CI"],
+    attrs = {
+        "devtools_marker": attr.label(default = Label("@devtools//:web")),
+    },
 )
 
 def _packages_ext_impl(ctx):
