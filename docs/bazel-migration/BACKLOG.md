@@ -268,6 +268,7 @@ graph TD
 
 ### 🎯 [sdk-brm] Merge upstream Dart SDK at 3.13.0-207.0.dev
 - **Status**: `[IN_PROGRESS]`
+- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -307,6 +308,7 @@ graph TD
 
 ### 🎯 [sdk-trr] Bump Bazel to 9.1.1
 - **Status**: `[IN_PROGRESS]`
+- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
