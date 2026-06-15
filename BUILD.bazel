@@ -328,12 +328,9 @@ filegroup(
 )
 
 # Expose prebuilt DevTools web assets to sdk packaging.
-filegroup(
+alias(
     name = "prebuilt_devtools_files",
-    srcs = glob(
-        ["third_party/devtools/web/**"],
-        allow_empty = True,
-    ),
+    actual = "@devtools//:web_files",
 )
 
 # Expose the hermetic multiarch Debian sysroot files for the toolchain.

@@ -410,20 +410,6 @@ def _third_party_ext_impl(ctx):
     if res.return_code != 0:
         fail("Failed to clone third-party Dart package dependencies: " + res.stderr)
 
-    # Dynamically fetch CIPD dependencies from DEPS if missing
-    fetch_cipd_script = ctx.path(Label("@//tools/bazel:fetch_cipd_dependencies.py"))
-    ctx.watch(fetch_cipd_script)
-    ctx.watch(Label("@//:DEPS"))
-    res = ctx.execute(["python3", str(fetch_cipd_script)])
-    if res.stdout:
-        # buildifier: disable=print
-        print("Fetch CIPD stdout:\n" + res.stdout)
-    if res.stderr:
-        # buildifier: disable=print
-        print("Fetch CIPD stderr:\n" + res.stderr)
-    if res.return_code != 0:
-        fail("Failed to fetch third-party CIPD dependencies: " + res.stderr)
-
     # 1. ICU Dynamic Overlay Repository
     overlay_repository(
         name = "icu",
@@ -501,6 +487,14 @@ def _third_party_ext_impl(ctx):
         prefix = "src",
         build_file = "@//tools/bazel:third_party_overlays/binaryen/BUILD.bazel.snap",
         clean_upstream_build_files = True,
+    )
+
+    # 10. DevTools Prebuilt Overlay Repository
+    overlay_repository(
+        name = "devtools",
+        repo_type = "devtools",
+        path = "third_party/devtools",
+        build_file = "@//tools/bazel:third_party_overlays/devtools/BUILD.bazel.snap",
     )
     return ctx.extension_metadata(reproducible = True)
 
