@@ -53,8 +53,14 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
+  var pythonExe = Platform.environment['PYTHON'] ?? 'python3';
+  var buildScript = 'tools/build.py';
+  if (!File(buildScript).existsSync()) {
+    buildScript = Platform.script.resolve('../build.py').toFilePath();
+  }
+
   final command = [
-    'tools/build.py',
+    buildScript,
     '--mode',
     modes.join(','),
     '--arch',
@@ -64,9 +70,13 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
     ...osFlags,
     ...buildTargets,
   ];
-  print('Running command: python3 ${command.join(' ')}');
+  print('Running command: $pythonExe ${command.join(' ')}');
 
-  final process = await Process.start('python3', command);
+  final process = await Process.start(
+    pythonExe,
+    command,
+    environment: Platform.environment,
+  );
   stdout.nonBlocking.addStream(process.stdout);
   stderr.nonBlocking.addStream(process.stderr);
   final exitCode = await process.exitCode;

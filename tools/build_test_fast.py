@@ -95,8 +95,14 @@ def main():
             test_paths.append(arg)
 
     # 1. Discover tests and exact metadata via dump-test-metadata
-    test_script = os.path.join(os.path.dirname(__file__), 'test.py')
-    meta_json_path = '/tmp/build_test_fast_meta.json'
+    tools_dir = os.path.dirname(os.path.abspath(__file__))
+    test_script = os.path.join(tools_dir, 'test.py')
+    if not os.path.exists(test_script):
+        tools_dir = os.path.join(os.getcwd(), 'tools')
+        test_script = os.path.join(tools_dir, 'test.py')
+
+    import tempfile
+    meta_json_path = os.path.join(tempfile.gettempdir(), 'build_test_fast_meta.json')
     if os.path.exists(meta_json_path):
         try:
             os.remove(meta_json_path)
@@ -154,7 +160,7 @@ def main():
 
     if build_args:
         # 3. Build Dart using the minimal targets, matching test.py's mode and arch defaults
-        build_script = os.path.join(os.path.dirname(__file__), 'build.py')
+        build_script = os.path.join(tools_dir, 'build.py')
         build_cmd = [sys.executable, build_script, '-m', mode, '-a', arch] + build_args
         print(f"🚀 Building: python3 tools/build.py {' '.join(build_cmd[2:])}")
         print(stars_line)
