@@ -36,11 +36,16 @@ cc_library(
     # buildifier: disable=platform-specific-binaries
     copts = [
         "-Iruntime",
-        "-m64",
-        "-march=x86-64",
-        "-msse2",
-        "-fPIE",
-        "--target=x86_64-linux-gnu",
+    ] + select({
+        "@platforms//os:linux": [
+            "-m64",
+            "-march=x86-64",
+            "-msse2",
+            "-fPIE",
+            "--target=x86_64-linux-gnu",
+        ],
+        "//conditions:default": [],
+    }) + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",

@@ -8,68 +8,21 @@ load("@rules_cc//cc:defs.bzl", _cc_binary = "cc_binary", _cc_library = "cc_libra
 
 cc_shared_library = _cc_shared_library
 
-def _filter_copts(copts, platform):
-    if platform != "macos":
-        return copts
-    if type(copts) != "list":
-        return copts
-    cleaned = []
-    for c in copts:
-        # Strip Linux target cross-compilation flag
-        if c.startswith("--target="):
-            continue
-
-        # Strip x86-specific flags on Mac (since host might be arm64/Apple Silicon)
-        if c.startswith("-march=") or c.startswith("-msse") or c == "-mssse3" or c == "-msse4.1" or c == "-msse4.2" or c == "-mavx":
-            continue
-
-        # Strip PIE/PIC flags to let the host toolchain manage them
-        if c == "-fPIE" or c == "-fpie" or c == "-fPIC" or c == "-fpic":
-            continue
-        cleaned.append(c)
-    return cleaned
-
-def _filter_linkopts(linkopts, platform):
-    if platform != "macos":
-        return linkopts
-    if type(linkopts) != "list":
-        return linkopts
-    cleaned = []
-    for linkopt in linkopts:
-        # Strip Linux-specific libs and linker options that fail or are redundant on macOS
-        if linkopt in ("-lrt", "-Wl,--gc-sections", "-lutil", "-ldl", "-lpthread", "-stdlib=libc++"):
-            continue
-        cleaned.append(linkopt)
-    return cleaned
-
-def cc_library(name, defines = [], local_defines = [], copts = [], linkopts = [], **kwargs):
-    """Wrapper for cc_library that injects platform and architecture defines/copts.
-
-    Args:
-      name: Target name.
-      defines: Preprocessor defines.
-      local_defines: Local preprocessor defines.
-      copts: Compiler options.
-      linkopts: Linker options.
-      **kwargs: Remaining arguments.
-    """
-
-    # Automatically inject platform preprocessor defines (local to the target compile)
+def _inject_local_defines(local_defines, defines):
     custom_local_defines = local_defines + select({
         "@platforms//os:linux": ["DART_TARGET_OS_LINUX"],
         "@platforms//os:macos": ["DART_TARGET_OS_MACOS", "_DARWIN_C_SOURCE"],
         "//conditions:default": [],
     })
 
-    # Check if the target has its own explicit target architecture defined
     has_target_arch = False
     if type(defines) == "list":
         for d in defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
+            if type(d) == "string" and d.strip("\"'").startswith("TARGET_ARCH_"):
                 has_target_arch = True
     if type(local_defines) == "list":
         for d in local_defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
+            if type(d) == "string" and d.strip("\"'").startswith("TARGET_ARCH_"):
                 has_target_arch = True
 
     if not has_target_arch:
@@ -84,256 +37,63 @@ def cc_library(name, defines = [], local_defines = [], copts = [], linkopts = []
             "@//build/config:target_arch_x64": ["TARGET_ARCH_X64"],
             "//conditions:default": [],
         })
+    return custom_local_defines
 
-    # Automatically inject platform-specific compiler options
-    if type(copts) == "list":
-        custom_copts = select({
-            "@platforms//os:linux": _filter_copts(copts, "linux"),
-            "@platforms//os:macos": _filter_copts(copts, "macos") + [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": copts,
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
-    else:
-        custom_copts = copts + select({
-            "@platforms//os:macos": [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": [],
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
+def _inject_copts(copts):
+    return copts + select({
+        "@platforms//os:macos": [
+            "-mmacosx-version-min=14.0",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "@//build/config:linux_x64": [
+            "-m64",
+            "-march=x86-64",
+            "-msse2",
+            "--target=x86_64-linux-gnu",
+        ],
+        "//conditions:default": [],
+    })
 
-    # Automatically inject platform-specific linker options
-    if type(linkopts) == "list":
-        custom_linkopts = select({
-            "@platforms//os:macos": _filter_linkopts(linkopts, "macos"),
-            "//conditions:default": linkopts,
-        })
-    else:
-        custom_linkopts = linkopts
-
+def cc_library(name, defines = [], local_defines = [], copts = [], linkopts = [], **kwargs):
+    """Wrapper for cc_library that injects platform and architecture defines/copts."""
     _cc_library(
         name = name,
         defines = defines,
-        local_defines = custom_local_defines,
-        copts = custom_copts,
-        linkopts = custom_linkopts,
+        local_defines = _inject_local_defines(local_defines, defines),
+        copts = _inject_copts(copts),
+        linkopts = linkopts,
         **kwargs
     )
 
 def cc_binary(name, defines = [], local_defines = [], copts = [], linkopts = [], **kwargs):
-    """Wrapper for cc_binary that injects platform and architecture defines/copts.
-
-    Args:
-      name: Target name.
-      defines: Preprocessor defines.
-      local_defines: Local preprocessor defines.
-      copts: Compiler options.
-      linkopts: Linker options.
-      **kwargs: Remaining arguments.
-    """
-
-    # Automatically inject platform preprocessor defines (local to the target compile)
-    custom_local_defines = local_defines + select({
-        "@platforms//os:linux": ["DART_TARGET_OS_LINUX"],
-        "@platforms//os:macos": ["DART_TARGET_OS_MACOS", "_DARWIN_C_SOURCE"],
-        "//conditions:default": [],
-    })
-
-    # Check if the target has its own explicit target architecture defined
-    has_target_arch = False
-    if type(defines) == "list":
-        for d in defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
-                has_target_arch = True
-    if type(local_defines) == "list":
-        for d in local_defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
-                has_target_arch = True
-
-    if not has_target_arch:
-        custom_local_defines = custom_local_defines + select({
-            "@//build/config:target_arch_arm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_default_arm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_default_x64": ["TARGET_ARCH_X64"],
-            "@//build/config:target_arch_simarm": ["TARGET_ARCH_ARM"],
-            "@//build/config:target_arch_simarm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_simriscv32": ["TARGET_ARCH_RISCV32"],
-            "@//build/config:target_arch_simriscv64": ["TARGET_ARCH_RISCV64"],
-            "@//build/config:target_arch_x64": ["TARGET_ARCH_X64"],
-            "//conditions:default": [],
-        })
-
-    # Automatically inject platform-specific compiler options
-    if type(copts) == "list":
-        custom_copts = select({
-            "@platforms//os:linux": _filter_copts(copts, "linux"),
-            "@platforms//os:macos": _filter_copts(copts, "macos") + [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": copts,
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
-    else:
-        custom_copts = copts + select({
-            "@platforms//os:macos": [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": [],
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
-
-    # Automatically inject platform-specific linker options
-    if type(linkopts) == "list":
-        custom_linkopts = select({
-            "@platforms//os:macos": _filter_linkopts(linkopts, "macos") + [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": linkopts,
-        })
-    else:
-        custom_linkopts = linkopts + select({
-            "@platforms//os:macos": [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": [],
-        })
-
+    """Wrapper for cc_binary that injects platform and architecture defines/copts."""
     _cc_binary(
         name = name,
         defines = defines,
-        local_defines = custom_local_defines,
-        copts = custom_copts,
-        linkopts = custom_linkopts,
+        local_defines = _inject_local_defines(local_defines, defines),
+        copts = _inject_copts(copts),
+        linkopts = linkopts + select({
+            "@platforms//os:macos": [
+                "-mmacosx-version-min=14.0",
+            ],
+            "//conditions:default": [],
+        }),
         **kwargs
     )
 
 def cc_test(name, defines = [], local_defines = [], copts = [], linkopts = [], **kwargs):
-    """Wrapper for cc_test that injects platform and architecture defines/copts.
-
-    Args:
-      name: Target name.
-      defines: Preprocessor defines.
-      local_defines: Local preprocessor defines.
-      copts: Compiler options.
-      linkopts: Linker options.
-      **kwargs: Remaining arguments.
-    """
-
-    # Automatically inject platform preprocessor defines (local to the target compile)
-    custom_local_defines = local_defines + select({
-        "@platforms//os:linux": ["DART_TARGET_OS_LINUX"],
-        "@platforms//os:macos": ["DART_TARGET_OS_MACOS", "_DARWIN_C_SOURCE"],
-        "//conditions:default": [],
-    })
-
-    # Check if the target has its own explicit target architecture defined
-    has_target_arch = False
-    if type(defines) == "list":
-        for d in defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
-                has_target_arch = True
-    if type(local_defines) == "list":
-        for d in local_defines:
-            if type(d) == "string" and d.strip('"\'').startswith("TARGET_ARCH_"):
-                has_target_arch = True
-
-    if not has_target_arch:
-        custom_local_defines = custom_local_defines + select({
-            "@//build/config:target_arch_arm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_default_arm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_default_x64": ["TARGET_ARCH_X64"],
-            "@//build/config:target_arch_simarm": ["TARGET_ARCH_ARM"],
-            "@//build/config:target_arch_simarm64": ["TARGET_ARCH_ARM64"],
-            "@//build/config:target_arch_simriscv32": ["TARGET_ARCH_RISCV32"],
-            "@//build/config:target_arch_simriscv64": ["TARGET_ARCH_RISCV64"],
-            "@//build/config:target_arch_x64": ["TARGET_ARCH_X64"],
-            "//conditions:default": [],
-        })
-
-    # Automatically inject platform-specific compiler options
-    if type(copts) == "list":
-        custom_copts = select({
-            "@platforms//os:linux": _filter_copts(copts, "linux"),
-            "@platforms//os:macos": _filter_copts(copts, "macos") + [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": copts,
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
-    else:
-        custom_copts = copts + select({
-            "@platforms//os:macos": [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": [],
-        }) + select({
-            "@//build/config:linux_x64": [
-                "-m64",
-                "-march=x86-64",
-                "-msse2",
-                "--target=x86_64-linux-gnu",
-            ],
-            "//conditions:default": [],
-        })
-
-    # Automatically inject platform-specific linker options
-    if type(linkopts) == "list":
-        custom_linkopts = select({
-            "@platforms//os:macos": _filter_linkopts(linkopts, "macos") + [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": linkopts,
-        })
-    else:
-        custom_linkopts = linkopts + select({
-            "@platforms//os:macos": [
-                "-mmacosx-version-min=14.0",
-            ],
-            "//conditions:default": [],
-        })
-
+    """Wrapper for cc_test that injects platform and architecture defines/copts."""
     _cc_test(
         name = name,
         defines = defines,
-        local_defines = custom_local_defines,
-        copts = custom_copts,
-        linkopts = custom_linkopts,
+        local_defines = _inject_local_defines(local_defines, defines),
+        copts = _inject_copts(copts),
+        linkopts = linkopts + select({
+            "@platforms//os:macos": [
+                "-mmacosx-version-min=14.0",
+            ],
+            "//conditions:default": [],
+        }),
         **kwargs
     )
