@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 67/80 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 68/84 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -66,7 +66,11 @@ graph TD
     sdk_cte["sdk-cte:<br>Fix Bazel wildcard target evaluation and package loading errors"]:::completed
     sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
     sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
-    sdk_duv["sdk-duv:<br>Streamline and Optimize Bazel Build Definitions"]:::pending
+    sdk_duv["sdk-duv:<br>Bazel Build & Testing Optimization Umbrella"]:::pending
+    sdk_duv.1["sdk-duv.1:<br>Relocate macOS C++ flag filtering to select{} blocks"]:::completed
+    sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
+    sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::pending
+    sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
@@ -124,6 +128,10 @@ graph TD
     sdk_9ep --> sdk_9qx
     sdk_31k --> sdk_c2c
     sdk_8ut --> sdk_duv
+    sdk_duv --> sdk_duv.1
+    sdk_duv --> sdk_duv.2
+    sdk_duv --> sdk_duv.3
+    sdk_duv --> sdk_duv.4
     sdk_31k --> sdk_e8u
     sdk_9qx --> sdk_fnn
     sdk_oce --> sdk_g2l
@@ -232,7 +240,7 @@ graph TD
 
 ---
 
-### 🎯 [sdk-duv] Streamline and Optimize Bazel Build Definitions
+### 🎯 [sdk-duv] Bazel Build & Testing Optimization Umbrella
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-8ut`
 - **Owner**: `[none]`
@@ -245,6 +253,45 @@ graph TD
 - **Success Criteria**:
   - [ ] macOS flag filtering moved from macro wrappers to toolchain definitions where possible.
   - [ ] Starlark macro complexity reduced (audited by a senior engineer review).
+
+---
+
+### 🎯 [sdk-duv.2] Implement persistent workers for Dart compilations
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Enable --strategy=DartCompile=worker for dart_compile_dill and kernel snapshot actions to eliminate VM startup and JIT warmup latency during incremental testing.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-duv.3] Decouple test cache dependencies via depset dill summaries
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor dart_library to propagate depset compilation summaries so touching un-imported SDK library files does not invalidate repository-wide test caches.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-duv.4] Optimize GitHub Actions CI Bazel caching and sandbox execution
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Evaluate migrating GitHub Actions disk-cache to gRPC remote caching (BuildBuddy/GCS) and tuning CI .bazelrc flags (--experimental_remote_cache_async) to reduce 1s/entry cache hit latency.
+- **Success Criteria**:
 
 ---
 

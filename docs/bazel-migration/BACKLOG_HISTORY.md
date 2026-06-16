@@ -491,6 +491,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-duv.1] Relocate macOS C++ flag filtering to select() blocks
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #33](https://github.com/kevmoo/dart-sdk-bazel/pull/33)
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Replace Python-style Starlark list iteration across all cc_library/cc_binary wrappers in rules.bzl with targeted select() blocks in embedder/BUILD.bazel and sanitizers/BUILD.bazel.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-dz3] Relocate and Migrate Worktree Symlinker to Dart
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
