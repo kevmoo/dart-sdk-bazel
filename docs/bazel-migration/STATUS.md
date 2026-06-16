@@ -25,11 +25,16 @@
 
 **Open handoffs / residuals:**
 - **Blocked on NDK for TASK_004**: Android cross-compilation target `android_arm64` requires the Android NDK to be installed on the host or `download_android_deps` checked out.
-- **Nightly Full SDK Build has never executed** (landed PR #21; first cron fires 08:00 UTC). Recommend one manual `workflow_dispatch` so a human sees its maiden failure mode; check the free-disk numbers and cache save lines in the log.
 - **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**
 - `sdk-65j` (Antigravity): Upstream Test Runner Metadata Dumping Optimization (PR pending)
+
+Session 143 — **(Antigravity) Overhauled project READMEs, established permanent default worktree, reconciled Beads DB.**
+- **Overhauled Main Readmes**: Saved official upstream docs as `README.upstream.md` and overhauled `README.md` to clearly explain the Bazel fork project, provide quickstart instructions (`mkagenttree`), and link to migration resources.
+- **Established Permanent Default Worktree**: Created permanent default Bazel checkout at `~/github/dart-sdk/bazel/agent-bazel-main/sdk` sitting on `main`.
+- **Reconciled Beads Tracker & Backlog**: Identified global DB fallback skew, formally closed completed issues (`sdk-7nj`, `sdk-brm`, `sdk-trr`), and regenerated `BACKLOG.md` (now at **67/80 tasks = 83.8% complete**).
+- **Verified Nightly SDK Workflow**: Successfully built full packaged SDK (`//sdk:create_sdk`), executed smoke tests, and ran presubmit analysis suites.
 
 Session 142 — **(Antigravity) Created non-Bazel general cleanup and upstream candidate backlog tasks.**
 - **Authored New Upstream Candidate Beads**: Created Beads `sdk-65j` (Test runner metadata dumping optimization) and `sdk-4kr` (Hermetic `OtherResources` resource declarations across `tests/standalone/io/`) to formally track undocumented local SDK enhancements.
