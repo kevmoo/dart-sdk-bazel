@@ -29,6 +29,7 @@ REPOS = [
     "third_party/pkg/vector_math",
     "third_party/pkg/webdev",
     "third_party/pkg/webdriver",
+    "third_party/pkg/webkit_inspection_protocol",
     "third_party/pkg/web",
 ]
 
