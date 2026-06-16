@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 65/80 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 67/80 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -76,7 +76,7 @@ graph TD
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
-    sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::pending
+    sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
@@ -84,7 +84,7 @@ graph TD
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
-    sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::inProgress
+    sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::completed
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::completed
     sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
     sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
@@ -100,7 +100,7 @@ graph TD
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::completed
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
-    sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::inProgress
+    sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_v49["sdk-v49:<br>Design and implement virtual namespaced package targets"]:::completed
@@ -269,7 +269,8 @@ graph TD
 ---
 
 ### 🎯 [sdk-65j] Upstream Test Runner Metadata Dumping Optimization
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
+- **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/513342)
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -291,20 +292,6 @@ graph TD
   - None
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-brm] Merge upstream Dart SDK at 3.13.0-207.0.dev
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---
@@ -331,20 +318,6 @@ graph TD
   - None
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-trr] Bump Bazel to 9.1.1
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---

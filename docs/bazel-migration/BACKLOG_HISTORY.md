@@ -742,6 +742,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-brm] Merge upstream Dart SDK at 3.13.0-207.0.dev
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -910,6 +924,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Research and brainstorm the design for running static analysis (dart analyze) and formatting (dart format) via Bazel Aspects (similar to aspect_rules_lint) or macro-generated test targets. This will ensure that formatting and lints are checked as part of the Bazel test/build graph with proper caching, rather than relying solely on pre-commit hooks.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-trr] Bump Bazel to 9.1.1
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
 - **Success Criteria**:
 
 ---
