@@ -7,6 +7,17 @@ load("//tools/bazel/dart:defs.bzl", "dart_aot_snapshot", "dart_compile_dill", "d
 
 package(default_visibility = ["//visibility:public"])
 
+_LINUX_COPTS = select({
+    "@platforms//os:linux": [
+        "-m64",
+        "-march=x86-64",
+        "-msse2",
+        "-fPIE",
+        "--target=x86_64-linux-gnu",
+    ],
+    "//conditions:default": [],
+})
+
 dart_library(
     name = "embedder_samples_dart",
     srcs = [
@@ -338,16 +349,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -407,16 +409,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -476,16 +469,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -545,16 +529,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -614,16 +589,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -683,16 +649,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -752,16 +709,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -821,16 +769,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -891,16 +830,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -962,16 +892,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1033,16 +954,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1104,16 +1016,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1175,16 +1078,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1246,16 +1140,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1317,16 +1202,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1388,16 +1264,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1458,16 +1325,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1528,16 +1386,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1598,16 +1447,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1668,16 +1508,7 @@ cc_binary(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1817,16 +1648,7 @@ cc_library(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
@@ -1898,16 +1720,7 @@ cc_library(
         "-Isamples/embedder",
         "-Iruntime",
         "-Iruntime/engine",
-    ] + select({
-        "@platforms//os:linux": [
-            "-m64",
-            "-march=x86-64",
-            "-msse2",
-            "-fPIE",
-            "--target=x86_64-linux-gnu",
-        ],
-        "//conditions:default": [],
-    }) + [
+    ] + _LINUX_COPTS + [
         "-fcolor-diagnostics",
         "-Wall",
         "-Wextra",
