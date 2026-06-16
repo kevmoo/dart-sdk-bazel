@@ -25,9 +25,10 @@ jobs:
         path: third_party/pkg
         key: third-party-pkg-${{ hashFiles('DEPS') }}
 
-    - name: Generate Synthetic Package Configuration
+    - name: Generate Synthetic CI Configurations
       run: |
         python3 tools/bazel/generate_debug_package_config.py
+        python3 tools/generate_sdk_version_file.py
 
     # external-cache covers output_base/external (clang toolchain, sysroot,
     # CIPD prebuilt SDK, browsers): no download in third_party.bzl or
