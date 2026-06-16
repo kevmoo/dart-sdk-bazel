@@ -8,6 +8,7 @@ name: Nightly Full SDK Build
 # once remote caching (Buildfarm/BuildBuddy) stabilizes.
 
 on:
+  pull_request:
   schedule:
     # 08:00 UTC = midnight US-Pacific. Note: GitHub only runs schedules from
     # the default branch, and pauses them after ~60 days of repo inactivity.
