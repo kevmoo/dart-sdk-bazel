@@ -24,7 +24,7 @@
 > rules" for the fetch-rebase-before-editing protocol.
 
 **Open handoffs / residuals:**
-- **Blocked on NDK for TASK_004**: Android cross-compilation target `android_arm64` requires the Android NDK to be installed on the host or `download_android_deps` checked out.
+- **Blocked on NDK for sdk-y6l**: Android cross-compilation target `android_arm64` requires the Android NDK to be installed on the host or `download_android_deps` checked out.
 - **Gemini reviewer sunsets 2026-07-17** (bead `sdk-qoj`, P1). Mechanized so far: presubmit gate in CI (extension evaluation, audits, analysis surface) + nightly. Still needed: Dart subprocess-hygiene helper, per-PR generated-test execution, model-based reviewer for judgment classes 7–8. See `fable_thoughts.md` §9–§10.
 
 **Active claims (who is editing what right now):**

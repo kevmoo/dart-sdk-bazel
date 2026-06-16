@@ -30,110 +30,110 @@ graph TD
     classDef inProgress fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#856404;
     classDef pending fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,stroke-dasharray: 5 5,color:#6c757d;
     classDef blocked fill:#f8d7da,stroke:#dc3545,stroke-width:1px,stroke-dasharray: 5 5,color:#721c24;
-    TASK_001["TASK_001:<br>Dynamic Package Dependency Mapping"]:::completed
-    TASK_002["TASK_002:<br>Pre-Computed Package Import Mapping {Fine-Grained Opt-in}"]:::completed
-    TASK_003["TASK_003:<br>Windows MSVC Toolchain Port"]:::pending
-    TASK_004["TASK_004:<br>Android & Fuchsia Target Platform Registration"]:::blocked
-    TASK_005["TASK_005:<br>Dynamic Browser Testing Downloads"]:::completed
-    TASK_006["TASK_006:<br>RBE {Remote Build Execution} Verification"]:::pending
-    TASK_007["TASK_007:<br>Sanitizer Suite Verification"]:::completed
-    TASK_008["TASK_008:<br>Minor SDK Assembly Stubs Resolution"]:::completed
-    TASK_009["TASK_009:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
-    TASK_010["TASK_010:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
-    TASK_011["TASK_011:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
-    TASK_012["TASK_012:<br>Coarse-Grained Test Suite Clustering"]:::completed
-    TASK_013["TASK_013:<br>Unified Test Repository with Configuration Subtargets"]:::completed
-    TASK_014["TASK_014:<br>Python Test Wrapper Unit Testing"]:::completed
-    TASK_015["TASK_015:<br>Resolve Bzlmod Lockfile Drift"]:::completed
-    TASK_016["TASK_016:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
-    TASK_017["TASK_017:<br>Migrate Third-Party Dependencies to Hermetic Bzlmod Overlays"]:::completed
-    TASK_018["TASK_018:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
-    TASK_019["TASK_019:<br>Port `samples/embedder` targets to Bazel"]:::completed
-    TASK_020["TASK_020:<br>Migrate `packages.bzl` target generation to a dynamic Bzlmod extension"]:::completed
-    TASK_021["TASK_021:<br>Retire `restore.sh` entirely"]:::completed
-    TASK_022["TASK_022:<br>VM AOT Test Suite Integration"]:::completed
-    TASK_023["TASK_023:<br>Sanitizer Test Configuration Mapping"]:::completed
-    TASK_024["TASK_024:<br>Simulator Target Configurations"]:::completed
-    TASK_025["TASK_025:<br>Debian Package Build Target"]:::completed
-    TASK_026["TASK_026:<br>CI LUCI Recipe Migration"]:::pending
-    TASK_027["TASK_027:<br>Investigate Upstreaming Non-Bazel Fixes to Main"]:::completed
-    TASK_028["TASK_028:<br>Investigate Google3 Alignment"]:::pending
-    TASK_029["TASK_029:<br>Streamline and Optimize Bazel Build Definitions"]:::pending
-    TASK_030["TASK_030:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
-    TASK_031["TASK_031:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
-    TASK_032["TASK_032:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
-    TASK_033["TASK_033:<br>Fix SDK packaging VM product mode configuration mismatch"]:::completed
-    TASK_034["TASK_034:<br>Add Chrome/Firefox test configurations to Bazel target generator"]:::completed
-    TASK_035["TASK_035:<br>Fix Bazel wildcard target evaluation and package loading errors"]:::completed
-    TASK_036["TASK_036:<br>Audit and convert remaining cc_library stubs to filegroup or alias"]:::completed
-    TASK_037["TASK_037:<br>Cleanup migration documentation and legacy instructions"]:::completed
-    TASK_038["TASK_038:<br>Investigate migrating Dart package dependency syncing to Bazel"]:::pending
-    TASK_039["TASK_039:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
-    TASK_040["TASK_040:<br>Implement `bazel run` support for running Dart scripts"]:::completed
-    TASK_041["TASK_041:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
+    sdk_0dc["sdk-0dc:<br>Retire `restore.sh` entirely"]:::completed
+    sdk_2f2["sdk-2f2:<br>Investigate Upstreaming Non-Bazel Fixes to Main"]:::completed
+    sdk_31k["sdk-31k:<br>Migrate Third-Party Dependencies to Hermetic Bzlmod Overlays"]:::completed
+    sdk_3jc["sdk-3jc:<br>Migrate `packages.bzl` target generation to a dynamic Bzlmod extension"]:::completed
     sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::completed
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
+    sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
+    sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
+    sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
+    sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
+    sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
+    sdk_7nj["sdk-7nj:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
+    sdk_8ut["sdk-8ut:<br>Windows MSVC Toolchain Port"]:::pending
     sdk_90d["sdk-90d:<br>{M3} Wire up Dart Dev Compiler {DDC} Snapshots"]:::completed
+    sdk_91p["sdk-91p:<br>Port `samples/embedder` targets to Bazel"]:::completed
     sdk_95q["sdk-95q:<br>Migrate leaf C++ integration tests {abstract_socket_test & process_test} to cc_test"]:::completed
+    sdk_9ep["sdk-9ep:<br>Investigate migrating Dart package dependency syncing to Bazel"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
+    sdk_arr["sdk-arr:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
+    sdk_b0q["sdk-b0q:<br>Fix SDK packaging VM product mode configuration mismatch"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
+    sdk_baw["sdk-baw:<br>Debian Package Build Target"]:::completed
     sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::completed
+    sdk_c1x["sdk-c1x:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
+    sdk_c2c["sdk-c2c:<br>RBE {Remote Build Execution} Verification"]:::pending
     sdk_cfi["sdk-cfi:<br>ICU: Expose checked-in data headers in build definitions"]:::completed
+    sdk_cte["sdk-cte:<br>Fix Bazel wildcard target evaluation and package loading errors"]:::completed
     sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
     sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
+    sdk_duv["sdk-duv:<br>Streamline and Optimize Bazel Build Definitions"]:::pending
+    sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
+    sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
+    sdk_fok["sdk-fok:<br>Pre-Computed Package Import Mapping {Fine-Grained Opt-in}"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
+    sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
+    sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
+    sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
+    sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
+    sdk_k3n["sdk-k3n:<br>Implement `bazel run` support for running Dart scripts"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
+    sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
+    sdk_o1h["sdk-o1h:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
+    sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
+    sdk_s5g["sdk-s5g:<br>Dynamic Package Dependency Mapping"]:::completed
     sdk_s7k["sdk-s7k:<br>Investigate Bazel aspects for formatting and analysis checks"]:::completed
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
+    sdk_tjm["sdk-tjm:<br>Simulator Target Configurations"]:::completed
     sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
+    sdk_uft["sdk-uft:<br>VM AOT Test Suite Integration"]:::completed
+    sdk_uj3["sdk-uj3:<br>Audit and convert remaining cc_library stubs to filegroup or alias"]:::completed
+    sdk_ur8["sdk-ur8:<br>Add Chrome/Firefox test configurations to Bazel target generator"]:::completed
     sdk_v49["sdk-v49:<br>Design and implement virtual namespaced package targets"]:::completed
+    sdk_vlg["sdk-vlg:<br>Sanitizer Test Configuration Mapping"]:::completed
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
+    sdk_we0["sdk-we0:<br>Sanitizer Suite Verification"]:::completed
+    sdk_win["sdk-win:<br>CI LUCI Recipe Migration"]:::pending
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::completed
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
+    sdk_xql["sdk-xql:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
     sdk_xw2["sdk-xw2:<br>{bazel} CI: scheduled nightly full //sdk:create_sdk build + packaged-SDK smoke"]:::completed
+    sdk_y6l["sdk-y6l:<br>Android & Fuchsia Target Platform Registration"]:::blocked
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
-    TASK_017 --> TASK_006
-    TASK_010 --> TASK_012
-    TASK_012 --> TASK_013
-    TASK_008 --> TASK_016
-    TASK_017 --> TASK_018
-    TASK_018 --> TASK_019
-    TASK_017 --> TASK_020
-    TASK_017 --> TASK_021
-    TASK_020 --> TASK_021
-    TASK_003 --> TASK_026
-    TASK_004 --> TASK_026
-    TASK_005 --> TASK_026
-    TASK_006 --> TASK_026
-    TASK_006 --> TASK_028
-    TASK_003 --> TASK_029
-    TASK_033 --> TASK_034
+    sdk_31k --> sdk_0dc
+    sdk_3jc --> sdk_0dc
+    sdk_31k --> sdk_3jc
     sdk_oce --> sdk_3ld
+    sdk_5uz --> sdk_4rb
     sdk_fnn --> sdk_4z8
     sdk_zi3 --> sdk_4z8
+    sdk_50x --> sdk_5uz
     sdk_oce --> sdk_90d
-    TASK_038 --> sdk_9qx
+    sdk_e8u --> sdk_91p
+    sdk_9ep --> sdk_9qx
+    sdk_31k --> sdk_c2c
+    sdk_8ut --> sdk_duv
+    sdk_31k --> sdk_e8u
     sdk_9qx --> sdk_fnn
     sdk_oce --> sdk_g2l
+    sdk_5db --> sdk_i4n
+    sdk_c2c --> sdk_ji8
+    sdk_b0q --> sdk_ur8
+    sdk_8ut --> sdk_win
+    sdk_c2c --> sdk_win
+    sdk_n4o --> sdk_win
+    sdk_y6l --> sdk_win
     sdk_9qx --> sdk_zi3
 ```
 
@@ -142,118 +142,6 @@ graph TD
 ---
 
 ## 📋 Active Backlog
-
-### 🎯 [TASK_003] Windows MSVC Toolchain Port
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `build/toolchain/win/BUILD.bazel`
-  - `build/toolchain/win/cc_toolchain_config.bzl`
-- **Description**:
-  Port MSVC toolchain discovery from `build/vs_toolchain.py` to a dynamic Bazel Starlark repository rule. The rule must auto-detect MSVC installations on the Windows host and generate appropriate `cc_toolchain` definitions dynamically.
-- **Success Criteria**:
-  - [ ] MSVC installation path is dynamically detected on Windows hosts.
-  - [ ] `//runtime/bin:dartvm` compiles and links cleanly under Windows.
-  - [ ] Context & Hints:
-
----
-
-### 🎯 [TASK_004] Android & Fuchsia Target Platform Registration
-- **Status**: `[BLOCKED]`
-- **Prerequisites**: None
-- **Owner**: `[jetski]`
-- **Commit**: `[local]`
-- **Target Files**:
-  - `build/platforms/BUILD.bazel`
-  - `MODULE.bazel`
-- **Description**:
-  Register full target platforms for Android and Fuchsia. Map Android NDK references via `android_ndk_repository` and Fuchsia toolchains via Google's `rules_fuchsia`.
-    > [!WARNING]
-    > **BLOCKED**: Cross-compiling for Android requires the Android NDK, which is currently missing on the host environment (no `ANDROID_NDK_HOME` or `third_party/android_tools`). The platforms have been registered in `build/platforms/BUILD.bazel`, but verification is blocked.
-- **Success Criteria**:
-  - [ ] Android NDK toolchain resolves and compiles the AOT runtime.
-  - [ ] Fuchsia target platforms compile and package cleanly.
-
----
-
-### 🎯 [TASK_006] RBE (Remote Build Execution) Verification
-- **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_017`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `build/toolchain/linux/cc_toolchain_config.bzl`
-  - `.bazelrc`
-- **Description**:
-  Verify remote execution (RBE) against Google's `flutter-rbe-prod` instance in CI. Ensure toolchain configurations correctly serialize and do not leak host-absolute paths to the remote worker.
-- **Success Criteria**:
-  - [ ] Entire SDK compiles cleanly on remote RBE workers.
-  - [ ] Cache hit rate is high and no local toolchain leaks are observed.
-
----
-
-### 🎯 [TASK_026] CI LUCI Recipe Migration
-- **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_003`, `TASK_004`, `TASK_005`, `TASK_006`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `infra/specs/`
-- **Description**:
-  Update LUCI build and test recipes to call `tools/build.py --bazel` and `tools/test.py --bazel` respectively, and upload the Bazel-built SDK as a release artifact.
-- **Success Criteria**:
-  - [ ] CI builders successfully transition to Bazel for building and testing.
-  - [ ] Bazel-built SDK is uploaded to CIPD/GCS storage.
-
----
-
-### 🎯 [TASK_028] Investigate Google3 Alignment
-- **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_006`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `tools/bazel/`
-- **Description**:
-  Investigate Google3's internal Dart Bazel build and evaluate the feasibility of aligning it with this open-source Bzlmod configuration. Identify blocker issues (monorepo path differences, internal toolchains, RBE configs).
-- **Success Criteria**:
-  - [ ] Investigation document detailing differences and migration path for google3.
-  - [ ] Prototype alignment run in a CitC workspace (if feasible).
-
----
-
-### 🎯 [TASK_029] Streamline and Optimize Bazel Build Definitions
-- **Status**: `[PENDING]`
-- **Prerequisites**: `TASK_003`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `tools/bazel/dart/defs.bzl`
-  - `tools/bazel/rules.bzl`
-- **Description**:
-  Audit current Bazel build files and custom Starlark rules (`tools/bazel/dart/defs.bzl`, `tools/bazel/rules.bzl`) to simplify flag propagation, reduce macro complexity, and optimize build graph analysis times.
-- **Success Criteria**:
-  - [ ] macOS flag filtering moved from macro wrappers to toolchain definitions where possible.
-  - [ ] Starlark macro complexity reduced (audited by a senior engineer review).
-
----
-
-### 🎯 [TASK_038] Investigate migrating Dart package dependency syncing to Bazel
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - `tools/bazel/dart/generate_test_targets.dart`
-  - `tools/bazel/generate_debug_package_config.py`
-- **Description**:
-  Evaluate the feasibility and trade-offs of migrating Dart package dependency resolution (currently handled by `gclient sync` and host-side `pubspec` resolution) to run hermetically inside Bazel (e.g., using a custom Bzlmod extension to fetch packages and generate the package config). Address developer workflow impact (ability to edit `third_party/pkg` sources), bootstrap loop implications, and alignment with Google3.
-- **Success Criteria**:
-  - [ ] Analysis document detailing feasibility, design options, and trade-offs for hermetic package syncing.
-
----
 
 ### 🎯 [sdk-4kr] Upstream Hermetic OtherResources Annotations for IO Tests
 - **Status**: `[PENDING]`
@@ -282,6 +170,38 @@ graph TD
 
 ---
 
+### 🎯 [sdk-8ut] Windows MSVC Toolchain Port
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `build/toolchain/win/BUILD.bazel`
+  - `build/toolchain/win/cc_toolchain_config.bzl`
+- **Description**:
+  Port MSVC toolchain discovery from `build/vs_toolchain.py` to a dynamic Bazel Starlark repository rule. The rule must auto-detect MSVC installations on the Windows host and generate appropriate `cc_toolchain` definitions dynamically.
+- **Success Criteria**:
+  - [ ] MSVC installation path is dynamically detected on Windows hosts.
+  - [ ] `//runtime/bin:dartvm` compiles and links cleanly under Windows.
+  - [ ] Context & Hints:
+
+---
+
+### 🎯 [sdk-9ep] Investigate migrating Dart package dependency syncing to Bazel
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `tools/bazel/dart/generate_test_targets.dart`
+  - `tools/bazel/generate_debug_package_config.py`
+- **Description**:
+  Evaluate the feasibility and trade-offs of migrating Dart package dependency resolution (currently handled by `gclient sync` and host-side `pubspec` resolution) to run hermetically inside Bazel (e.g., using a custom Bzlmod extension to fetch packages and generate the package config). Address developer workflow impact (ability to edit `third_party/pkg` sources), bootstrap loop implications, and alignment with Google3.
+- **Success Criteria**:
+  - [ ] Analysis document detailing feasibility, design options, and trade-offs for hermetic package syncing.
+
+---
+
 ### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
 - **Status**: `[IN_PROGRESS]`
 - **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/510181)
@@ -293,6 +213,53 @@ graph TD
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
 - **Success Criteria**:
+
+---
+
+### 🎯 [sdk-c2c] RBE (Remote Build Execution) Verification
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-31k`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `build/toolchain/linux/cc_toolchain_config.bzl`
+  - `.bazelrc`
+- **Description**:
+  Verify remote execution (RBE) against Google's `flutter-rbe-prod` instance in CI. Ensure toolchain configurations correctly serialize and do not leak host-absolute paths to the remote worker.
+- **Success Criteria**:
+  - [ ] Entire SDK compiles cleanly on remote RBE workers.
+  - [ ] Cache hit rate is high and no local toolchain leaks are observed.
+
+---
+
+### 🎯 [sdk-duv] Streamline and Optimize Bazel Build Definitions
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-8ut`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `tools/bazel/dart/defs.bzl`
+  - `tools/bazel/rules.bzl`
+- **Description**:
+  Audit current Bazel build files and custom Starlark rules (`tools/bazel/dart/defs.bzl`, `tools/bazel/rules.bzl`) to simplify flag propagation, reduce macro complexity, and optimize build graph analysis times.
+- **Success Criteria**:
+  - [ ] macOS flag filtering moved from macro wrappers to toolchain definitions where possible.
+  - [ ] Starlark macro complexity reduced (audited by a senior engineer review).
+
+---
+
+### 🎯 [sdk-ji8] Investigate Google3 Alignment
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-c2c`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `tools/bazel/`
+- **Description**:
+  Investigate Google3's internal Dart Bazel build and evaluate the feasibility of aligning it with this open-source Bzlmod configuration. Identify blocker issues (monorepo path differences, internal toolchains, RBE configs).
+- **Success Criteria**:
+  - [ ] Investigation document detailing differences and migration path for google3.
+  - [ ] Prototype alignment run in a CitC workspace (if feasible).
 
 ---
 
@@ -319,6 +286,39 @@ graph TD
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
 - **Success Criteria**:
+
+---
+
+### 🎯 [sdk-win] CI LUCI Recipe Migration
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-8ut`, `sdk-c2c`, `sdk-n4o`, `sdk-y6l`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - `infra/specs/`
+- **Description**:
+  Update LUCI build and test recipes to call `tools/build.py --bazel` and `tools/test.py --bazel` respectively, and upload the Bazel-built SDK as a release artifact.
+- **Success Criteria**:
+  - [ ] CI builders successfully transition to Bazel for building and testing.
+  - [ ] Bazel-built SDK is uploaded to CIPD/GCS storage.
+
+---
+
+### 🎯 [sdk-y6l] Android & Fuchsia Target Platform Registration
+- **Status**: `[BLOCKED]`
+- **Prerequisites**: None
+- **Owner**: `[jetski]`
+- **Commit**: `[local]`
+- **Target Files**:
+  - `build/platforms/BUILD.bazel`
+  - `MODULE.bazel`
+- **Description**:
+  Register full target platforms for Android and Fuchsia. Map Android NDK references via `android_ndk_repository` and Fuchsia toolchains via Google's `rules_fuchsia`.
+    > [!WARNING]
+    > **BLOCKED**: Cross-compiling for Android requires the Android NDK, which is currently missing on the host environment (no `ANDROID_NDK_HOME` or `third_party/android_tools`). The platforms have been registered in `build/platforms/BUILD.bazel`, but verification is blocked.
+- **Success Criteria**:
+  - [ ] Android NDK toolchain resolves and compiles the AOT runtime.
+  - [ ] Fuchsia target platforms compile and package cleanly.
 
 ---
 

@@ -83,8 +83,7 @@ void main() {
     records.add(r);
   }
 
-  String dispId(Map<String, dynamic> r) =>
-      (r['_md'] as Map)['task_id'] as String? ?? r['id'] as String;
+  String dispId(Map<String, dynamic> r) => r['id'] as String;
 
   String orNone(dynamic v) => (v is String && v.isNotEmpty) ? v : 'none';
 
@@ -129,12 +128,7 @@ void main() {
     );
   }
 
-  int sortKey(String id) =>
-      id.startsWith('TASK_') ? int.parse(id.split('_')[1]) : 1 << 30;
-  tasks.sort((a, b) {
-    final int ka = sortKey(a.id), kb = sortKey(b.id);
-    return ka != kb ? ka.compareTo(kb) : a.id.compareTo(b.id);
-  });
+  tasks.sort((a, b) => a.id.compareTo(b.id));
 
   File(
     '${scriptDir.path}/BACKLOG.md',
