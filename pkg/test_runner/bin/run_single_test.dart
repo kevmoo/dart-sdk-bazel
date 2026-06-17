@@ -644,6 +644,28 @@ String _getRewrittenPackageConfig() {
   return _rewrittenPackageConfig ??= _rewritePackageConfig();
 }
 
+String _getCanonicalRepoName(String apparentName) {
+  final runfilesDir =
+      Platform.environment['RUNFILES_DIR'] ??
+      Platform.environment['TEST_SRCDIR'];
+  if (runfilesDir != null && runfilesDir.isNotEmpty) {
+    final mappingFile = File('$runfilesDir/_repo_mapping');
+    if (mappingFile.existsSync()) {
+      for (final line in mappingFile.readAsLinesSync()) {
+        final parts = line.trim().split(',');
+        if (parts.length >= 3) {
+          final apparent = parts[1];
+          final canonical = parts[2];
+          if (apparent == apparentName) {
+            return canonical;
+          }
+        }
+      }
+    }
+  }
+  return '+dart_packages_extension+dart_packages';
+}
+
 String _rewritePackageConfig() {
   final originalPath = _Runfiles.resolve('_main/package_config.json');
   final file = File(originalPath);
@@ -654,13 +676,14 @@ String _rewritePackageConfig() {
   final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
   final packages = json['packages'] as List<dynamic>;
   final newPackages = <Map<String, dynamic>>[];
+  final dartPackagesRepo = _getCanonicalRepoName('dart_packages');
 
   for (final pkg in packages) {
     final map = Map<String, dynamic>.from(pkg as Map);
     final rootUri = map['rootUri'] as String;
     if (rootUri.startsWith('../../../')) {
       final relativePath = rootUri.substring('../../../'.length);
-      var runfilesPath = '+dart_packages_extension+dart_packages/$relativePath';
+      var runfilesPath = '$dartPackagesRepo/$relativePath';
       var physicalPath = _Runfiles.resolve(runfilesPath);
       if (!Directory(physicalPath).existsSync()) {
         runfilesPath = '_main/$relativePath';
