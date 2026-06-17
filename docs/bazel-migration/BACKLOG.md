@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 68/84 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 69/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -70,7 +70,8 @@ graph TD
     sdk_duv.1["sdk-duv.1:<br>Relocate macOS C++ flag filtering to select{} blocks"]:::completed
     sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
     sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::pending
-    sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::pending
+    sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::completed
+    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
@@ -132,6 +133,7 @@ graph TD
     sdk_duv --> sdk_duv.2
     sdk_duv --> sdk_duv.3
     sdk_duv --> sdk_duv.4
+    sdk_duv --> sdk_duv.5
     sdk_31k --> sdk_e8u
     sdk_9qx --> sdk_fnn
     sdk_oce --> sdk_g2l
@@ -282,7 +284,7 @@ graph TD
 
 ---
 
-### 🎯 [sdk-duv.4] Optimize GitHub Actions CI Bazel caching and sandbox execution
+### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
@@ -290,7 +292,7 @@ graph TD
 - **Target Files**:
   - None
 - **Description**:
-  Evaluate migrating GitHub Actions disk-cache to gRPC remote caching (BuildBuddy/GCS) and tuning CI .bazelrc flags (--experimental_remote_cache_async) to reduce 1s/entry cache hit latency.
+  Replace GitHub Actions monolithic tarball disk-cache restoration with streaming datacenter remote cache cluster to eliminate 30s job startup extraction penalty.
 - **Success Criteria**:
 
 ---

@@ -505,6 +505,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-duv.4] Optimize GitHub Actions CI Bazel caching and sandbox execution
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [PR #34](https://github.com/kevmoo/dart-sdk-bazel/pull/34)
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Evaluate migrating GitHub Actions disk-cache to gRPC remote caching (BuildBuddy/GCS) and tuning CI .bazelrc flags (--experimental_remote_cache_async) to reduce 1s/entry cache hit latency.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-dz3] Relocate and Migrate Worktree Symlinker to Dart
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
