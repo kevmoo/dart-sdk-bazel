@@ -34,7 +34,7 @@ brew install beads dolt           # beads may need a tap — see github.com/stev
 gh auth setup-git                 # uses the gh token as a git credential helper
 
 # 3. Recover the task DB from the fork (clones refs/dolt/data)
-bd init --prefix sdk --remote git+https://github.com/kevmoo/sdk.git
+bd init --prefix sdk --remote git+https://github.com/kevmoo/dart-sdk-bazel.git
 
 bd count        # should list the tasks (verifies recovery)
 bd ready        # actionable tasks
@@ -84,9 +84,9 @@ To keep the backlog board accurate and prevent desynchronization:
 When running `bd` or `dolt` commands in background agent sessions (such as JetSki daemons), you may encounter two common environmental hurdles:
 
 ### 1. Database Resolution in Git Worktrees
-In a Git worktree layout, `bd` resolves the active database directory to the **bare repository root** (e.g., `.bare/.beads/`) rather than the active worktree directory (`sdk/.beads/`). 
-*   **Why:** This is a feature designed to keep the active database local-only and prevent it from being accidentally committed.
-*   **Impact:** Any raw `dolt` commands must be run inside `.bare/.beads/embeddeddolt/sdk/` to interact with the active database.
+In a Git worktree layout, if the worktree contains a checked-in `.beads/` folder, `bd` will resolve the database directory locally to that worktree (e.g., `sdk/.beads/`).
+*   **Why:** This allows each sandbox worktree to manage its own isolated, local copy of the Dolt issue database.
+*   **Impact:** Any raw `dolt` commands must be run inside `sdk/.beads/embeddeddolt/sdk/` to interact directly with the active database.
 
 ### 2. SSH Push Failures (`Permission denied (publickey)`)
 If you have a global Git configuration that rewrites HTTPS pushes to SSH (using `pushinsteadof`):
