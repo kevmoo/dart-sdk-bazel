@@ -63,7 +63,7 @@ jobs:
 
     - name: Build packaged SDK + utility executables
       run: |
-        bazel build //sdk:create_sdk //utils:gen_kernel_exe //utils:compile_platform_exe
+        bazel build --config=ci //sdk:create_sdk //utils:gen_kernel_exe //utils:compile_platform_exe
 
     - name: Smoke test packaged SDK
       run: |

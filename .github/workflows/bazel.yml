@@ -55,4 +55,4 @@ jobs:
 
     - name: Build Dart VM
       run: |
-        bazel build //runtime/bin:dartvm
+        bazel build --config=ci //runtime/bin:dartvm
