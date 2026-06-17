@@ -660,8 +660,12 @@ String _rewritePackageConfig() {
     final rootUri = map['rootUri'] as String;
     if (rootUri.startsWith('../../../')) {
       final relativePath = rootUri.substring('../../../'.length);
-      final runfilesPath = '_main/$relativePath';
-      final physicalPath = _Runfiles.resolve(runfilesPath);
+      var runfilesPath = '+dart_packages_extension+dart_packages/$relativePath';
+      var physicalPath = _Runfiles.resolve(runfilesPath);
+      if (!Directory(physicalPath).existsSync()) {
+        runfilesPath = '_main/$relativePath';
+        physicalPath = _Runfiles.resolve(runfilesPath);
+      }
       final uri = Uri.file(physicalPath);
       map['rootUri'] = uri.toString();
     }

@@ -360,8 +360,17 @@ void main(List<String> args) async {
         '@dart_packages//pkg/source_maps',
         '@//:package_config_json',
         '@//pkg/test_runner/bin:run_single_test.dart',
-        '@//sdk:create_sdk',
       };
+
+      if (config.runtime == 'vm') {
+        baselineDeps.addAll([
+          '@prebuilt_dart_sdk//:bin/dart',
+          '@prebuilt_dart_sdk//:sdk_files',
+          '@//runtime/vm:vm_platform',
+        ]);
+      } else {
+        baselineDeps.add('@//sdk:create_sdk');
+      }
 
       if (filegroups.containsKey('fg_package_resources')) {
         baselineDeps.add(':fg_package_resources');
