@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 69/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 70/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -66,10 +66,10 @@ graph TD
     sdk_cte["sdk-cte:<br>Fix Bazel wildcard target evaluation and package loading errors"]:::completed
     sdk_d3p["sdk-d3p:<br>{bazel} CI: widen analysis surface beyond //runtime/bin:dartvm"]:::completed
     sdk_dj6["sdk-dj6:<br>Full project review: bugs + improvement opportunities {fable_thoughts.md}"]:::completed
-    sdk_duv["sdk-duv:<br>Bazel Build & Testing Optimization Umbrella"]:::pending
+    sdk_duv["sdk-duv:<br>Streamline and Optimize Bazel Build Definitions"]:::pending
     sdk_duv.1["sdk-duv.1:<br>Relocate macOS C++ flag filtering to select{} blocks"]:::completed
     sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
-    sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::pending
+    sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::completed
     sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::completed
     sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
@@ -242,7 +242,7 @@ graph TD
 
 ---
 
-### 🎯 [sdk-duv] Bazel Build & Testing Optimization Umbrella
+### 🎯 [sdk-duv] Streamline and Optimize Bazel Build Definitions
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-8ut`
 - **Owner**: `[none]`
@@ -267,19 +267,6 @@ graph TD
   - None
 - **Description**:
   Enable --strategy=DartCompile=worker for dart_compile_dill and kernel snapshot actions to eliminate VM startup and JIT warmup latency during incremental testing.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-duv.3] Decouple test cache dependencies via depset dill summaries
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-duv`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Refactor dart_library to propagate depset compilation summaries so touching un-imported SDK library files does not invalidate repository-wide test caches.
 - **Success Criteria**:
 
 ---

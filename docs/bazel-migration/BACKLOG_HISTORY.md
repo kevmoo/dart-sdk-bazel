@@ -491,30 +491,41 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [sdk-duv.1] Relocate macOS C++ flag filtering to select() blocks
+### 🎯 [sdk-duv.1] Relocate macOS C++ flag filtering to select{} blocks
 - **Status**: `[COMPLETED]`
-- **PR/External Ref**: [PR #33](https://github.com/kevmoo/dart-sdk-bazel/pull/33)
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
   - None
 - **Description**:
-  Replace Python-style Starlark list iteration across all cc_library/cc_binary wrappers in rules.bzl with targeted select() blocks in embedder/BUILD.bazel and sanitizers/BUILD.bazel.
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-duv.3] Decouple test cache dependencies via depset dill summaries
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor dart_library to propagate depset compilation summaries so touching un-imported SDK library files does not invalidate repository-wide test caches.
 - **Success Criteria**:
 
 ---
 
 ### 🎯 [sdk-duv.4] Optimize GitHub Actions CI Bazel caching and sandbox execution
 - **Status**: `[COMPLETED]`
-- **PR/External Ref**: [PR #34](https://github.com/kevmoo/dart-sdk-bazel/pull/34)
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
   - None
 - **Description**:
-  Evaluate migrating GitHub Actions disk-cache to gRPC remote caching (BuildBuddy/GCS) and tuning CI .bazelrc flags (--experimental_remote_cache_async) to reduce 1s/entry cache hit latency.
+  
 - **Success Criteria**:
 
 ---

@@ -41,3 +41,4 @@
 {"id":"int-74fabc9b48664b9b899b625a154c4974","kind":"field_change","created_at":"2026-06-13T23:39:01.810686849Z","actor":"Kevin Moore","issue_id":"sdk-njh","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed. Merged in PR #25."}}
 
 {"id":"int-afae7f698d1d86db98beaed9e0a417b7","kind":"field_change","created_at":"2026-06-15T21:22:56.366118Z","actor":"kevmoo@gmac","issue_id":"sdk-65j","extra":{"field":"status","new_value":"in_progress","old_value":"open"}}
+{"id":"int-7b646f1ba4c779f062905dd3eb110e77","kind":"field_change","created_at":"2026-06-17T18:14:15.376529428Z","actor":"Kevin Moore","issue_id":"sdk-duv.3","extra":{"field":"status","new_value":"closed","old_value":"open","reason":"Closed"}}
