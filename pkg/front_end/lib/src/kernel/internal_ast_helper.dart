@@ -423,8 +423,8 @@ Statement createForStatement(
 InternalFunctionNode createFunctionNode({
   required Statement? body,
   required List<TypeParameter>? typeParameters,
-  required List<InternalVariable> positionalParameters,
-  required List<InternalVariable> namedParameters,
+  required List<InternalPositionalParameter> positionalParameters,
+  required List<InternalNamedParameter> namedParameters,
   required int? requiredParameterCount,
   required DartType? returnType,
   required int fileOffset,
@@ -628,7 +628,7 @@ LabeledStatement createLabeledStatement(Statement statement) {
 }
 
 InternalVariable createLateVariable({
-  required String? name,
+  required String name,
   required DartType? type,
   bool isFinal = false,
   bool isConst = false,
@@ -643,7 +643,7 @@ InternalVariable createLateVariable({
 }) {
   return new InternalLateVariable(
     astVariable: extern.createLateVariable(
-      cosmeticName: name,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,
@@ -728,7 +728,7 @@ InternalVariable createLocalVariable({
 }) {
   return new InternalLocalVariable(
     astVariable: extern.createLocalVariable(
-      cosmeticName: name,
+      name: name,
       type: type,
       isFinal: isFinal,
       isConst: isConst,
@@ -868,7 +868,7 @@ NamedExpression createNamedExpression(
   return new NamedExpression(name, value)..fileOffset = fileOffset;
 }
 
-InternalVariable createNamedParameter({
+InternalNamedParameter createNamedParameter({
   required String parameterName,
   required DartType type,
   Expression? defaultValue,
@@ -1119,7 +1119,7 @@ Statement createPatternVariableDeclaration(
   );
 }
 
-InternalVariable createPositionalParameter({
+InternalPositionalParameter createPositionalParameter({
   String? cosmeticName,
   required DartType type,
   bool isImplicitlyTyped = false,

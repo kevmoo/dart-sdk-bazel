@@ -15,7 +15,8 @@ import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
 import '../kernel/external_ast_helper.dart' as extern;
-import '../kernel/internal_ast.dart' show InternalVariable;
+import '../kernel/internal_ast.dart'
+    show InternalVariable, InternalFunctionParameter;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
@@ -28,6 +29,7 @@ import '../source/source_property_builder.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
+import 'metadata_builder.dart';
 import 'omitted_type_builder.dart';
 import 'property_builder.dart';
 import 'type_builder.dart';
@@ -185,6 +187,8 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final int fileOffset;
 
+  List<MetadataBuilder>? _metadata;
+
   final Modifiers modifiers;
 
   @override
@@ -214,7 +218,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   final FormalParameterKind kind;
 
   /// The variable declaration created for this formal parameter.
-  InternalVariable? _variable;
+  InternalFunctionParameter? _variable;
 
   /// The first token of the default value, if any.
   ///
@@ -246,6 +250,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   new({
     required this.kind,
+    this._metadata,
     required this.modifiers,
     required this.type,
     required this.name,
@@ -259,7 +264,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     required this.nameOffset,
     required this.isClosureContextLoweringEnabled,
     this.isPrimaryConstructorParameter = false,
-    InternalVariable? variable,
+    InternalFunctionParameter? variable,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
        this._defaultValueToken = defaultValueToken,
        this._wildcardIndex = wildcardIndex,
@@ -270,6 +275,17 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   String get fullNameForErrors => name;
+
+  /// Returns and removes the metadata from this builder.
+  ///
+  /// Metadata builders hold tokens, and since metadata is generally not
+  /// processed from the builder, but instead from the expressions during body
+  /// builder, the responsibility of handling the metadata must be passed on.
+  List<MetadataBuilder>? takeMetadata() {
+    List<MetadataBuilder>? result = _metadata;
+    _metadata = null;
+    return result;
+  }
 
   @override
   NamedBuilder get getable => this;
@@ -327,10 +343,10 @@ class FormalParameterBuilder extends NamedBuilderImpl
   NamedBuilder? get setable => isAssignable ? this : null;
 
   @override
-  InternalVariable get variable => _variable!;
+  InternalFunctionParameter get variable => _variable!;
 
   @override
-  InternalVariable build(SourceLibraryBuilder library) {
+  InternalFunctionParameter build(SourceLibraryBuilder library) {
     if (_variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
@@ -395,6 +411,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
     required ExtensionScope extensionScope,
     required LookupScope scope,
   }) {
+    // Metadata is not processed through the builder, but instead from the
+    // expressions during body building, so we discard any metadata here.
+    takeMetadata();
     // For const constructors we need to include default parameter values
     // into the outline. For all other formals we need to call
     // buildOutlineExpressions to clear initializerToken to prevent
@@ -484,7 +503,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       kind: kind,
       modifiers: isDeclaring
           ? (modifiers | Modifiers.InitializingFormal)
-          : (modifiers | Modifiers.Final),
+          : modifiers,
       type: isDeclaring
           ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
           : type,

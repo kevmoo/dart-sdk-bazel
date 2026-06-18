@@ -418,13 +418,10 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
       type = &(instance_of->type());
       left = instance_of->value()->definition();
     }
-    if (!type->IsTopTypeForInstanceOf()) {
-      const bool is_nullable = (type->IsNullable() || type->IsTypeParameter())
-                                   ? CompileType::kCanBeNull
-                                   : CompileType::kCannotBeNull;
+    if (!type->IsTopType()) {
       EnsureMoreAccurateRedefinition(
           true_successor, left,
-          CompileType::FromAbstractType(*type, is_nullable,
+          CompileType::FromAbstractType(*type, CompileType::kCanBeNull,
                                         CompileType::kCannotBeSentinel));
     }
   } else if (comparison->InputAt(0)->BindsToConstant() &&
@@ -871,7 +868,7 @@ const AbstractType* CompileType::ToAbstractType() {
 }
 
 bool CompileType::IsSubtypeOf(const AbstractType& other) {
-  if (other.IsTopTypeForSubtyping()) {
+  if (other.IsTopType()) {
     return true;
   }
   // If we allow comparisons against an uninstantiated type, then we can

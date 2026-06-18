@@ -2771,8 +2771,11 @@ class _ConnectionTarget {
   }
 }
 
-typedef BadCertificateCallback =
-    bool Function(X509Certificate cr, String host, int port);
+typedef BadCertificateCallback = bool Function(
+  X509Certificate cr,
+  String host,
+  int port,
+);
 
 class _HttpClient implements HttpClient {
   bool _closing = false;
@@ -3074,6 +3077,8 @@ class _HttpClient implements HttpClient {
     const sensitiveHeaders = [
       "authorization",
       "www-authenticate",
+      "proxy-authorization",
+      "proxy-authenticate",
       "cookie",
       "cookie2",
     ];

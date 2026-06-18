@@ -9,20 +9,15 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:yaml/yaml.dart';
 
 /// A builder for [AnalysisOptionsImpl].
 ///
@@ -31,17 +26,19 @@ import 'package:yaml/yaml.dart';
 final class AnalysisOptionsBuilder {
   File? file;
 
-  ExperimentStatus contextFeatures = ExperimentStatus();
+  ExperimentStatus _contextFeatures = ExperimentStatus();
 
   FeatureSet nonPackageFeatureSet = ExperimentStatus();
 
-  List<String> enabledLegacyPluginNames = const [];
+  List<String> enabledLegacyPluginNames = [];
 
   List<ErrorProcessor> errorProcessors = [];
 
   List<String> excludePatterns = [];
 
   bool lint = false;
+
+  bool warning = true;
 
   List<AbstractAnalysisRule> lintRules = [];
 
@@ -62,315 +59,86 @@ final class AnalysisOptionsBuilder {
   Set<String> unignorableDiagnosticCodeNames = {};
 
   PluginsOptions pluginsOptions = PluginsOptions(
-    configurations: const [],
+    configurations: [],
     dependencyOverrides: null,
   );
 
   String? pluginDependencyOverrides;
 
+  /// Creates a builder initialized with default options.
+  AnalysisOptionsBuilder();
+
+  /// Creates a builder initialized from an existing options object.
+  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options) {
+    file = options.file;
+    contextFeatures = options.contextFeatures;
+    nonPackageFeatureSet = options.nonPackageFeatureSet;
+    enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
+    pluginsOptions = PluginsOptions(
+      configurations: options.pluginsOptions.configurations.toList(),
+      dependencyOverrides: options.pluginsOptions.dependencyOverrides == null
+          ? null
+          : Map.of(options.pluginsOptions.dependencyOverrides!),
+    );
+    errorProcessors = options.errorProcessors.toList();
+    excludePatterns = options.excludePatterns.toList();
+    lint = options.lint;
+    warning = options.warning;
+    lintRules = options.lintRules.toList();
+    propagateLinterExceptions = options.propagateLinterExceptions;
+    strictCasts = options.strictCasts;
+    strictInference = options.strictInference;
+    strictRawTypes = options.strictRawTypes;
+    chromeOsManifestChecks = options.chromeOsManifestChecks;
+    codeStyleOptions = CodeStyleOptionsImpl(
+      useFormatter: options.codeStyleOptions.useFormatter,
+    );
+    formatterOptions = FormatterOptions(
+      pageWidth: options.formatterOptions.pageWidth,
+      trailingCommas: options.formatterOptions.trailingCommas,
+    );
+    unignorableDiagnosticCodeNames = options.unignorableDiagnosticCodeNames
+        .toSet();
+  }
+
+  FeatureSet get contextFeatures => _contextFeatures;
+
+  set contextFeatures(FeatureSet featureSet) {
+    _contextFeatures = featureSet as ExperimentStatus;
+    nonPackageFeatureSet = featureSet;
+  }
+
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
-      contextFeatures: contextFeatures,
+      contextFeatures: _contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
-      enabledLegacyPluginNames: enabledLegacyPluginNames,
-      pluginsOptions: pluginsOptions,
-      errorProcessors: errorProcessors,
-      excludePatterns: excludePatterns,
+      enabledLegacyPluginNames: enabledLegacyPluginNames.toList(),
+      pluginsOptions: PluginsOptions(
+        configurations: pluginsOptions.configurations.toList(),
+        dependencyOverrides: pluginsOptions.dependencyOverrides == null
+            ? null
+            : Map.of(pluginsOptions.dependencyOverrides!),
+      ),
+      errorProcessors: errorProcessors.toList(),
+      excludePatterns: excludePatterns.toList(),
       lint: lint,
-      lintRules: lintRules,
+      warning: warning,
+      lintRules: lintRules.toList(),
       propagateLinterExceptions: propagateLinterExceptions,
       strictCasts: strictCasts,
       strictInference: strictInference,
       strictRawTypes: strictRawTypes,
       chromeOsManifestChecks: chromeOsManifestChecks,
-      codeStyleOptions: codeStyleOptions,
-      formatterOptions: formatterOptions,
-      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
+      codeStyleOptions: CodeStyleOptionsImpl(
+        useFormatter: codeStyleOptions.useFormatter,
+      ),
+      formatterOptions: FormatterOptions(
+        pageWidth: formatterOptions.pageWidth,
+        trailingCommas: formatterOptions.trailingCommas,
+      ),
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames.toSet(),
     );
-  }
-
-  void _applyCodeStyleOptions(YamlNode? codeStyle) {
-    var useFormatter = false;
-    if (codeStyle is YamlMap) {
-      var formatNode = codeStyle.valueAt(AnalysisOptionsFileKeys.format);
-      if (formatNode is YamlScalar) {
-        var formatValue = formatNode.toBool();
-        if (formatValue is bool) {
-          useFormatter = formatValue;
-        }
-      }
-    }
-    codeStyleOptions = CodeStyleOptionsImpl(useFormatter: useFormatter);
-  }
-
-  void _applyExcludes(YamlNode? excludes) {
-    if (excludes is YamlList) {
-      // TODO(srawlins): Report non-String items.
-      excludePatterns.addAll(excludes.whereType<String>());
-    }
-    // TODO(srawlins): Report non-List with
-    // AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
-  }
-
-  void _applyFormatterOptions(YamlNode? formatter) {
-    int? pageWidth;
-    TrailingCommas? trailingCommas;
-    if (formatter is YamlMap) {
-      var pageWidthNode = formatter.valueAt(AnalysisOptionsFileKeys.pageWidth);
-      var pageWidthValue = pageWidthNode?.value;
-      if (pageWidthValue is int && pageWidthValue > 0) {
-        pageWidth = pageWidthValue;
-      }
-
-      var trailingCommasNode = formatter.valueAt(
-        AnalysisOptionsFileKeys.trailingCommas,
-      );
-      var trailingCommasValue = trailingCommasNode?.value;
-      trailingCommas = TrailingCommas.values.firstWhereOrNull(
-        (item) => item.name == trailingCommasValue,
-      );
-    }
-    formatterOptions = FormatterOptions(
-      pageWidth: pageWidth,
-      trailingCommas: trailingCommas,
-    );
-  }
-
-  void _applyLanguageOptions(YamlNode? configs) {
-    if (configs is! YamlMap) {
-      return;
-    }
-
-    configs.nodes.forEach((key, value) {
-      if (key is! YamlScalar || value is! YamlScalar) {
-        return;
-      }
-      var feature = key.value?.toString();
-      var boolValue = value.boolValue;
-      if (boolValue == null) {
-        return;
-      }
-
-      switch (feature) {
-        case AnalysisOptionsFileKeys.strictCasts:
-          strictCasts = boolValue;
-        case AnalysisOptionsFileKeys.strictInference:
-          strictInference = boolValue;
-        case AnalysisOptionsFileKeys.strictRawTypes:
-          strictRawTypes = boolValue;
-      }
-    });
-  }
-
-  void _applyLegacyPlugins(YamlNode? plugins) {
-    var pluginName = plugins.stringValue;
-    if (pluginName != null) {
-      enabledLegacyPluginNames = [pluginName];
-    } else if (plugins is YamlList) {
-      for (var element in plugins.nodes) {
-        var pluginName = element.stringValue;
-        if (pluginName != null) {
-          // Only the first legacy plugin is supported.
-          enabledLegacyPluginNames = [pluginName];
-          return;
-        }
-      }
-    } else if (plugins is YamlMap) {
-      for (var key in plugins.nodes.keys.cast<YamlNode?>()) {
-        var pluginName = key.stringValue;
-        if (pluginName != null) {
-          // Only the first legacy plugin is supported.
-          enabledLegacyPluginNames = [pluginName];
-          return;
-        }
-      }
-    }
-  }
-
-  void _applyOptionalChecks(YamlNode? config) {
-    switch (config) {
-      case YamlMap():
-        for (var MapEntry(:key, :value) in config.nodes.entries) {
-          if (key is YamlScalar && value is YamlScalar) {
-            if (value.boolValue case var boolValue?) {
-              switch ('${key.value}') {
-                case AnalysisOptionsFileKeys.chromeOsManifestChecks:
-                  chromeOsManifestChecks = boolValue;
-                case AnalysisOptionsFileKeys.propagateLinterExceptions:
-                  propagateLinterExceptions = boolValue;
-              }
-            }
-          }
-        }
-      case YamlScalar():
-        switch ('${config.value}') {
-          case AnalysisOptionsFileKeys.chromeOsManifestChecks:
-            chromeOsManifestChecks = true;
-          case AnalysisOptionsFileKeys.propagateLinterExceptions:
-            propagateLinterExceptions = true;
-        }
-    }
-  }
-
-  void _applyPluginsOptions(
-    YamlNode? plugins,
-    ResourceProvider? resourceProvider,
-  ) {
-    if (plugins is! YamlMap) {
-      return;
-    }
-
-    var configurations = <PluginConfiguration>[];
-    Map<String, PluginSource>? dependencyOverrides;
-
-    plugins.nodes.forEach((nameNode, pluginNode) {
-      if (nameNode is! YamlScalar) {
-        return;
-      }
-
-      var pluginName = nameNode.toString();
-      if (pluginName == 'dependency_overrides') {
-        // This is a magic key; not the name of a plugin.
-        if (pluginNode is! YamlMap) return;
-        pluginNode.nodes.forEach((nameNode, dependencyOverride) {
-          if (nameNode is! YamlScalar) {
-            return;
-          }
-          var source = _getSource(dependencyOverride, resourceProvider);
-          if (source == null) return;
-          (dependencyOverrides ??= {})[nameNode.toString()] = source;
-        });
-
-        return;
-      }
-
-      var source = _getSource(pluginNode, resourceProvider);
-      if (source == null) return;
-
-      if (pluginNode is! YamlMap) {
-        configurations.add(
-          PluginConfiguration(name: pluginName, source: source),
-        );
-        return;
-      }
-
-      var diagnostics = pluginNode.valueAt(AnalysisOptionsFileKeys.diagnostics);
-      var diagnosticConfigurations = diagnostics == null
-          ? const <String, RuleConfig>{}
-          : parseDiagnosticsSection(diagnostics);
-
-      configurations.add(
-        PluginConfiguration(
-          name: pluginName,
-          source: source,
-          diagnosticConfigs: diagnosticConfigurations,
-          // TODO(srawlins): Implement `enabled: false`.
-        ),
-      );
-    });
-
-    pluginsOptions = PluginsOptions(
-      configurations: configurations,
-      dependencyOverrides: dependencyOverrides,
-    );
-  }
-
-  void _applyUnignorables(YamlNode? cannotIgnore) {
-    if (cannotIgnore is! YamlList) {
-      return;
-    }
-    for (var entry in cannotIgnore) {
-      if (entry is! String) continue;
-      if (severityMap[entry] case var severity?) {
-        for (var diagnostic in diagnosticCodeValues) {
-          // If the severity of [error] is also changed in this options file,
-          // use the changed severity.
-          var processors = errorProcessors.where(
-            (processor) => processor.code == diagnostic.lowerCaseName,
-          );
-          DiagnosticSeverity? diagnosticSeverity = processors.isNotEmpty
-              ? processors.first.severity
-              : diagnostic.severity;
-          if (diagnosticSeverity == severity) {
-            unignorableDiagnosticCodeNames.add(diagnostic.lowerCaseName);
-          }
-        }
-      } else {
-        unignorableDiagnosticCodeNames.add(entry.toLowerCase());
-      }
-    }
-  }
-
-  PluginSource? _getSource(
-    YamlNode pluginNode,
-    ResourceProvider? resourceProvider,
-  ) {
-    // If it just maps to a String, then that is the version constraint.
-    if (pluginNode case YamlScalar(:String value)) {
-      return VersionedPluginSource(constraint: value);
-    }
-
-    if (pluginNode is! YamlMap) {
-      return null;
-    }
-
-    // Grab either the source value from 'version', 'git', or 'path'. In the
-    // erroneous case that multiple are specified, just take the first. A
-    // warning should be reported by the analysis-options validation path.
-    // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
-
-    var versionSource = pluginNode.valueAt(AnalysisOptionsFileKeys.version);
-    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFileKeys.hosted);
-
-    if ((versionSource, hostedUrlSource) case (
-      YamlScalar(value: String version),
-      YamlScalar(value: String hostedUrl),
-    )) {
-      return VersionedPluginSource(constraint: version, hostedUrl: hostedUrl);
-    } else if (versionSource case YamlScalar(value: String version)) {
-      return VersionedPluginSource(constraint: version);
-    }
-
-    var gitSource = pluginNode.valueAt(AnalysisOptionsFileKeys.git);
-    if (gitSource case YamlScalar(:String value)) {
-      return GitPluginSource(url: value);
-    } else if (gitSource is YamlMap) {
-      var urlSource = gitSource.valueAt(AnalysisOptionsFileKeys.url);
-      if (urlSource case YamlScalar(:String value)) {
-        return GitPluginSource(
-          url: value,
-          path: gitSource.valueAt(AnalysisOptionsFileKeys.path).stringValue,
-          ref: gitSource.valueAt(AnalysisOptionsFileKeys.ref).stringValue,
-          tagPattern: gitSource
-              .valueAt(AnalysisOptionsFileKeys.tagPattern)
-              .stringValue,
-        );
-      }
-    }
-
-    var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
-    if (pathSource case YamlScalar(value: String pathValue)) {
-      var file = this.file;
-      assert(
-        file != null,
-        "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
-        'plugins are specified with path constraints.',
-      );
-      if (file != null &&
-          resourceProvider != null &&
-          resourceProvider.pathContext.isRelative(pathValue)) {
-        // We need to store the absolute path, before this value is used in
-        // a synthetic pub package.
-        pathValue = resourceProvider.pathContext.join(
-          file.parent.path,
-          pathValue,
-        );
-        pathValue = resourceProvider.pathContext.normalize(pathValue);
-      }
-      return PathPluginSource(path: pathValue);
-    }
-    return null;
   }
 }
 
@@ -399,7 +167,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// If a library is in a package, this feature set is *not* used, even if the
   /// package does not specify the language version. Instead [contextFeatures]
   /// is used.
-  FeatureSet nonPackageFeatureSet = ExperimentStatus();
+  FeatureSet nonPackageFeatureSet;
 
   @override
   final List<String> enabledLegacyPluginNames;
@@ -416,18 +184,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
 
-  @override
-  bool lint = false;
+  bool _lint;
 
-  @override
-  bool warning = true;
+  bool _warning;
 
-  @override
-  List<AbstractAnalysisRule> lintRules = [];
+  List<AbstractAnalysisRule> _lintRules;
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
-  bool propagateLinterExceptions;
+  final bool propagateLinterExceptions;
 
   @override
   final bool strictCasts;
@@ -461,90 +226,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     return builder.build();
   }
 
-  /// Returns a newly instantiated [AnalysisOptionsImpl], as parsed from
-  /// [optionsMap].
-  ///
-  /// Optionally pass [file] as the file where the YAML can be found.
-  factory AnalysisOptionsImpl.fromYaml({
-    required YamlMap optionsMap,
-    File? file,
-    ResourceProvider? resourceProvider,
-  }) {
-    var builder = AnalysisOptionsBuilder()..file = file;
-
-    var analyzer = optionsMap.valueAt(AnalysisOptionsFileKeys.analyzer);
-    if (analyzer is YamlMap) {
-      // Process filters.
-      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
-      builder.errorProcessors = ErrorConfig(filters).processors;
-
-      // Process enabled experiments.
-      var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFileKeys.enableExperiment,
-      );
-      if (experimentNames is YamlList) {
-        var enabledExperiments = <String>[];
-        for (var element in experimentNames.nodes) {
-          var experimentName = element.stringValue;
-          if (experimentName != null) {
-            enabledExperiments.add(experimentName);
-          }
-        }
-        builder.contextFeatures =
-            FeatureSet.fromEnableFlags2(
-                  sdkLanguageVersion: ExperimentStatus.currentVersion,
-                  flags: enabledExperiments,
-                )
-                as ExperimentStatus;
-        builder.nonPackageFeatureSet = builder.contextFeatures;
-      }
-
-      // Process optional checks options.
-      var optionalChecks = analyzer.valueAt(
-        AnalysisOptionsFileKeys.optionalChecks,
-      );
-      builder._applyOptionalChecks(optionalChecks);
-
-      // Process language options.
-      var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
-      builder._applyLanguageOptions(language);
-
-      // Process excludes.
-      var excludes = analyzer.valueAt(AnalysisOptionsFileKeys.exclude);
-      builder._applyExcludes(excludes);
-
-      var cannotIgnore = analyzer.valueAt(AnalysisOptionsFileKeys.cannotIgnore);
-      builder._applyUnignorables(cannotIgnore);
-
-      // Process legacy plugins.
-      var legacyPlugins = analyzer.valueAt(AnalysisOptionsFileKeys.plugins);
-      builder._applyLegacyPlugins(legacyPlugins);
-    }
-
-    // Process the 'formatter' option.
-    var formatter = optionsMap.valueAt(AnalysisOptionsFileKeys.formatter);
-    builder._applyFormatterOptions(formatter);
-
-    // Process the 'plugins' option.
-    var plugins = optionsMap.valueAt(AnalysisOptionsFileKeys.plugins);
-    builder._applyPluginsOptions(plugins, resourceProvider);
-
-    var ruleConfigs = parseLinterSection(optionsMap);
-    if (ruleConfigs != null) {
-      var enabledRules = Registry.ruleRegistry.enabled(ruleConfigs);
-      if (enabledRules.isNotEmpty) {
-        builder.lint = true;
-        builder.lintRules = enabledRules.toList();
-      }
-    }
-
-    // Process the 'code-style' option.
-    var codeStyle = optionsMap.valueAt(AnalysisOptionsFileKeys.codeStyle);
-    builder._applyCodeStyleOptions(codeStyle);
-
-    return builder.build();
-  }
-
   AnalysisOptionsImpl._({
     required this.file,
     required ExperimentStatus contextFeatures,
@@ -553,8 +234,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
-    required this.lint,
-    required this.lintRules,
+    required bool lint,
+    required bool warning,
+    required List<AbstractAnalysisRule> lintRules,
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
@@ -563,7 +245,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.codeStyleOptions,
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
-  }) : _contextFeatures = contextFeatures {
+  }) : _contextFeatures = contextFeatures,
+       _lint = lint,
+       _warning = warning,
+       _lintRules = lintRules {
     assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }
@@ -571,9 +256,31 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   FeatureSet get contextFeatures => _contextFeatures;
 
+  // TODO(scheglov): Remove these compatibility setters after clients migrate
+  // to AnalysisOptionsBuilder.
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
+    _clearCachedSignatures();
+  }
+
+  @override
+  bool get lint => _lint;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lint(bool value) {
+    _lint = value;
+    _clearCachedSignatures();
+  }
+
+  @override
+  List<AbstractAnalysisRule> get lintRules => _lintRules;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set lintRules(List<AbstractAnalysisRule> value) {
+    _lintRules = value;
+    _clearCachedSignatures();
   }
 
   /// The language version to use for libraries that are not in a package.
@@ -724,6 +431,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
+  bool get warning => _warning;
+
+  @Deprecated('Use AnalysisOptionsBuilder instead.')
+  set warning(bool value) {
+    _warning = value;
+    _clearCachedSignatures();
+  }
+
+  @override
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
@@ -773,6 +489,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
           ),
         },
     };
+  }
+
+  void _clearCachedSignatures() {
+    _unlinkedSignature = null;
+    _signature = null;
+    _signatureForElements = null;
   }
 }
 
@@ -914,29 +636,5 @@ final class VersionedPluginSource implements PluginSource {
       ..writeln('    hosted: $hostedUrl');
 
     return buffer.toString();
-  }
-}
-
-extension on YamlNode? {
-  bool? get boolValue {
-    var self = this;
-    if (self is YamlScalar) {
-      var value = self.value;
-      if (value is bool) {
-        return value;
-      }
-    }
-    return null;
-  }
-
-  String? get stringValue {
-    var self = this;
-    if (self is YamlScalar) {
-      var value = self.value;
-      if (value is String) {
-        return value;
-      }
-    }
-    return null;
   }
 }

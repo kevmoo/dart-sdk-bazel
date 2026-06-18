@@ -24,17 +24,6 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsValidationTest extends AbstractAnalysisOptionsTest {
-  static const otherLib = '/other/lib';
-
-  @override
-  get dependencies => {'other': otherLib};
-
-  void newEmptyIncludedOptionsFile() {
-    // TODO(scheglov): Remove this file and the unnecessary include directives
-    // in these value-only tests.
-    newFile('$testPackageRootPath/included.yaml', '');
-  }
-
   @override
   void setUp() {
     registerLintRules([
@@ -686,12 +675,6 @@ AnalysisOptionsImpl
   enabledLegacyPluginNames
     plugin_one
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
-''');
   }
 
   test_analyzer_unsupportedOption() {
@@ -1024,10 +1007,6 @@ include: other_options1.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_missing_packageUri_doubleQuoted() {
@@ -1036,10 +1015,6 @@ AnalysisOptionsImpl
 include: "package:pedantic/analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1094,10 +1069,6 @@ include: package:pedantic/analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_missing_packageUri_singleQuoted() {
@@ -1106,10 +1077,6 @@ AnalysisOptionsImpl
 include: 'package:pedantic/analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.includeFileNotFound] The URI 'package:pedantic/analysis_options.yaml' included in '/home/test/analysis_options.yaml' can't be found when analyzing '/home/test'.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1132,10 +1099,6 @@ include: other_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_cycle_direct() {
@@ -1149,10 +1112,6 @@ include: analysis_options.yaml
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/other_options.yaml' includes '/home/test/other_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1179,10 +1138,6 @@ include: other_options1.yaml
 include: other_options1.yaml
 //       ^^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options1.yaml(9..27): The file includes itself recursively.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1346,10 +1301,6 @@ include: analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_doubleQuoted() {
@@ -1357,10 +1308,6 @@ AnalysisOptionsImpl
 include: "./analysis_options.yaml"
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1378,10 +1325,6 @@ include: analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_fileNameInList() {
@@ -1390,10 +1333,6 @@ include:
   - analysis_options.yaml
 //  ^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI 'analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1415,10 +1354,6 @@ include: other_options.yaml
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(9..26): The file includes itself recursively.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -1470,10 +1405,6 @@ include: ./analysis_options.yaml
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
 ''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-''');
   }
 
   test_include_recursive_self_singleQuoted() {
@@ -1481,10 +1412,6 @@ AnalysisOptionsImpl
 include: './analysis_options.yaml'
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.recursiveIncludeFile] The URI './analysis_options.yaml' included in '/home/test/analysis_options.yaml' includes '/home/test/analysis_options.yaml', creating a circular reference.
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
@@ -2541,8 +2468,9 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_incompatible_packageInclude() {
-    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
-      analysisOptionsFile: '''
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics(
+      {
+        analysisOptionsFile: '''
 include:
   - package:other/analysis_options.yaml
 
@@ -2552,14 +2480,16 @@ linter:
 //  ^^^^^^^^
 // [diag.incompatibleLintFiles][context 1] The rule 'rule_neg' is incompatible with 'rule_pos'.
 ''',
-      getFile('$otherLib/analysis_options.yaml'): '''
+        getFile('/other/lib/analysis_options.yaml'): '''
 linter:
   rules:
     rule_pos: true
 //  ^^^^^^^^
 // [context 1] The rule 'rule_pos' is enabled here in the file '/other/lib/analysis_options.yaml'.
 ''',
-    });
+      },
+      packageMap: {'other': getFolder('/other/lib')},
+    );
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
@@ -2806,10 +2736,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_error() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: error
@@ -2824,10 +2751,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_false() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: false
@@ -2839,10 +2763,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_ignore() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: ignore
@@ -2857,10 +2778,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_info() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: info
@@ -2875,10 +2793,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_true() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: true
@@ -2961,10 +2876,7 @@ AnalysisOptionsImpl
   }
 
   test_linter_rules_value_warning() {
-    newEmptyIncludedOptionsFile();
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
-include: included.yaml
-
 linter:
   rules:
     rule_pos: warning
@@ -3311,7 +3223,7 @@ AnalysisOptionsImpl
     configurations
       one
         source: PathPluginSource
-          path: ${convertPath('$testPackageRootPath/foo/bar')}
+          path: /home/test/foo/bar
 ''');
   }
 

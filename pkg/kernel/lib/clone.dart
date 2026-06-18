@@ -753,7 +753,7 @@ class CloneVisitorNotMembers
     return setVariableClone(
       node,
       new LocalVariable(
-          cosmeticName: node.cosmeticName,
+          name: node.cosmeticName!,
           type: visitOptionalType(node.type),
           initializer: cloneOptional(node.initializer),
         )
@@ -768,7 +768,7 @@ class CloneVisitorNotMembers
     return setVariableClone(
       node,
       new LateVariable(
-          cosmeticName: node.cosmeticName,
+          name: node.cosmeticName!,
           type: visitOptionalType(node.type),
           initializer: cloneOptional(node.initializer),
         )
@@ -814,21 +814,6 @@ class CloneVisitorNotMembers
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     return new VariableDeclaration(clone(node.variable))
       ..fileOffset = _cloneFileOffset(node.fileOffset);
-  }
-
-  @override
-  TreeNode visitLegacyVariable(LegacyVariable node) {
-    return setVariableClone(
-      node,
-      new LegacyVariable(
-          node.name,
-          initializer: cloneOptional(node.initializer),
-          type: visitType(node.type),
-          flags: node.flags,
-        )
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
   }
 
   List<Expression> _cloneAnnotations(Annotatable node) {
@@ -894,8 +879,10 @@ class CloneVisitorNotMembers
     List<TypeParameter> typeParameters = node.typeParameters
         .map(clone)
         .toList();
-    List<Variable> positional = node.positionalParameters.map(clone).toList();
-    List<Variable> named = node.namedParameters.map(clone).toList();
+    List<PositionalParameter> positional = node.positionalParameters
+        .map(clone)
+        .toList();
+    List<NamedParameter> named = node.namedParameters.map(clone).toList();
     Variable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
@@ -1638,8 +1625,8 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   Procedure cloneProcedureWith(
     Procedure node,
     Reference? reference, {
-    List<Variable>? positionalParameters,
-    List<Variable>? namedParameters,
+    List<PositionalParameter>? positionalParameters,
+    List<NamedParameter>? namedParameters,
   }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {

@@ -470,7 +470,9 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = function;
   }
 }
 
@@ -610,7 +612,9 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     FunctionNode function = extern.createFunctionNode(
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
-      positionalParameters: [_thisFormal.build(libraryBuilder).astVariable],
+      positionalParameters: [
+        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+      ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
       fileEndOffset: _fragment.endOffset,
@@ -818,6 +822,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       );
     }
     function.scope = scope;
-    function.thisVariable = thisVariable;
+    function.thisVariable =
+        // Coverage-ignore(suite): Not run.
+        thisVariable?..parent = function;
   }
 }

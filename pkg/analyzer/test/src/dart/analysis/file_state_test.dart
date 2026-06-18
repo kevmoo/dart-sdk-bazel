@@ -6893,9 +6893,9 @@ class FileSystemStateTest with ResourceProviderMixin {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
-    var packageMap = <String, List<Folder>>{
-      'aaa': [getFolder('/aaa/lib')],
-      'bbb': [getFolder('/bbb/lib')],
+    var packageMap = <String, Folder>{
+      'aaa': getFolder('/aaa/lib'),
+      'bbb': getFolder('/bbb/lib'),
     };
 
     var packages = Packages({
@@ -6926,9 +6926,11 @@ class FileSystemStateTest with ResourceProviderMixin {
       ResourceUriResolver(resourceProvider),
     ]);
 
-    var analysisOptions = AnalysisOptionsImpl()
-      ..contextFeatures = FeatureSet.latestLanguageVersion()
-      ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion();
+    var analysisOptions =
+        (AnalysisOptionsBuilder()
+              ..contextFeatures = FeatureSet.latestLanguageVersion()
+              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+            .build();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,

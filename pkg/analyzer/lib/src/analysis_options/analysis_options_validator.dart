@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_yaml.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -49,12 +49,7 @@ String? _firstPluginName(YamlMap options) {
 }
 
 YamlMap _parseOptionsFromString(String content, {Uri? sourceUrl}) {
-  try {
-    var doc = loadYamlNode(content, sourceUrl: sourceUrl);
-    return doc is YamlMap ? doc : YamlMap();
-  } on YamlException catch (e) {
-    throw OptionsFormatException(e.message, e.span);
-  }
+  return parseAnalysisOptionsYaml(content, sourceUrl: sourceUrl);
 }
 
 /// Validates the legacy 'plugins' options in [options], given
@@ -71,34 +66,31 @@ void _validateLegacyPluginsOption(
 
 /// Cache of raw parsed analysis options files used during validation.
 ///
-/// Unlike [AnalysisOptionsCache], this cache stores the unmerged YAML tree for
-/// each physical options file. Validation walks include edges itself so that it
-/// can report diagnostics against the file where they originate and summarize
-/// included-file diagnostics at the including directive.
+/// Unlike the merged-YAML cache used when building options, this cache stores
+/// the unmerged YAML tree for each physical options file. Validation walks
+/// include edges itself so that it can report diagnostics against the file
+/// where they originate and summarize included-file diagnostics at the
+/// including directive.
 final class AnalysisOptionsValidationCache {
   final Map<File, _YamlFileParseResult> _map = {};
 }
 
 /// Validates analysis options files and produces user-visible diagnostics.
+@Deprecated('Use AnalysisOptionsParseSession.parse instead.')
 final class AnalysisOptionsValidator {
   final SourceFactory sourceFactory;
-  final ResourceProvider resourceProvider;
-  final String contextRoot;
+  final Folder contextRoot;
   final VersionConstraint? sdkVersionConstraint;
   final AnalysisOptionsValidationCache _validationCache;
 
   AnalysisOptionsValidator({
     required this.sourceFactory,
-    required this.resourceProvider,
     required this.contextRoot,
     this.sdkVersionConstraint,
-    AnalysisOptionsValidationCache? validationCache,
-  }) : _validationCache = validationCache ?? AnalysisOptionsValidationCache();
+    required AnalysisOptionsValidationCache validationCache,
+  }) : _validationCache = validationCache;
 
-  List<Diagnostic> validateContent({
-    required File file,
-    required String content,
-  }) {
+  List<Diagnostic> validate({required File file, required String content}) {
     var initialSource = FileSource(file);
     var initialDiagnosticListener = RecordingDiagnosticListener();
     var initialDiagnosticReporter = DiagnosticReporter(
@@ -115,21 +107,16 @@ final class AnalysisOptionsValidator {
       sourceFactory: sourceFactory,
       contextRoot: contextRoot,
       sdkVersionConstraint: sdkVersionConstraint,
-      resourceProvider: resourceProvider,
       validationCache: _validationCache,
     ).validate(content: content);
-  }
-
-  List<Diagnostic> validateFile(File file) {
-    return validateContent(file: file, content: file.readAsStringSync());
   }
 }
 
 /// Walks the initial options file and its includes for one validation request.
 ///
-/// This class owns the mutable traversal state that is awkward to keep on
-/// [AnalysisOptionsValidator] itself: the current file, reporter/listener pair,
-/// include chain, first include span, and included legacy plugin state.
+/// This class owns the mutable traversal state for the diagnostic validator:
+/// the current file, reporter/listener pair, include chain, first include span,
+/// and included legacy plugin state.
 /// It deliberately delegates validation of a single already-parsed YAML map to
 /// [_OptionsFileValidator]; its responsibility is parsing, include traversal,
 /// source ownership, and converting diagnostics from included files into
@@ -142,9 +129,8 @@ final class _AnalysisOptionsValidatorWalker {
   File file;
   final File initialFile;
   final SourceFactory sourceFactory;
-  final String contextRoot;
+  final Folder contextRoot;
   final VersionConstraint? sdkVersionConstraint;
-  final ResourceProvider resourceProvider;
   final AnalysisOptionsValidationCache validationCache;
 
   /// The span of the first `include` directive in the include chain currently
@@ -170,7 +156,6 @@ final class _AnalysisOptionsValidatorWalker {
     required this.sourceFactory,
     required this.contextRoot,
     required this.sdkVersionConstraint,
-    required this.resourceProvider,
     required this.validationCache,
   });
 
@@ -248,7 +233,6 @@ final class _AnalysisOptionsValidatorWalker {
       sdkVersionConstraint: sdkVersionConstraint,
       contextRoot: contextRoot,
       isPrimarySource: isPrimarySource,
-      resourceProvider: resourceProvider,
     ).validate(options, diagnosticReporter);
 
     var includeNode = options.valueAt(AnalysisOptionsFileKeys.include);
@@ -318,7 +302,7 @@ final class _AnalysisOptionsValidatorWalker {
             .withArguments(
               includedUri: includeUri,
               includingFilePath: file.path,
-              contextRootPath: contextRoot,
+              contextRootPath: contextRoot.path,
             )
             .atSourceSpan(initialIncludeSpan!),
       );
@@ -344,7 +328,7 @@ final class _AnalysisOptionsValidatorWalker {
             .withArguments(
               includedUri: includeUri,
               includingFilePath: file.path,
-              contextRootPath: contextRoot,
+              contextRootPath: contextRoot.path,
             )
             .atSourceSpan(initialIncludeSpan!),
       );

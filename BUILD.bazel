@@ -272,6 +272,7 @@ filegroup(
 
 filegroup(
     name = "run_ffi_unit_tests",
+    testonly = True,
     srcs = [
         "//runtime/bin/ffi_unit_test:run_ffi_unit_tests",
     ],

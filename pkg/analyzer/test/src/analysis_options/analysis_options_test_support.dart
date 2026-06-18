@@ -7,13 +7,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -29,51 +27,11 @@ import '../dart/resolution/node_text_expectations.dart';
 
 abstract class AbstractAnalysisOptionsTest
     with ResourceProviderMixin, LintRegistrationMixin {
-  late SourceFactory sourceFactory;
-  Map<String, String>? dependencies;
-
   late File analysisOptionsFile = getFile(
     '$testPackageRootPath/analysis_options.yaml',
   );
 
-  VersionConstraint? get sdkVersionConstraint => null;
-
   String get testPackageRootPath => '/home/test';
-
-  List<Diagnostic> assertAnalysisOptionsDiagnostics(
-    String code, {
-    VersionConstraint? sdkVersionConstraint,
-  }) {
-    return assertAnalysisOptionsDiagnosticsInFiles({
-      analysisOptionsFile: code,
-    }, sdkVersionConstraint: sdkVersionConstraint);
-  }
-
-  List<Diagnostic> assertAnalysisOptionsDiagnosticsInFiles(
-    Map<File, String> codeByFile, {
-    VersionConstraint? sdkVersionConstraint,
-  }) {
-    if (codeByFile.isEmpty) {
-      fail('Cannot validate analysis options: no content was provided.');
-    }
-    var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
-
-    var diagnostics = AnalysisOptionsValidator(
-      sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
-      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
-
-    _assertDiagnosticMarkersInFiles(
-      codeByFile: codeByFile,
-      diagnostics: diagnostics,
-    );
-    return diagnostics;
-  }
 
   void assertAnalysisOptionsText(AnalysisOptionsImpl options, String expected) {
     var actual = _AnalysisOptionsTextWriter().write(options);
@@ -86,48 +44,71 @@ abstract class AbstractAnalysisOptionsTest
     expect(actual, expected);
   }
 
+  AnalysisOptionsParseResult parseAnalysisOptionsFile(
+    File file, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
+    VersionConstraint? sdkVersionConstraint,
+  }) {
+    parseSession ??= AnalysisOptionsParseSession();
+
+    var sourceFactory = SourceFactoryImpl([
+      ResourceUriResolver(resourceProvider),
+      if (packageMap != null)
+        PackageMapUriResolver(resourceProvider, packageMap),
+    ]);
+
+    return parseSession.parse(
+      sourceFactory: sourceFactory,
+      contextRoot: getFolder(testPackageRootPath),
+      file: file,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
+  }
+
   AnalysisOptionsImpl parseAnalysisOptionsFilesWithDiagnostics(
     Map<File, String> codeByFile, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
     VersionConstraint? sdkVersionConstraint,
   }) {
     if (codeByFile.isEmpty) {
       fail('Cannot parse analysis options: no content was provided.');
     }
     var cleanCodeByFile = _writeFilesWithoutDiagnosticExpectations(codeByFile);
-    var initialEntry = cleanCodeByFile.entries.first;
-    var initialFile = initialEntry.key;
-    var cleanContent = initialEntry.value;
+    var initialFile = cleanCodeByFile.keys.first;
 
-    var diagnostics = AnalysisOptionsValidator(
-      sourceFactory: sourceFactory,
-      contextRoot: convertPath(testPackageRootPath),
-      sdkVersionConstraint: sdkVersionConstraint ?? this.sdkVersionConstraint,
-      resourceProvider: resourceProvider,
-    ).validateContent(file: initialFile, content: cleanContent);
+    var result = parseAnalysisOptionsFile(
+      initialFile,
+      parseSession: parseSession,
+      packageMap: packageMap,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
 
     _assertDiagnosticMarkersInFiles(
       codeByFile: codeByFile,
-      diagnostics: diagnostics,
+      diagnostics: result.diagnostics,
     );
 
-    return AnalysisOptionsProvider(sourceFactory).getAnalysisOptionsFromFile(
-      initialFile,
-      resourceProvider: resourceProvider,
-    );
+    return result.analysisOptions;
   }
 
   AnalysisOptionsImpl parseAnalysisOptionsWithDiagnostics(
     String code, {
+    AnalysisOptionsParseSession? parseSession,
+    Map<String, Folder>? packageMap,
     VersionConstraint? sdkVersionConstraint,
   }) {
-    return parseAnalysisOptionsFilesWithDiagnostics({
-      analysisOptionsFile: code,
-    }, sdkVersionConstraint: sdkVersionConstraint);
+    return parseAnalysisOptionsFilesWithDiagnostics(
+      {analysisOptionsFile: code},
+      parseSession: parseSession,
+      packageMap: packageMap,
+      sdkVersionConstraint: sdkVersionConstraint,
+    );
   }
 
-  void setUp() {
-    sourceFactory = _createSourceFactory(packageDependencies: dependencies);
-  }
+  @mustCallSuper
+  void setUp() {}
 
   @mustCallSuper
   void tearDown() {
@@ -166,20 +147,6 @@ abstract class AbstractAnalysisOptionsTest
     if (hasMismatch) {
       fail('See the difference above.');
     }
-  }
-
-  SourceFactory _createSourceFactory({
-    Map<String, String>? packageDependencies,
-  }) {
-    var resolvers = [
-      ResourceUriResolver(resourceProvider),
-      if (packageDependencies != null)
-        PackageMapUriResolver(resourceProvider, {
-          for (var entry in packageDependencies.entries)
-            entry.key: [getFolder(convertPath(entry.value))],
-        }),
-    ];
-    return SourceFactoryImpl(resolvers);
   }
 
   Map<File, List<Diagnostic>> _diagnosticsByFile({
@@ -287,6 +254,13 @@ final class _AnalysisOptionsTextWriter {
       _writePluginsOptions(options.pluginsOptions);
     });
     return _buffer.toString();
+  }
+
+  String _toPosixPath(String filePath) {
+    if (filePath.startsWith(r'C:\')) {
+      return filePath.substring(2).replaceAll(r'\', '/');
+    }
+    return filePath;
   }
 
   void _writeBool(String name, bool value, bool defaultValue) {
@@ -471,7 +445,7 @@ final class _AnalysisOptionsTextWriter {
   void _writePathPluginSource(PathPluginSource source) {
     _sink.writelnWithIndent('source: PathPluginSource');
     _sink.withIndent(() {
-      _sink.writelnWithIndent('path: ${source.path}');
+      _sink.writelnWithIndent('path: ${_toPosixPath(source.path)}');
     });
   }
 

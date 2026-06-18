@@ -12,7 +12,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
@@ -830,15 +830,20 @@ class FileResolver {
     if (optionsFile case var file?) {
       performance.run('getAnalysisOptionsFromFile', (_) {
         try {
-          var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-          options = optionsProvider.getAnalysisOptionsFromFile(file);
+          options = AnalysisOptionsParseSession()
+              .parse(
+                sourceFactory: sourceFactory,
+                contextRoot: resourceProvider.getFolder(workspace.root),
+                file: file,
+              )
+              .analysisOptions;
         } catch (_) {}
       });
     }
 
     var result = options ?? AnalysisOptionsImpl();
     if (isThirdParty) {
-      result.warning = false;
+      result = (AnalysisOptionsBuilder.from(result)..warning = false).build();
     }
 
     return result;
