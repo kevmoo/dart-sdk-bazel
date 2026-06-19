@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 71/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 71/94 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -31,7 +31,9 @@ graph TD
     classDef pending fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,stroke-dasharray: 5 5,color:#6c757d;
     classDef blocked fill:#f8d7da,stroke:#dc3545,stroke-width:1px,stroke-dasharray: 5 5,color:#721c24;
     sdk_0dc["sdk-0dc:<br>Retire `restore.sh` entirely"]:::completed
+    sdk_245["sdk-245:<br>Track sandboxed execution of benchmarks suite under Bazel"]:::pending
     sdk_2f2["sdk-2f2:<br>Investigate Upstreaming Non-Bazel Fixes to Main"]:::completed
+    sdk_2w0["sdk-2w0:<br>Add Starlark test discovery for modular compilation and hot reload test suites"]:::pending
     sdk_31k["sdk-31k:<br>Migrate Third-Party Dependencies to Hermetic Bzlmod Overlays"]:::completed
     sdk_3jc["sdk-3jc:<br>Migrate `packages.bzl` target generation to a dynamic Bzlmod extension"]:::completed
     sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::completed
@@ -39,6 +41,7 @@ graph TD
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
+    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::pending
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
@@ -84,6 +87,8 @@ graph TD
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
     sdk_k3n["sdk-k3n:<br>Implement `bazel run` support for running Dart scripts"]:::completed
+    sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::pending
+    sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::pending
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
@@ -91,6 +96,7 @@ graph TD
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
+    sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::pending
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_s5g["sdk-s5g:<br>Dynamic Package Dependency Mapping"]:::completed
@@ -98,6 +104,7 @@ graph TD
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
     sdk_tjm["sdk-tjm:<br>Simulator Target Configurations"]:::completed
     sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
+    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::pending
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_uft["sdk-uft:<br>VM AOT Test Suite Integration"]:::completed
@@ -106,8 +113,10 @@ graph TD
     sdk_v49["sdk-v49:<br>Design and implement virtual namespaced package targets"]:::completed
     sdk_vlg["sdk-vlg:<br>Sanitizer Test Configuration Mapping"]:::completed
     sdk_w7m["sdk-w7m:<br>VM: Eliminate preprocessor symbol toggles in dfe.cc"]:::completed
+    sdk_wax["sdk-wax:<br>Enable general web/HTML tests {tests/web} and fix dart2js suite configuration"]:::pending
     sdk_we0["sdk-we0:<br>Sanitizer Suite Verification"]:::completed
     sdk_win["sdk-win:<br>CI LUCI Recipe Migration"]:::pending
+    sdk_wxe["sdk-wxe:<br>Define VM stress execution matrix flags {--stress-gc, --stress-reload} in Bazel test configs"]:::pending
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::completed
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
     sdk_xql["sdk-xql:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
@@ -153,6 +162,32 @@ graph TD
 
 ## 📋 Active Backlog
 
+### 🎯 [sdk-245] Track sandboxed execution of benchmarks suite under Bazel
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-2w0] Add Starlark test discovery for modular compilation and hot reload test suites
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-4kr] Upstream Hermetic OtherResources Annotations for IO Tests
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -162,6 +197,19 @@ graph TD
   - None
 - **Description**:
   Upstream our missing OtherResources declarations across tests/standalone/io/*.dart so the entire SDK standalone IO test suite can execute reliably inside strict hermetic sandboxes (RBE/Bazel/Buildfarm).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
 - **Success Criteria**:
 
 ---
@@ -285,6 +333,32 @@ graph TD
 
 ---
 
+### 🎯 [sdk-k9l] Design and implement Dart Dev Compiler (ddc) web test execution architecture
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-mpb] Migrate co19 conformance tests to Bazel as isolated Bzlmod repo (@dart_co19_tests)
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-qoj] [process] Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -294,6 +368,19 @@ graph TD
   - None
 - **Description**:
   gemini-code-assist consumer code review is sunset: new installs blocked 2026-06-18, ALL review activity ceases 2026-07-17. It has been the only reviewer catching critical pre-merge bugs (Starlark set() in PR #15, undefined var in PR #16, hand-BUILD clobbering in PR #15, read-only-runfiles writes in PR #13). Plan per docs/bazel-migration/fable_thoughts.md §9-§10: (a) mechanize classes 1-6 (extension-evaluating CI steps, exit-code rules, subprocess helper, portability greps, protected-files manifest, env-specific-string audit), (b) add tools/bazel/presubmit.sh single-command local gate, (c) substitute a model-based reviewer (e.g. Claude review action / .agents review checklist) for judgment classes 7-8. Deadline-driven: P1.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-qzb] Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
 - **Success Criteria**:
 
 ---
@@ -311,6 +398,32 @@ graph TD
 
 ---
 
+### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-wax] Enable general web/HTML tests (tests/web) and fix dart2js suite configuration
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-win] CI LUCI Recipe Migration
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-8ut`, `sdk-c2c`, `sdk-n4o`, `sdk-y6l`
@@ -323,6 +436,19 @@ graph TD
 - **Success Criteria**:
   - [ ] CI builders successfully transition to Bazel for building and testing.
   - [ ] Bazel-built SDK is uploaded to CIPD/GCS storage.
+
+---
+
+### 🎯 [sdk-wxe] Define VM stress execution matrix flags (--stress-gc, --stress-reload) in Bazel test configs
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
 
 ---
 
