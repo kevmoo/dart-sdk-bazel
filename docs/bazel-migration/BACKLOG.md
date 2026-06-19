@@ -87,7 +87,7 @@ graph TD
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
     sdk_k3n["sdk-k3n:<br>Implement `bazel run` support for running Dart scripts"]:::completed
-    sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::pending
+    sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::inProgress
     sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::pending
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
@@ -334,7 +334,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-k9l] Design and implement Dart Dev Compiler (ddc) web test execution architecture
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
