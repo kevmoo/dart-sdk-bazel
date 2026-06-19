@@ -208,8 +208,6 @@ def _impl(ctx):
         "-no-canonical-prefixes",
         "-ffile-prefix-map=__BAZEL_EXECROOT__=.",
         "-Wno-builtin-macro-redefined",
-        "-D__DATE__=\"\"",
-        "-D__TIME__=\"\"",
     ]
     target_linkopts = ["--sysroot=" + SYSROOT_ROOT]
 

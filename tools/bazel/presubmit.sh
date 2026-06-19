@@ -82,12 +82,12 @@ fi
 step "genrule hermeticity audit"
 genrule_audit_files=$(git ls-files '*BUILD.bazel' '*MODULE.bazel' '*.bzl' \
   | grep -v '^third_party/' || true)
-cp_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*(cp|mv)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
+cp_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*[[:space:]";&|](cp|mv)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
 if [ -n "$cp_matches" ]; then
   echo "$cp_matches"
   fail "genrule audit: shell cp/mv command found inside cmd string (use copy_file from @bazel_skylib, or mark '# exempt-genrule: ok')"
 fi
-ambient_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*(git|date)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
+ambient_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*[[:space:]";&|](git|date)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
 if [ -n "$ambient_matches" ]; then
   echo "$ambient_matches"
   fail "genrule audit: ambient host command (git/date) found inside cmd string (use --workspace_status_command or stamping)"
