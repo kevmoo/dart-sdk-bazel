@@ -74,6 +74,25 @@ if [ -n "$concat_matches" ]; then
   fail "architecture audit: concat-built TARGET_ARCH_ define evades the literal grep (write the honest literal + marker)"
 fi
 
+step "starlark macro unit tests"
+if ! bazel test //tools/bazel/dart/tests:dart_rules_tests; then
+  fail "bazel test //tools/bazel/dart/tests:dart_rules_tests"
+fi
+
+step "genrule hermeticity audit"
+genrule_audit_files=$(git ls-files '*BUILD.bazel' '*MODULE.bazel' '*.bzl' \
+  | grep -v '^third_party/' || true)
+cp_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*(cp|mv)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
+if [ -n "$cp_matches" ]; then
+  echo "$cp_matches"
+  fail "genrule audit: shell cp/mv command found inside cmd string (use copy_file from @bazel_skylib, or mark '# exempt-genrule: ok')"
+fi
+ambient_matches=$(echo "$genrule_audit_files" | xargs grep -H -n -E 'cmd[[:space:]]*=[[:space:]]*".*(git|date)[[:space:]]+' 2>/dev/null | grep -v '# exempt-genrule: ok' || true)
+if [ -n "$ambient_matches" ]; then
+  echo "$ambient_matches"
+  fail "genrule audit: ambient host command (git/date) found inside cmd string (use --workspace_status_command or stamping)"
+fi
+
 step "python helpers byte-compile"
 if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py_compile; then
   fail "py_compile of tools/bazel python helpers"
