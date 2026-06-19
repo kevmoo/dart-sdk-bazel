@@ -205,28 +205,6 @@
         }
       }
     },
-    "//tools/bazel/dart:test_rules.bzl%dart_tests_extension": {
-      "general": {
-        "bzlTransitiveDigest": "Ezsc03NJXKteHLhYPx7w/K3pEcjbdkRcPriHTFFZqQg=",
-        "usagesDigest": "4cbj3Mjb6MHThB17IyomR8ZTjCcOUe6Pw3pQLSUfb0g=",
-        "recordedInputs": [],
-        "generatedRepoSpecs": {
-          "dart_tests": {
-            "repoRuleId": "@@//tools/bazel/dart:test_rules.bzl%dynamic_test_repository",
-            "attributes": {
-              "suites": [
-                "language",
-                "corelib",
-                "standalone",
-                "ffi",
-                "pkg",
-                "web/wasm"
-              ]
-            }
-          }
-        }
-      }
-    },
     "@@rules_kotlin+//src/main/starlark/core/repositories:bzlmod_setup.bzl%rules_kotlin_extensions": {
       "general": {
         "bzlTransitiveDigest": "Ga4z8lQy1YQ5rAMy+dOl0dqcCEBnYNCXku8x3YQmDZI=",

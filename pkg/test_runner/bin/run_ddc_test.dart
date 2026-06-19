@@ -118,6 +118,7 @@ void main(List<String> args) async {
   var currentIndex = 0;
 
   var ddcPath = '$testSrcdir/_main/utils/ddc/dartdevc.dart.snapshot';
+  var ddcFound = false;
   for (final candidate in [
     ddcPath,
     '$testSrcdir/utils/ddc/dartdevc.dart.snapshot',
@@ -130,10 +131,15 @@ void main(List<String> args) async {
   ]) {
     if (await File(candidate).exists()) {
       ddcPath = candidate;
+      ddcFound = true;
       break;
     }
   }
-  final isSnapshot = ddcPath.endsWith('.snapshot') || !ddcPath.endsWith('.dart');
+  if (!ddcFound) {
+    print('Error: Could not find dartdevc snapshot or source file.');
+    exitCode = 2;
+    return;
+  }
 
   Future<void> worker() async {
     while (true) {
@@ -210,15 +216,15 @@ void main(List<String> args) async {
         }
       }
 
-      final actualExe = (exe == 'dartdevc' || exe.endsWith('dart') || isSnapshot) ? dartBin : exe;
+      final isDdc =
+          exe == 'dartdevc' || exe.endsWith('dartdevc') || exe.endsWith('dart');
+      final actualExe = isDdc ? dartBin : exe;
       var finalCleanArgs = cleanArgs;
       if (!cleanArgs.contains('--packages') &&
           !cleanArgs.any((a) => a.startsWith('--packages='))) {
         finalCleanArgs = ['--packages=$cleanPkgCfg', ...cleanArgs];
       }
-      final actualArgs = actualExe == dartBin
-          ? [ddcPath, ...finalCleanArgs]
-          : finalCleanArgs;
+      final actualArgs = isDdc ? [ddcPath, ...finalCleanArgs] : finalCleanArgs;
 
       final res = await Process.run(actualExe, actualArgs);
       final success = res.exitCode == 0;
@@ -289,26 +295,29 @@ void main(List<String> args) async {
       try {
         await file.openRead().pipe(request.response);
       } catch (_) {
-        try { await request.response.close(); } catch (_) {}
+        try {
+          await request.response.close();
+        } catch (_) {}
       }
     } else {
       request.response.statusCode = 404;
       request.response.write('Not found: $filePath');
-      try { await request.response.close(); } catch (_) {}
+      try {
+        await request.response.close();
+      } catch (_) {}
     }
   });
 
   // Find Chrome launcher
-  var chromeBin = Platform.environment['CHROMEDRIVER_PATH'];
-  if (chromeBin == null || !File(chromeBin).existsSync()) {
+  var chromeBin =
+      Platform.environment['CHROME_PATH'] ?? Platform.environment['CHROME_BIN'];
+  if (chromeBin == null || !await File(chromeBin).exists()) {
     for (final path in [
-      '$testSrcdir/chromedriver/chromedriver',
-      '$testSrcdir/_main/external/chromedriver/chromedriver',
       '$testSrcdir/third_party/browsers/chrome/chrome',
       '$testSrcdir/_main/third_party/browsers/chrome/chrome',
       '/usr/bin/google-chrome',
     ]) {
-      if (File(path).existsSync()) {
+      if (await File(path).exists()) {
         chromeBin = path;
         break;
       }
@@ -317,7 +326,7 @@ void main(List<String> args) async {
 
   if (chromeBin == null) {
     print(
-      'Warning: No Chrome or chromedriver binary found. Skipping browser execution verification.',
+      'Warning: No Chrome browser binary found. Skipping browser execution verification.',
     );
     await server.close();
     return;
@@ -373,9 +382,11 @@ void main(List<String> args) async {
     }
   }
 
-  await Future.wait(List.generate(browserPoolSize, (_) => browserWorker()));
-
-  await server.close();
+  try {
+    await Future.wait(List.generate(browserPoolSize, (_) => browserWorker()));
+  } finally {
+    await server.close();
+  }
 
   if (browserFailures > 0) {
     print('Error: $browserFailures test cases failed browser execution.');
