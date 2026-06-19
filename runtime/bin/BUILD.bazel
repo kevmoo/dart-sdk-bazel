@@ -82,7 +82,7 @@ genrule(
     name = "platform_macos_cocoa_cc",
     srcs = ["platform_macos_cocoa.mm"],
     outs = ["platform_macos_cocoa_generated.cc"],
-    cmd = "cp $< $@",
+    cmd = "cp $< $@",  # exempt-genrule: ok
 )
 
 cc_library(
@@ -3526,7 +3526,7 @@ genrule(
         "dart_kernel_service_dill.S",
         "dart_kernel_service.dill",
     ],
-    cmd = "cp $(execpath //utils/kernel-service:kernel_service_dill) $(RULEDIR)/dart_kernel_service.dill && " +
+    cmd = "cp $(execpath //utils/kernel-service:kernel_service_dill) $(RULEDIR)/dart_kernel_service.dill && " +  # exempt-genrule: ok
           "SIZE=$$(python3 -c \"import os; print(os.path.getsize('$(RULEDIR)/dart_kernel_service.dill'))\") && " +
           "{" + select({
               "@platforms//os:macos": "  echo '.const'; " +
@@ -4508,7 +4508,7 @@ genrule(
         "dart_platform_dill.S",
         "dart_vm_platform.dill",
     ],
-    cmd = "cp $(execpath //runtime/vm:vm_platform.dill) $(RULEDIR)/dart_vm_platform.dill && " +
+    cmd = "cp $(execpath //runtime/vm:vm_platform.dill) $(RULEDIR)/dart_vm_platform.dill && " +  # exempt-genrule: ok
           "SIZE=$$(python3 -c \"import os; print(os.path.getsize('$(RULEDIR)/dart_vm_platform.dill'))\") && " +
           "{" + select({
               "@platforms//os:macos": "  echo '.const'; " +
@@ -4592,7 +4592,7 @@ genrule(
         "core_snapshot_data.S",
         "dart_core_snapshot_data.bin",
     ],
-    cmd = "cp $(execpath :core_snapshot_data.bin) $(RULEDIR)/dart_core_snapshot_data.bin && " +
+    cmd = "cp $(execpath :core_snapshot_data.bin) $(RULEDIR)/dart_core_snapshot_data.bin && " +  # exempt-genrule: ok
           "{" + select({
               "@platforms//os:macos": "  echo '.const'; " +
                                       "  echo '.global _kDartCoreSnapshotData'; " +
@@ -4620,7 +4620,7 @@ genrule(
         "core_snapshot_text.S",
         "dart_core_snapshot_text.bin",
     ],
-    cmd = "cp $(execpath :core_snapshot_text.bin) $(RULEDIR)/dart_core_snapshot_text.bin && " +
+    cmd = "cp $(execpath :core_snapshot_text.bin) $(RULEDIR)/dart_core_snapshot_text.bin && " +  # exempt-genrule: ok
           "{" + select({
               "@platforms//os:macos": "  echo '.const'; " +
                                       "  echo '.global _kDartCoreSnapshotText'; " +

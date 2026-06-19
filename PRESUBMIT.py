@@ -536,7 +536,7 @@ def _CheckBuildifier(input_api, output_api):
     if not bazel_files:
         return []
 
-    cmd = ["buildifier", "--lint=warn", "--mode=check"] + bazel_files
+    cmd = ["buildifier", "--lint=warn", "--warnings=all", "--mode=check"] + bazel_files
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except subprocess.CalledProcessError as e:
