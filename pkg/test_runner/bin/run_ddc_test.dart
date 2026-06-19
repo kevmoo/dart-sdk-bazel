@@ -31,10 +31,14 @@ void main(List<String> args) async {
     return;
   }
 
-  final totalShards =
+  var totalShards =
       int.tryParse(Platform.environment['TEST_TOTAL_SHARDS'] ?? '1') ?? 1;
-  final shardIndex =
+  var shardIndex =
       int.tryParse(Platform.environment['TEST_SHARD_INDEX'] ?? '0') ?? 0;
+  if (totalShards < 1) totalShards = 1;
+  if (shardIndex < 0 || shardIndex >= totalShards) {
+    shardIndex = 0;
+  }
   final testSrcdir =
       Platform.environment['TEST_SRCDIR'] ?? Directory.current.path;
   final tmpRoot =
@@ -65,19 +69,19 @@ void main(List<String> args) async {
       })
       .join(',\n');
   final cleanPkgCfg = '$buildDir/hermetic_package_config.json';
-  File(cleanPkgCfg).parent.createSync(recursive: true);
-  File(
+  await File(cleanPkgCfg).parent.create(recursive: true);
+  await File(
     cleanPkgCfg,
-  ).writeAsStringSync('{"configVersion": 2, "packages": [\n$pkgEntries\n]}');
+  ).writeAsString('{"configVersion": 2, "packages": [\n$pkgEntries\n]}');
 
   final metadataFile = File(configJsonPath);
-  if (!metadataFile.existsSync()) {
+  if (!await metadataFile.exists()) {
     print('Error: Metadata file not found at $configJsonPath');
     exitCode = 2;
     return;
   }
 
-  final decoded = jsonDecode(metadataFile.readAsStringSync()) as List;
+  final decoded = jsonDecode(await metadataFile.readAsString()) as List;
   final allCases = decoded.cast<Map<String, dynamic>>();
 
   final activeCases = <Map<String, dynamic>>[];
@@ -113,6 +117,24 @@ void main(List<String> args) async {
   final poolSize = Platform.numberOfProcessors.clamp(2, 8);
   var currentIndex = 0;
 
+  var ddcPath = '$testSrcdir/_main/utils/ddc/dartdevc.dart.snapshot';
+  for (final candidate in [
+    ddcPath,
+    '$testSrcdir/utils/ddc/dartdevc.dart.snapshot',
+    '$testSrcdir/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
+    '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
+    '$testSrcdir/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
+    '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
+    '$testSrcdir/pkg/dev_compiler/bin/dartdevc.dart',
+    '$testSrcdir/_main/pkg/dev_compiler/bin/dartdevc.dart',
+  ]) {
+    if (await File(candidate).exists()) {
+      ddcPath = candidate;
+      break;
+    }
+  }
+  final isSnapshot = ddcPath.endsWith('.snapshot') || !ddcPath.endsWith('.dart');
+
   Future<void> worker() async {
     while (true) {
       if (currentIndex >= activeCases.length) break;
@@ -123,6 +145,11 @@ void main(List<String> args) async {
       final isCompileErrorTest = expectedOutcomes.contains('CompileTimeError');
 
       final commands = tc['commands'] as List;
+      if (commands.isEmpty) {
+        print('FAIL (Compile): $name - No commands found in metadata.');
+        compileFailures++;
+        continue;
+      }
       final compileCmd = commands[0] as Map<String, dynamic>;
       final exe = compileCmd['executable'] as String;
       final compileArgs = (compileCmd['arguments'] as List).cast<String>();
@@ -170,7 +197,7 @@ void main(List<String> args) async {
           cleanArgs.add(arg);
           final outRel = compileArgs[++a];
           final outAbs = '$buildDir/$outRel';
-          File(outAbs).parent.createSync(recursive: true);
+          await File(outAbs).parent.create(recursive: true);
           cleanArgs.add(outAbs);
         } else if (arg == '--packages' && a + 1 < compileArgs.length) {
           cleanArgs.add('--packages');
@@ -183,28 +210,7 @@ void main(List<String> args) async {
         }
       }
 
-      var ddcPath = '$testSrcdir/_main/utils/ddc/dartdevc.dart.snapshot';
-      for (final candidate in [
-        ddcPath,
-        '$testSrcdir/utils/ddc/dartdevc.dart.snapshot',
-        '$testSrcdir/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
-        '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
-        '$testSrcdir/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
-        '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
-        '$testSrcdir/pkg/dev_compiler/bin/dartdevc.dart',
-        '$testSrcdir/_main/pkg/dev_compiler/bin/dartdevc.dart',
-      ]) {
-        if (File(candidate).existsSync()) {
-          ddcPath = candidate;
-          break;
-        }
-      }
-      final isSnapshot =
-          ddcPath.endsWith('.snapshot') || !ddcPath.endsWith('.dart');
-      final actualExe =
-          (exe == 'dartdevc' || exe.endsWith('dart') || isSnapshot)
-          ? dartBin
-          : exe;
+      final actualExe = (exe == 'dartdevc' || exe.endsWith('dart') || isSnapshot) ? dartBin : exe;
       var finalCleanArgs = cleanArgs;
       if (!cleanArgs.contains('--packages') &&
           !cleanArgs.any((a) => a.startsWith('--packages='))) {
@@ -217,8 +223,8 @@ void main(List<String> args) async {
       final res = await Process.run(actualExe, actualArgs);
       final success = res.exitCode == 0;
       final targetFile = File(tc['file_path'] as String);
-      final fileContent = targetFile.existsSync()
-          ? targetFile.readAsStringSync()
+      final fileContent = await targetFile.exists()
+          ? await targetFile.readAsString()
           : '';
       final hasErrorTag = RegExp(
         r'//#\s*\w+:\s*(compile-time error|syntax error)',
@@ -258,7 +264,7 @@ void main(List<String> args) async {
   print('Local test server listening on port $port');
 
   // Serve static resources
-  server.listen((HttpRequest request) {
+  server.listen((HttpRequest request) async {
     final uri = request.uri.path;
     String filePath;
 
@@ -272,7 +278,7 @@ void main(List<String> args) async {
     }
 
     final file = File(filePath);
-    if (file.existsSync()) {
+    if (await file.exists()) {
       if (filePath.endsWith('.js')) {
         request.response.headers.contentType = ContentType.parse(
           'application/javascript',
@@ -280,11 +286,15 @@ void main(List<String> args) async {
       } else if (filePath.endsWith('.html')) {
         request.response.headers.contentType = ContentType.html;
       }
-      file.openRead().pipe(request.response).catchError((dynamic _) {});
+      try {
+        await file.openRead().pipe(request.response);
+      } catch (_) {
+        try { await request.response.close(); } catch (_) {}
+      }
     } else {
       request.response.statusCode = 404;
       request.response.write('Not found: $filePath');
-      request.response.close();
+      try { await request.response.close(); } catch (_) {}
     }
   });
 
@@ -314,19 +324,25 @@ void main(List<String> args) async {
   }
 
   var browserFailures = 0;
-  for (final tc in activeCases) {
-    final name = tc['name'] as String;
-    final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
-    if (expectedOutcomes.contains('CompileTimeError')) continue;
+  var browserIndex = 0;
+  final browserPoolSize = (Platform.numberOfProcessors / 2).clamp(1, 4).toInt();
 
-    // DDC web test HTML harness path
-    final destPath = tc['file_path'] as String;
-    final htmlRel = destPath.replaceAll(RegExp(r'\.dart$'), '.html');
-    final htmlAbs = '$buildDir/$htmlRel';
-    File(htmlAbs).parent.createSync(recursive: true);
-    if (!File(htmlAbs).existsSync()) {
-      // Create lightweight HTML harness if not already moved
-      File(htmlAbs).writeAsStringSync('''<!DOCTYPE html>
+  Future<void> browserWorker() async {
+    while (true) {
+      if (browserIndex >= activeCases.length) break;
+      final tc = activeCases[browserIndex++];
+      final name = tc['name'] as String;
+      final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
+      if (expectedOutcomes.contains('CompileTimeError')) continue;
+
+      // DDC web test HTML harness path
+      final destPath = tc['file_path'] as String;
+      final htmlRel = destPath.replaceAll(RegExp(r'\.dart$'), '.html');
+      final htmlAbs = '$buildDir/$htmlRel';
+      await File(htmlAbs).parent.create(recursive: true);
+      if (!await File(htmlAbs).exists()) {
+        // Create lightweight HTML harness if not already moved
+        await File(htmlAbs).writeAsString('''<!DOCTYPE html>
 <html>
 <head>
   <title>$name</title>
@@ -339,22 +355,25 @@ void main(List<String> args) async {
   </script>
 </body>
 </html>''');
-    }
+      }
 
-    final testUrl = 'http://localhost:$port/root_build/$htmlRel';
-    final res = await Process.run(chromeBin, [
-      '--headless=new',
-      '--disable-gpu',
-      '--no-sandbox',
-      '--dump-dom',
-      testUrl,
-    ]);
+      final testUrl = 'http://localhost:$port/root_build/$htmlRel';
+      final res = await Process.run(chromeBin!, [
+        '--headless=new',
+        '--disable-gpu',
+        '--no-sandbox',
+        '--dump-dom',
+        testUrl,
+      ]);
 
-    if (res.exitCode != 0) {
-      print('FAIL (Browser): $name');
-      browserFailures++;
+      if (res.exitCode != 0) {
+        print('FAIL (Browser): $name');
+        browserFailures++;
+      }
     }
   }
+
+  await Future.wait(List.generate(browserPoolSize, (_) => browserWorker()));
 
   await server.close();
 

@@ -132,18 +132,21 @@ exports_files([
 
 filegroup(
     name = "test_package_sources",
-    srcs = glob([
-        "pkg/async_helper/**",
-        "pkg/expect/**",
-        "pkg/ffi/**",
-        "pkg/js/**",
-        "pkg/meta/**",
-        "pkg/path/**",
-        "pkg/source_maps/**",
-        "pkg/dev_compiler/**",
-        "pkg/smith/**",
-        "third_party/pkg/**",
-    ], allow_empty = True),
+    srcs = glob(
+        [
+            "pkg/async_helper/**",
+            "pkg/expect/**",
+            "pkg/ffi/**",
+            "pkg/js/**",
+            "pkg/meta/**",
+            "pkg/path/**",
+            "pkg/source_maps/**",
+            "pkg/dev_compiler/**",
+            "pkg/smith/**",
+            "third_party/pkg/**",
+        ],
+        allow_empty = True,
+    ),
     visibility = ["//visibility:public"],
 )
 
