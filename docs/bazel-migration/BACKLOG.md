@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 70/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 71/85 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -57,7 +57,7 @@ graph TD
     sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
     sdk_arr["sdk-arr:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
     sdk_b0q["sdk-b0q:<br>Fix SDK packaging VM product mode configuration mismatch"]:::completed
-    sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::inProgress
+    sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::completed
     sdk_baw["sdk-baw:<br>Debian Package Build Target"]:::completed
     sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::completed
     sdk_c1x["sdk-c1x:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
@@ -209,20 +209,6 @@ graph TD
   Evaluate the feasibility and trade-offs of migrating Dart package dependency resolution (currently handled by `gclient sync` and host-side `pubspec` resolution) to run hermetically inside Bazel (e.g., using a custom Bzlmod extension to fetch packages and generate the package config). Address developer workflow impact (ability to edit `third_party/pkg` sources), bootstrap loop implications, and alignment with Google3.
 - **Success Criteria**:
   - [ ] Analysis document detailing feasibility, design options, and trade-offs for hermetic package syncing.
-
----
-
-### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
-- **Status**: `[IN_PROGRESS]`
-- **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/510181)
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
-- **Success Criteria**:
 
 ---
 

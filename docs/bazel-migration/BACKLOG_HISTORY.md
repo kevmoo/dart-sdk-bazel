@@ -380,6 +380,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
+- **Status**: `[COMPLETED]`
+- **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/510181)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-baw] Debian Package Build Target
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
