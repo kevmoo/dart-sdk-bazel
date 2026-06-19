@@ -1,6 +1,7 @@
 # Package marker so //tools/bazel/dart:defs.bzl is loadable.
 # The Dart-compilation rule macros live in defs.bzl.
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load(":defs.bzl", "dart_binary", "dart_toolchain")
 
 package(default_visibility = ["//visibility:public"])
@@ -31,9 +32,8 @@ toolchain(
     toolchain_type = ":toolchain_type",
 )
 
-genrule(
+copy_file(
     name = "runfiles_package_config",
-    srcs = ["//:package_config_json"],
-    outs = ["package_config.json"],
-    cmd = "cp $< $@",
+    src = "//:package_config_json",
+    out = "package_config.json",
 )

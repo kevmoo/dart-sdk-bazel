@@ -2,6 +2,7 @@
 # Hand-fixes belong in this file (M3); rerun the translator to refresh structural
 # bits and re-apply fixes from version control.
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("//tools/bazel:rules.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -24,21 +25,31 @@ exports_files(glob(
     allow_empty = True,
 ))
 
-genrule(
+copy_file(
+    name = "copy_dart_api_h",
+    src = "dart_api.h",
+    out = "dart-sdk/include/dart_api.h",
+)
+
+copy_file(
+    name = "copy_dart_native_api_h",
+    src = "dart_native_api.h",
+    out = "dart-sdk/include/dart_native_api.h",
+)
+
+copy_file(
+    name = "copy_dart_tools_api_h",
+    src = "dart_tools_api.h",
+    out = "dart-sdk/include/dart_tools_api.h",
+)
+
+filegroup(
     name = "copy_headers",
     srcs = [
-        "dart_api.h",
-        "dart_native_api.h",
-        "dart_tools_api.h",
+        ":copy_dart_api_h",
+        ":copy_dart_native_api_h",
+        ":copy_dart_tools_api_h",
     ],
-    outs = [
-        "dart-sdk/include/dart_api.h",
-        "dart-sdk/include/dart_native_api.h",
-        "dart-sdk/include/dart_tools_api.h",
-    ],
-    cmd = "cp $(location dart_api.h) $(location dart-sdk/include/dart_api.h) && " +
-          "cp $(location dart_native_api.h) $(location dart-sdk/include/dart_native_api.h) && " +
-          "cp $(location dart_tools_api.h) $(location dart-sdk/include/dart_tools_api.h)",
 )
 
 # M3 hand-edit: header-only cc_library for runtime/vm and others that
