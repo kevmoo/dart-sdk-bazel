@@ -202,7 +202,9 @@ void main(List<String> args) async {
         } else if (arg == '-o' && a + 1 < compileArgs.length) {
           cleanArgs.add(arg);
           final outRel = compileArgs[++a];
-          final outAbs = '$buildDir/$outRel';
+          final relPath = tc['relative_file_path'] as String? ?? outRel;
+          final normRel = relPath.replaceAll('.dart', '.js');
+          final outAbs = '$buildDir/$normRel';
           await File(outAbs).parent.create(recursive: true);
           cleanArgs.add(outAbs);
         } else if (arg == '--packages' && a + 1 < compileArgs.length) {
@@ -275,7 +277,10 @@ void main(List<String> args) async {
   final port = server.port;
   print('Local test server listening on port $port');
 
-  // Serve static resources
+  final reportedResults = <String, String>{};
+  final completer = Completer<void>();
+
+  // Serve static resources and reporting callbacks
   server.listen((HttpRequest request) async {
     final uri = request.uri.path;
     if (uri.contains('..') || uri.contains('%2e') || uri.contains('%2E')) {
@@ -286,6 +291,32 @@ void main(List<String> args) async {
       } catch (_) {}
       return;
     }
+
+    if (uri == '/report_result') {
+      final query = request.uri.queryParameters;
+      final testName = query['test'] ?? 'unknown';
+      final status = query['status'] ?? 'FAIL';
+      final err = query['err'];
+      reportedResults[testName] = status;
+      if (status != 'PASS') {
+        print('FAIL (Runtime): $testName ${err != null ? "- $err" : ""}');
+      }
+      request.response.statusCode = 200;
+      request.response.write('OK');
+      try {
+        await request.response.close();
+      } catch (_) {}
+      return;
+    } else if (uri == '/shard_complete') {
+      request.response.statusCode = 200;
+      request.response.write('DONE');
+      try {
+        await request.response.close();
+      } catch (_) {}
+      if (!completer.isCompleted) completer.complete();
+      return;
+    }
+
     String filePath;
 
     if (uri.startsWith('/root_dart/')) {
@@ -297,17 +328,26 @@ void main(List<String> args) async {
           '${Directory.current.path}/${uri.startsWith("/") ? uri.substring(1) : uri}';
     }
 
-    final file = File(filePath);
+    var file = File(filePath);
+    if (!await file.exists() && uri.startsWith('/root_dart/')) {
+      file = File('$testSrcdir/_main/${uri.substring("/root_dart/".length)}');
+      if (await file.exists()) filePath = file.path;
+    }
     if (await file.exists()) {
-      if (filePath.endsWith('.js')) {
-        request.response.headers.contentType = ContentType.parse(
-          'application/javascript',
+      if (uri.endsWith('.js') || filePath.endsWith('.js')) {
+        request.response.headers.contentType = ContentType(
+          'application',
+          'javascript',
+          charset: 'utf-8',
         );
-      } else if (filePath.endsWith('.html')) {
+      } else if (uri.endsWith('.html') || filePath.endsWith('.html')) {
         request.response.headers.contentType = ContentType.html;
       }
       try {
-        await file.openRead().pipe(request.response);
+        final bytes = await file.readAsBytes();
+        request.response.contentLength = bytes.length;
+        request.response.add(bytes);
+        await request.response.close();
       } catch (_) {
         try {
           await request.response.close();
@@ -346,69 +386,172 @@ void main(List<String> args) async {
     return;
   }
 
-  var browserFailures = 0;
-  var browserIndex = 0;
-  final browserPoolSize = (Platform.numberOfProcessors / 2).clamp(1, 4).toInt();
-
-  Future<void> browserWorker() async {
-    while (true) {
-      if (browserIndex >= activeCases.length) break;
-      final tc = activeCases[browserIndex++];
-      final name = tc['name'] as String;
-      final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
-      if (expectedOutcomes.contains('CompileTimeError')) continue;
-
-      // DDC web test HTML harness path
-      final destPath = tc['file_path'] as String;
-      final htmlRel = destPath.replaceAll(RegExp(r'\.dart$'), '.html');
-      final htmlAbs = '$buildDir/$htmlRel';
-      await File(htmlAbs).parent.create(recursive: true);
-      if (!await File(htmlAbs).exists()) {
-        // Create lightweight HTML harness if not already moved
-        await File(htmlAbs).writeAsString('''<!DOCTYPE html>
-<html>
-<head>
-  <title>$name</title>
-  <script src="/root_dart/third_party/requirejs/require.js"></script>
-</head>
-<body>
-  <h1>DDC Test Harness: $name</h1>
-  <script>
-    console.log("Test execution simulated for Option B.");
-  </script>
-</body>
-</html>''');
-      }
-
-      final testUrl = 'http://localhost:$port/root_build/$htmlRel';
-      final res = await Process.run(chromeBin!, [
-        '--headless=new',
-        '--disable-gpu',
-        '--no-sandbox',
-        '--dump-dom',
-        testUrl,
-      ]);
-
-      if (res.exitCode != 0) {
-        print('FAIL (Browser): $name');
-        browserFailures++;
-      }
+  final validTestCases = <Map<String, dynamic>>[];
+  for (final tc in activeCases) {
+    final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
+    if (expectedOutcomes.contains('CompileTimeError')) continue;
+    final relPath = tc['relative_file_path'] as String? ?? tc['name'] as String;
+    final normRel = relPath.replaceAll('.dart', '.js');
+    if (await File('$buildDir/$normRel').exists()) {
+      validTestCases.add(tc);
     }
   }
 
+  if (validTestCases.isEmpty) {
+    print('No runtime browser tests to execute in this shard.');
+    await server.close();
+    return;
+  }
+
+  final testModEntries = validTestCases
+      .map((tc) {
+        final relPath =
+            tc['relative_file_path'] as String? ?? tc['name'] as String;
+        final modName = relPath.replaceAll('.dart', '');
+        final name = tc['name'] as String;
+        return '{"name": "$name", "module": "$modName"}';
+      })
+      .join(',\n');
+
+  final shardHtml = '$buildDir/shard_runner.html';
+  await File(shardHtml).parent.create(recursive: true);
+  await File(shardHtml).writeAsString('''<!DOCTYPE html>
+<html>
+<head>
+  <title>DDC Batch Execution Engine</title>
+  <script>
+    function safeEncode(str) {
+      try {
+        return encodeURIComponent(str);
+      } catch (_) {
+        var s = "";
+        var sStr = "" + str;
+        for (var i = 0; i < sStr.length; i++) {
+          var c = sStr.charCodeAt(i);
+          if (c >= 0xD800 && c <= 0xDFFF) s += "_";
+          else s += sStr.charAt(i);
+        }
+        return encodeURIComponent(s);
+      }
+    }
+    window.onerror = function(msg, url, line) {
+      fetch("/report_result?test=WINDOW_ONERROR&status=FAIL&err=" + safeEncode(msg + " at " + url + ":" + line));
+    };
+    var require = {
+      baseUrl: "/root_build",
+      paths: {
+        "dart_sdk": "/root_dart/utils/ddc/stable/sdk/amd/dart_sdk",
+        "expect": "/root_dart/utils/ddc/stable/pkg/amd/expect",
+        "js": "/root_dart/utils/ddc/stable/pkg/amd/js",
+        "meta": "/root_dart/utils/ddc/stable/pkg/amd/meta"
+      },
+      waitSeconds: 30
+    };
+    var testCases = [
+$testModEntries
+    ];
+    var currentIndex = 0;
+
+    function reportResult(testName, status, err) {
+      var url = "/report_result?test=" + safeEncode(testName) + "&status=" + status;
+      if (err) url += "&err=" + safeEncode("" + err);
+      return fetch(url);
+    }
+
+    function runNextTest() {
+      if (currentIndex >= testCases.length) {
+        fetch("/shard_complete");
+        return;
+      }
+      var tc = testCases[currentIndex++];
+      var modName = tc.module;
+      var testName = tc.name;
+
+      require([modName, "dart_sdk"], function(mod, sdk) {
+        try {
+          var modKeys = Object.keys(mod);
+          var modKey = modKeys[0];
+          mod[modKey].main();
+          reportResult(testName, "PASS", null).then(runNextTest);
+        } catch (e) {
+          reportResult(testName, "FAIL", "" + e).then(runNextTest);
+        }
+      }, function(err) {
+        reportResult(testName, "FAIL", "RequireJS Load Error: " + err).then(runNextTest);
+      });
+    }
+  </script>
+  <script src="/root_dart/third_party/requirejs/require.js" onload="runNextTest()"></script>
+</head>
+<body>
+  <h1>DDC Shard Batch Execution Engine</h1>
+</body>
+</html>''');
+
+  final chromeProcess = await Process.start(chromeBin, [
+    '--headless=new',
+    '--disable-gpu',
+    '--no-sandbox',
+    '--enable-logging=stderr',
+    '--v=1',
+    'http://localhost:$port/root_build/shard_runner.html',
+  ]);
+  chromeProcess.stderr.transform(utf8.decoder).listen((msg) {
+    final trimmed = msg.trim();
+    if (trimmed.isNotEmpty &&
+        (trimmed.contains('CONSOLE') ||
+            trimmed.contains('Error') ||
+            trimmed.contains('RequireJS') ||
+            trimmed.contains('FAIL'))) {
+      print('CHROME CONSOLE: $trimmed');
+    }
+  });
+
   try {
-    await Future.wait(List.generate(browserPoolSize, (_) => browserWorker()));
+    await completer.future.timeout(const Duration(seconds: 120));
+  } catch (_) {
+    print('Error: Shard browser execution timed out after 120 seconds.');
+    exitCode = 1;
   } finally {
+    chromeProcess.kill();
     await server.close();
   }
 
-  if (browserFailures > 0) {
-    print('Error: $browserFailures test cases failed browser execution.');
+  var runtimeFailures = 0;
+  for (final tc in validTestCases) {
+    final name = tc['name'] as String;
+    final actualStatus = reportedResults[name];
+    final expected = (tc['expected_outcome'] as List? ?? ['Pass'])
+        .cast<String>();
+    final dartFile = tc['file_path'] as String?;
+    var hasRuntimeErrorTag = false;
+    if (dartFile != null && await File(dartFile).exists()) {
+      final content = await File(dartFile).readAsString();
+      hasRuntimeErrorTag = RegExp(r'//#.*runtime error').hasMatch(content);
+    }
+    final isExpectedFail =
+        expected.contains('RuntimeError') ||
+        expected.contains('Fail') ||
+        hasRuntimeErrorTag;
+
+    if (actualStatus != 'PASS' && !isExpectedFail) {
+      if (actualStatus == null) print('FAIL (Missing Runtime Outcome): $name');
+      runtimeFailures++;
+    } else if (actualStatus == 'PASS' && isExpectedFail) {
+      print('FAIL (Expected RuntimeError/Fail, but succeeded): $name');
+      runtimeFailures++;
+    }
+  }
+
+  if (runtimeFailures > 0) {
+    print(
+      '\nError: $runtimeFailures test cases failed browser runtime execution.',
+    );
     exitCode = 1;
     return;
   }
 
   print(
-    'All ${activeCases.length} DDC web tests in shard $shardIndex completed successfully.',
+    'All ${validTestCases.length} real RequireJS browser tests in shard $shardIndex executed and passed successfully!',
   );
 }

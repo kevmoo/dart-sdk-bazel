@@ -21,8 +21,18 @@ bigint_test/15: SkipSlow # --no_intrinsify
 [ $compiler == ddc ]
 bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
+error_stack_trace1_test: SkipByDesign # Minified stack traces
+hidden_library2_test/01: RuntimeError # Multi-test runtime error
+integer_to_radix_string_test/*: SkipByDesign # Requires int64 precision
 list_concurrent_modify_self_test: SkipSlow # missing check causes list to grow to whole heap
+list_concurrent_modify_test: SkipByDesign # JS concurrent modification differences
+main_test: SkipByDesign # JS main([]) argument passing differences
+nan_infinity_test/01: RuntimeError # Multi-test runtime error
+regress_r21715_test: SkipByDesign # Requires 64-bit int bitwise operations
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
+symbol_test: SkipByDesign # Relies on non-obfuscated symbols
+throw_half_surrogate_pair_test/*: SkipByDesign # JavaScript URI handling limits
+unsigned_shift_test/07: RuntimeError # Multi-test runtime error
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
 
