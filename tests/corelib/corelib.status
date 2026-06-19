@@ -56,7 +56,11 @@ regexp/unicode-regexp-restricted-syntax_test: Skip # evades flake detection http
 reg_exp_receive_port_test: SkipByDesign # uses SendPort/ReceivePort
 
 [ $runtime != none && ($compiler == dart2js || $compiler == ddc) ]
+bit_twiddling_test/int64: SkipByDesign # Requires int64 support.
+int_from_environment_int64_test: SkipByDesign # Requires int64 support.
+int_parse_radix_int64_test: SkipByDesign # Requires int64 support.
 int_parse_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
+int_try_parse_int64_test: SkipByDesign # Requires int64 support.
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
 typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
 

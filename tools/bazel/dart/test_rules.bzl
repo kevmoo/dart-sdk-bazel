@@ -77,6 +77,38 @@ export DART_BIN="$DART_BIN"
 exec "$DART_BIN" "$RUNNER_DART" "$@"
 """, executable = True)
 
+    repository_ctx.file("run_ddc_test.sh", content = """#!/bin/bash
+if [ -z "$TEST_SRCDIR" ]; then
+  echo "Error: TEST_SRCDIR environment variable is not set!"
+  exit 2
+fi
+
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/runtime/bin/dartvm" \
+  "$TEST_SRCDIR/runtime/bin/dartvm" \
+  "$TEST_SRCDIR/_main/dart-sdk/bin/dart" \
+  "$TEST_SRCDIR/dart-sdk/bin/dart"; do
+  if [ -f "$CANDIDATE" ]; then
+    DART_BIN="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$DART_BIN" ]; then
+  DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
+fi
+RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_ddc_test.dart -type f | head -n 1)
+PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+
+if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
+  echo "Error: Dynamic launcher was unable to locate dart or run_ddc_test.dart in runfiles!"
+  exit 2
+fi
+
+export DART_BIN="$DART_BIN"
+export DART_PACKAGE_CONFIG_JSON="$PKG_CONFIG"
+exec "$DART_BIN" "$RUNNER_DART" "$@"
+""", executable = True)
+
     # Run the dynamic generator natively
     generator_args = [
         str(dart_path),
