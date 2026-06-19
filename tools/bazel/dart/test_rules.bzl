@@ -96,8 +96,31 @@ done
 if [ -z "$DART_BIN" ]; then
   DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
 fi
-RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_ddc_test.dart -type f | head -n 1)
-PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/pkg/test_runner/bin/run_ddc_test.dart" \
+  "$TEST_SRCDIR/pkg/test_runner/bin/run_ddc_test.dart"; do
+  if [ -f "$CANDIDATE" ]; then
+    RUNNER_DART="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$RUNNER_DART" ]; then
+  RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_ddc_test.dart -type f | head -n 1)
+fi
+
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/_main/package_config.json" \
+  "$TEST_SRCDIR/package_config.json"; do
+  if [ -f "$CANDIDATE" ]; then
+    PKG_CONFIG="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$PKG_CONFIG" ]; then
+  PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
   echo "Error: Dynamic launcher was unable to locate dart or run_ddc_test.dart in runfiles!"

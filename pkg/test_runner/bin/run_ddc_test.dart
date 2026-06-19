@@ -228,7 +228,13 @@ void main(List<String> args) async {
 
       final res = await Process.run(actualExe, actualArgs);
       final success = res.exitCode == 0;
-      final targetFile = File(tc['file_path'] as String);
+      var targetFile = File(tc['file_path'] as String);
+      if (!await targetFile.exists()) {
+        targetFile = File('$testSrcdir/_main/${tc['file_path']}');
+      }
+      if (!await targetFile.exists()) {
+        targetFile = File('$testSrcdir/${tc['file_path']}');
+      }
       final fileContent = await targetFile.exists()
           ? await targetFile.readAsString()
           : '';
@@ -272,6 +278,14 @@ void main(List<String> args) async {
   // Serve static resources
   server.listen((HttpRequest request) async {
     final uri = request.uri.path;
+    if (uri.contains('..') || uri.contains('%2e') || uri.contains('%2E')) {
+      request.response.statusCode = 400;
+      request.response.write('Bad Request: Path traversal not allowed');
+      try {
+        await request.response.close();
+      } catch (_) {}
+      return;
+    }
     String filePath;
 
     if (uri.startsWith('/root_dart/')) {
@@ -280,7 +294,7 @@ void main(List<String> args) async {
       filePath = '$buildDir/${uri.substring('/root_build/'.length)}';
     } else {
       filePath =
-          '${Directory.current.path}/${uri.startsWith('/') ? uri.substring(1) : uri}';
+          '${Directory.current.path}/${uri.startsWith("/") ? uri.substring(1) : uri}';
     }
 
     final file = File(filePath);
