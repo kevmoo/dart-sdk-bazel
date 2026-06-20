@@ -12,40 +12,16 @@ package(default_visibility = ["//visibility:public"])
 # GN lets one target's sources reach into other BUILD.gn dirs; Bazel
 # requires cross-package file refs to be explicitly exported. Bulk-export
 # every file in the package so the gn-shaped source lists keep working.
-exports_files(glob(
-    [
-        "**/*.h",
-        "**/*.hpp",
-        "**/*.hh",
-        "**/*.inc",
-        "**/*.cc",
-        "**/*.cpp",
-        "**/*.c",
-        "**/*.S",
-        "**/*.s",
-        "**/*.dart",
-        "**/*.json",
-        "**/*.yaml",
-        "**/*.options",
-        "**/*.config",
-        "**/*.txt",
-        "**/*.status",
-        "**/*.properties",
-        "**/*.csv",
-        "**/*.xml",
-        "**/*.dill",
-        "**/*.bin",
-        "**/*.dart_fn",
-        "tests/**/*",
-    ],
-    allow_empty = True,
-    exclude = [
-        "out/**",
-        "xcodebuild/**",
-        ".dart_tool/**",
-        "**/.git/**",
-    ],
-))
+exports_files([
+    "run_single_test.sh",
+    "run_ddc_test.sh",
+])
+exports_files(glob([
+    "pkg/**",
+    "tests/**/*",
+    "third_party/devtools/**",
+    "third_party/pkg/**",
+]))
 
 # The resolved package map, materialized for snapshot kernel-compile genrules via
 # --packages=.dart_tool/package_config.json. A standalone filegroup (separate from
@@ -56,14 +32,9 @@ exports_files(glob(
 # dart_packages()).
 genrule(
     name = "package_config_json_staged",
-    srcs = ["@dart_packages//:package_config_json"],
+    srcs = [".dart_tool/package_config.json"],
     outs = ["package_config.json"],
-    # The @dart_packages config lives at <repo>/.dart_tool/package_config.json and
-    # uses rootUris like "../pkg/<name>" that resolve inside that virtual repo.
-    # This staged copy sits at bazel-out/<config>/bin/package_config.json, three
-    # levels below the execroot, so rewrite the URI depth to keep the entries
-    # pointing at the main-repo source tree (pkg/, third_party/, …).
-    cmd = "sed 's|\"rootUri\":\"\\.\\./|\"rootUri\":\"../../../|g' $< > $@",
+    cmd = "sed 's|\"rootUri\":[ ]*\"\\.\\./|\"rootUri\": \"../../../|g' $< > $@",
 )
 
 alias(
@@ -136,14 +107,11 @@ filegroup(
         [
             "pkg/async_helper/**",
             "pkg/expect/**",
-            "pkg/ffi/**",
             "pkg/js/**",
             "pkg/meta/**",
-            "pkg/path/**",
-            "pkg/source_maps/**",
-            "pkg/dev_compiler/**",
-            "pkg/smith/**",
-            "third_party/pkg/**",
+            "third_party/pkg/core/pkgs/**",
+            "third_party/pkg/native/pkgs/**",
+            "third_party/pkg/test/pkgs/**",
         ],
         allow_empty = True,
     ),

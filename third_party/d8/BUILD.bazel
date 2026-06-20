@@ -7,9 +7,9 @@ package(default_visibility = ["//visibility:public"])
 filegroup(
     name = "d8_files",
     srcs = select({
-        "@platforms//os:linux": glob(["linux/x64/**"]),
-        "@platforms//os:osx": glob(["macos/**"]),
-        "@platforms//os:windows": glob(["windows/x64/**"]),
+        "@platforms//os:linux": glob(["linux/x64/**"], allow_empty = True),
+        "@platforms//os:osx": glob(["macos/**"], allow_empty = True),
+        "@platforms//os:windows": glob(["windows/x64/**"], allow_empty = True),
         "//conditions:default": [],
     }),
 )

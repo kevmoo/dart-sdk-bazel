@@ -510,3 +510,4 @@ def _third_party_ext_impl(ctx):
     return ctx.extension_metadata(reproducible = True)
 
 third_party_extension = module_extension(implementation = _third_party_ext_impl)
+# Force sync trigger: 4

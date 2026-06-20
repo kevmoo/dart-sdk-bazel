@@ -667,7 +667,15 @@ String _getCanonicalRepoName(String apparentName) {
 }
 
 String _rewritePackageConfig() {
-  final originalPath = _Runfiles.resolve('_main/package_config.json');
+  var originalPath = _Runfiles.resolve(
+    '+dart_packages_extension+dart_packages/.dart_tool/package_config.json',
+  );
+  if (!File(originalPath).existsSync()) {
+    originalPath = _Runfiles.resolve('_main/.dart_tool/package_config.json');
+  }
+  if (!File(originalPath).existsSync()) {
+    originalPath = _Runfiles.resolve('_main/package_config.json');
+  }
   final file = File(originalPath);
   if (!file.existsSync()) {
     return originalPath;
@@ -681,15 +689,16 @@ String _rewritePackageConfig() {
   for (final pkg in packages) {
     final map = Map<String, dynamic>.from(pkg as Map);
     final rootUri = map['rootUri'] as String;
+    var relativePath = rootUri;
     if (rootUri.startsWith('../../../')) {
-      final relativePath = rootUri.substring('../../../'.length);
-      var runfilesPath = '$dartPackagesRepo/$relativePath';
-      var physicalPath = _Runfiles.resolve(runfilesPath);
-      if (!Directory(physicalPath).existsSync()) {
-        runfilesPath = '_main/$relativePath';
-        physicalPath = _Runfiles.resolve(runfilesPath);
-      }
-      final uri = Uri.file(physicalPath);
+      relativePath = rootUri.substring('../../../'.length);
+    } else if (rootUri.startsWith('../')) {
+      relativePath = rootUri.substring('../'.length);
+    }
+    if (relativePath != rootUri) {
+      final runfilesPath = '_main/$relativePath';
+      final physicalPath = _Runfiles.resolve(runfilesPath);
+      final uri = Uri.directory(physicalPath);
       map['rootUri'] = uri.toString();
     }
     newPackages.add(map);

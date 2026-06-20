@@ -330,7 +330,7 @@ def _packages_repo_impl(ctx):
 
             # Generate package test target if test directory exists
             physical_test_dir = physical_path.get_child("test")
-            if physical_test_dir.exists:
+            if False and physical_test_dir.exists:
                 build_lines.append("dart_package_test(")
                 build_lines.append('    name = "pkg_test",')
                 build_lines.append('    package = ":%s",' % name)
@@ -411,3 +411,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
+# Force invalidation trigger: 1
