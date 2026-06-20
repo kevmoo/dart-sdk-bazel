@@ -13,7 +13,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-String toPosix(String path) => path.replaceAll(r'\', '/');
+String toPosix(String path) => path.replaceAll('\\', '/');
+
+String toJsPath(String path) {
+  final posix = toPosix(path);
+  if (posix.endsWith('.dart')) {
+    return '${posix.substring(0, posix.length - 5)}.js';
+  }
+  return posix.endsWith('.js') ? posix : '$posix.js';
+}
 
 void main(List<String> args) async {
   String? configJsonPath;
@@ -207,7 +215,7 @@ void main(List<String> args) async {
           cleanArgs.add(arg);
           final outRel = compileArgs[++a];
           final relPath = tc['relative_file_path'] as String? ?? outRel;
-          final normRel = toPosix(relPath.replaceAll('.dart', '.js'));
+          final normRel = toJsPath(relPath);
           final outAbs = '$buildDir/$normRel';
           await File(outAbs).parent.create(recursive: true);
           cleanArgs.add(outAbs);
@@ -395,7 +403,7 @@ void main(List<String> args) async {
     final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
     if (expectedOutcomes.contains('CompileTimeError')) continue;
     final relPath = tc['relative_file_path'] as String? ?? tc['name'] as String;
-    final normRel = toPosix(relPath.replaceAll('.dart', '.js'));
+    final normRel = toJsPath(relPath);
     if (await File('$buildDir/$normRel').exists()) {
       validTestCases.add(tc);
     }
@@ -500,6 +508,7 @@ $testModEntries
     '--v=1',
     'http://localhost:$port/root_build/shard_runner.html',
   ]);
+  chromeProcess.stdout.drain();
   chromeProcess.stderr.transform(utf8.decoder).listen((msg) {
     final trimmed = msg.trim();
     if (trimmed.isNotEmpty &&
@@ -519,7 +528,7 @@ $testModEntries
     return;
   } finally {
     chromeProcess.kill();
-    await server.close();
+    await server.close(force: true);
   }
 
   var runtimeFailures = 0;
