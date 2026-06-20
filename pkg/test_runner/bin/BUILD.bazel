@@ -4,4 +4,7 @@
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["run_single_test.dart"])
+exports_files([
+    "run_single_test.dart",
+    "run_ddc_test.dart",
+])

@@ -77,6 +77,61 @@ export DART_BIN="$DART_BIN"
 exec "$DART_BIN" "$RUNNER_DART" "$@"
 """, executable = True)
 
+    repository_ctx.file("run_ddc_test.sh", content = """#!/bin/bash
+if [ -z "$TEST_SRCDIR" ]; then
+  echo "Error: TEST_SRCDIR environment variable is not set!"
+  exit 2
+fi
+
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/runtime/bin/dartvm" \
+  "$TEST_SRCDIR/runtime/bin/dartvm" \
+  "$TEST_SRCDIR/_main/dart-sdk/bin/dart" \
+  "$TEST_SRCDIR/dart-sdk/bin/dart"; do
+  if [ -f "$CANDIDATE" ]; then
+    DART_BIN="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$DART_BIN" ]; then
+  DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
+fi
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/pkg/test_runner/bin/run_ddc_test.dart" \
+  "$TEST_SRCDIR/pkg/test_runner/bin/run_ddc_test.dart"; do
+  if [ -f "$CANDIDATE" ]; then
+    RUNNER_DART="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$RUNNER_DART" ]; then
+  RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_ddc_test.dart -type f | head -n 1)
+fi
+
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/_main/package_config.json" \
+  "$TEST_SRCDIR/package_config.json"; do
+  if [ -f "$CANDIDATE" ]; then
+    PKG_CONFIG="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$PKG_CONFIG" ]; then
+  PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+fi
+
+if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
+  echo "Error: Dynamic launcher was unable to locate dart or run_ddc_test.dart in runfiles!"
+  exit 2
+fi
+
+export DART_BIN="$DART_BIN"
+export DART_PACKAGE_CONFIG_JSON="$PKG_CONFIG"
+exec "$DART_BIN" "$RUNNER_DART" "$@"
+""", executable = True)
+
     # Run the dynamic generator natively
     generator_args = [
         str(dart_path),
@@ -125,4 +180,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 23
+# Force refetch trigger: 25

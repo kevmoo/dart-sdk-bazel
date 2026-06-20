@@ -359,7 +359,9 @@ void main(List<String> args) async {
         '@dart_packages//pkg/path',
         '@dart_packages//pkg/source_maps',
         '@//:package_config_json',
-        '@//pkg/test_runner/bin:run_single_test.dart',
+        config.compiler == 'ddc'
+            ? '@//pkg/test_runner/bin:run_ddc_test.dart'
+            : '@//pkg/test_runner/bin:run_single_test.dart',
       };
 
       if (config.runtime == 'vm') {
@@ -367,6 +369,18 @@ void main(List<String> args) async {
           '@prebuilt_dart_sdk//:bin/dart',
           '@prebuilt_dart_sdk//:sdk_files',
           '@//runtime/vm:vm_platform',
+        ]);
+      } else if (config.compiler == 'ddc') {
+        baselineDeps.addAll([
+          '@//runtime/bin:dartvm',
+          '@prebuilt_dart_sdk//:sdk_files',
+          '@//utils/ddc:dartdevc',
+          '@//utils/ddc:ddc_outline.dill',
+          '@//utils/ddc:ddc_stable_test_pkg',
+          '@//utils/ddc:ddc_stable_sdk',
+          '@//:third_party/requirejs/require.js',
+          '@//:pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js',
+          '@//:test_package_sources',
         ]);
       } else {
         baselineDeps.add('@//sdk:create_sdk');
@@ -626,9 +640,12 @@ void main(List<String> args) async {
 
             final targetDepsStr =
                 targetDeps.map((d) => '        "$d"').join(',\n');
+            var runnerScript = config.compiler == 'ddc'
+                ? '//:run_ddc_test.sh'
+                : '//:run_single_test.sh';
             individualTargets.add('''sh_test(
     name = "$targetName",
-    srcs = ["//:run_single_test.sh"],
+    srcs = ["$runnerScript"],
     data = [
 $targetDepsStr
     ],
@@ -674,9 +691,12 @@ $targetDepsStr
           } else if (shardCount > 50) {
             shardCount = 50;
           }
+          var runnerScript = config.compiler == 'ddc'
+              ? '//:run_ddc_test.sh'
+              : '//:run_single_test.sh';
           shardedTargets.add('''sh_test(
     name = "tests_$configName",
-    srcs = ["//:run_single_test.sh"],
+    srcs = ["$runnerScript"],
     data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [
         ":workspace_files",
         ":tests_metadata_$configName.json",
@@ -747,6 +767,7 @@ $targetsStr
   final rootBuild = File('$outputDir/BUILD.bazel');
   rootBuild.writeAsStringSync('''exports_files([
         "run_single_test.sh",
+        "run_ddc_test.sh",
 ])
 ''');
 
@@ -859,6 +880,14 @@ const _configs = <_TestConfig>[
     compiler: 'dart2js',
     runtime: 'chrome',
     suites: ['language', 'corelib', 'web/wasm'],
+    extraFlags: [],
+  ),
+  (
+    name: 'ddc_chrome_release',
+    mode: 'release',
+    compiler: 'ddc',
+    runtime: 'chrome',
+    suites: ['language', 'corelib'],
     extraFlags: [],
   ),
   (

@@ -130,6 +130,26 @@ exports_files([
     "pkg/front_end/tool/compile.dart",
 ])
 
+filegroup(
+    name = "test_package_sources",
+    srcs = glob(
+        [
+            "pkg/async_helper/**",
+            "pkg/expect/**",
+            "pkg/ffi/**",
+            "pkg/js/**",
+            "pkg/meta/**",
+            "pkg/path/**",
+            "pkg/source_maps/**",
+            "pkg/dev_compiler/**",
+            "pkg/smith/**",
+            "third_party/pkg/**",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//visibility:public"],
+)
+
 # SDK resource files copied verbatim into the assembled dart-sdk/ tree by //sdk
 # (Step 5.3). They live in the root package; export so //sdk can reference them
 # (GN sourced them as ../README.dart-sdk etc.).
