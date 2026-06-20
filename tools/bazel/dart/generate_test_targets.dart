@@ -498,7 +498,7 @@ void main(List<String> args) async {
           relativePath = filePathAbs.substring(workspaceDir.length + 1);
           testFileLabel = _resolveWorkspaceLabel(workspaceDir, relativePath);
         } else if (co19Dir != null && filePathAbs.startsWith(co19Dir)) {
-          relativePath = filePathAbs.substring(co19Dir!.length + 1);
+          relativePath = filePathAbs.substring(co19Dir.length + 1);
           testFileLabel = '@dart_co19_tests//:$relativePath';
         } else if (filePathAbs.startsWith('$outputDir/$pkgDir/gen_tests/')) {
           relativePath = filePathAbs.substring('$outputDir/$pkgDir/'.length);
@@ -593,7 +593,6 @@ void main(List<String> args) async {
             'standalone',
             'ffi',
             'language',
-            'co19',
           }.contains(pkgDir)) {
             if (relativePath.startsWith('tests/')) {
               relPathInPkg = relativePath.substring(
@@ -674,7 +673,7 @@ $targetDepsStr
           }
         } else {
           if (filePathAbs.startsWith(workspaceDir) ||
-              (co19Dir != null && filePathAbs.startsWith(co19Dir!))) {
+              (co19Dir != null && filePathAbs.startsWith(co19Dir))) {
             workspaceFiles.add(testFileLabel);
             packageWorkspaceFiles.add(testFileLabel);
           }
