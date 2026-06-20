@@ -13,6 +13,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+String toPosix(String path) => path.replaceAll(r'\', '/');
+
 void main(List<String> args) async {
   String? configJsonPath;
   String? runOnly;
@@ -59,20 +61,22 @@ void main(List<String> args) async {
     'dev_compiler',
     'smith',
   ];
-  final pkgEntries = pkgs
-      .map((p) {
-        var pDir = '$testSrcdir/_main/pkg/$p';
-        if (!Directory(pDir).existsSync()) {
-          pDir = '$testSrcdir/pkg/$p';
-        }
-        return '{"name": "$p", "rootUri": "file://$pDir", "packageUri": "lib/"}';
-      })
-      .join(',\n');
+  final packages = pkgs.map((p) {
+    var pDir = '$testSrcdir/_main/pkg/$p';
+    if (!Directory(pDir).existsSync()) {
+      pDir = '$testSrcdir/pkg/$p';
+    }
+    return {
+      'name': p,
+      'rootUri': Uri.directory(pDir).toString(),
+      'packageUri': 'lib/',
+    };
+  }).toList();
   final cleanPkgCfg = '$buildDir/hermetic_package_config.json';
   await File(cleanPkgCfg).parent.create(recursive: true);
   await File(
     cleanPkgCfg,
-  ).writeAsString('{"configVersion": 2, "packages": [\n$pkgEntries\n]}');
+  ).writeAsString(jsonEncode({'configVersion': 2, 'packages': packages}));
 
   final metadataFile = File(configJsonPath);
   if (!await metadataFile.exists()) {
@@ -203,7 +207,7 @@ void main(List<String> args) async {
           cleanArgs.add(arg);
           final outRel = compileArgs[++a];
           final relPath = tc['relative_file_path'] as String? ?? outRel;
-          final normRel = relPath.replaceAll('.dart', '.js');
+          final normRel = toPosix(relPath.replaceAll('.dart', '.js'));
           final outAbs = '$buildDir/$normRel';
           await File(outAbs).parent.create(recursive: true);
           cleanArgs.add(outAbs);
@@ -391,7 +395,7 @@ void main(List<String> args) async {
     final expectedOutcomes = (tc['expected_outcome'] as List).cast<String>();
     if (expectedOutcomes.contains('CompileTimeError')) continue;
     final relPath = tc['relative_file_path'] as String? ?? tc['name'] as String;
-    final normRel = relPath.replaceAll('.dart', '.js');
+    final normRel = toPosix(relPath.replaceAll('.dart', '.js'));
     if (await File('$buildDir/$normRel').exists()) {
       validTestCases.add(tc);
     }
@@ -407,9 +411,9 @@ void main(List<String> args) async {
       .map((tc) {
         final relPath =
             tc['relative_file_path'] as String? ?? tc['name'] as String;
-        final modName = relPath.replaceAll('.dart', '');
+        final modName = toPosix(relPath.replaceAll('.dart', ''));
         final name = tc['name'] as String;
-        return '{"name": "$name", "module": "$modName"}';
+        return jsonEncode({'name': name, 'module': modName});
       })
       .join(',\n');
 
@@ -512,6 +516,7 @@ $testModEntries
   } catch (_) {
     print('Error: Shard browser execution timed out after 120 seconds.');
     exitCode = 1;
+    return;
   } finally {
     chromeProcess.kill();
     await server.close();
