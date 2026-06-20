@@ -701,6 +701,9 @@ $targetDepsStr
               .toSet();
           baselineDepsSet
               .addAll(otherDeps.where((d) => !d.startsWith('@dart_packages')));
+          if (pkgDir == 'co19') {
+            baselineDepsSet.add('@dart_co19_tests//:co19_files');
+          }
           final baselineDepsList = baselineDepsSet.toList()..sort();
 
           final dataListStr =
