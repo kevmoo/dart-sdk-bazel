@@ -497,6 +497,16 @@ def _third_party_ext_impl(ctx):
         build_file = "@//tools/bazel:third_party_overlays/devtools/BUILD.bazel.snap",
         force_remote = True,
     )
+
+    # 11. co19 Conformance Suite Dynamic Overlay Repository
+    overlay_repository(
+        name = "dart_co19_tests",
+        repo_type = "co19",
+        path = "tests/co19/src",
+        build_file = "@//tools/bazel:third_party_overlays/co19/BUILD.bazel.snap",
+        force_remote = True,
+        clean_upstream_build_files = True,
+    )
     return ctx.extension_metadata(reproducible = True)
 
 third_party_extension = module_extension(implementation = _third_party_ext_impl)
