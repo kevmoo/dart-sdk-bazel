@@ -717,6 +717,32 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-k9l] Design and implement Dart Dev Compiler (ddc) web test execution architecture
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-mpb] Migrate co19 conformance tests to Bazel as isolated Bzlmod repo (@dart_co19_tests)
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-mv2] [M3] Wire up DevTools and Core Utility Binaries
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

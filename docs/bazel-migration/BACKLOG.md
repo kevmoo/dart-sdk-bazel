@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 71/94 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 73/96 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -48,6 +48,7 @@ graph TD
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
+    sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::pending
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_7nj["sdk-7nj:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
@@ -77,6 +78,7 @@ graph TD
     sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
+    sdk_f0w["sdk-f0w:<br>Spike: Evaluate Aspect CLI & Aspect Extension Language {AXL} for Monorepo Workflow Orchestration"]:::pending
     sdk_fnn["sdk-fnn:<br>Tooling: Implement script to export Bazel-tested changes back to Main"]:::completed
     sdk_fok["sdk-fok:<br>Pre-Computed Package Import Mapping {Fine-Grained Opt-in}"]:::completed
     sdk_g2l["sdk-g2l:<br>{M3} Wire up Dart2JS and Dartdoc Snapshots"]:::completed
@@ -87,8 +89,8 @@ graph TD
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
     sdk_k3n["sdk-k3n:<br>Implement `bazel run` support for running Dart scripts"]:::completed
-    sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::inProgress
-    sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::pending
+    sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::completed
+    sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
     sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
@@ -228,6 +230,19 @@ graph TD
 
 ---
 
+### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track test completion parity and test suite matrix across platforms for Bazel migration
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-8ut] Windows MSVC Toolchain Port
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -318,6 +333,46 @@ graph TD
 
 ---
 
+### 🎯 [sdk-f0w] Spike: Evaluate Aspect CLI & Aspect Extension Language (AXL) for Monorepo Workflow Orchestration
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  📋 Objective & Background
+  As part of our major Bazel migration, we need to decide how we will orchestrate high-level developer workflows that vanilla Bazel doesn't natively handle well (e.g., pre-submit linting, multi-language formatting, code generation via Gazelle, and selective deployment/delivery).
+  We want to evaluate Aspect CLI and its configuration/extension language, AXL (Aspect Extension Language). AXL is a statically typed Starlark dialect running on Meta’s Rust-based Starlark interpreter. It aims to replace custom Bash scripts and CI YAML files with reproducible Starlark tasks. This spike should determine if adopting Aspect CLI + AXL is the right move for our Developer Experience (DX) phase, or if we should rely on traditional wrapper scripts/CI stages.
+  🛠️ Scope of Investigation
+  1. Local Setup & Smoke Test: Drop Aspect CLI into a local branch using the tools/bazel routing wrapper. Test how seamlessly it intercepts standard bazel build/test commands.
+  2. Built-in Task Evaluation: Evaluate the core built-in workflows that matter to us: • aspect format (Does it effectively format only changed files?) • aspect lint (How does its "hold-the-line" linting perform on a codebase with existing technical debt?)
+  3. AXL Prototyping: Write a minor custom .axl task (e.g., a custom task that prints a filtered list of impacted targets or pushes a dummy artifact) to evaluate the developer ergonomics of typed Starlark.
+  🎯 Success Criteria
+  A successful spike will deliver a Markdown document answering the evaluation questions and a proof-of-concept (PoC) branch demonstrating the following:
+  • Zero-Config Coexistence: Verification that a developer can clone the repo and run vanilla bazel commands seamlessly alongside aspect commands without fracturing the team's local environments.
+  • CI Parity Proof: A demonstration of an aspect lint or aspect format task executing locally and spitting out identical diagnostic results when run in a mock CI context.
+  • Static Typing UX Feedback: A brief assessment of the Rust-based Starlark interpreter's error reporting (e.g., do IDE plugins support AXL syntax highlighting and autocomplete, or are we writing text blindly?)
+  🛑 Hard Questions to Answer
+  Answering these questions is required before we approve adding Aspect CLI to our core platform path:
+  1. Vendor Lock-in & Core Decoupling
+  • The Question: If Aspect Build (the company) disappears or shifts focus, what is our exit strategy?
+  • What to look for: The CLI is Apache-2.0 licensed. If we strip out .aspect/config.axl and delete the tools/bazel wrapper, does our underlying Bazel graph still function perfectly for raw builds and tests, or have we accidentally coupled our core build logic to Aspect-specific primitives?
+  2. CI Ecosystem Integration & Overhead
+  • The Question: Aspect CLI promises native integration with GitHub Actions / Buildkite / GitLab annotations. How does this interact with our existing CI infrastructure?
+  • What to look for: Does it require giving proprietary permissions or utilizing their paid "Aspect Workflows" tier to get those clean PR comments, or does the open-source CLI handle this natively via standard Build Event Protocol (BEP) logging?
+  3. "Hold-the-Line" Operational Reality
+  • The Question: aspect lint promises to only fail on new violations introduced in the current git diff. How fragile is this diff detection mechanism?
+  • What to look for: If an engineer does a massive refactor or renames a directory, does the "hold-the-line" logic break down and surface thousands of legacy lint errors, blocking the release train? How customizable is the diff-anchor logic?
+  4. The Starlark Bifurcation (Vanilla vs. Buck2/AXL)
+  • The Question: AXL uses the Buck2 Rust Starlark interpreter (which supports static typing), while vanilla Bazel uses the Java-based Starlark interpreter. Does this cause cognitive dissonance for our developers?
+  • What to look for: Are there syntax conflicts, functions, or type assertions valid in AXL that will confuse devs when they switch back to writing standard BUILD.bazel or .bzl macros?
+  What are the specific linters (e.g., ESLint, Ruff, Clang-Tidy) or formatting pain points currently causing the most friction in your migration?
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-ji8] Investigate Google3 Alignment
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-c2c`
@@ -330,32 +385,6 @@ graph TD
 - **Success Criteria**:
   - [ ] Investigation document detailing differences and migration path for google3.
   - [ ] Prototype alignment run in a CitC workspace (if feasible).
-
----
-
-### 🎯 [sdk-k9l] Design and implement Dart Dev Compiler (ddc) web test execution architecture
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-mpb] Migrate co19 conformance tests to Bazel as isolated Bzlmod repo (@dart_co19_tests)
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
-- **Success Criteria**:
 
 ---
 
