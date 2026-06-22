@@ -10,10 +10,13 @@ def allow():
     sys.exit(0)
 
 def main():
-    try:
-        data = json.load(sys.stdin)
-    except Exception:
-        allow()
+    if sys.stdin.isatty():
+        data = {"args": {"CommandLine": "git commit"}}
+    else:
+        try:
+            data = json.load(sys.stdin)
+        except Exception:
+            allow()
 
     if not isinstance(data, dict):
         allow()
@@ -22,16 +25,17 @@ def main():
     cmd = args.get("CommandLine", "") if isinstance(args, dict) else ""
 
     # Only gate commit / upload operations
-    if not any(k in cmd for k in ["git commit", "git cl upload", "git push", "presubmit.sh"]):
+    if not any(k in cmd for k in ["git commit", "git cl upload", "git push", "presubmit"]):
         allow()
 
-    # Get modified files
+    # Get modified files (staged and unstaged) using -z to handle spaces and renames robustly
     try:
-        status_out = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8", "ignore").split("\n")
+        staged = subprocess.check_output(["git", "diff", "-z", "--cached", "--name-only"]).decode("utf-8", "ignore").split(chr(0))
+        unstaged = subprocess.check_output(["git", "diff", "-z", "--name-only"]).decode("utf-8", "ignore").split(chr(0))
+        modified_files = list(set(filter(None, staged + unstaged)))
     except Exception:
         allow()
 
-    modified_files = [line[3:].strip() for line in status_out if len(line) > 3 and line[:2] != "??"]
     if not modified_files:
         allow()
 
@@ -40,10 +44,11 @@ def main():
     for bf in bazel_files:
         if os.path.exists(bf):
             try:
-                content = open(bf, "r", encoding="utf-8", errors="ignore").read()
+                with open(bf, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
                 if "package_config.json" in content:
                     deny(f"Rule violation in {bf}: Direct reference to package_config.json breaks Bazel hermeticity. Use runfiles or @dart_packages.")
-                if any(sh_cmd in content for sh_cmd in ["sed ", "dirname ", "cat ", "rm -rf"]):
+                if re.search(r"\b(sed|dirname|cat|rm)\b", content):
                     deny(f"Rule violation in {bf}: Spawning Unix shell utilities (sed/dirname/cat) breaks Windows workstation sandboxing. Use native Starlark or Python scripts.")
             except Exception:
                 pass

@@ -52,11 +52,11 @@ def main():
     today = datetime.date.today().strftime("%Y-%m-%d")
     tax_rows = "\n".join(f"| **{k}** | {v} |" for k, v in sorted(taxonomy.items(), key=lambda x: x[1], reverse=True) if v > 0)
     
-    doc = f"""# Bazel Migration PR Learnings & Hardwared Workflow Guidelines (Audit Date: {today})
+    doc = f"""# Bazel Migration PR Learnings & Hardened Workflow Guidelines (Audit Date: {today})
 
 This documentation aggregates code review feedback from Gemini Code Assist across pull requests in `dart-sdk-bazel`. 
 
-By auditing the mistakes initially made by AI coding agents and human contributors, we have synthesized mandatory rules hardwared into our repository workflow (`.agents/rules/bazel_migration_guidelines.md` and `.agents/scripts/validate_bazel_commit.py`).
+By auditing the mistakes initially made by AI coding agents and human contributors, we have synthesized mandatory rules hardwired into our repository workflow (`.agents/rules/bazel_migration_guidelines.md` and `.agents/scripts/validate_bazel_commit.py`).
 
 ---
 
@@ -76,7 +76,7 @@ By auditing the mistakes initially made by AI coding agents and human contributo
 
     out_path = f"docs/bazel-migration/gemini_pr_learnings_audit_{today}.md"
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(doc)
         
     print(f"Regenerated {out_path} successfully.")

@@ -1,8 +1,8 @@
-# Bazel Migration PR Learnings & Hardwared Workflow Guidelines (Audit Date: 2026-06-22)
+# Bazel Migration PR Learnings & Hardened Workflow Guidelines (Audit Date: 2026-06-22)
 
 This documentation aggregates code review feedback from Gemini Code Assist across pull requests in `dart-sdk-bazel`. 
 
-By auditing the mistakes initially made by AI coding agents and human contributors, we have synthesized mandatory rules hardwared into our repository workflow (`.agents/rules/bazel_migration_guidelines.md` and `.agents/scripts/validate_bazel_commit.py`).
+By auditing the mistakes initially made by AI coding agents and human contributors, we have synthesized mandatory rules hardwired into our repository workflow (`.agents/rules/bazel_migration_guidelines.md` and `.agents/scripts/validate_bazel_commit.py`).
 
 ---
 

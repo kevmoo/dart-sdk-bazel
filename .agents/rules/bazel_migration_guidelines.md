@@ -1,11 +1,11 @@
 ---
 trigger: always_on
-description: Mandatory Bazel migration and repository hardwareing guidelines to prevent build and CI failures.
+description: Mandatory Bazel migration and repository hardening guidelines to prevent build and CI failures.
 ---
 
-# Bazel Migration & Hardware Guidelines
+# Bazel Migration & Hardening Guidelines
 
-When working with Bazel build files (`BUILD.bazel`, `.bzl`) or helper scripts (`tools/bazel/`), you MUST adhere to the following hardwared rules:
+When working with Bazel build files (`BUILD.bazel`, `.bzl`) or helper scripts (`tools/bazel/`), you MUST adhere to the following hardwired rules:
 
 ## 1. Strict Hermeticity & Runfile Lookups
 - **No `.dart_tool` References**: Never directly reference `.dart_tool/package_config.json` or local absolute filesystem paths in `BUILD.bazel`. Always use Bazel runfiles or dynamic Bzlmod repository overlays (`@dart_packages`).
