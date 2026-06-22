@@ -1,11 +1,9 @@
 {
-  "timestamp": "2026-06-22T23:21:56.399677Z",
+  "timestamp": "2026-06-22T23:56:34.567949Z",
   "watchdog_interval_seconds": 300,
   "quarantine": {
     "skip_suites": [],
-    "only_suites": [
-      "corelib"
-    ],
+    "only_suites": [],
     "skip_configs": [],
     "only_configs": []
   },
@@ -32,176 +30,1016 @@
   },
   "config_results": {
     "vm_release": {
-      "total_targets": 4,
-      "passed": 0,
-      "failed": 4,
+      "total_targets": 2233,
+      "passed": 2233,
+      "failed": 0,
       "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm64",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simriscv64"
-      ]
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 2219,
+          "passed": 2219,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     },
     "vm_debug": {
-      "total_targets": 1,
-      "passed": 0,
-      "failed": 1,
+      "total_targets": 3,
+      "passed": 3,
+      "failed": 0,
       "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_debug"
-      ]
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_product": {
-      "total_targets": 1,
-      "passed": 0,
-      "failed": 1,
+      "total_targets": 4,
+      "passed": 4,
+      "failed": 0,
       "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_product"
-      ]
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 5,
+      "passed": 5,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     },
     "wasm_asserts": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_optimized": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_chrome_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_chrome_asserts": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_chrome_optimized": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_firefox_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "wasm_firefox_asserts": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "dart2js_chrome_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 4,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     },
     "ddc_chrome_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 3,
+      "passed": 3,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     },
     "dart2js_firefox_release": {
-      "total_targets": 1,
-      "passed": 0,
+      "total_targets": 3,
+      "passed": 3,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "cfe_release": {
-      "total_targets": 1,
-      "passed": 0,
-      "failed": 1,
-      "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//corelib:tests_cfe_release"
-      ]
-    },
-    "vm_aot_release": {
       "total_targets": 4,
-      "passed": 0,
+      "passed": 4,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
+    },
+    "vm_aot_release": {
+      "total_targets": 13,
+      "passed": 13,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     },
     "vm_release_simarm": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_aot_release_simarm": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_release_simarm64": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_aot_release_simarm64": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_release_simriscv64": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "vm_aot_release_simriscv64": {
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
-      "failed_targets": []
+      "status": "Skipped / Filtered Out",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
     },
     "analyzer_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 1,
+      "passed": 1,
       "failed": 0,
       "status": "Active",
-      "failed_targets": []
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "web/wasm": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "co19": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        }
+      }
     }
   }
 }

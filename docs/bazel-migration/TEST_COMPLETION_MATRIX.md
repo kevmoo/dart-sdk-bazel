@@ -1,40 +1,54 @@
 # Dart SDK Bazel Test Completion Matrix & Gap Analysis
 
-* **Generated At:** `2026-06-22T23:21:56.399677Z`
+* **Generated At:** `2026-06-22T23:56:34.567949Z`
 * **Source of Truth:** [`test_matrix_results.json`](./test_matrix_results.json)
 * **Watchdog Watch Interval:** `300s` (5 minutes)
 
 ---
 
-## 🌌 Active Starlark Test Universe
+## 🌌 Active Starlark Test Universe (By Configuration)
 
 | Configuration | Status | Total Targets | Passed | Failed |
 |---|---|---|---|---|
-| `analyzer_release` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `cfe_release` | ❌ FAILED (Active) | 1 | 0 | 1 |
-| `dart2js_chrome_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `dart2js_firefox_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `ddc_chrome_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `vm_aot_release` | ✅ PASSED (Active) | 4 | 0 | 0 |
-| `vm_aot_release_simarm` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `vm_aot_release_simarm64` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `vm_aot_release_simriscv64` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `vm_debug` | ❌ FAILED (Active) | 1 | 0 | 1 |
-| `vm_product` | ❌ FAILED (Active) | 1 | 0 | 1 |
-| `vm_release` | ❌ FAILED (Active) | 4 | 0 | 4 |
-| `vm_release_simarm` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `vm_release_simarm64` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `vm_release_simriscv64` | ❄️ Skipped (Active) | 0 | 0 | 0 |
-| `wasm_asserts` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_chrome_asserts` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_chrome_optimized` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_chrome_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_firefox_asserts` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_firefox_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_optimized` | ✅ PASSED (Active) | 1 | 0 | 0 |
-| `wasm_release` | ✅ PASSED (Active) | 1 | 0 | 0 |
+| `analyzer_release` | ✅ PASSED (Active) | 1 | 1 | 0 |
+| `cfe_release` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `dart2js_chrome_release` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `dart2js_firefox_release` | ✅ PASSED (Active) | 3 | 3 | 0 |
+| `ddc_chrome_release` | ✅ PASSED (Active) | 3 | 3 | 0 |
+| `vm_aot_release` | ✅ PASSED (Active) | 13 | 13 | 0 |
+| `vm_aot_release_simarm` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `vm_aot_release_simarm64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `vm_aot_release_simriscv64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `vm_debug` | ✅ PASSED (Active) | 3 | 3 | 0 |
+| `vm_product` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `vm_release` | ✅ PASSED (Active) | 2233 | 2233 | 0 |
+| `vm_release_simarm` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `vm_release_simarm64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `vm_release_simriscv64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
+| `wasm_asserts` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_chrome_asserts` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_chrome_optimized` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_chrome_release` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_firefox_asserts` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_firefox_release` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_optimized` | ✅ PASSED (Active) | 4 | 4 | 0 |
+| `wasm_release` | ✅ PASSED (Active) | 5 | 5 | 0 |
 
-**Universe Totals:** `22` targets (`0` passed, `7` failed)
+**Universe Totals:** `2301` targets (`2301` passed, `0` failed)
+
+---
+
+## 📦 Starlark Test Completion Matrix (Suite × Configuration)
+
+| Suite | `vm_release` | `vm_debug` | `wasm_release` | `cfe_release` | Total Targets |
+|---|---|---|---|---|---|
+| **`co19`** | ✅ 1 / 1 | ❄️ | ✅ 1 / 1 | ❄️ | **6** |
+| **`corelib`** | ✅ 4 / 4 | ✅ 1 / 1 | ✅ 1 / 1 | ✅ 1 / 1 | **22** |
+| **`ffi`** | ✅ 1 / 1 | ❄️ | ❄️ | ✅ 1 / 1 | **3** |
+| **`language`** | ✅ 4 / 4 | ✅ 1 / 1 | ✅ 1 / 1 | ✅ 1 / 1 | **22** |
+| **`pkg`** | ✅ 2219 / 2219 | ❄️ | ❄️ | ❄️ | **2219** |
+| **`standalone`** | ✅ 4 / 4 | ✅ 1 / 1 | ❄️ | ✅ 1 / 1 | **11** |
+| **`web/wasm`** | ❄️ | ❄️ | ✅ 2 / 2 | ❄️ | **18** |
 
 ---
 
@@ -55,26 +69,4 @@ The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` &
 
 ## 🩹 Failing Targets Punch List
 
-### `cfe_release` (1 failures)
-```text
-@@+dart_tests_extension+dart_tests//corelib:tests_cfe_release
-```
-
-### `vm_debug` (1 failures)
-```text
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_debug
-```
-
-### `vm_product` (1 failures)
-```text
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_product
-```
-
-### `vm_release` (4 failures)
-```text
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_release
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm64
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm
-@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simriscv64
-```
-
+🎉 *Zero test failures recorded in active Starlark universe!*

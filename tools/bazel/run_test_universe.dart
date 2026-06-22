@@ -83,9 +83,27 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
     file.parent.createSync(recursive: true);
     final tmpFile = File('$path.tmp');
     tmpFile.writeAsStringSync(JsonEncoder.withIndent('  ').convert(data));
-    if (file.existsSync()) file.deleteSync();
+    if (file.existsSync()) {
+      file.deleteSync();
+    }
     tmpFile.renameSync(path);
   } catch (_) {}
+}
+
+String determineSuite(String target) {
+  if (target.startsWith('@dart_tests//pkg/')) {
+    return 'pkg';
+  } else if (target.startsWith('@dart_tests//web/wasm')) {
+    return 'web/wasm';
+  }
+  const prefix = '@dart_tests//';
+  if (target.startsWith(prefix)) {
+    final colonIdx = target.indexOf(':', prefix.length);
+    if (colonIdx != -1) {
+      return target.substring(prefix.length, colonIdx);
+    }
+  }
+  return 'unknown';
 }
 
 void main(List<String> args) async {
@@ -150,23 +168,13 @@ void main(List<String> args) async {
 
   final filteredTargets = <String>[];
   for (final target in allTargets) {
-    var suite = 'unknown';
-    if (target.startsWith('@dart_tests//pkg/')) {
-      suite = 'pkg';
-    } else if (target.startsWith('@dart_tests//web/wasm')) {
-      suite = 'web/wasm';
-    } else {
-      final prefix = '@dart_tests//';
-      if (target.startsWith(prefix)) {
-        final colonIdx = target.indexOf(':', prefix.length);
-        if (colonIdx != -1) {
-          suite = target.substring(prefix.length, colonIdx);
-        }
-      }
+    final suite = determineSuite(target);
+    if (onlySuites.isNotEmpty && !onlySuites.contains(suite)) {
+      continue;
     }
-
-    if (onlySuites.isNotEmpty && !onlySuites.contains(suite)) continue;
-    if (skipSuites.contains(suite)) continue;
+    if (skipSuites.contains(suite)) {
+      continue;
+    }
 
     String? matchedConfig;
     for (final c in knownConfigs) {
@@ -180,7 +188,9 @@ void main(List<String> args) async {
     if (onlyConfigs.isNotEmpty && !onlyConfigs.contains(matchedConfig)) {
       continue;
     }
-    if (skipConfigs.contains(matchedConfig)) continue;
+    if (skipConfigs.contains(matchedConfig)) {
+      continue;
+    }
 
     filteredTargets.add(target);
   }
@@ -190,20 +200,31 @@ void main(List<String> args) async {
 
   final configResults = <String, Map<String, dynamic>>{};
   for (final c in knownConfigs) {
+    final suiteMap = <String, Map<String, int>>{};
+    for (final s in activeStarlarkSuites) {
+      suiteMap[s] = {'total': 0, 'passed': 0, 'failed': 0};
+    }
     configResults[c] = {
       'total_targets': 0,
       'passed': 0,
       'failed': 0,
       'status': 'Active',
       'failed_targets': <String>[],
+      'by_suite': suiteMap,
     };
   }
 
   for (final target in filteredTargets) {
+    final suite = determineSuite(target);
     for (final c in knownConfigs) {
       if (target.endsWith('_$c') || target.contains('_${c}_')) {
         configResults[c]!['total_targets'] =
             (configResults[c]!['total_targets'] as int) + 1;
+        final bySuite =
+            configResults[c]!['by_suite'] as Map<String, Map<String, int>>;
+        bySuite.putIfAbsent(
+            suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+        bySuite[suite]!['total'] = (bySuite[suite]!['total'] ?? 0) + 1;
         break;
       }
     }
@@ -220,6 +241,11 @@ void main(List<String> args) async {
         configResults[c]!['status'] = 'Skipped / Filtered Out';
       } else {
         configResults[c]!['passed'] = total;
+      }
+      final bySuite =
+          configResults[c]!['by_suite'] as Map<String, Map<String, int>>;
+      for (final s in bySuite.keys) {
+        bySuite[s]!['passed'] = bySuite[s]!['total'] ?? 0;
       }
     }
     writeHeartbeat(heartbeatPath, {
@@ -238,7 +264,9 @@ void main(List<String> args) async {
     await tempFile.writeAsString(filteredTargets.join('\n'));
 
     final bepFile = File('test_bep.json');
-    if (bepFile.existsSync()) bepFile.deleteSync();
+    if (bepFile.existsSync()) {
+      bepFile.deleteSync();
+    }
 
     final startTime = DateTime.now();
     writeHeartbeat(heartbeatPath, {
@@ -318,14 +346,24 @@ void main(List<String> args) async {
                   }
                 }
                 cfg ??= 'vm_release';
+                final suite = determineSuite(label);
+                final bySuite = configResults[cfg]!['by_suite']
+                    as Map<String, Map<String, int>>;
+                bySuite.putIfAbsent(
+                    suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+
                 if (status == 'PASSED') {
                   configResults[cfg]!['passed'] =
                       (configResults[cfg]!['passed'] as int) + 1;
+                  bySuite[suite]!['passed'] =
+                      (bySuite[suite]!['passed'] ?? 0) + 1;
                 } else {
                   configResults[cfg]!['failed'] =
                       (configResults[cfg]!['failed'] as int) + 1;
                   (configResults[cfg]!['failed_targets'] as List<String>)
                       .add(label);
+                  bySuite[suite]!['failed'] =
+                      (bySuite[suite]!['failed'] ?? 0) + 1;
                 }
               }
             }

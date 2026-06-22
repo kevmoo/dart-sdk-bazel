@@ -39,7 +39,7 @@ void main(List<String> args) {
   buf.writeln();
   buf.writeln('---');
   buf.writeln();
-  buf.writeln('## 🌌 Active Starlark Test Universe');
+  buf.writeln('## 🌌 Active Starlark Test Universe (By Configuration)');
   buf.writeln();
   buf.writeln('| Configuration | Status | Total Targets | Passed | Failed |');
   buf.writeln('|---|---|---|---|---|');
@@ -72,6 +72,59 @@ void main(List<String> args) {
   buf.writeln(
     '**Universe Totals:** `$totalUniverseTargets` targets (`$totalPassed` passed, `$totalFailed` failed)',
   );
+  buf.writeln();
+  buf.writeln('---');
+  buf.writeln();
+  buf.writeln('## 📦 Starlark Test Completion Matrix (Suite × Configuration)');
+  buf.writeln();
+
+  final primaryConfigs = [
+    'vm_release',
+    'vm_debug',
+    'wasm_release',
+    'cfe_release',
+  ];
+  buf.writeln(
+    '| Suite | `vm_release` | `vm_debug` | `wasm_release` | `cfe_release` | Total Targets |',
+  );
+  buf.writeln('|---|---|---|---|---|---|');
+
+  final allSuitesDiscovered = <String>{};
+  for (final cfgName in sortedCfgNames) {
+    final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
+    final bySuite = cfg['by_suite'] as Map<String, dynamic>? ?? {};
+    allSuitesDiscovered.addAll(bySuite.keys);
+  }
+
+  final sortedSuiteNames = allSuitesDiscovered.toList()..sort();
+  for (final sName in sortedSuiteNames) {
+    var suiteTotal = 0;
+    final rowCells = <String>[];
+    for (final cfgName in primaryConfigs) {
+      final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
+      final bySuite = cfg['by_suite'] as Map<String, dynamic>? ?? {};
+      final sMap = bySuite[sName] as Map<String, dynamic>? ?? {};
+      final total = sMap['total'] as int? ?? 0;
+      final passed = sMap['passed'] as int? ?? 0;
+      final failed = sMap['failed'] as int? ?? 0;
+
+      if (total == 0) {
+        rowCells.add('❄️');
+      } else if (failed > 0) {
+        rowCells.add('❌ $passed / $total');
+      } else {
+        rowCells.add('✅ $passed / $total');
+      }
+    }
+    for (final cfgName in sortedCfgNames) {
+      final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
+      final bySuite = cfg['by_suite'] as Map<String, dynamic>? ?? {};
+      final sMap = bySuite[sName] as Map<String, dynamic>? ?? {};
+      suiteTotal += (sMap['total'] as int? ?? 0);
+    }
+    buf.writeln('| **`$sName`** | ${rowCells.join(' | ')} | **$suiteTotal** |');
+  }
+
   buf.writeln();
   buf.writeln('---');
   buf.writeln();
