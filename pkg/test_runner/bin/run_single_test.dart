@@ -696,7 +696,10 @@ String _rewritePackageConfig() {
     if (relativePath != rootUri) {
       final String runfilesPath;
       if (relativePath.startsWith('external/')) {
-        runfilesPath = relativePath.substring('external/'.length);
+        final parts = relativePath.substring('external/'.length).split('/');
+        final apparentRepoName = parts[0];
+        final canonicalRepoName = _getCanonicalRepoName(apparentRepoName);
+        runfilesPath = [canonicalRepoName, ...parts.sublist(1)].join('/');
       } else {
         runfilesPath = '_main/$relativePath';
       }

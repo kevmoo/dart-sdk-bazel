@@ -580,7 +580,10 @@ void main(List<String> args) async {
                   getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
               final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in resDeps) {
-                if (!File('$suiteSourceDir/$dep').existsSync()) continue;
+                if (!File('$suiteSourceDir/$dep').existsSync() &&
+                    !Directory('$suiteSourceDir/$dep').existsSync()) {
+                  continue;
+                }
                 final fgName = _getFilegroupTargetName(dep);
                 final label = pkgDir == 'co19'
                     ? '@dart_co19_tests//:$dep'
@@ -643,7 +646,10 @@ void main(List<String> args) async {
                   getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
               final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in localDeps) {
-                if (!File('$suiteSourceDir/$dep').existsSync()) continue;
+                if (!File('$suiteSourceDir/$dep').existsSync() &&
+                    !Directory('$suiteSourceDir/$dep').existsSync()) {
+                  continue;
+                }
                 final fgName = _getFilegroupTargetName(dep);
                 final label = pkgDir == 'co19'
                     ? '@dart_co19_tests//:$dep'
@@ -787,7 +793,15 @@ $targetsStr
         if (pkgDir == 'co19') {
           workspaceFilesRule = '''filegroup(
     name = "workspace_files",
-    srcs = [],
+    srcs = [
+        "@//:tests/co19/co19-analyzer.status",
+        "@//:tests/co19/co19-co19.status",
+        "@//:tests/co19/co19-dart2js.status",
+        "@//:tests/co19/co19-dart2wasm.status",
+        "@//:tests/co19/co19-dartdevc.status",
+        "@//:tests/co19/co19-kernel.status",
+        "@//:tests/co19/co19-runtime.status",
+    ],
 )''';
         } else {
           final sortedWorkspaceFiles = packageWorkspaceFiles.toList()..sort();
