@@ -736,7 +736,7 @@ $targetDepsStr
               ? '    data = [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],'
               : '    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],';
           final envRule = pkgDir == 'co19'
-              ? '\n    env = {\n        "DART_CO19_SRC": "external/dart_co19_tests",\n    },'
+              ? '\n    env = {\n        "DART_CO19_SRC": "../dart_co19_tests",\n    },'
               : '';
           shardedTargets.add('''sh_test(
     name = "tests_$configName",
