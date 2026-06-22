@@ -48,7 +48,7 @@ graph TD
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
-    sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::pending
+    sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::inProgress
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_7nj["sdk-7nj:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
@@ -231,7 +231,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`

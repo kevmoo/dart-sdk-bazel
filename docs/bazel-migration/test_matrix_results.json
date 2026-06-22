@@ -1,0 +1,207 @@
+{
+  "timestamp": "2026-06-22T23:21:56.399677Z",
+  "watchdog_interval_seconds": 300,
+  "quarantine": {
+    "skip_suites": [],
+    "only_suites": [
+      "corelib"
+    ],
+    "skip_configs": [],
+    "only_configs": []
+  },
+  "universe_gap_analysis": {
+    "active_starlark_suites": [
+      "language",
+      "corelib",
+      "standalone",
+      "ffi",
+      "pkg",
+      "web/wasm",
+      "co19"
+    ],
+    "unmigrated_gn_suites": [
+      "modular",
+      "hot_reload",
+      "lib",
+      "web (HTML)",
+      "dartdevc",
+      "runtime (C++ unit/service)",
+      "benchmarks",
+      "fuzzer"
+    ]
+  },
+  "config_results": {
+    "vm_release": {
+      "total_targets": 4,
+      "passed": 0,
+      "failed": 4,
+      "status": "Active",
+      "failed_targets": [
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release",
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm64",
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm",
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simriscv64"
+      ]
+    },
+    "vm_debug": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 1,
+      "status": "Active",
+      "failed_targets": [
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_debug"
+      ]
+    },
+    "vm_product": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 1,
+      "status": "Active",
+      "failed_targets": [
+        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_product"
+      ]
+    },
+    "wasm_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_asserts": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_optimized": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_chrome_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_chrome_asserts": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_chrome_optimized": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_firefox_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "wasm_firefox_asserts": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "dart2js_chrome_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "ddc_chrome_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "dart2js_firefox_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "cfe_release": {
+      "total_targets": 1,
+      "passed": 0,
+      "failed": 1,
+      "status": "Active",
+      "failed_targets": [
+        "@@+dart_tests_extension+dart_tests//corelib:tests_cfe_release"
+      ]
+    },
+    "vm_aot_release": {
+      "total_targets": 4,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_release_simarm": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_aot_release_simarm": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_release_simarm64": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_aot_release_simarm64": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_release_simriscv64": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "vm_aot_release_simriscv64": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    },
+    "analyzer_release": {
+      "total_targets": 0,
+      "passed": 0,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": []
+    }
+  }
+}
