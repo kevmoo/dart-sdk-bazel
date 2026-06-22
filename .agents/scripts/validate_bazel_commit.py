@@ -15,6 +15,9 @@ def main():
     except Exception:
         allow()
 
+    if not isinstance(data, dict):
+        allow()
+
     args = data.get("args", {})
     cmd = args.get("CommandLine", "") if isinstance(args, dict) else ""
 

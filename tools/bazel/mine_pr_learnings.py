@@ -50,11 +50,21 @@ def main():
         rows.append(f"| [#{num}]({url}) | {title} | {takeaway} |")
 
     today = datetime.date.today().strftime("%Y-%m-%d")
+    tax_rows = "\n".join(f"| **{k}** | {v} |" for k, v in sorted(taxonomy.items(), key=lambda x: x[1], reverse=True) if v > 0)
+    
     doc = f"""# Bazel Migration PR Learnings & Hardwared Workflow Guidelines (Audit Date: {today})
 
 This documentation aggregates code review feedback from Gemini Code Assist across pull requests in `dart-sdk-bazel`. 
 
 By auditing the mistakes initially made by AI coding agents and human contributors, we have synthesized mandatory rules hardwared into our repository workflow (`.agents/rules/bazel_migration_guidelines.md` and `.agents/scripts/validate_bazel_commit.py`).
+
+---
+
+## 📊 Common Agent Mistake Taxonomy
+
+| Mistake Category | Occurrences Across PRs |
+|---|---|
+{tax_rows}
 
 ---
 
