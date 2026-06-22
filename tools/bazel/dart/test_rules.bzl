@@ -139,6 +139,14 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
         "--workspace-dir=" + str(workspace_dir),
         "--output-dir=" + str(repository_ctx.path(".")),
     ]
+    generator_args.append("--max-shards=" + str(repository_ctx.attr.max_shards))
+    if "co19" in repository_ctx.attr.suites:
+        # Note: watch() on unpacked BUILD file does not detect test file changes inside the external repo.
+        co19_label = Label("@dart_co19_tests//:BUILD.bazel")
+        co19_path = repository_ctx.path(co19_label)
+        repository_ctx.watch(co19_path)
+        co19_dir = co19_path.dirname
+        generator_args.append("--co19-dir=" + str(co19_dir))
     for s in repository_ctx.attr.suites:
         generator_args.append("--suite=" + s)
 
@@ -157,6 +165,7 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
 dynamic_test_repository = repository_rule(
     implementation = _dynamic_test_repo_impl,
     attrs = {
+        "max_shards": attr.int(default = 50),
         "suites": attr.string_list(mandatory = True),
     },
 )
@@ -172,6 +181,7 @@ def _test_ext_impl(ctx):
             "ffi",
             "pkg",
             "web/wasm",
+            "co19",
         ],
     )
     return ctx.extension_metadata(reproducible = True)
@@ -180,4 +190,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 25
+# Force refetch trigger: 42

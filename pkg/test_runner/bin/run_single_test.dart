@@ -667,7 +667,16 @@ String _getCanonicalRepoName(String apparentName) {
 }
 
 String _rewritePackageConfig() {
-  final originalPath = _Runfiles.resolve('_main/package_config.json');
+  final dartPackagesRepo = _getCanonicalRepoName('dart_packages');
+  var originalPath = _Runfiles.resolve(
+    '$dartPackagesRepo/.dart_tool/package_config.json',
+  );
+  if (!File(originalPath).existsSync()) {
+    originalPath = _Runfiles.resolve('_main/.dart_tool/package_config.json');
+  }
+  if (!File(originalPath).existsSync()) {
+    originalPath = _Runfiles.resolve('_main/package_config.json');
+  }
   final file = File(originalPath);
   if (!file.existsSync()) {
     return originalPath;
@@ -676,20 +685,26 @@ String _rewritePackageConfig() {
   final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
   final packages = json['packages'] as List<dynamic>;
   final newPackages = <Map<String, dynamic>>[];
-  final dartPackagesRepo = _getCanonicalRepoName('dart_packages');
 
   for (final pkg in packages) {
     final map = Map<String, dynamic>.from(pkg as Map);
     final rootUri = map['rootUri'] as String;
-    if (rootUri.startsWith('../../../')) {
-      final relativePath = rootUri.substring('../../../'.length);
-      var runfilesPath = '$dartPackagesRepo/$relativePath';
-      var physicalPath = _Runfiles.resolve(runfilesPath);
-      if (!Directory(physicalPath).existsSync()) {
+    var relativePath = rootUri;
+    while (relativePath.startsWith('../')) {
+      relativePath = relativePath.substring(3);
+    }
+    if (relativePath != rootUri) {
+      final String runfilesPath;
+      if (relativePath.startsWith('external/')) {
+        final parts = relativePath.substring('external/'.length).split('/');
+        final apparentRepoName = parts[0];
+        final canonicalRepoName = _getCanonicalRepoName(apparentRepoName);
+        runfilesPath = [canonicalRepoName, ...parts.sublist(1)].join('/');
+      } else {
         runfilesPath = '_main/$relativePath';
-        physicalPath = _Runfiles.resolve(runfilesPath);
       }
-      final uri = Uri.file(physicalPath);
+      final physicalPath = _Runfiles.resolve(runfilesPath);
+      final uri = Uri.directory(physicalPath);
       map['rootUri'] = uri.toString();
     }
     newPackages.add(map);

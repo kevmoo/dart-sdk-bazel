@@ -17,9 +17,13 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'suite_paths.dart';
+
 void main(List<String> args) async {
   String? workspaceDir;
   String? outputDir;
+  String? co19Dir;
+  int maxShards = 50;
   final suites = <String>[];
 
   for (final arg in args) {
@@ -27,6 +31,10 @@ void main(List<String> args) async {
       workspaceDir = arg.substring('--workspace-dir='.length);
     } else if (arg.startsWith('--output-dir=')) {
       outputDir = arg.substring('--output-dir='.length);
+    } else if (arg.startsWith('--co19-dir=')) {
+      co19Dir = arg.substring('--co19-dir='.length);
+    } else if (arg.startsWith('--max-shards=')) {
+      maxShards = int.parse(arg.substring('--max-shards='.length));
     } else if (arg.startsWith('--suite=')) {
       suites.add(arg.substring('--suite='.length));
     }
@@ -42,6 +50,9 @@ void main(List<String> args) async {
 
   workspaceDir = p.absolute(workspaceDir);
   outputDir = p.absolute(outputDir);
+  if (co19Dir != null) {
+    co19Dir = p.absolute(co19Dir);
+  }
 
   final subDirToPkgDir = <String, String>{};
 
@@ -50,6 +61,7 @@ void main(List<String> args) async {
   debugBuf.writeln('=== Debug Log ===');
   debugBuf.writeln('Workspace Dir: $workspaceDir');
   debugBuf.writeln('Output Dir: $outputDir');
+  debugBuf.writeln('co19 Dir: $co19Dir');
   debugBuf.writeln('Suites from Starlark: $suites');
 
   // Use the dart binary this generator is already running under (the .bzl
@@ -94,7 +106,11 @@ void main(List<String> args) async {
     debugBuf.writeln(
       'Running discovery for ${config.name}: $dartPath ${processArgs.join(' ')}',
     );
-    final res = await Process.run(dartPath, processArgs);
+    final env = Map<String, String>.from(Platform.environment);
+    if (co19Dir != null) {
+      env['DART_CO19_SRC'] = co19Dir;
+    }
+    final res = await Process.run(dartPath, processArgs, environment: env);
     if (res.exitCode != 0) {
       throw Exception(
         'Failed to dump metadata for ${config.name}:\n${res.stderr}\n${res.stdout}',
@@ -135,7 +151,7 @@ void main(List<String> args) async {
 
       final parts = name.split('/');
       String pkgDir;
-      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language'};
+      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
       if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
         pkgDir = parts[0];
       } else if (parts.length >= 2) {
@@ -184,7 +200,7 @@ void main(List<String> args) async {
 
       final parts = name.split('/');
       String pkgDir;
-      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language'};
+      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
       if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
         pkgDir = parts[0];
       } else if (parts.length >= 2) {
@@ -307,7 +323,8 @@ void main(List<String> args) async {
     // Ensure package directory exists
     Directory('$outputDir/$pkgDir').createSync(recursive: true);
 
-    final testImportsFile = File('$workspaceDir/$pkgDir/test_imports.json');
+    final suiteSourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+    final testImportsFile = File('$suiteSourceDir/test_imports.json');
     final hasFineGrained = testImportsFile.existsSync();
     final useIndividualTargets = hasFineGrained;
 
@@ -322,13 +339,14 @@ void main(List<String> args) async {
 
     // Package-wide resources (config-independent)
     if (hasFineGrained) {
-      final resources = _findPackageResources(workspaceDir, pkgDir);
+      final resources = _findPackageResources(workspaceDir, pkgDir, co19Dir);
       if (resources.isNotEmpty) {
         final fgName = 'fg_package_resources';
         for (final res in resources) {
-          filegroups
-              .putIfAbsent(fgName, () => {})
-              .add(_resolveWorkspaceLabel(workspaceDir, res));
+          final label = res.startsWith('@')
+              ? res
+              : _resolveWorkspaceLabel(workspaceDir, res);
+          filegroups.putIfAbsent(fgName, () => {}).add(label);
         }
       }
     }
@@ -350,26 +368,23 @@ void main(List<String> args) async {
       // Compute baseline deps for this config
       final baselineDeps = <String>{
         ':tests_metadata_$configName.json',
-        '@dart_packages//pkg/async_helper',
-        '@dart_packages//pkg/dart2js_tools',
-        '@dart_packages//pkg/expect',
-        '@dart_packages//pkg/ffi',
-        '@dart_packages//pkg/js',
-        '@dart_packages//pkg/meta',
-        '@dart_packages//pkg/path',
-        '@dart_packages//pkg/source_maps',
+        '@//:test_package_sources',
         '@//:package_config_json',
         config.compiler == 'ddc'
             ? '@//pkg/test_runner/bin:run_ddc_test.dart'
             : '@//pkg/test_runner/bin:run_single_test.dart',
       };
 
-      if (config.runtime == 'vm') {
+      if (config.runtime == 'vm' ||
+          config.compiler == 'dart2analyzer' ||
+          config.compiler == 'fasta') {
         baselineDeps.addAll([
           '@prebuilt_dart_sdk//:bin/dart',
           '@prebuilt_dart_sdk//:sdk_files',
-          '@//runtime/vm:vm_platform',
         ]);
+        if (config.runtime == 'vm') {
+          baselineDeps.add('@//runtime/vm:vm_platform');
+        }
       } else if (config.compiler == 'ddc') {
         baselineDeps.addAll([
           '@//runtime/bin:dartvm',
@@ -489,6 +504,9 @@ void main(List<String> args) async {
         if (filePathAbs.startsWith(workspaceDir)) {
           relativePath = filePathAbs.substring(workspaceDir.length + 1);
           testFileLabel = _resolveWorkspaceLabel(workspaceDir, relativePath);
+        } else if (co19Dir != null && filePathAbs.startsWith(co19Dir)) {
+          relativePath = filePathAbs.substring(co19Dir.length + 1);
+          testFileLabel = '@dart_co19_tests//:$relativePath';
         } else if (filePathAbs.startsWith('$outputDir/$pkgDir/gen_tests/')) {
           relativePath = filePathAbs.substring('$outputDir/$pkgDir/'.length);
           testFileLabel = ':$relativePath';
@@ -505,27 +523,30 @@ void main(List<String> args) async {
           tc['shared_objects'] as List? ?? [],
         );
         final activeSoDeps = <String>{};
-        for (final so in sharedObjects) {
-          if (so == 'ffi_test_functions') {
-            activeSoDeps.add('@//runtime/bin:libffi_test_functions.so');
-          } else if (so == 'ffi_test_dynamic_library') {
-            activeSoDeps.add('@//runtime/bin:libffi_test_dynamic_library.so');
-          } else if (so == 'ffi_native_test_module') {
-            activeSoDeps.add('@//utils/dart2wasm:ffi_native_test_wasm_module');
-          } else {
-            hasUnsupportedSo = true;
-            break;
+        if (config.runtime != 'none') {
+          for (final so in sharedObjects) {
+            if (so == 'ffi_test_functions') {
+              activeSoDeps.add('@//runtime/bin:libffi_test_functions.so');
+            } else if (so == 'ffi_test_dynamic_library') {
+              activeSoDeps.add('@//runtime/bin:libffi_test_dynamic_library.so');
+            } else if (so == 'ffi_native_test_module') {
+              activeSoDeps
+                  .add('@//utils/dart2wasm:ffi_native_test_wasm_module');
+            } else {
+              hasUnsupportedSo = true;
+              break;
+            }
           }
-        }
-        if (hasUnsupportedSo) continue;
+          if (hasUnsupportedSo) continue;
 
-        final relativePathForChecks = filePathAbs.startsWith(workspaceDir)
-            ? filePathAbs.substring(workspaceDir.length + 1)
-            : filePathAbs.substring(outputDir.length + 1);
-        if (relativePathForChecks.contains('socket_sigpipe_test') ||
-            relativePathForChecks.contains('/ffi/')) {
-          activeSoDeps.add('@//runtime/bin:libffi_test_functions.so');
-          activeSoDeps.add('@//runtime/bin:libffi_test_dynamic_library.so');
+          final relativePathForChecks = filePathAbs.startsWith(workspaceDir)
+              ? filePathAbs.substring(workspaceDir.length + 1)
+              : filePathAbs.substring(outputDir.length + 1);
+          if (relativePathForChecks.contains('socket_sigpipe_test') ||
+              relativePathForChecks.contains('/ffi/')) {
+            activeSoDeps.add('@//runtime/bin:libffi_test_functions.so');
+            activeSoDeps.add('@//runtime/bin:libffi_test_dynamic_library.so');
+          }
         }
 
         // Enrich and add test case copy
@@ -555,12 +576,21 @@ void main(List<String> args) async {
                 relResInPkg,
                 testImportsMap!,
               );
+              final suiteSourceDir =
+                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in resDeps) {
+                if (!File('$suiteSourceDir/$dep').existsSync() &&
+                    !Directory('$suiteSourceDir/$dep').existsSync()) {
+                  continue;
+                }
                 final fgName = _getFilegroupTargetName(dep);
-                final label = _resolveWorkspaceLabel(
-                  workspaceDir,
-                  '$pkgDir/$dep',
-                );
+                final label = pkgDir == 'co19'
+                    ? '@dart_co19_tests//:$dep'
+                    : _resolveWorkspaceLabel(
+                        workspaceDir,
+                        '$suiteRelPrefix/$dep',
+                      );
                 filegroups.putIfAbsent(fgName, () => {}).add(label);
                 resourceDeps.add(':$fgName');
               }
@@ -612,12 +642,21 @@ void main(List<String> args) async {
                 relPathInPkg,
                 testImportsMap!,
               );
+              final suiteSourceDir =
+                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in localDeps) {
+                if (!File('$suiteSourceDir/$dep').existsSync() &&
+                    !Directory('$suiteSourceDir/$dep').existsSync()) {
+                  continue;
+                }
                 final fgName = _getFilegroupTargetName(dep);
-                final label = _resolveWorkspaceLabel(
-                  workspaceDir,
-                  '$pkgDir/$dep',
-                );
+                final label = pkgDir == 'co19'
+                    ? '@dart_co19_tests//:$dep'
+                    : _resolveWorkspaceLabel(
+                        workspaceDir,
+                        '$suiteRelPrefix/$dep',
+                      );
                 filegroups.putIfAbsent(fgName, () => {}).add(label);
                 targetDeps.add(':$fgName');
               }
@@ -656,7 +695,8 @@ $targetDepsStr
 )''');
           }
         } else {
-          if (filePathAbs.startsWith(workspaceDir)) {
+          if (filePathAbs.startsWith(workspaceDir) ||
+              (co19Dir != null && filePathAbs.startsWith(co19Dir))) {
             workspaceFiles.add(testFileLabel);
             packageWorkspaceFiles.add(testFileLabel);
           }
@@ -677,9 +717,15 @@ $targetDepsStr
           }
 
           final baselineDepsSet = baselineDeps
-              .where((d) => !d.startsWith(':tests_metadata'))
+              .where((d) =>
+                  !d.startsWith(':tests_metadata') &&
+                  !d.startsWith('@dart_packages'))
               .toSet();
-          baselineDepsSet.addAll(otherDeps);
+          baselineDepsSet
+              .addAll(otherDeps.where((d) => !d.startsWith('@dart_packages')));
+          if (pkgDir == 'co19') {
+            baselineDepsSet.add('@dart_co19_tests//:co19_files');
+          }
           final baselineDepsList = baselineDepsSet.toList()..sort();
 
           final dataListStr =
@@ -688,20 +734,22 @@ $targetDepsStr
           var shardCount = enrichedCases.length ~/ 12;
           if (shardCount < 1) {
             shardCount = 1;
-          } else if (shardCount > 50) {
-            shardCount = 50;
+          } else if (shardCount > maxShards) {
+            shardCount = maxShards;
           }
           var runnerScript = config.compiler == 'ddc'
               ? '//:run_ddc_test.sh'
               : '//:run_single_test.sh';
+          final dataRule = pkgDir == 'co19'
+              ? '    data = [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],'
+              : '    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],';
+          final envRule = pkgDir == 'co19'
+              ? '\n    env = {\n        "DART_CO19_SRC": "../dart_co19_tests",\n    },'
+              : '';
           shardedTargets.add('''sh_test(
     name = "tests_$configName",
     srcs = ["$runnerScript"],
-    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [
-        ":workspace_files",
-        ":tests_metadata_$configName.json",
-$dataListStr
-    ],
+$dataRule$envRule
     args = ["--config-json=\$(location :tests_metadata_$configName.json)"],
     shard_count = $shardCount,
 )''');
@@ -741,20 +789,37 @@ $targetsStr
       }
     } else {
       if (shardedTargets.isNotEmpty) {
-        final sortedWorkspaceFiles = packageWorkspaceFiles.toList()..sort();
-        final workspaceFilesStr =
-            sortedWorkspaceFiles.map((f) => '        "$f",').join('\n');
+        final String workspaceFilesRule;
+        if (pkgDir == 'co19') {
+          workspaceFilesRule = '''filegroup(
+    name = "workspace_files",
+    srcs = [
+        "@//:tests/co19/co19-analyzer.status",
+        "@//:tests/co19/co19-co19.status",
+        "@//:tests/co19/co19-dart2js.status",
+        "@//:tests/co19/co19-dart2wasm.status",
+        "@//:tests/co19/co19-dartdevc.status",
+        "@//:tests/co19/co19-kernel.status",
+        "@//:tests/co19/co19-runtime.status",
+    ],
+)''';
+        } else {
+          final sortedWorkspaceFiles = packageWorkspaceFiles.toList()..sort();
+          final workspaceFilesStr =
+              sortedWorkspaceFiles.map((f) => '        "$f",').join('\n');
+          workspaceFilesRule = '''filegroup(
+    name = "workspace_files",
+    srcs = [
+$workspaceFilesStr
+    ],
+)''';
+        }
 
         final targetsStr = shardedTargets.join('\n\n');
         pkgBuild.writeAsStringSync(
           '''load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
-filegroup(
-    name = "workspace_files",
-    srcs = [
-$workspaceFilesStr
-    ],
-)
+$workspaceFilesRule
 
 $targetsStr
 ''',
@@ -791,7 +856,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'dartk',
     runtime: 'vm',
-    suites: ['language', 'corelib', 'standalone', 'ffi', 'pkg'],
+    suites: ['language', 'corelib', 'standalone', 'ffi', 'pkg', 'co19'],
     extraFlags: [],
   ),
   (
@@ -815,7 +880,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'dart2wasm',
     runtime: 'd8',
-    suites: ['language', 'corelib', 'web/wasm'],
+    suites: ['language', 'corelib', 'web/wasm', 'co19'],
     extraFlags: [],
   ),
   (
@@ -879,7 +944,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'dart2js',
     runtime: 'chrome',
-    suites: ['language', 'corelib', 'web/wasm'],
+    suites: ['language', 'corelib', 'web/wasm', 'co19'],
     extraFlags: [],
   ),
   (
@@ -887,7 +952,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'ddc',
     runtime: 'chrome',
-    suites: ['language', 'corelib'],
+    suites: ['language', 'corelib', 'co19'],
     extraFlags: [],
   ),
   (
@@ -911,7 +976,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'dartkp',
     runtime: 'dart_precompiled',
-    suites: ['language', 'corelib', 'standalone'],
+    suites: ['language', 'corelib', 'standalone', 'co19'],
     extraFlags: [],
   ),
   (
@@ -961,6 +1026,14 @@ const _configs = <_TestConfig>[
     runtime: 'dart_precompiled',
     suites: ['language', 'corelib', 'standalone'],
     extraFlags: ['--arch=simriscv64', '--gen-snapshot-format=elf'],
+  ),
+  (
+    name: 'analyzer_release',
+    mode: 'release',
+    compiler: 'dart2analyzer',
+    runtime: 'none',
+    suites: ['co19'],
+    extraFlags: [],
   ),
 ];
 
@@ -1024,9 +1097,11 @@ String _getFilegroupTargetName(String depPath) {
   return 'fg_$target';
 }
 
-List<String> _findPackageResources(String workspaceDir, String pkgDir) {
+List<String> _findPackageResources(String workspaceDir, String pkgDir,
+    [String? co19Dir]) {
   final resources = <String>[];
-  final dir = Directory('$workspaceDir/$pkgDir');
+  final sourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+  final dir = Directory(sourceDir);
   if (!dir.existsSync()) return resources;
 
   final allowedExtensions = {
@@ -1061,8 +1136,13 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir) {
       if (dotIndex != -1) {
         final ext = filename.substring(dotIndex);
         if (allowedExtensions.contains(ext.toLowerCase())) {
-          final relPath = path.substring(workspaceDir.length + 1);
-          resources.add(relPath);
+          if (pkgDir == 'co19') {
+            final relPath = path.substring(sourceDir.length + 1);
+            resources.add('@dart_co19_tests//:$relPath');
+          } else {
+            final relPath = path.substring(workspaceDir.length + 1);
+            resources.add(relPath);
+          }
         }
       }
     }
@@ -1155,7 +1235,7 @@ String _getPkgDirFromFlatName(String flatName) {
   }
 
   final parts = name.split('_');
-  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language'};
+  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
   if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
     return parts[0];
   } else if (parts.length >= 2) {
