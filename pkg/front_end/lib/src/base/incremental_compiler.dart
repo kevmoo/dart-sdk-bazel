@@ -1864,6 +1864,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
+    Set<String>? definitionsAddedByUser,
     String? className,
     String? methodName,
     int offset = TreeNode.noOffset,
@@ -1942,7 +1943,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // currently null. This can also mean that the VM can't send over the
           // information - this for instance happens for function types.
           for (MapEntry<String, Variable> def in foundScope.variables.entries) {
+            if (definitionsAddedByUser != null &&
+                definitionsAddedByUser.contains(def.key)) {
+              // Don't try to overwrite types of "fake" definitions added by
+              // the user - even if it shadows real variables.
+              continue;
+            }
+
             DartType? existingType = usedDefinitions[def.key];
+
             if (existingType == null) {
               // We found a variable, but we weren't told about it.
               // For now we'll only do something special if it's a const
@@ -2282,7 +2291,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       ExpressionCompilationData expressionCompilerDataCarrier =
           new ExpressionCompilationData(
-            transformerFlags: 0,
             fileOffset: TreeNode.noOffset,
             typeParameters: typeDefinitions,
             positionalParameters: positionalParametersUsedForCompiling,
@@ -2311,7 +2319,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
-        transformerFlags: expressionCompilerDataCarrier.transformerFlags,
+        containsSuperCalls: expressionCompilerDataCarrier.containsSuperCalls,
       );
       procedure.parent = cls ?? libraryBuilder.library;
 
