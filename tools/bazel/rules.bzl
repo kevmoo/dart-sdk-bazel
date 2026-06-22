@@ -40,11 +40,7 @@ def _inject_local_defines(local_defines, defines):
     return custom_local_defines
 
 def _inject_copts(copts):
-    return copts + [
-        "-Wno-builtin-macro-redefined",
-        "-D__DATE__=\"\"",
-        "-D__TIME__=\"\"",
-    ] + select({
+    return copts + select({
         "@platforms//os:macos": [
             "-mmacosx-version-min=14.0",
         ],
