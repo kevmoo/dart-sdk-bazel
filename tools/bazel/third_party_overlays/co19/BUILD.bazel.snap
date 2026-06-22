@@ -4,16 +4,21 @@
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(glob(
+    ["**/*"],
+    allow_empty = True,
+))
+
 filegroup(
     name = "co19_files",
     srcs = glob(
         ["**/*"],
+        allow_empty = True,
         exclude = [
             "BUILD",
             "BUILD.bazel",
             "WORKSPACE",
             "MODULE.bazel",
         ],
-        allow_empty = True,
     ),
 )

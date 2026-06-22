@@ -23,6 +23,7 @@ void main(List<String> args) async {
   String? workspaceDir;
   String? outputDir;
   String? co19Dir;
+  int maxShards = 50;
   final suites = <String>[];
 
   for (final arg in args) {
@@ -32,6 +33,8 @@ void main(List<String> args) async {
       outputDir = arg.substring('--output-dir='.length);
     } else if (arg.startsWith('--co19-dir=')) {
       co19Dir = arg.substring('--co19-dir='.length);
+    } else if (arg.startsWith('--max-shards=')) {
+      maxShards = int.parse(arg.substring('--max-shards='.length));
     } else if (arg.startsWith('--suite=')) {
       suites.add(arg.substring('--suite='.length));
     }
@@ -723,7 +726,6 @@ $targetDepsStr
               baselineDepsList.map((d) => '        "$d",').join('\n');
 
           var shardCount = enrichedCases.length ~/ 12;
-          final maxShards = 50;
           if (shardCount < 1) {
             shardCount = 1;
           } else if (shardCount > maxShards) {

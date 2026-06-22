@@ -2,7 +2,8 @@
 # The Dart-compilation rule macros live in defs.bzl.
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load(":defs.bzl", "dart_binary", "dart_toolchain")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":defs.bzl", "dart_binary", "dart_library", "dart_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -17,6 +18,25 @@ dart_binary(
     name = "test_hello",
     main = "test_hello.dart",
     sources = "@dart_packages//pkg/args",
+)
+
+dart_library(
+    name = "suite_paths_lib",
+    srcs = [
+        "suite_paths.dart",
+        "suite_paths_test.dart",
+    ],
+)
+
+dart_binary(
+    name = "suite_paths_test_bin",
+    main = "suite_paths_test.dart",
+    sources = ":suite_paths_lib",
+)
+
+sh_test(
+    name = "suite_paths_test",
+    srcs = [":suite_paths_test_bin"],
 )
 
 dart_toolchain(

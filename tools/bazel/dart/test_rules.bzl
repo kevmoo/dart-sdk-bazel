@@ -139,7 +139,9 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
         "--workspace-dir=" + str(workspace_dir),
         "--output-dir=" + str(repository_ctx.path(".")),
     ]
+    generator_args.append("--max-shards=" + str(repository_ctx.attr.max_shards))
     if "co19" in repository_ctx.attr.suites:
+        # Note: watch() on unpacked BUILD file does not detect test file changes inside the external repo.
         co19_label = Label("@dart_co19_tests//:BUILD.bazel")
         repository_ctx.watch(co19_label)
         co19_dir = repository_ctx.path(co19_label).dirname
@@ -163,6 +165,7 @@ dynamic_test_repository = repository_rule(
     implementation = _dynamic_test_repo_impl,
     attrs = {
         "suites": attr.string_list(mandatory = True),
+        "max_shards": attr.int(default = 50),
     },
 )
 
