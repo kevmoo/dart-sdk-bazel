@@ -20,11 +20,13 @@ void main(List<String> args) {
     exit(1);
   }
 
-  final data = jsonDecode(inFile.readAsStringSync()) as Map<String, dynamic>;
-  final timestamp = data['timestamp'] as String;
-  final interval = data['watchdog_interval_seconds'] as int;
-  final gapAnalysis = data['universe_gap_analysis'] as Map<String, dynamic>;
-  final configs = data['config_results'] as Map<String, dynamic>;
+  final data =
+      jsonDecode(inFile.readAsStringSync()) as Map<String, dynamic>? ?? {};
+  final timestamp = data['timestamp'] as String? ?? '';
+  final interval = data['watchdog_interval_seconds'] as int? ?? 300;
+  final gapAnalysis =
+      data['universe_gap_analysis'] as Map<String, dynamic>? ?? {};
+  final configs = data['config_results'] as Map<String, dynamic>? ?? {};
 
   final buf = StringBuffer();
   buf.writeln('# Dart SDK Bazel Test Completion Matrix & Gap Analysis');
@@ -48,11 +50,11 @@ void main(List<String> args) {
   var totalFailed = 0;
 
   for (final cfgName in sortedCfgNames) {
-    final cfg = configs[cfgName] as Map<String, dynamic>;
-    final total = cfg['total_targets'] as int;
-    final passed = cfg['passed'] as int;
-    final failed = cfg['failed'] as int;
-    final status = cfg['status'] as String;
+    final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
+    final total = cfg['total_targets'] as int? ?? 0;
+    final passed = cfg['passed'] as int? ?? 0;
+    final failed = cfg['failed'] as int? ?? 0;
+    final status = cfg['status'] as String? ?? 'Unknown';
 
     totalUniverseTargets += total;
     totalPassed += passed;
@@ -80,7 +82,9 @@ void main(List<String> args) {
   );
   buf.writeln();
   final unmigrated =
-      (gapAnalysis['unmigrated_gn_suites'] as List<dynamic>).cast<String>()
+      ((gapAnalysis['unmigrated_gn_suites'] as List<dynamic>?)
+                ?.cast<String>() ??
+            <String>[])
         ..sort();
   for (final s in unmigrated) {
     buf.writeln('* 🔴 `tests/$s`');
@@ -98,9 +102,10 @@ void main(List<String> args) {
     );
   } else {
     for (final cfgName in sortedCfgNames) {
-      final cfg = configs[cfgName] as Map<String, dynamic>;
-      final failedList = (cfg['failed_targets'] as List<dynamic>)
-          .cast<String>();
+      final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
+      final failedList =
+          (cfg['failed_targets'] as List<dynamic>?)?.cast<String>() ??
+          <String>[];
       if (failedList.isNotEmpty) {
         buf.writeln('### `$cfgName` (${failedList.length} failures)');
         buf.writeln('```text');

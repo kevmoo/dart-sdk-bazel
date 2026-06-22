@@ -177,8 +177,9 @@ void main(List<String> args) async {
     }
     matchedConfig ??= 'vm_release';
 
-    if (onlyConfigs.isNotEmpty && !onlyConfigs.contains(matchedConfig))
+    if (onlyConfigs.isNotEmpty && !onlyConfigs.contains(matchedConfig)) {
       continue;
+    }
     if (skipConfigs.contains(matchedConfig)) continue;
 
     filteredTargets.add(target);
@@ -252,7 +253,9 @@ void main(List<String> args) async {
     });
 
     final timer = Timer.periodic(Duration(seconds: 15), (_) {
-      if (!bepFile.existsSync()) return;
+      if (!bepFile.existsSync()) {
+        return;
+      }
       try {
         final content = bepFile.readAsStringSync();
         final summaryCount = 'testSummary'.allMatches(content).length;
@@ -280,56 +283,61 @@ void main(List<String> args) async {
       } catch (_) {}
     });
 
-    final fullArgs = [
-      'test',
-      ...bazelArgs,
-      '--build_event_json_file=test_bep.json',
-      '--target_pattern_file=bazel_test_targets.tmp',
-    ];
+    try {
+      final fullArgs = [
+        'test',
+        ...bazelArgs,
+        '--build_event_json_file=test_bep.json',
+        '--target_pattern_file=bazel_test_targets.tmp',
+      ];
 
-    final testProc = await Process.start('bazel', fullArgs,
-        mode: ProcessStartMode.inheritStdio);
-    final exitCode = await testProc.exitCode;
-    timer.cancel();
-    if (tempFile.existsSync()) tempFile.deleteSync();
+      final testProc = await Process.start('bazel', fullArgs,
+          mode: ProcessStartMode.inheritStdio);
+      final exitCode = await testProc.exitCode;
 
-    print('📊 Bazel test run completed with exit code: $exitCode');
+      print('📊 Bazel test run completed with exit code: $exitCode');
 
-    if (bepFile.existsSync()) {
-      final lines = await bepFile.readAsLines();
-      for (final line in lines) {
-        if (line.trim().isEmpty) continue;
-        try {
-          final evt = jsonDecode(line) as Map<String, dynamic>;
-          if (evt.containsKey('testSummary')) {
-            final idMap = evt['id'] as Map<String, dynamic>?;
-            final label = idMap?['testSummary']?['label'] as String?;
-            final summary = evt['testSummary'] as Map<String, dynamic>;
-            final status = summary['overallStatus'] as String?;
+      if (bepFile.existsSync()) {
+        final lines = await bepFile.readAsLines();
+        for (final line in lines) {
+          if (line.trim().isEmpty) continue;
+          try {
+            final evt = jsonDecode(line) as Map<String, dynamic>;
+            if (evt.containsKey('testSummary')) {
+              final idMap = evt['id'] as Map<String, dynamic>?;
+              final label = idMap?['testSummary']?['label'] as String?;
+              final summary = evt['testSummary'] as Map<String, dynamic>;
+              final status = summary['overallStatus'] as String?;
 
-            if (label != null) {
-              String? cfg;
-              for (final c in knownConfigs) {
-                if (label.endsWith('_$c') || label.contains('_${c}_')) {
-                  cfg = c;
-                  break;
+              if (label != null) {
+                String? cfg;
+                for (final c in knownConfigs) {
+                  if (label.endsWith('_$c') || label.contains('_${c}_')) {
+                    cfg = c;
+                    break;
+                  }
+                }
+                cfg ??= 'vm_release';
+                if (status == 'PASSED') {
+                  configResults[cfg]!['passed'] =
+                      (configResults[cfg]!['passed'] as int) + 1;
+                } else {
+                  configResults[cfg]!['failed'] =
+                      (configResults[cfg]!['failed'] as int) + 1;
+                  (configResults[cfg]!['failed_targets'] as List<String>)
+                      .add(label);
                 }
               }
-              cfg ??= 'vm_release';
-              if (status == 'PASSED') {
-                configResults[cfg]!['passed'] =
-                    (configResults[cfg]!['passed'] as int) + 1;
-              } else {
-                configResults[cfg]!['failed'] =
-                    (configResults[cfg]!['failed'] as int) + 1;
-                (configResults[cfg]!['failed_targets'] as List<String>)
-                    .add(label);
-              }
             }
-          }
-        } catch (_) {}
+          } catch (_) {}
+        }
+        bepFile.deleteSync();
       }
-      bepFile.deleteSync();
+    } finally {
+      timer.cancel();
+      if (tempFile.existsSync()) {
+        tempFile.deleteSync();
+      }
     }
 
     final totalDt = DateTime.now().difference(startTime).inSeconds;
