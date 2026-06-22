@@ -42,6 +42,7 @@ def _inject_local_defines(local_defines, defines):
 def _inject_copts(copts):
     return copts + [
         "-Wno-builtin-macro-redefined",
+        "-Wno-macro-redefined",
         "-D__DATE__=\"\"",
         "-D__TIME__=\"\"",
     ] + select({
