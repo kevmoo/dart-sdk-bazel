@@ -17,6 +17,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'suite_paths.dart';
+
 void main(List<String> args) async {
   String? workspaceDir;
   String? outputDir;
@@ -318,7 +320,8 @@ void main(List<String> args) async {
     // Ensure package directory exists
     Directory('$outputDir/$pkgDir').createSync(recursive: true);
 
-    final testImportsFile = File('$workspaceDir/$pkgDir/test_imports.json');
+    final suiteSourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+    final testImportsFile = File('$suiteSourceDir/test_imports.json');
     final hasFineGrained = testImportsFile.existsSync();
     final useIndividualTargets = hasFineGrained;
 
@@ -333,13 +336,14 @@ void main(List<String> args) async {
 
     // Package-wide resources (config-independent)
     if (hasFineGrained) {
-      final resources = _findPackageResources(workspaceDir, pkgDir);
+      final resources = _findPackageResources(workspaceDir, pkgDir, co19Dir);
       if (resources.isNotEmpty) {
         final fgName = 'fg_package_resources';
         for (final res in resources) {
-          filegroups
-              .putIfAbsent(fgName, () => {})
-              .add(_resolveWorkspaceLabel(workspaceDir, res));
+          final label = res.startsWith('@')
+              ? res
+              : _resolveWorkspaceLabel(workspaceDir, res);
+          filegroups.putIfAbsent(fgName, () => {}).add(label);
         }
       }
     }
@@ -569,13 +573,18 @@ void main(List<String> args) async {
                 relResInPkg,
                 testImportsMap!,
               );
+              final suiteSourceDir =
+                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in resDeps) {
-                if (!File('$workspaceDir/$pkgDir/$dep').existsSync()) continue;
+                if (!File('$suiteSourceDir/$dep').existsSync()) continue;
                 final fgName = _getFilegroupTargetName(dep);
-                final label = _resolveWorkspaceLabel(
-                  workspaceDir,
-                  '$pkgDir/$dep',
-                );
+                final label = pkgDir == 'co19'
+                    ? '@dart_co19_tests//:$dep'
+                    : _resolveWorkspaceLabel(
+                        workspaceDir,
+                        '$suiteRelPrefix/$dep',
+                      );
                 filegroups.putIfAbsent(fgName, () => {}).add(label);
                 resourceDeps.add(':$fgName');
               }
@@ -627,13 +636,18 @@ void main(List<String> args) async {
                 relPathInPkg,
                 testImportsMap!,
               );
+              final suiteSourceDir =
+                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
               for (final dep in localDeps) {
-                if (!File('$workspaceDir/$pkgDir/$dep').existsSync()) continue;
+                if (!File('$suiteSourceDir/$dep').existsSync()) continue;
                 final fgName = _getFilegroupTargetName(dep);
-                final label = _resolveWorkspaceLabel(
-                  workspaceDir,
-                  '$pkgDir/$dep',
-                );
+                final label = pkgDir == 'co19'
+                    ? '@dart_co19_tests//:$dep'
+                    : _resolveWorkspaceLabel(
+                        workspaceDir,
+                        '$suiteRelPrefix/$dep',
+                      );
                 filegroups.putIfAbsent(fgName, () => {}).add(label);
                 targetDeps.add(':$fgName');
               }
@@ -1064,9 +1078,11 @@ String _getFilegroupTargetName(String depPath) {
   return 'fg_$target';
 }
 
-List<String> _findPackageResources(String workspaceDir, String pkgDir) {
+List<String> _findPackageResources(String workspaceDir, String pkgDir,
+    [String? co19Dir]) {
   final resources = <String>[];
-  final dir = Directory('$workspaceDir/$pkgDir');
+  final sourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+  final dir = Directory(sourceDir);
   if (!dir.existsSync()) return resources;
 
   final allowedExtensions = {
@@ -1101,8 +1117,13 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir) {
       if (dotIndex != -1) {
         final ext = filename.substring(dotIndex);
         if (allowedExtensions.contains(ext.toLowerCase())) {
-          final relPath = path.substring(workspaceDir.length + 1);
-          resources.add(relPath);
+          if (pkgDir == 'co19') {
+            final relPath = path.substring(sourceDir.length + 1);
+            resources.add('@dart_co19_tests//:$relPath');
+          } else {
+            final relPath = path.substring(workspaceDir.length + 1);
+            resources.add(relPath);
+          }
         }
       }
     }
