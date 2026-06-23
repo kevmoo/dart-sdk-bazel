@@ -266,7 +266,7 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
         url = dep_info.get("url")
         commit = dep_info.get("commit")
 
-        output_dir = prefix if prefix else "."
+        output_dir = "." if repository_ctx.attr.repo_type in ("boringssl", "perfetto") else (prefix if prefix else ".")
 
         _fetch_git_or_tarball(
             repository_ctx,
