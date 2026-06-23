@@ -325,6 +325,8 @@ void main(List<String> args) async {
           'eta_remaining_minutes': etaStr,
           'rate_targets_per_sec': rate.toStringAsFixed(2),
         });
+        print(
+            '⏳ [${elapsedMins.toStringAsFixed(1)}m] Progress: ${percent.toStringAsFixed(1)}% ($summaryCount/$totalCount targets) | ETA: ${etaStr}m remaining | Rate: ${rate.toStringAsFixed(2)}/s');
       } catch (_) {}
     });
 
@@ -336,9 +338,16 @@ void main(List<String> args) async {
         '--target_pattern_file=bazel_test_targets.tmp',
       ];
 
-      final testProc = await Process.start('bazel', fullArgs,
-          mode: ProcessStartMode.inheritStdio);
+      final logFile = File('bazel_test_run.log');
+      final outSink = logFile.openWrite();
+      final testProc = await Process.start('bazel', fullArgs);
+      final outSub = testProc.stdout.listen(outSink.add);
+      final errSub = testProc.stderr.listen(outSink.add);
       final exitCode = await testProc.exitCode;
+      await outSub.cancel();
+      await errSub.cancel();
+      await outSink.flush();
+      await outSink.close();
 
       print('📊 Bazel test run completed with exit code: $exitCode');
 
