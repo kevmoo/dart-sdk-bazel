@@ -18,6 +18,9 @@ jobs:
   build-and-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 300
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
     - name: Checkout repository
@@ -53,11 +56,16 @@ jobs:
     # hold (no sha256 on those downloads). disk-cache is keyed per workflow
     # so this job's multi-GB full-build cache does not evict the PR
     # workflow's caches from the 10 GB repo budget.
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v3
+      with:
+        workload_identity_provider: 'projects/605394026323/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+        service_account: 'github-actions-cache@bluefin-remote.iam.gserviceaccount.com'
+
     - name: Set up Bazel
       uses: bazel-contrib/setup-bazel@0.19.0
       with:
         bazelisk-cache: true
-        disk-cache: ${{ github.workflow }}
         external-cache: true
         repository-cache: true
 

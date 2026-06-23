@@ -17,7 +17,7 @@
 # ------------------------------------------------------------------------------
 # 1. REMOTE CACHE ONLY (Run locally, share cache in GCS)
 # ------------------------------------------------------------------------------
-build:remote-cache --remote_cache=https://storage.googleapis.com/<DEV_CACHE_BUCKET_NAME>
+build:remote-cache --remote_cache=https://storage.googleapis.com/dart-sdk-bazel-cache
 build:remote-cache --google_default_credentials=true
 
 # Enable upload to cache (CI should always do this, devs can optionally disable it if they have slow upload)

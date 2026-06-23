@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 74/99 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 74/107 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -48,6 +48,14 @@ graph TD
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
+    sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
+    sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::pending
+    sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::pending
+    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::pending
+    sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
+    sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
+    sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::pending
+    sdk_67o.7["sdk-67o.7:<br>{REC-FAST-3} Document RAM-backed Bazel output base {tmpfs / /dev/shm}"]:::pending
     sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::completed
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_7nj["sdk-7nj:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
@@ -77,7 +85,7 @@ graph TD
     sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
     sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::completed
     sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::completed
-    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
+    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::inProgress
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_f0w["sdk-f0w:<br>Spike: Evaluate Aspect CLI & Aspect Extension Language {AXL} for Monorepo Workflow Orchestration"]:::pending
@@ -138,6 +146,13 @@ graph TD
     sdk_fnn --> sdk_4z8
     sdk_zi3 --> sdk_4z8
     sdk_50x --> sdk_5uz
+    sdk_67o --> sdk_67o.1
+    sdk_67o --> sdk_67o.2
+    sdk_67o --> sdk_67o.3
+    sdk_67o --> sdk_67o.4
+    sdk_67o --> sdk_67o.5
+    sdk_67o --> sdk_67o.6
+    sdk_67o --> sdk_67o.7
     sdk_oce --> sdk_90d
     sdk_e8u --> sdk_91p
     sdk_9ep --> sdk_9qx
@@ -229,6 +244,110 @@ graph TD
   - None
 - **Description**:
   Upstream our local fix in pkg/test_runner/bin/test_runner.dart that skips buildConfigurations when dumpTestMetadata is active, avoiding redundant builds in CI tools.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o] Implement Bazel test matrix optimization and remediation recommendations
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.1] [REC-FAST-4] Dynamic Test Timeout Tiers (timeout = "long") for heavy AOT/WASM suites
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update Starlark test macros to explicitly assign timeout = 'long' (900s) or 'eternal' (3600s) to heavy WASM/AOT compiled suites instead of relying on default 'moderate' (300s).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.2] [REC-FIX-3] Target Quarantining Allowlist (tags = ["quarantine"])
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Apply tags = ['manual', 'quarantine'] to currently unmigrated or flaky test targets so bazel test //... runs 100% green.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.4] [REC-FAST-2] Granular shard sizing & subdirectory target splitting
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Split massive test suites like co19 and pkg by subdirectory (e.g. @dart_tests//co19/LanguageFeatures/...) to prevent shard timeouts and improve cache granularity.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.5] [REC-FAST-1] Enable Remote Build Execution (RBE) & Remote Caching
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Offload test execution and sandbox creation to distributed cloud worker pools to eliminate local inode limits and parallelize 4,600+ shards.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Enhance Starlark test generation macros to automatically detect and append required .dill, .snapshot, and helper .dart files to target data attributes.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.7] [REC-FAST-3] Document RAM-backed Bazel output base (tmpfs / /dev/shm)
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Document workstation setup to mount --output_base on tmpfs to accelerate symlink creation/deletion by 5x.
 - **Success Criteria**:
 
 ---
@@ -337,7 +456,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
