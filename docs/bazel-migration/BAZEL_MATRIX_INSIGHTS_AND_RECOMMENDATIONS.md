@@ -53,33 +53,33 @@ pie title Failure Root Cause Taxonomy (2,294 Failed Targets)
 
 ## 3. How Can We Run Faster? (Performance Optimization Roadmap)
 
-### ⚡ REC-FAST-1: Enable Remote Build Execution (RBE) & Remote Caching
+### ⚡ REC-FAST-1: Enable Remote Build Execution (RBE) & Remote Caching *(Bead: `sdk-67o.5`)*
 * **Mechanism:** Offload test execution and sandbox creation to distributed cloud worker pools.
 * **Tradeoffs:** Consumes network bandwidth for input artifact upload/download. However, it completely eliminates local inode exhaustion (each cloud worker gets a fresh sandbox) and parallelizes `4,600+` shards across hundreds of remote machines, reducing an 8-hour run to **~15 minutes**.
 
-### ⚡ REC-FAST-2: Granular Shard Sizing & Subdirectory Target Splitting
+### ⚡ REC-FAST-2: Granular Shard Sizing & Subdirectory Target Splitting *(Bead: `sdk-67o.4`)*
 * **Mechanism:** Instead of a static `shard_count = 50` for massive suites like `co19` and `pkg`, split target definitions by subdirectory (e.g., `@dart_tests//co19/LanguageFeatures/...`).
 * **Tradeoffs:** Increases Bazel analysis graph size (more individual target nodes to evaluate). However, it prevents 300s timeouts, improves cache granularity (modifying one test invalidates only 1 target instead of 100), and avoids re-running 99 passed tests when test #100 times out.
 
-### ⚡ REC-FAST-3: RAM-Backed Bazel Output Base (`tmpfs`)
+### ⚡ REC-FAST-3: RAM-Backed Bazel Output Base (`tmpfs`) *(Bead: `sdk-67o.7`)*
 * **Mechanism:** Mount Bazel's `--output_base` on a temporary RAM filesystem (`/dev/shm` or `tmpfs`).
 * **Tradeoffs:** Consumes local workstation RAM (~16–32GB required). However, it accelerates sandbox symlink creation and file deletion by **~5x** and bypasses physical SATA/NVMe inode limits.
 
-### ⚡ REC-FAST-4: Dynamic Test Timeout Tiers (`timeout = "long"`)
+### ⚡ REC-FAST-4: Dynamic Test Timeout Tiers (`timeout = "long"`) *(Bead: `sdk-67o.1`)*
 * **Mechanism:** Update Starlark test macros to explicitly assign `timeout = "long"` (900s / 15m) or `timeout = "eternal"` (3600s / 1h) to heavy WASM/AOT compiled suites instead of relying on the default `"moderate"` (300s).
 
 ---
 
 ## 4. How Can We Fix Tests That Failed? (Remediation Roadmap)
 
-### 🛠️ REC-FIX-1: Migrate `pkg/...` Test Harnesses to `package:runfiles`
+### 🛠️ REC-FIX-1: Migrate `pkg/...` Test Harnesses to `package:runfiles` *(Bead: `sdk-67o.3`)*
 * **Action:** Refactor relative path lookups across `pkg/analyzer`, `pkg/analysis_server`, and `pkg/front_end` to resolve assets dynamically via `package:runfiles` or inspect `Platform.environment['TEST_COMPILATION_DIR']` and `Platform.environment['RUNFILES_DIR']`.
 * **Impact:** Restores full compatibility with `--nobuild_runfile_links`, allowing instant green local test runs without symlink overhead.
 
-### 🛠️ REC-FIX-2: Automated Hermetic Asset Scanning in Starlark Macros
+### 🛠️ REC-FIX-2: Automated Hermetic Asset Scanning in Starlark Macros *(Bead: `sdk-67o.6`)*
 * **Action:** Enhance the Starlark test generation macros (`run_test_universe.dart` / `.bzl` rules) to automatically detect and append required `.dill`, `.snapshot`, and helper `.dart` files to the target's `data` attribute.
 
-### 🛠️ REC-FIX-3: Quarantine Flaky/Broken Targets via Tags
+### 🛠️ REC-FIX-3: Quarantine Flaky/Broken Targets via Tags *(Bead: `sdk-67o.2`)*
 * **Action:** Apply `tags = ["manual", "quarantine"]` to currently unmigrated or flaky test targets.
 * **Impact:** Ensures that `bazel test //...` runs 100% green for day-to-day developer presubmits while dedicated test patrols work through the quarantined backlog.
 
@@ -89,15 +89,15 @@ pie title Failure Root Cause Taxonomy (2,294 Failed Targets)
 
 Every recommendation is scored below across **Ease** *(1=Complex refactor, 5=Trivial config change)*, **Feasibility** *(1=Requires external infra, 5=100% executable today)*, and **Impact / Usefulness** *(1=Minor polish, 5=Massive leverage)*.
 
-| ID | Category | Title & Summary | Ease | Feasibility | Impact | Total Score | Recommended Immediate Next Step |
-|---|---|---|:---:|:---:|:---:|:---:|---|
-| **REC-FAST-4** | Speed | **Dynamic Test Timeout Tiers**<br>Assign `timeout = "long"` to heavy AOT/WASM suites. | **5** | **5** | **4** | **14 / 15** | Modify Starlark macro `dart_test_suite` to set `timeout` based on suite/config. |
-| **REC-FIX-3** | Reliability | **Target Quarantining Allowlist**<br>Tag broken tests with `tags = ["quarantine"]`. | **5** | **5** | **4** | **14 / 15** | Add quarantine allowlist to `run_test_universe.dart` and Bazel target generators. |
-| **REC-FIX-1** | Compatibility | **Migrate to `package:runfiles`**<br>Eliminate relative filesystem path assumptions in `pkg/`. | **3** | **5** | **5** | **13 / 15** | Execute automated refactoring across `pkg/analyzer` and `pkg/analysis_server`. |
-| **REC-FAST-2** | Speed | **Granular Target Splitting**<br>Split `co19` and `pkg` suites by directory structure. | **3** | **4** | **5** | **12 / 15** | Refactor Starlark generator to emit per-folder test rules. |
-| **REC-FAST-1** | Speed | **Remote Build Execution (RBE)**<br>Execute test shards across cloud worker pools. | **2** | **4** | **5** | **11 / 15** | Enable Bazel remote execution flags and configure remote worker pools. |
-| **REC-FIX-2** | Reliability | **Hermetic `data` Declarations**<br>Auto-include `.dill` and helper files in `data=[...]`. | **3** | **4** | **4** | **11 / 15** | Update Starlark macro to scan dependency imports and include data files. |
-| **REC-FAST-3** | Speed | **RAM-Backed Output Base**<br>Mount `--output_base` on local `tmpfs`. | **4** | **3** | **3** | **10 / 15** | Add developer workstation setup instructions to project documentation. |
+| ID | Bead | Category | Title & Summary | Ease | Feasibility | Impact | Total Score | Recommended Immediate Next Step |
+|---|:---:|---|---|:---:|:---:|:---:|:---:|---|
+| **REC-FAST-4** | `sdk-67o.1` | Speed | **Dynamic Test Timeout Tiers**<br>Assign `timeout = "long"` to heavy AOT/WASM suites. | **5** | **5** | **4** | **14 / 15** | Modify Starlark macro `dart_test_suite` to set `timeout` based on suite/config. |
+| **REC-FIX-3** | `sdk-67o.2` | Reliability | **Target Quarantining Allowlist**<br>Tag broken tests with `tags = ["quarantine"]`. | **5** | **5** | **4** | **14 / 15** | Add quarantine allowlist to `run_test_universe.dart` and Bazel target generators. |
+| **REC-FIX-1** | `sdk-67o.3` | Compatibility | **Migrate to `package:runfiles`**<br>Eliminate relative filesystem path assumptions in `pkg/`. | **3** | **5** | **5** | **13 / 15** | Execute automated refactoring across `pkg/analyzer` and `pkg/analysis_server`. |
+| **REC-FAST-2** | `sdk-67o.4` | Speed | **Granular Target Splitting**<br>Split `co19` and `pkg` suites by directory structure. | **3** | **4** | **5** | **12 / 15** | Refactor Starlark generator to emit per-folder test rules. |
+| **REC-FAST-1** | `sdk-67o.5` | Speed | **Remote Build Execution (RBE)**<br>Execute test shards across cloud worker pools. | **2** | **4** | **5** | **11 / 15** | Enable Bazel remote execution flags and configure remote worker pools. |
+| **REC-FIX-2** | `sdk-67o.6` | Reliability | **Hermetic `data` Declarations**<br>Auto-include `.dill` and helper files in `data=[...]`. | **3** | **4** | **4** | **11 / 15** | Update Starlark macro to scan dependency imports and include data files. |
+| **REC-FAST-3** | `sdk-67o.7` | Speed | **RAM-Backed Output Base**<br>Mount `--output_base` on local `tmpfs`. | **4** | **3** | **3** | **10 / 15** | Add developer workstation setup instructions to project documentation. |
 
 ---
 
