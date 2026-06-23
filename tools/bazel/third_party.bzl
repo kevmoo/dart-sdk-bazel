@@ -82,6 +82,73 @@ def _get_cipd_platform(repository_ctx):
 
     return os_str + "-" + arch_str
 
+def _backoff_sleep(repository_ctx, attempt, multiplier = 5):
+    backoff_sec = str(multiplier * attempt)
+    res = repository_ctx.execute(["python3", "-c", "import time; time.sleep(" + backoff_sec + ")"])
+    if res.return_code != 0:
+        repository_ctx.execute(["python", "-c", "import time; time.sleep(" + backoff_sec + ")"])
+
+def _fetch_git_or_tarball(repository_ctx, url, commit, output_dir):
+    if url.startswith("https://github.com") or url.startswith("http://github.com"):
+        tarball_url = url + "/archive/" + commit + ".tar.gz"
+    else:
+        tarball_url = url + "/+archive/" + commit + ".tar.gz"
+
+    for i in range(4):
+        res = repository_ctx.download_and_extract(
+            url = tarball_url,
+            output = output_dir,
+            type = "tar.gz",
+            allow_fail = True,
+        )
+        if res.success:
+            return
+        print("WARNING: Tarball download failed (attempt {}/4); backing off and retrying...".format(i + 1))  # buildifier: disable=print
+        _backoff_sleep(repository_ctx, i + 1, multiplier = 15)
+
+    # Fallback to git shallow fetch if GoogleSource tarball generation is continuously 503 throttled
+    print("WARNING: Tarball download continuously 503 throttled; falling back to git fetch...")  # buildifier: disable=print
+    res = repository_ctx.execute(["git", "init", output_dir])
+    if res.return_code != 0:
+        fail("git init failed: " + res.stderr)
+    res = repository_ctx.execute(["git", "-C", output_dir, "fetch", "--depth", "1", url, commit])
+    if res.return_code != 0:
+        fail("git fetch failed: " + res.stderr)
+    res = repository_ctx.execute(["git", "-C", output_dir, "checkout", "-f", "FETCH_HEAD"])
+    if res.return_code != 0:
+        fail("git checkout failed: " + res.stderr)
+    repository_ctx.delete(repository_ctx.path(output_dir).get_child(".git"))
+
+def _retry_download(repository_ctx, url, output):
+    for i in range(5):
+        res = repository_ctx.download(
+            url = url,
+            output = output,
+            allow_fail = True,
+        )
+        if res.success:
+            return
+        if i < 4:
+            print("WARNING: Download failed (attempt {}/5); backing off and retrying...".format(i + 1))  # buildifier: disable=print
+            _backoff_sleep(repository_ctx, i + 1, multiplier = 10)
+    fail("Failed to download {} after 5 attempts".format(url))
+
+def _retry_download_and_extract(repository_ctx, url, output, type, strip_prefix = ""):
+    for i in range(5):
+        res = repository_ctx.download_and_extract(
+            url = url,
+            output = output,
+            type = type,
+            strip_prefix = strip_prefix,
+            allow_fail = True,
+        )
+        if res.success:
+            return
+        if i < 4:
+            print("WARNING: Download failed (attempt {}/5); backing off and retrying...".format(i + 1))  # buildifier: disable=print
+            _backoff_sleep(repository_ctx, i + 1, multiplier = 10)
+    fail("Failed to download {} after 5 attempts".format(url))
+
 def _fetch_remote(repository_ctx, repo_type, prefix):
     deps_file = repository_ctx.path(repository_ctx.attr.deps_file)
     parse_script = repository_ctx.path(repository_ctx.attr.parse_script)
@@ -143,7 +210,8 @@ def _fetch_remote(repository_ctx, repo_type, prefix):
                 repository_ctx.delete("Firefox.app")
                 repository_ctx.delete("firefox.pkg")
                 repository_ctx.delete("tmp_pkg")
-                repository_ctx.download(
+                _retry_download(
+                    repository_ctx,
                     url = url,
                     output = "firefox.pkg",
                 )
@@ -188,7 +256,8 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
 
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
+        _retry_download_and_extract(
+            repository_ctx,
             url = url,
             output = output_dir,
             type = dl_type,
@@ -198,19 +267,13 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
         url = dep_info.get("url")
         commit = dep_info.get("commit")
 
-        if url.startswith("https://github.com") or url.startswith("http://github.com"):
-            tarball_url = url + "/archive/" + commit + ".tar.gz"
-        else:
-            # Googlesource archive URL format
-            tarball_url = url + "/+archive/" + commit + ".tar.gz"
-
-        # Extract directly to the prefix directory if specified
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
-            url = tarball_url,
-            output = output_dir,
-            type = "tar.gz",
+        _fetch_git_or_tarball(
+            repository_ctx,
+            url = url,
+            commit = commit,
+            output_dir = output_dir,
         )
     elif dep_type == "cipd":
         package = dep_info.get("package")
@@ -223,7 +286,8 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
 
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
+        _retry_download_and_extract(
+            repository_ctx,
             url = url,
             output = output_dir,
             type = "zip",
