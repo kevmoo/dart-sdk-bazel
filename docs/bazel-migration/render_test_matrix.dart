@@ -9,9 +9,7 @@ void main(List<String> args) {
   final inputPath = args.isNotEmpty
       ? args[0]
       : 'docs/bazel-migration/test_matrix_results.json';
-  final outputPath = args.length > 1
-      ? args[1]
-      : 'docs/bazel-migration/TEST_COMPLETION_MATRIX.md';
+  final outputPath = args.length > 1 ? args[1] : null;
 
   final inFile = File(inputPath);
   if (!inFile.existsSync()) {
@@ -134,11 +132,18 @@ void main(List<String> args) {
     'The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` & `tests/`) but are not yet scanned in Starlark:',
   );
   buf.writeln();
-  final unmigrated = List<String>.from(
-    gapAnalysis['unmigrated_gn_suites'] as Iterable? ?? <String>[],
-  )..sort();
-  for (final s in unmigrated) {
-    buf.writeln('* 🔴 `tests/$s`');
+  final unmigratedMap =
+      gapAnalysis['unmigrated_gn_suites'] as Map<String, dynamic>? ?? {};
+  final sortedSuites = unmigratedMap.keys.toList()..sort();
+  for (final s in sortedSuites) {
+    final beadId = unmigratedMap[s] as String? ?? '';
+    if (beadId.isNotEmpty) {
+      buf.writeln(
+        '* 🔴 `tests/$s` *(Tracked by [`$beadId`](./BACKLOG.md#$beadId))*',
+      );
+    } else {
+      buf.writeln('* 🔴 `tests/$s`');
+    }
   }
 
   buf.writeln();
@@ -169,7 +174,10 @@ void main(List<String> args) {
     }
   }
 
-  final outFile = File(outputPath);
-  outFile.writeAsStringSync(buf.toString());
-  print('✅ Generated canonical markdown completion matrix at: $outputPath');
+  if (outputPath != null) {
+    File(outputPath).writeAsStringSync(buf.toString());
+    print('✅ Generated canonical markdown completion matrix at: $outputPath');
+  } else {
+    stdout.write(buf.toString());
+  }
 }

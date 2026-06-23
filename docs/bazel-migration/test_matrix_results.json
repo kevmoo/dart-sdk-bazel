@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-22T23:56:34.567949Z",
+  "timestamp": "2026-06-23T00:28:08.131881Z",
   "watchdog_interval_seconds": 300,
   "quarantine": {
     "skip_suites": [],
@@ -17,16 +17,16 @@
       "web/wasm",
       "co19"
     ],
-    "unmigrated_gn_suites": [
-      "modular",
-      "hot_reload",
-      "lib",
-      "web (HTML)",
-      "dartdevc",
-      "runtime (C++ unit/service)",
-      "benchmarks",
-      "fuzzer"
-    ]
+    "unmigrated_gn_suites": {
+      "modular": "sdk-2w0",
+      "hot_reload": "sdk-2w0",
+      "lib": "sdk-u0p",
+      "web (HTML)": "sdk-wax",
+      "dartdevc": "sdk-z4d",
+      "runtime (C++ unit/service)": "sdk-4z5",
+      "benchmarks": "sdk-245",
+      "fuzzer": "sdk-amv"
+    }
   },
   "config_results": {
     "vm_release": {

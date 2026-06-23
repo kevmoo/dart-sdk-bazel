@@ -82,6 +82,34 @@ def _get_cipd_platform(repository_ctx):
 
     return os_str + "-" + arch_str
 
+def _retry_download(repository_ctx, url, output):
+    for i in range(3):
+        res = repository_ctx.download(
+            url = url,
+            output = output,
+            allow_fail = True,
+        )
+        if res.success:
+            return
+        if i < 2:
+            print("WARNING: Download failed (attempt {}/3); retrying...".format(i + 1))  # buildifier: disable=print
+    fail("Failed to download {} after 3 attempts".format(url))
+
+def _retry_download_and_extract(repository_ctx, url, output, type, strip_prefix = ""):
+    for i in range(3):
+        res = repository_ctx.download_and_extract(
+            url = url,
+            output = output,
+            type = type,
+            strip_prefix = strip_prefix,
+            allow_fail = True,
+        )
+        if res.success:
+            return
+        if i < 2:
+            print("WARNING: Download failed (attempt {}/3); retrying...".format(i + 1))  # buildifier: disable=print
+    fail("Failed to download {} after 3 attempts".format(url))
+
 def _fetch_remote(repository_ctx, repo_type, prefix):
     deps_file = repository_ctx.path(repository_ctx.attr.deps_file)
     parse_script = repository_ctx.path(repository_ctx.attr.parse_script)
@@ -143,7 +171,8 @@ def _fetch_remote(repository_ctx, repo_type, prefix):
                 repository_ctx.delete("Firefox.app")
                 repository_ctx.delete("firefox.pkg")
                 repository_ctx.delete("tmp_pkg")
-                repository_ctx.download(
+                _retry_download(
+                    repository_ctx,
                     url = url,
                     output = "firefox.pkg",
                 )
@@ -188,7 +217,8 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
 
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
+        _retry_download_and_extract(
+            repository_ctx,
             url = url,
             output = output_dir,
             type = dl_type,
@@ -207,7 +237,8 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
         # Extract directly to the prefix directory if specified
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
+        _retry_download_and_extract(
+            repository_ctx,
             url = tarball_url,
             output = output_dir,
             type = "tar.gz",
@@ -223,7 +254,8 @@ exec "$script_dir/Firefox.app/Contents/MacOS/firefox" "$@"
 
         output_dir = prefix if prefix else "."
 
-        repository_ctx.download_and_extract(
+        _retry_download_and_extract(
+            repository_ctx,
             url = url,
             output = output_dir,
             type = "zip",

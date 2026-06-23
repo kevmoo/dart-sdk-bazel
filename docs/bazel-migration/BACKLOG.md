@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 73/96 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 73/99 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -59,9 +59,11 @@ graph TD
     sdk_9ep["sdk-9ep:<br>Investigate migrating Dart package dependency syncing to Bazel"]:::pending
     sdk_9qx["sdk-9qx:<br>Design: Bazel-powered developer workflow bridge for upstream work"]:::completed
     sdk_9zx["sdk-9zx:<br>{ci} caching: external-cache, per-workflow disk keys, no PR cache writes, third_party/pkg clone cache"]:::completed
+    sdk_amv["sdk-amv:<br>Migrate Fuzzer test suite to Bazel"]:::pending
     sdk_arr["sdk-arr:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
     sdk_b0q["sdk-b0q:<br>Fix SDK packaging VM product mode configuration mismatch"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::completed
+    sdk_b5h["sdk-b5h:<br>Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map"]:::pending
     sdk_baw["sdk-baw:<br>Debian Package Build Target"]:::completed
     sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::completed
     sdk_c1x["sdk-c1x:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
@@ -124,6 +126,7 @@ graph TD
     sdk_xql["sdk-xql:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
     sdk_xw2["sdk-xw2:<br>{bazel} CI: scheduled nightly full //sdk:create_sdk build + packaged-SDK smoke"]:::completed
     sdk_y6l["sdk-y6l:<br>Android & Fuchsia Target Platform Registration"]:::blocked
+    sdk_z4d["sdk-z4d:<br>Migrate DDC test suite to Bazel"]:::pending
     sdk_zi3["sdk-zi3:<br>Tooling: Implement script to import upstream CL/PR into Bazel workspace"]:::completed
     sdk_znx["sdk-znx:<br>Clean up and generalize cross-target detection in translator"]:::pending
 
@@ -272,6 +275,32 @@ graph TD
   Evaluate the feasibility and trade-offs of migrating Dart package dependency resolution (currently handled by `gclient sync` and host-side `pubspec` resolution) to run hermetically inside Bazel (e.g., using a custom Bzlmod extension to fetch packages and generate the package config). Address developer workflow impact (ability to edit `third_party/pkg` sources), bootstrap loop implications, and alignment with Google3.
 - **Success Criteria**:
   - [ ] Analysis document detailing feasibility, design options, and trade-offs for hermetic package syncing.
+
+---
+
+### 🎯 [sdk-amv] Migrate Fuzzer test suite to Bazel
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track Starlark test generation and execution for fuzzer suite
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-b5h] Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update unmigratedGnSuites in run_test_universe.dart to map Suite names to tracking Bead IDs
+- **Success Criteria**:
 
 ---
 
@@ -496,6 +525,19 @@ graph TD
 - **Success Criteria**:
   - [ ] Android NDK toolchain resolves and compiles the AOT runtime.
   - [ ] Fuchsia target platforms compile and package cleanly.
+
+---
+
+### 🎯 [sdk-z4d] Migrate DDC test suite to Bazel
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track Starlark test generation and execution for dartdevc suite
+- **Success Criteria**:
 
 ---
 

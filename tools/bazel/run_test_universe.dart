@@ -17,16 +17,16 @@ const activeStarlarkSuites = {
   'co19',
 };
 
-/// All GN/Ninja/RCI suites known on disk that are NOT yet scanned in Starlark.
+/// All GN/Ninja/RCI suites known on disk mapped to their tracking Bead ID.
 const unmigratedGnSuites = {
-  'modular',
-  'hot_reload',
-  'lib',
-  'web (HTML)',
-  'dartdevc',
-  'runtime (C++ unit/service)',
-  'benchmarks',
-  'fuzzer',
+  'modular': 'sdk-2w0',
+  'hot_reload': 'sdk-2w0',
+  'lib': 'sdk-u0p',
+  'web (HTML)': 'sdk-wax',
+  'dartdevc': 'sdk-z4d',
+  'runtime (C++ unit/service)': 'sdk-4z5',
+  'benchmarks': 'sdk-245',
+  'fuzzer': 'sdk-amv',
 };
 
 /// All 23 Starlark test configs discovered in generate_test_targets.dart.
@@ -418,7 +418,7 @@ void main(List<String> args) async {
     },
     'universe_gap_analysis': {
       'active_starlark_suites': activeStarlarkSuites.toList(),
-      'unmigrated_gn_suites': unmigratedGnSuites.toList(),
+      'unmigrated_gn_suites': unmigratedGnSuites,
     },
     'config_results': configResults,
   };
