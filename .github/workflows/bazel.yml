@@ -51,7 +51,6 @@ jobs:
       with:
         bazelisk-cache: true
         cache-save: ${{ github.event_name != 'pull_request' }}
-        disk-cache: ${{ github.workflow }}
         external-cache: true
         repository-cache: true
 
