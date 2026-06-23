@@ -220,6 +220,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track test completion parity and test suite matrix across platforms for Bazel migration
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-6uq] [bazel] @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

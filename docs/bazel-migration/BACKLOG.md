@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 73/99 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 74/99 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -48,7 +48,7 @@ graph TD
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
-    sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::inProgress
+    sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::completed
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
     sdk_7nj["sdk-7nj:<br>Emit canonical `cc_test` rules for self-contained test binaries"]:::completed
     sdk_84z["sdk-84z:<br>VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl"]:::completed
@@ -229,19 +229,6 @@ graph TD
   - None
 - **Description**:
   Upstream our local fix in pkg/test_runner/bin/test_runner.dart that skips buildConfigurations when dumpTestMetadata is active, avoiding redundant builds in CI tools.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Track test completion parity and test suite matrix across platforms for Bazel migration
 - **Success Criteria**:
 
 ---
