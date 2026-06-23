@@ -286,21 +286,24 @@ void main(List<String> args) async {
       'rate_targets_per_sec': '0.0',
     });
 
+    var summaryCount = 0;
+    var lastOffset = 0;
     final timer = Timer.periodic(Duration(seconds: 15), (_) async {
       if (!bepFile.existsSync()) {
         return;
       }
       try {
-        var summaryCount = 0;
-        await bepFile
-            .openRead()
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .forEach((line) {
-          if (line.contains('testSummary')) {
-            summaryCount++;
-          }
-        });
+        final length = await bepFile.length();
+        if (length > lastOffset) {
+          final newCount = await bepFile
+              .openRead(lastOffset, length)
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())
+              .where((line) => line.contains('testSummary'))
+              .length;
+          summaryCount += newCount;
+          lastOffset = length;
+        }
         final dt = DateTime.now().difference(startTime).inSeconds;
         final elapsedMins = dt / 60.0;
         final percent =

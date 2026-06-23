@@ -175,7 +175,9 @@ void main(List<String> args) {
   }
 
   if (outputPath != null) {
-    File(outputPath).writeAsStringSync(buf.toString());
+    final file = File(outputPath);
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync(buf.toString());
     print('✅ Generated canonical markdown completion matrix at: $outputPath');
   } else {
     stdout.write(buf.toString());
