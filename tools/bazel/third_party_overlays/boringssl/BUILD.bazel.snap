@@ -452,7 +452,7 @@ cc_library(
         "//third_party/boringssl:src/crypto/fipsmodule/ec/oct.cc.inc",
         "//third_party/boringssl:src/crypto/fipsmodule/ec/p256.cc.inc",
         "//third_party/boringssl:src/crypto/fipsmodule/ec/p256-nistz-table.h",
-        "//third_party/boringssl:src/crypto/fipsmodule/ec/p256_internal.h",
+        "//third_party/boringssl:src/crypto/fipsmodule/ec/p256-nistz.h",
         "//third_party/boringssl:src/crypto/fipsmodule/ec/p256_table.h",
         "//third_party/boringssl:src/crypto/fipsmodule/ec/scalar.cc.inc",
         "//third_party/boringssl:src/crypto/fipsmodule/ec/simple.cc.inc",
