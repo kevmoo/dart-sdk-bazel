@@ -1,10 +1,10 @@
 {
-  "status": "COMPLETED",
-  "timestamp": "2026-06-22T23:21:56.398898Z",
-  "completed_targets": 22,
-  "total_targets": 22,
+  "status": "DRY_RUN",
+  "timestamp": "2026-06-22T23:56:34.475953Z",
+  "completed_targets": 2301,
+  "total_targets": 2301,
   "percent": "100.0",
-  "elapsed_minutes": "18.9",
+  "elapsed_minutes": "0.0",
   "eta_remaining_minutes": "0.0",
-  "rate_targets_per_sec": "0.02"
+  "rate_targets_per_sec": "0.0"
 }

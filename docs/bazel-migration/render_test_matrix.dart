@@ -134,11 +134,9 @@ void main(List<String> args) {
     'The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` & `tests/`) but are not yet scanned in Starlark:',
   );
   buf.writeln();
-  final unmigrated =
-      ((gapAnalysis['unmigrated_gn_suites'] as List<dynamic>?)
-                ?.cast<String>() ??
-            <String>[])
-        ..sort();
+  final unmigrated = List<String>.from(
+    gapAnalysis['unmigrated_gn_suites'] as Iterable? ?? <String>[],
+  )..sort();
   for (final s in unmigrated) {
     buf.writeln('* 🔴 `tests/$s`');
   }

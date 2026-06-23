@@ -100,7 +100,9 @@ String determineSuite(String target) {
   if (target.startsWith(prefix)) {
     final colonIdx = target.indexOf(':', prefix.length);
     if (colonIdx != -1) {
-      return target.substring(prefix.length, colonIdx);
+      final path = target.substring(prefix.length, colonIdx);
+      final slashIdx = path.indexOf('/');
+      return slashIdx != -1 ? path.substring(0, slashIdx) : path;
     }
   }
   return 'unknown';
@@ -138,8 +140,12 @@ void main(List<String> args) async {
     } else if (arg.startsWith('--bazel-arg=')) {
       bazelArgs.add(arg.substring('--bazel-arg='.length));
     } else if (arg.startsWith('--watchdog-interval=')) {
-      watchdogInterval =
-          int.parse(arg.substring('--watchdog-interval='.length));
+      final val = int.tryParse(arg.substring('--watchdog-interval='.length));
+      if (val == null) {
+        print('❌ Error: --watchdog-interval must be a valid integer.');
+        exit(1);
+      }
+      watchdogInterval = val;
     } else {
       print('Unknown flag: $arg');
       printUsage();
@@ -280,12 +286,12 @@ void main(List<String> args) async {
       'rate_targets_per_sec': '0.0',
     });
 
-    final timer = Timer.periodic(Duration(seconds: 15), (_) {
+    final timer = Timer.periodic(Duration(seconds: 15), (_) async {
       if (!bepFile.existsSync()) {
         return;
       }
       try {
-        final content = bepFile.readAsStringSync();
+        final content = await bepFile.readAsString();
         final summaryCount = 'testSummary'.allMatches(content).length;
         final dt = DateTime.now().difference(startTime).inSeconds;
         final elapsedMins = dt / 60.0;
@@ -326,8 +332,11 @@ void main(List<String> args) async {
       print('📊 Bazel test run completed with exit code: $exitCode');
 
       if (bepFile.existsSync()) {
-        final lines = await bepFile.readAsLines();
-        for (final line in lines) {
+        final lines = bepFile
+            .openRead()
+            .transform(utf8.decoder)
+            .transform(LineSplitter());
+        await for (final line in lines) {
           if (line.trim().isEmpty) continue;
           try {
             final evt = jsonDecode(line) as Map<String, dynamic>;
@@ -369,12 +378,18 @@ void main(List<String> args) async {
             }
           } catch (_) {}
         }
-        bepFile.deleteSync();
       }
     } finally {
       timer.cancel();
       if (tempFile.existsSync()) {
-        tempFile.deleteSync();
+        try {
+          tempFile.deleteSync();
+        } catch (_) {}
+      }
+      if (bepFile.existsSync()) {
+        try {
+          bepFile.deleteSync();
+        } catch (_) {}
       }
     }
 
