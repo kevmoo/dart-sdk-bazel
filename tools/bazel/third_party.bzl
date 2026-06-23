@@ -82,6 +82,12 @@ def _get_cipd_platform(repository_ctx):
 
     return os_str + "-" + arch_str
 
+def _backoff_sleep(repository_ctx, attempt):
+    backoff_sec = str(5 * attempt)
+    res = repository_ctx.execute(["python3", "-c", "import time; time.sleep(" + backoff_sec + ")"])
+    if res.return_code != 0:
+        repository_ctx.execute(["python", "-c", "import time; time.sleep(" + backoff_sec + ")"])
+
 def _retry_download(repository_ctx, url, output):
     for i in range(3):
         res = repository_ctx.download(
@@ -92,7 +98,8 @@ def _retry_download(repository_ctx, url, output):
         if res.success:
             return
         if i < 2:
-            print("WARNING: Download failed (attempt {}/3); retrying...".format(i + 1))  # buildifier: disable=print
+            print("WARNING: Download failed (attempt {}/3); backing off and retrying...".format(i + 1))  # buildifier: disable=print
+            _backoff_sleep(repository_ctx, i + 1)
     fail("Failed to download {} after 3 attempts".format(url))
 
 def _retry_download_and_extract(repository_ctx, url, output, type, strip_prefix = ""):
@@ -107,7 +114,8 @@ def _retry_download_and_extract(repository_ctx, url, output, type, strip_prefix 
         if res.success:
             return
         if i < 2:
-            print("WARNING: Download failed (attempt {}/3); retrying...".format(i + 1))  # buildifier: disable=print
+            print("WARNING: Download failed (attempt {}/3); backing off and retrying...".format(i + 1))  # buildifier: disable=print
+            _backoff_sleep(repository_ctx, i + 1)
     fail("Failed to download {} after 3 attempts".format(url))
 
 def _fetch_remote(repository_ctx, repo_type, prefix):
