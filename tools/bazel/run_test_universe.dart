@@ -291,8 +291,16 @@ void main(List<String> args) async {
         return;
       }
       try {
-        final content = await bepFile.readAsString();
-        final summaryCount = 'testSummary'.allMatches(content).length;
+        var summaryCount = 0;
+        await bepFile
+            .openRead()
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .forEach((line) {
+          if (line.contains('testSummary')) {
+            summaryCount++;
+          }
+        });
         final dt = DateTime.now().difference(startTime).inSeconds;
         final elapsedMins = dt / 60.0;
         final percent =

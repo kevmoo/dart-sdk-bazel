@@ -114,9 +114,10 @@ def _fetch_git_or_tarball(repository_ctx, url, commit, output_dir):
     res = repository_ctx.execute(["git", "-C", output_dir, "fetch", "--depth", "1", url, commit])
     if res.return_code != 0:
         fail("git fetch failed: " + res.stderr)
-    res = repository_ctx.execute(["git", "-C", output_dir, "checkout", "FETCH_HEAD"])
+    res = repository_ctx.execute(["git", "-C", output_dir, "checkout", "-f", "FETCH_HEAD"])
     if res.return_code != 0:
         fail("git checkout failed: " + res.stderr)
+    repository_ctx.delete(repository_ctx.path(output_dir).get_child(".git"))
 
 def _retry_download(repository_ctx, url, output):
     for i in range(5):
