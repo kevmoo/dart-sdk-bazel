@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
     - name: Checkout repository
@@ -37,6 +40,12 @@ jobs:
     # multi-GB cache and this job's stay out of each other's way in the
     # 10 GB repo budget, and PR runs restore but never write (saves only
     # happen on main), which stops per-branch near-duplicate entries.
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: 'projects/605394026323/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
+        service_account: 'github-actions-cache@bluefin-remote.iam.gserviceaccount.com'
+
     - name: Set up Bazel
       uses: bazel-contrib/setup-bazel@0.19.0
       with:
