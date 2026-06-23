@@ -57,7 +57,7 @@ jobs:
     # so this job's multi-GB full-build cache does not evict the PR
     # workflow's caches from the 10 GB repo budget.
     - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
+      uses: google-github-actions/auth@v3
       with:
         workload_identity_provider: 'projects/605394026323/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
         service_account: 'github-actions-cache@bluefin-remote.iam.gserviceaccount.com'
