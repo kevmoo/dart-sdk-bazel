@@ -15,9 +15,8 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/'
-      'inference/inferred_type_arguments/data',
+    resolveTestResource(
+      'pkg/_fe_analyzer_shared/test/inference/inferred_type_arguments/data',
     ),
   );
   await runTests<List<DartType>>(

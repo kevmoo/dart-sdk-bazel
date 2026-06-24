@@ -662,19 +662,8 @@ void main(List<String> args) async {
               }
             }
 
-            // Package-wide tests
-            final packageWideTests = {
-              'pkg/compiler': {
-                'test/analyses/analyze_test.dart',
-                'test/analyses/api_dynamic_test.dart',
-              },
-              'pkg/analyzer': {'test/verify_docs_test.dart'},
-            };
-            final pWideTests = packageWideTests[pkgDir];
-            if (pWideTests != null && pWideTests.contains(relPathInPkg)) {
-              if (pkgName != null) {
-                targetDeps.add('@dart_packages//pkg/$pkgName');
-              }
+            if (pkgName != null) {
+              targetDeps.add('@dart_packages//pkg/$pkgName');
             }
 
             final targetDepsStr =
@@ -717,12 +706,9 @@ $targetDepsStr
           }
 
           final baselineDepsSet = baselineDeps
-              .where((d) =>
-                  !d.startsWith(':tests_metadata') &&
-                  !d.startsWith('@dart_packages'))
+              .where((d) => !d.startsWith(':tests_metadata'))
               .toSet();
-          baselineDepsSet
-              .addAll(otherDeps.where((d) => !d.startsWith('@dart_packages')));
+          baselineDepsSet.addAll(otherDeps);
           if (pkgDir == 'co19') {
             baselineDepsSet.add('@dart_co19_tests//:co19_files');
           }

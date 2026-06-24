@@ -64,3 +64,7 @@ jobs:
     - name: Build Dart VM
       run: |
         bazel build --config=ci //runtime/bin:dartvm
+
+    - name: Smoke test pkg/analyzer (ID test harnesses)
+      run: |
+        bazel test --config=ci @dart_tests//pkg/analyzer:test_id_tests_constant_test_dart_vm_release @dart_tests//pkg/analyzer:test_id_tests_nullability_test_dart_vm_release

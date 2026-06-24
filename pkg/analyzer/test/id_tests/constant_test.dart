@@ -21,7 +21,7 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-    Platform.script.resolve('../../../_fe_analyzer_shared/test/constants/data'),
+    resolveTestResource('pkg/_fe_analyzer_shared/test/constants/data'),
   );
   return runTests<String>(
     dataDir,

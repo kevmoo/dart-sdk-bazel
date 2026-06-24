@@ -17,9 +17,8 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
-      'data',
+    resolveTestResource(
+      'pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data',
     ),
   );
   return runTests<_Data>(

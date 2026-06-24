@@ -85,3 +85,7 @@ jobs:
         output=$(./bazel-bin/sdk/dart-sdk/bin/dart /tmp/hello.dart)
         echo "$output"
         echo "$output" | grep -q '\[1, 4, 9\]'
+
+    - name: Test pkg/analyzer (full suite)
+      run: |
+        bazel test --config=ci @dart_tests//pkg/analyzer:all

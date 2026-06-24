@@ -220,6 +220,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

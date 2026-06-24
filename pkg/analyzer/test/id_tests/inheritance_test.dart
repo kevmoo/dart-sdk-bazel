@@ -18,9 +18,7 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/inheritance/data',
-    ),
+    resolveTestResource('pkg/_fe_analyzer_shared/test/inheritance/data'),
   );
   return runTests<String>(
     dataDir,

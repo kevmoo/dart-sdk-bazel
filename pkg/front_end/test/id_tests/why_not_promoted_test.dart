@@ -15,9 +15,8 @@ import 'package:kernel/ast.dart' hide MapLiteralEntry;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/flow_analysis/'
-      'why_not_promoted/data',
+    resolveTestResource(
+      'pkg/_fe_analyzer_shared/test/flow_analysis/why_not_promoted/data',
     ),
   );
   await runTests<String>(

@@ -15,9 +15,8 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/inference/'
-      'inferred_type_arguments/data',
+    resolveTestResource(
+      'pkg/_fe_analyzer_shared/test/inference/inferred_type_arguments/data',
     ),
   );
   return runTests<List<DartType>>(

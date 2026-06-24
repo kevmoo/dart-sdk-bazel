@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 75/108 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 76/108 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -51,7 +51,7 @@ graph TD
     sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::pending
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::pending
-    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::pending
+    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
     sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
     sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
     sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::pending
@@ -284,19 +284,6 @@ graph TD
   - None
 - **Description**:
   Apply tags = ['manual', 'quarantine'] to currently unmigrated or flaky test targets so bazel test //... runs 100% green.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
 - **Success Criteria**:
 
 ---

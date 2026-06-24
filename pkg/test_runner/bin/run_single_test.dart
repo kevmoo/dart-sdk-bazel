@@ -688,6 +688,7 @@ String _rewritePackageConfig() {
 
   for (final pkg in packages) {
     final map = Map<String, dynamic>.from(pkg as Map);
+    final pkgName = map['name'] as String?;
     final rootUri = map['rootUri'] as String;
     var relativePath = rootUri;
     while (relativePath.startsWith('../')) {
@@ -703,7 +704,7 @@ String _rewritePackageConfig() {
       } else {
         runfilesPath = '_main/$relativePath';
       }
-      final physicalPath = _Runfiles.resolve(runfilesPath);
+      final physicalPath = _Runfiles.resolve(runfilesPath, pkgName: pkgName);
       final uri = Uri.directory(physicalPath);
       map['rootUri'] = uri.toString();
     }
@@ -722,7 +723,7 @@ String _rewritePackageConfig() {
 abstract final class _Runfiles {
   static Map<String, String>? _manifest;
 
-  static String resolve(String relativePath) {
+  static String resolve(String relativePath, {String? pkgName}) {
     final normalizedPath = relativePath.replaceAll('\\', '/');
 
     final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
@@ -738,7 +739,47 @@ abstract final class _Runfiles {
         Platform.environment['RUNFILES_DIR'] ??
         Platform.environment['TEST_SRCDIR'];
     if (runfilesDir != null && runfilesDir.isNotEmpty) {
-      return File('$runfilesDir/$normalizedPath').path;
+      if (pkgName != null && pkgName.isNotEmpty) {
+        for (final prefix in [
+          '+dart_packages_extension+dart_packages',
+          'dart_packages',
+          '_main',
+        ]) {
+          final pkgAltPath = '$runfilesDir/$prefix/pkg/$pkgName';
+          final libType = FileSystemEntity.typeSync('$pkgAltPath/lib');
+          if (libType != FileSystemEntityType.notFound) {
+            return pkgAltPath;
+          }
+          final pkgType = FileSystemEntity.typeSync(pkgAltPath);
+          if (pkgType == FileSystemEntityType.directory) {
+            return pkgAltPath;
+          }
+        }
+      }
+      if (normalizedPath.startsWith('_main/')) {
+        final subPath = normalizedPath.substring('_main/'.length);
+        for (final prefix in [
+          '+dart_packages_extension+dart_packages',
+          '+third_party_extension+third_party',
+          'dart_packages',
+          'third_party',
+        ]) {
+          final altPath = '$runfilesDir/$prefix/$subPath';
+          final libType = FileSystemEntity.typeSync('$altPath/lib');
+          if (libType != FileSystemEntityType.notFound) {
+            return altPath;
+          }
+          final altType = FileSystemEntity.typeSync(altPath);
+          if (altType != FileSystemEntityType.notFound) {
+            return altPath;
+          }
+        }
+      }
+      final primary = File('$runfilesDir/$normalizedPath');
+      if (primary.existsSync() || Directory(primary.path).existsSync()) {
+        return primary.path;
+      }
+      return primary.path;
     }
 
     return relativePath;
