@@ -745,13 +745,14 @@ abstract final class _Runfiles {
           'dart_packages',
           '_main',
         ]) {
-          final pkgAlt = File('$runfilesDir/$prefix/pkg/$pkgName');
-          if (Directory('${pkgAlt.path}/lib').existsSync() ||
-              File('${pkgAlt.path}/lib').existsSync()) {
-            return pkgAlt.path;
+          final pkgAltPath = '$runfilesDir/$prefix/pkg/$pkgName';
+          final libType = FileSystemEntity.typeSync('$pkgAltPath/lib');
+          if (libType != FileSystemEntityType.notFound) {
+            return pkgAltPath;
           }
-          if (Directory(pkgAlt.path).existsSync()) {
-            return pkgAlt.path;
+          final pkgType = FileSystemEntity.typeSync(pkgAltPath);
+          if (pkgType == FileSystemEntityType.directory) {
+            return pkgAltPath;
           }
         }
       }
@@ -763,13 +764,14 @@ abstract final class _Runfiles {
           'dart_packages',
           'third_party',
         ]) {
-          final alt = File('$runfilesDir/$prefix/$subPath');
-          if (Directory('${alt.path}/lib').existsSync() ||
-              File('${alt.path}/lib').existsSync()) {
-            return alt.path;
+          final altPath = '$runfilesDir/$prefix/$subPath';
+          final libType = FileSystemEntity.typeSync('$altPath/lib');
+          if (libType != FileSystemEntityType.notFound) {
+            return altPath;
           }
-          if (alt.existsSync() || Directory(alt.path).existsSync()) {
-            return alt.path;
+          final altType = FileSystemEntity.typeSync(altPath);
+          if (altType != FileSystemEntityType.notFound) {
+            return altPath;
           }
         }
       }

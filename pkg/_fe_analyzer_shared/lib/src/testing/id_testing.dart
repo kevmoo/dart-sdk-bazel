@@ -1225,11 +1225,7 @@ Future<void> updateAllTests(List<String> relativeTestPaths) async {
 
 /// Encapsulates dual-mode test resource resolution.
 Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) {
-  var cleanPath = runfilesPath.trim();
-  while (cleanPath.endsWith(',') || cleanPath.endsWith(')')) {
-    cleanPath = cleanPath.substring(0, cleanPath.length - 1).trim();
-  }
-  final normalizedRunfilesPath = cleanPath.replaceAll('\\', '/');
+  final normalizedRunfilesPath = runfilesPath.trim().replaceAll('\\', '/');
 
   final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
   if (manifestFile != null && manifestFile.isNotEmpty) {
@@ -1275,9 +1271,6 @@ Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) {
     final candidateUri = repoRootUri.resolve(normalizedRunfilesPath);
     final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
     if (fileOrDir != FileSystemEntityType.notFound) {
-      if (fileOrDir == FileSystemEntityType.directory) {
-        return candidateUri;
-      }
       return candidateUri;
     }
   }
@@ -1287,9 +1280,6 @@ Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) {
     final candidateUri = curr.resolve(normalizedRunfilesPath);
     final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
     if (fileOrDir != FileSystemEntityType.notFound) {
-      if (fileOrDir == FileSystemEntityType.directory) {
-        return candidateUri;
-      }
       return candidateUri;
     }
     final parent = curr.resolve('..');
