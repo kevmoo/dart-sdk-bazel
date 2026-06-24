@@ -22,9 +22,7 @@ Future<void> main(List<String> args) async {
   computeSharedExpressionForTesting = true;
 
   Directory dataDir = new Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/metadata/evaluate_data',
-    ),
+    resolveTestResource('pkg/_fe_analyzer_shared/test/metadata/evaluate_data,'),
   );
   await runTests<String>(
     dataDir,

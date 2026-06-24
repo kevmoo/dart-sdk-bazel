@@ -16,9 +16,8 @@ import '../util/id_testing_helper.dart';
 
 main(List<String> args) {
   Directory dataDir = Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/inference/'
-      'type_constraint_generation/data',
+    resolveTestResource(
+      'pkg/_fe_analyzer_shared/test/inference/type_constraint_generation/data',
     ),
   );
   return runTests<List<GeneratedTypeConstraint>>(

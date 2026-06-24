@@ -47,7 +47,20 @@ if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
   exit 2
 fi
 
-PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+PKG_CONFIG=""
+for CANDIDATE in \
+  "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/.dart_tool/package_config.json" \
+  "$TEST_SRCDIR/_main/package_config.json" \
+  "$TEST_SRCDIR/package_config.json"; do
+  if [ -f "$CANDIDATE" ]; then
+    PKG_CONFIG="$CANDIDATE"
+    break
+  fi
+done
+if [ -z "$PKG_CONFIG" ]; then
+  PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
+fi
 if [ -n "$PKG_CONFIG" ]; then
   STAGING_DIR=$(dirname "$PKG_CONFIG")
   mkdir -p "$STAGING_DIR/tools/bazel/dart"
@@ -174,6 +187,7 @@ dynamic_test_repository = repository_rule(
 def _test_ext_impl(ctx):
     dynamic_test_repository(
         name = "dart_tests",
+        max_shards = 51,
         suites = [
             "language",
             "corelib",
@@ -184,10 +198,10 @@ def _test_ext_impl(ctx):
             "co19",
         ],
     )
-    return ctx.extension_metadata(reproducible = True)
+    return ctx.extension_metadata(reproducible = False)
 
 dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 42
+# Force refetch trigger: 44

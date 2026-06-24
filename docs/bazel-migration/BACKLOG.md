@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 74/107 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 75/107 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -51,7 +51,7 @@ graph TD
     sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::pending
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::pending
-    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::pending
+    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
     sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
     sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
     sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::pending
@@ -85,7 +85,7 @@ graph TD
     sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
     sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::completed
     sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::completed
-    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::inProgress
+    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_f0w["sdk-f0w:<br>Spike: Evaluate Aspect CLI & Aspect Extension Language {AXL} for Monorepo Workflow Orchestration"]:::pending
@@ -287,19 +287,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-67o.4] [REC-FAST-2] Granular shard sizing & subdirectory target splitting
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-67o`
@@ -456,7 +443,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
-- **Status**: `[IN_PROGRESS]`
+- **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`

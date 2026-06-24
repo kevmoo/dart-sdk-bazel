@@ -20,9 +20,7 @@ const String cfeFromBuilderMarker = 'cfe:builder';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-    Platform.script.resolve(
-      '../../../_fe_analyzer_shared/test/inheritance/data',
-    ),
+    resolveTestResource('pkg/_fe_analyzer_shared/test/inheritance/data'),
   );
   await runTests<String>(
     dataDir,
