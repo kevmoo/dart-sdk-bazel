@@ -662,14 +662,6 @@ void main(List<String> args) async {
               }
             }
 
-            // Package-wide tests
-            final packageWideTests = {
-              'pkg/compiler': {
-                'test/analyses/analyze_test.dart',
-                'test/analyses/api_dynamic_test.dart',
-              },
-              'pkg/analyzer': {'test/verify_docs_test.dart'},
-            };
             if (pkgName != null) {
               targetDeps.add('@dart_packages//pkg/$pkgName');
             }

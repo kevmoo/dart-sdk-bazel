@@ -1269,18 +1269,22 @@ Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) {
     final repoRootPath = scriptPath.substring(0, pkgIndex + 1);
     final repoRootUri = scriptUri.replace(path: repoRootPath);
     final candidateUri = repoRootUri.resolve(normalizedRunfilesPath);
-    final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
-    if (fileOrDir != FileSystemEntityType.notFound) {
-      return candidateUri;
+    if (candidateUri.scheme == 'file') {
+      final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
+      if (fileOrDir != FileSystemEntityType.notFound) {
+        return candidateUri;
+      }
     }
   }
 
   var curr = scriptUri.resolve('.');
   while (curr.path.length > 1) {
     final candidateUri = curr.resolve(normalizedRunfilesPath);
-    final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
-    if (fileOrDir != FileSystemEntityType.notFound) {
-      return candidateUri;
+    if (candidateUri.scheme == 'file') {
+      final fileOrDir = FileSystemEntity.typeSync(candidateUri.toFilePath());
+      if (fileOrDir != FileSystemEntityType.notFound) {
+        return candidateUri;
+      }
     }
     final parent = curr.resolve('..');
     if (parent == curr) break;
