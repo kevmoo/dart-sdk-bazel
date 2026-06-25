@@ -686,7 +686,9 @@ void main(List<String> args) async {
                     if (entity is File) {
                       final fileAbs = entity.path;
                       if (p.isWithin(workspaceDir, fileAbs)) {
-                        final fileRel = p.relative(fileAbs, from: workspaceDir);
+                        final fileRelNative =
+                            p.relative(fileAbs, from: workspaceDir);
+                        final fileRel = p.posix.joinAll(p.split(fileRelNative));
                         targetDeps.add('@//:$fileRel');
                       }
                     }
@@ -1304,11 +1306,11 @@ String _getPkgDirFromFlatName(String flatName) {
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
   var result = path.replaceAll('\\', '/');
-  final normalizedWorkspace = workspaceDir.replaceAll('\\', '/');
-  result = result.replaceAll(normalizedWorkspace, r'$SDK_ROOT');
   if (co19Dir != null) {
     final normalizedCo19 = co19Dir.replaceAll('\\', '/');
     result = result.replaceAll(normalizedCo19, r'$CO19_ROOT');
   }
+  final normalizedWorkspace = workspaceDir.replaceAll('\\', '/');
+  result = result.replaceAll(normalizedWorkspace, r'$SDK_ROOT');
   return result;
 }

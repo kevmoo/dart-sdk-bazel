@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 /// A standalone zero-dependency runner that executes a list of test configurations,
 /// handles sharding, and maps process exit codes to expectations.
 void main(List<String> args) async {
@@ -164,7 +166,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       'dart_packages',
       '_main',
     ]) {
-      final pathToCheck = '$runfilesDir/$prefix/pkg/analyzer';
+      final pathToCheck = p.join(runfilesDir, prefix, 'pkg', 'analyzer');
       if (Directory(pathToCheck).existsSync()) {
         analyzerPackagesRoot = '$prefix/pkg';
         break;
@@ -695,7 +697,7 @@ String _getCanonicalRepoName(String apparentName) {
       Platform.environment['RUNFILES_DIR'] ??
       Platform.environment['TEST_SRCDIR'];
   if (runfilesDir != null && runfilesDir.isNotEmpty) {
-    final mappingFile = File('$runfilesDir/_repo_mapping');
+    final mappingFile = File(p.join(runfilesDir, '_repo_mapping'));
     if (mappingFile.existsSync()) {
       for (final line in mappingFile.readAsLinesSync()) {
         final parts = line.trim().split(',');
@@ -791,8 +793,8 @@ abstract final class _Runfiles {
           'dart_packages',
           '_main',
         ]) {
-          final pkgAltPath = '$runfilesDir/$prefix/pkg/$pkgName';
-          final libType = FileSystemEntity.typeSync('$pkgAltPath/lib');
+          final pkgAltPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
+          final libType = FileSystemEntity.typeSync(p.join(pkgAltPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return pkgAltPath;
           }
@@ -810,8 +812,8 @@ abstract final class _Runfiles {
           'dart_packages',
           'third_party',
         ]) {
-          final altPath = '$runfilesDir/$prefix/$subPath';
-          final libType = FileSystemEntity.typeSync('$altPath/lib');
+          final altPath = p.join(runfilesDir, prefix, subPath);
+          final libType = FileSystemEntity.typeSync(p.join(altPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return altPath;
           }
@@ -821,7 +823,7 @@ abstract final class _Runfiles {
           }
         }
       }
-      final primary = File('$runfilesDir/$normalizedPath');
+      final primary = File(p.join(runfilesDir, normalizedPath));
       if (primary.existsSync() || Directory(primary.path).existsSync()) {
         return primary.path;
       }
@@ -1050,11 +1052,12 @@ String? validateErrors(List<ExpectedError> expected, List<ActualError> actual) {
 }
 
 String _resolvePlaceholders(String path, String runfilesDir) {
+  final normalizedRunfiles = runfilesDir.replaceAll('\\', '/');
   var result = path;
   if (result.contains(r'$SDK_ROOT')) {
-    var sdkRoot = '$runfilesDir/_main';
+    var sdkRoot = p.posix.join(normalizedRunfiles, '_main');
     if (!Directory(sdkRoot).existsSync()) {
-      sdkRoot = '$runfilesDir/dart_sdk';
+      sdkRoot = p.posix.join(normalizedRunfiles, 'dart_sdk');
     }
     result = result.replaceAll(r'$SDK_ROOT', sdkRoot);
   }
@@ -1064,13 +1067,13 @@ String _resolvePlaceholders(String path, String runfilesDir) {
       '+third_party_extension+dart_co19_tests',
       'dart_co19_tests',
     ]) {
-      final pathToCheck = '$runfilesDir/$prefix';
+      final pathToCheck = p.posix.join(normalizedRunfiles, prefix);
       if (Directory(pathToCheck).existsSync()) {
         co19Root = pathToCheck;
         break;
       }
     }
-    co19Root ??= '$runfilesDir/dart_co19_tests';
+    co19Root ??= p.posix.join(normalizedRunfiles, 'dart_co19_tests');
     result = result.replaceAll(r'$CO19_ROOT', co19Root);
   }
   return result;

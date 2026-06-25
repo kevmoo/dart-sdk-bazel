@@ -65,6 +65,7 @@ if [ -n "$PKG_CONFIG" ]; then
   STAGING_DIR=$(dirname "$PKG_CONFIG")
   mkdir -p "$STAGING_DIR/tools/bazel/dart"
   cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json"
+  DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
 fi
 
 CHROMEDRIVER_BIN=""
@@ -87,7 +88,7 @@ if [ -n "$CHROMEDRIVER_BIN" ]; then
 fi
 
 export DART_BIN="$DART_BIN"
-exec "$DART_BIN" "$RUNNER_DART" "$@"
+exec "$DART_BIN" $DART_PACKAGES_FLAG "$RUNNER_DART" "$@"
 """, executable = True)
 
     repository_ctx.file("run_ddc_test.sh", content = """#!/bin/bash
@@ -134,6 +135,9 @@ done
 if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
+if [ -n "$PKG_CONFIG" ]; then
+  DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
   echo "Error: Dynamic launcher was unable to locate dart or run_ddc_test.dart in runfiles!"
@@ -142,7 +146,7 @@ fi
 
 export DART_BIN="$DART_BIN"
 export DART_PACKAGE_CONFIG_JSON="$PKG_CONFIG"
-exec "$DART_BIN" "$RUNNER_DART" "$@"
+exec "$DART_BIN" $DART_PACKAGES_FLAG "$RUNNER_DART" "$@"
 """, executable = True)
 
     # Run the dynamic generator natively
