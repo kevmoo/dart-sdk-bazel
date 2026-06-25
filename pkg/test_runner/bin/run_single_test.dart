@@ -150,6 +150,28 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   );
   final commands = testCase['commands'] as List;
 
+  final runfilesDir =
+      Platform.environment['RUNFILES_DIR'] ??
+      Platform.environment['TEST_SRCDIR'];
+  final resolvedFilePath = runfilesDir != null
+      ? _resolvePlaceholders(filePath, runfilesDir)
+      : filePath;
+
+  String? analyzerPackagesRoot;
+  if (runfilesDir != null && runfilesDir.isNotEmpty) {
+    for (final prefix in [
+      '+dart_packages_extension+dart_packages',
+      'dart_packages',
+      '_main',
+    ]) {
+      final pathToCheck = '$runfilesDir/$prefix/pkg/analyzer';
+      if (Directory(pathToCheck).existsSync()) {
+        analyzerPackagesRoot = '$prefix/pkg';
+        break;
+      }
+    }
+  }
+
   final isStaticErrorTest = testCase['is_static_error_test'] as bool? ?? false;
   final relativeFilePath = testCase['relative_file_path'] as String?;
   final compiler = testCase['compiler'] as String?;
@@ -202,7 +224,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     '======================================================================',
   );
   print('Running Test: $testName');
-  print('File Path:    $filePath');
+  print('File Path:    $resolvedFilePath');
   print('Expected:     $expectedOutcomes');
   print(
     '======================================================================',
@@ -221,6 +243,13 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
 
     var executable = cmd['executable'] as String;
     var arguments = List<String>.from(cmd['arguments'] as List);
+
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      executable = _resolvePlaceholders(executable, runfilesDir);
+      arguments = arguments
+          .map((arg) => _resolvePlaceholders(arg, runfilesDir))
+          .toList();
+    }
 
     if (compiler == 'fasta') {
       final compileScript = _Runfiles.resolve(
@@ -483,6 +512,23 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     var environment = cmd['environment'] != null
         ? Map<String, String>.from(cmd['environment'] as Map)
         : null;
+
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      if (workingDirectory != null) {
+        workingDirectory = _resolvePlaceholders(workingDirectory, runfilesDir);
+      }
+      if (environment != null) {
+        final newEnv = <String, String>{};
+        for (final entry in environment.entries) {
+          newEnv[entry.key] = _resolvePlaceholders(entry.value, runfilesDir);
+        }
+        environment = newEnv;
+      }
+    }
+    if (analyzerPackagesRoot != null) {
+      environment ??= <String, String>{};
+      environment['ANALYZER_PACKAGES_ROOT'] = analyzerPackagesRoot;
+    }
 
     final testTmpdir = Platform.environment['TEST_TMPDIR'];
     if (testTmpdir != null) {
@@ -1001,4 +1047,31 @@ String? validateErrors(List<ExpectedError> expected, List<ActualError> actual) {
   }
 
   return buffer.toString();
+}
+
+String _resolvePlaceholders(String path, String runfilesDir) {
+  var result = path;
+  if (result.contains(r'$SDK_ROOT')) {
+    var sdkRoot = '$runfilesDir/_main';
+    if (!Directory(sdkRoot).existsSync()) {
+      sdkRoot = '$runfilesDir/dart_sdk';
+    }
+    result = result.replaceAll(r'$SDK_ROOT', sdkRoot);
+  }
+  if (result.contains(r'$CO19_ROOT')) {
+    String? co19Root;
+    for (final prefix in [
+      '+third_party_extension+dart_co19_tests',
+      'dart_co19_tests',
+    ]) {
+      final pathToCheck = '$runfilesDir/$prefix';
+      if (Directory(pathToCheck).existsSync()) {
+        co19Root = pathToCheck;
+        break;
+      }
+    }
+    co19Root ??= '$runfilesDir/dart_co19_tests';
+    result = result.replaceAll(r'$CO19_ROOT', co19Root);
+  }
+  return result;
 }

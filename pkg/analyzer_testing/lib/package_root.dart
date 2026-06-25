@@ -19,13 +19,6 @@ String get packageRoot {
     if (!pkgRootPath.endsWith(path.separator)) pkgRootPath += path.separator;
     return pkgRootPath;
   }
-  // Otherwise try to guess based on the script path.
-  var scriptPath = path.fromUri(Platform.script);
-  var pathFromScript = _tryGetPkgRoot(scriptPath);
-  if (pathFromScript != null) {
-    return pathFromScript;
-  }
-
   // Try a Bazel environment. We expect that all packages that will be
   // accessed via this root are configured in the BUILD file, and located
   // inside this single root.
@@ -33,6 +26,13 @@ String get packageRoot {
   var analyzerPackagesRoot = Platform.environment['ANALYZER_PACKAGES_ROOT'];
   if (runFiles != null && analyzerPackagesRoot != null) {
     return path.join(runFiles, analyzerPackagesRoot);
+  }
+
+  // Otherwise try to guess based on the script path.
+  var scriptPath = path.fromUri(Platform.script);
+  var pathFromScript = _tryGetPkgRoot(scriptPath);
+  if (pathFromScript != null) {
+    return pathFromScript;
   }
 
   // Finally, try the current working directory.
