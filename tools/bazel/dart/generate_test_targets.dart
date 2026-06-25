@@ -649,7 +649,7 @@ void main(List<String> args) async {
               if (testImportsMap!.containsKey(relPathInPkg)) {
                 final localDeps = _computeTransitiveClosure(
                   relPathInPkg,
-                  testImportsMap!,
+                  testImportsMap,
                 );
                 final suiteSourceDir =
                     getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
