@@ -1305,12 +1305,39 @@ String _getPkgDirFromFlatName(String flatName) {
 }
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
-  var result = path.replaceAll('\\', '/');
-  if (co19Dir != null) {
-    final normalizedCo19 = co19Dir.replaceAll('\\', '/');
-    result = result.replaceAll(normalizedCo19, r'$CO19_ROOT');
+  String toPosix(String relPath) {
+    return p.posix.joinAll(p.split(relPath));
   }
-  final normalizedWorkspace = workspaceDir.replaceAll('\\', '/');
-  result = result.replaceAll(normalizedWorkspace, r'$SDK_ROOT');
-  return result;
+
+  if (co19Dir != null) {
+    if (path == co19Dir) return r'$CO19_ROOT';
+    if (p.isWithin(co19Dir, path)) {
+      final rel = p.relative(path, from: co19Dir);
+      final relPosix = toPosix(rel);
+      return relPosix == '.'
+          ? r'$CO19_ROOT'
+          : p.posix.join(r'$CO19_ROOT', relPosix);
+    }
+  }
+
+  if (path == workspaceDir) return r'$SDK_ROOT';
+  if (p.isWithin(workspaceDir, path)) {
+    final rel = p.relative(path, from: workspaceDir);
+    final relPosix = toPosix(rel);
+    return relPosix == '.'
+        ? r'$SDK_ROOT'
+        : p.posix.join(r'$SDK_ROOT', relPosix);
+  }
+
+  if (path.contains('=')) {
+    final idx = path.indexOf('=');
+    final name = path.substring(0, idx);
+    final value = path.substring(idx + 1);
+    final sanitizedValue = _sanitizePath(value, workspaceDir, co19Dir);
+    if (sanitizedValue != value) {
+      return '$name=$sanitizedValue';
+    }
+  }
+
+  return path.replaceAll('\\', '/');
 }
