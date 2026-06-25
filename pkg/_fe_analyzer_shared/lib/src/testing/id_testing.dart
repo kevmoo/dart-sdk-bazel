@@ -788,10 +788,15 @@ class MarkerOptions {
       String tester = line.substring(eqPos + 1);
       File testerFile = new File.fromUri(_fileUriFromSdkRoot(tester));
       if (!testerFile.existsSync()) {
-        throw new ArgumentError(
-          "Tester '$tester' does not exist for marker '$marker' in "
-          "${file.uri}",
-        );
+        final isBazel =
+            Platform.environment['RUNFILES_DIR'] != null ||
+            Platform.environment['TEST_SRCDIR'] != null;
+        if (!isBazel) {
+          throw new ArgumentError(
+            "Tester '$tester' does not exist for marker '$marker' in "
+            "${file.uri}",
+          );
+        }
       }
       if (markers.containsKey(marker)) {
         throw new ArgumentError("Duplicate marker '$marker' in ${file.uri}");
@@ -1248,6 +1253,8 @@ Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) {
     final candidatePaths = [
       '_main/$normalizedRunfilesPath',
       normalizedRunfilesPath,
+      '+dart_packages_extension+dart_packages/$normalizedRunfilesPath',
+      'dart_packages/$normalizedRunfilesPath',
     ];
     for (final candidate in candidatePaths) {
       final path = '$runfilesDir/$candidate';

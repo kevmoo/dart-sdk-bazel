@@ -220,16 +220,11 @@ def _packages_repo_impl(ctx):
             if physical_lib.exists:
                 ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
 
-            # 2. Symlink 'pubspec.yaml' (highly recommended for tooling)
-            physical_pubspec = physical_path.get_child("pubspec.yaml")
-            if physical_pubspec.exists:
-                ctx.symlink(physical_pubspec, virtual_pkg_dir + "/pubspec.yaml")
-
-            # 3. Symlink 'analysis_options.yaml' and its common sibling configurations
-            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
-                physical_options = physical_path.get_child(options_name)
-                if physical_options.exists:
-                    ctx.symlink(physical_options, virtual_pkg_dir + "/" + options_name)
+            # 2. Symlink common files in package root (pubspec, analysis options, messages)
+            for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml"]:
+                physical_file = physical_path.get_child(file_name)
+                if physical_file.exists:
+                    ctx.symlink(physical_file, virtual_pkg_dir + "/" + file_name)
 
             # 4. Symlink other common directories if they exist (bin, test, tool, web)
             for dir_name in ["bin", "test", "tool", "web"]:
@@ -254,7 +249,7 @@ def _packages_repo_impl(ctx):
         if not is_cloned:
             # Developer mode or Local package: use standard globbing
             glob_paths = ['"%s/**/*.dart"' % pkg.lib, '"%s/**/*.yaml"' % pkg.lib]
-            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml"]:
                 physical_options = physical_path.get_child(options_name)
                 if physical_options.exists:
                     glob_paths.append('"%s"' % options_name)
@@ -269,7 +264,7 @@ def _packages_repo_impl(ctx):
 
             # Add analysis options explicitly if they exist
             options_files = []
-            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml"]:
+            for options_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml"]:
                 physical_options = physical_path.get_child(options_name)
                 if physical_options.exists:
                     options_files.append(pkg.reldir + "/" + options_name)
@@ -339,6 +334,13 @@ def _packages_repo_impl(ctx):
                     build_lines.append("    deps = [%s]," % test_dep_labels)
                 build_lines.append(")")
                 build_lines.append("")
+
+        # Add a filegroup that exposes all files in the package for runfiles
+        build_lines.append("filegroup(")
+        build_lines.append('    name = "sdk_package_sources",')
+        build_lines.append('    srcs = glob(["**/*"], exclude = ["BUILD", "BUILD.bazel"], allow_empty = True),')
+        build_lines.append(")")
+        build_lines.append("")
 
         # Write the BUILD.bazel file
         ctx.file("%s/BUILD.bazel" % virtual_pkg_dir, "\n".join(build_lines) + "\n")
@@ -411,4 +413,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 2
+# Force invalidation trigger: 6

@@ -370,6 +370,7 @@ void main(List<String> args) async {
         ':tests_metadata_$configName.json',
         '@//:test_package_sources',
         '@//:package_config_json',
+        '@dart_packages//:package_config_json',
         config.compiler == 'ddc'
             ? '@//pkg/test_runner/bin:run_ddc_test.dart'
             : '@//pkg/test_runner/bin:run_single_test.dart',
@@ -637,28 +638,69 @@ void main(List<String> args) async {
               ...resourceDeps,
             };
 
+            if (relPathInPkg == 'tool/messages/generate_test.dart') {
+              targetDeps
+                  .add('@dart_packages//pkg/front_end:sdk_package_sources');
+              targetDeps.add(
+                  '@dart_packages//pkg/analysis_server:sdk_package_sources');
+            }
+
+            if (pkgDir == 'pkg/analyzer' &&
+                relPathInPkg.startsWith('test/id_tests/')) {
+              targetDeps.add(
+                  '@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources');
+            }
+
             if (hasFineGrained) {
-              final localDeps = _computeTransitiveClosure(
-                relPathInPkg,
-                testImportsMap!,
-              );
-              final suiteSourceDir =
-                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
-              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
-              for (final dep in localDeps) {
-                if (!File('$suiteSourceDir/$dep').existsSync() &&
-                    !Directory('$suiteSourceDir/$dep').existsSync()) {
-                  continue;
+              if (testImportsMap!.containsKey(relPathInPkg)) {
+                final localDeps = _computeTransitiveClosure(
+                  relPathInPkg,
+                  testImportsMap,
+                );
+                final suiteSourceDir =
+                    getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+                final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
+                for (final dep in localDeps) {
+                  if (!File('$suiteSourceDir/$dep').existsSync() &&
+                      !Directory('$suiteSourceDir/$dep').existsSync()) {
+                    continue;
+                  }
+                  final fgName = _getFilegroupTargetName(dep);
+                  final label = pkgDir == 'co19'
+                      ? '@dart_co19_tests//:$dep'
+                      : _resolveWorkspaceLabel(
+                          workspaceDir,
+                          '$suiteRelPrefix/$dep',
+                        );
+                  filegroups.putIfAbsent(fgName, () => {}).add(label);
+                  targetDeps.add(':$fgName');
                 }
-                final fgName = _getFilegroupTargetName(dep);
-                final label = pkgDir == 'co19'
-                    ? '@dart_co19_tests//:$dep'
-                    : _resolveWorkspaceLabel(
-                        workspaceDir,
-                        '$suiteRelPrefix/$dep',
-                      );
-                filegroups.putIfAbsent(fgName, () => {}).add(label);
-                targetDeps.add(':$fgName');
+              } else {
+                // Fallback: add all files in the same directory as the test to _main
+                // so that relative imports resolve.
+                final testDir = p.dirname(filePathAbs);
+                final dir = Directory(testDir);
+                if (dir.existsSync()) {
+                  for (final entity
+                      in dir.listSync(recursive: true, followLinks: false)) {
+                    if (entity is File) {
+                      final fileAbs = entity.path;
+                      if (p.isWithin(workspaceDir, fileAbs)) {
+                        final fileRelNative =
+                            p.relative(fileAbs, from: workspaceDir);
+                        final fileRel = p.posix.joinAll(p.split(fileRelNative));
+                        targetDeps.add('@//:$fileRel');
+                      }
+                    }
+                  }
+                }
+                // And also depend on the whole package from virtual repo (all files)
+                // for runtime reads via packageRoot.
+                if (pkgDir.startsWith('pkg/') && pkgName != null) {
+                  targetDeps.add(
+                    '@dart_packages//pkg/$pkgName:sdk_package_sources',
+                  );
+                }
               }
             }
 
@@ -695,6 +737,37 @@ $targetDepsStr
       }
 
       if (enrichedCases.isNotEmpty) {
+        for (final tc in enrichedCases) {
+          tc['file_path'] =
+              _sanitizePath(tc['file_path'] as String, workspaceDir, co19Dir);
+          if (tc['original_file_path'] != null) {
+            tc['original_file_path'] = _sanitizePath(
+                tc['original_file_path'] as String, workspaceDir, co19Dir);
+          }
+          final commands = tc['commands'] as List;
+          for (final cmd in commands) {
+            if (cmd is Map) {
+              if (cmd['working_directory'] != null) {
+                cmd['working_directory'] = _sanitizePath(
+                    cmd['working_directory'] as String, workspaceDir, co19Dir);
+              }
+              final args = cmd['arguments'] as List?;
+              if (args != null) {
+                for (var i = 0; i < args.length; i++) {
+                  args[i] =
+                      _sanitizePath(args[i].toString(), workspaceDir, co19Dir);
+                }
+              }
+              final env = cmd['environment'] as Map?;
+              if (env != null) {
+                for (final key in env.keys) {
+                  env[key] =
+                      _sanitizePath(env[key].toString(), workspaceDir, co19Dir);
+                }
+              }
+            }
+          }
+        }
         final pkgJson = File(
           '$outputDir/$pkgDir/tests_metadata_$configName.json',
         );
@@ -1229,4 +1302,42 @@ String _getPkgDirFromFlatName(String flatName) {
   } else {
     return '${parts[0]}/misc';
   }
+}
+
+String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
+  String toPosix(String relPath) {
+    return p.posix.joinAll(p.split(relPath));
+  }
+
+  if (co19Dir != null) {
+    if (path == co19Dir) return r'$CO19_ROOT';
+    if (p.isWithin(co19Dir, path)) {
+      final rel = p.relative(path, from: co19Dir);
+      final relPosix = toPosix(rel);
+      return relPosix == '.'
+          ? r'$CO19_ROOT'
+          : p.posix.join(r'$CO19_ROOT', relPosix);
+    }
+  }
+
+  if (path == workspaceDir) return r'$SDK_ROOT';
+  if (p.isWithin(workspaceDir, path)) {
+    final rel = p.relative(path, from: workspaceDir);
+    final relPosix = toPosix(rel);
+    return relPosix == '.'
+        ? r'$SDK_ROOT'
+        : p.posix.join(r'$SDK_ROOT', relPosix);
+  }
+
+  if (path.contains('=')) {
+    final idx = path.indexOf('=');
+    final name = path.substring(0, idx);
+    final value = path.substring(idx + 1);
+    final sanitizedValue = _sanitizePath(value, workspaceDir, co19Dir);
+    if (sanitizedValue != value) {
+      return '$name=$sanitizedValue';
+    }
+  }
+
+  return path.replaceAll('\\', '/');
 }

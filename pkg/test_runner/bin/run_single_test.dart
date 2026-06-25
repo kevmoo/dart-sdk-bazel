@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 /// A standalone zero-dependency runner that executes a list of test configurations,
 /// handles sharding, and maps process exit codes to expectations.
 void main(List<String> args) async {
@@ -150,6 +152,28 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   );
   final commands = testCase['commands'] as List;
 
+  final runfilesDir =
+      Platform.environment['RUNFILES_DIR'] ??
+      Platform.environment['TEST_SRCDIR'];
+  final resolvedFilePath = runfilesDir != null && runfilesDir.isNotEmpty
+      ? _resolvePlaceholders(filePath, runfilesDir)
+      : filePath;
+
+  String? analyzerPackagesRoot;
+  if (runfilesDir != null && runfilesDir.isNotEmpty) {
+    for (final prefix in [
+      '+dart_packages_extension+dart_packages',
+      'dart_packages',
+      '_main',
+    ]) {
+      final pathToCheck = p.join(runfilesDir, prefix, 'pkg', 'analyzer');
+      if (Directory(pathToCheck).existsSync()) {
+        analyzerPackagesRoot = '$prefix/pkg';
+        break;
+      }
+    }
+  }
+
   final isStaticErrorTest = testCase['is_static_error_test'] as bool? ?? false;
   final relativeFilePath = testCase['relative_file_path'] as String?;
   final compiler = testCase['compiler'] as String?;
@@ -202,7 +226,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     '======================================================================',
   );
   print('Running Test: $testName');
-  print('File Path:    $filePath');
+  print('File Path:    $resolvedFilePath');
   print('Expected:     $expectedOutcomes');
   print(
     '======================================================================',
@@ -221,6 +245,13 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
 
     var executable = cmd['executable'] as String;
     var arguments = List<String>.from(cmd['arguments'] as List);
+
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      executable = _resolvePlaceholders(executable, runfilesDir);
+      arguments = arguments
+          .map((arg) => _resolvePlaceholders(arg, runfilesDir))
+          .toList();
+    }
 
     if (compiler == 'fasta') {
       final compileScript = _Runfiles.resolve(
@@ -484,6 +515,23 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         ? Map<String, String>.from(cmd['environment'] as Map)
         : null;
 
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      if (workingDirectory != null) {
+        workingDirectory = _resolvePlaceholders(workingDirectory, runfilesDir);
+      }
+      if (environment != null) {
+        final newEnv = <String, String>{};
+        for (final entry in environment.entries) {
+          newEnv[entry.key] = _resolvePlaceholders(entry.value, runfilesDir);
+        }
+        environment = newEnv;
+      }
+    }
+    if (analyzerPackagesRoot != null) {
+      environment ??= <String, String>{};
+      environment['ANALYZER_PACKAGES_ROOT'] = analyzerPackagesRoot;
+    }
+
     final testTmpdir = Platform.environment['TEST_TMPDIR'];
     if (testTmpdir != null) {
       arguments = arguments
@@ -649,7 +697,7 @@ String _getCanonicalRepoName(String apparentName) {
       Platform.environment['RUNFILES_DIR'] ??
       Platform.environment['TEST_SRCDIR'];
   if (runfilesDir != null && runfilesDir.isNotEmpty) {
-    final mappingFile = File('$runfilesDir/_repo_mapping');
+    final mappingFile = File(p.join(runfilesDir, '_repo_mapping'));
     if (mappingFile.existsSync()) {
       for (final line in mappingFile.readAsLinesSync()) {
         final parts = line.trim().split(',');
@@ -745,8 +793,8 @@ abstract final class _Runfiles {
           'dart_packages',
           '_main',
         ]) {
-          final pkgAltPath = '$runfilesDir/$prefix/pkg/$pkgName';
-          final libType = FileSystemEntity.typeSync('$pkgAltPath/lib');
+          final pkgAltPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
+          final libType = FileSystemEntity.typeSync(p.join(pkgAltPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return pkgAltPath;
           }
@@ -764,8 +812,8 @@ abstract final class _Runfiles {
           'dart_packages',
           'third_party',
         ]) {
-          final altPath = '$runfilesDir/$prefix/$subPath';
-          final libType = FileSystemEntity.typeSync('$altPath/lib');
+          final altPath = p.join(runfilesDir, prefix, subPath);
+          final libType = FileSystemEntity.typeSync(p.join(altPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return altPath;
           }
@@ -775,7 +823,7 @@ abstract final class _Runfiles {
           }
         }
       }
-      final primary = File('$runfilesDir/$normalizedPath');
+      final primary = File(p.join(runfilesDir, normalizedPath));
       if (primary.existsSync() || Directory(primary.path).existsSync()) {
         return primary.path;
       }
@@ -1001,4 +1049,32 @@ String? validateErrors(List<ExpectedError> expected, List<ActualError> actual) {
   }
 
   return buffer.toString();
+}
+
+String _resolvePlaceholders(String path, String runfilesDir) {
+  final normalizedRunfiles = runfilesDir.replaceAll('\\', '/');
+  var result = path;
+  if (result.contains(r'$SDK_ROOT')) {
+    var sdkRoot = p.posix.join(normalizedRunfiles, '_main');
+    if (!Directory(sdkRoot).existsSync()) {
+      sdkRoot = p.posix.join(normalizedRunfiles, 'dart_sdk');
+    }
+    result = result.replaceAll(r'$SDK_ROOT', sdkRoot);
+  }
+  if (result.contains(r'$CO19_ROOT')) {
+    String? co19Root;
+    for (final prefix in [
+      '+third_party_extension+dart_co19_tests',
+      'dart_co19_tests',
+    ]) {
+      final pathToCheck = p.posix.join(normalizedRunfiles, prefix);
+      if (Directory(pathToCheck).existsSync()) {
+        co19Root = pathToCheck;
+        break;
+      }
+    }
+    co19Root ??= p.posix.join(normalizedRunfiles, 'dart_co19_tests');
+    result = result.replaceAll(r'$CO19_ROOT', co19Root);
+  }
+  return result;
 }
