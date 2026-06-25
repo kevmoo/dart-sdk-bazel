@@ -153,7 +153,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   final runfilesDir =
       Platform.environment['RUNFILES_DIR'] ??
       Platform.environment['TEST_SRCDIR'];
-  final resolvedFilePath = runfilesDir != null
+  final resolvedFilePath = runfilesDir != null && runfilesDir.isNotEmpty
       ? _resolvePlaceholders(filePath, runfilesDir)
       : filePath;
 

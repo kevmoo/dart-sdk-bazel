@@ -645,6 +645,12 @@ void main(List<String> args) async {
                   '@dart_packages//pkg/analysis_server:sdk_package_sources');
             }
 
+            if (pkgDir == 'pkg/analyzer' &&
+                relPathInPkg.startsWith('test/id_tests/')) {
+              targetDeps.add(
+                  '@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources');
+            }
+
             if (hasFineGrained) {
               if (testImportsMap!.containsKey(relPathInPkg)) {
                 final localDeps = _computeTransitiveClosure(
@@ -675,12 +681,12 @@ void main(List<String> args) async {
                 final testDir = p.dirname(filePathAbs);
                 final dir = Directory(testDir);
                 if (dir.existsSync()) {
-                  for (final entity in dir.listSync(recursive: true)) {
+                  for (final entity
+                      in dir.listSync(recursive: true, followLinks: false)) {
                     if (entity is File) {
                       final fileAbs = entity.path;
-                      if (fileAbs.startsWith(workspaceDir)) {
-                        final fileRel =
-                            fileAbs.substring(workspaceDir.length + 1);
+                      if (p.isWithin(workspaceDir, fileAbs)) {
+                        final fileRel = p.relative(fileAbs, from: workspaceDir);
                         targetDeps.add('@//:$fileRel');
                       }
                     }
@@ -1297,10 +1303,12 @@ String _getPkgDirFromFlatName(String flatName) {
 }
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
-  var result = path;
-  result = result.replaceAll(workspaceDir, r'$SDK_ROOT');
+  var result = path.replaceAll('\\', '/');
+  final normalizedWorkspace = workspaceDir.replaceAll('\\', '/');
+  result = result.replaceAll(normalizedWorkspace, r'$SDK_ROOT');
   if (co19Dir != null) {
-    result = result.replaceAll(co19Dir, r'$CO19_ROOT');
+    final normalizedCo19 = co19Dir.replaceAll('\\', '/');
+    result = result.replaceAll(normalizedCo19, r'$CO19_ROOT');
   }
   return result;
 }

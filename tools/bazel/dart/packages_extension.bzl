@@ -338,7 +338,7 @@ def _packages_repo_impl(ctx):
         # Add a filegroup that exposes all files in the package for runfiles
         build_lines.append("filegroup(")
         build_lines.append('    name = "sdk_package_sources",')
-        build_lines.append('    srcs = glob(["**/*"], exclude = ["BUILD.bazel"], allow_empty = True),')
+        build_lines.append('    srcs = glob(["**/*"], exclude = ["BUILD", "BUILD.bazel"], allow_empty = True),')
         build_lines.append(")")
         build_lines.append("")
 
@@ -413,4 +413,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 5
+# Force invalidation trigger: 6
