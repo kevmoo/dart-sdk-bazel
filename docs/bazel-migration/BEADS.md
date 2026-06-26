@@ -4,6 +4,15 @@ Bazel-migration tasks live in **beads** (`bd`), a Dolt-backed issue tracker —
 **not** in a checked-in file. [BACKLOG.md](BACKLOG.md) / [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md)
 are *generated* from it (see [gen_board_from_beads.dart](gen_board_from_beads.dart)).
 
+---
+
+## 🏛️ Workspace Architecture & Terminology
+
+For details on the typical Bare Repository + Sandbox Worktree layout used across forks, variable definitions like `{workspace-root}`, and links to master agent playbooks, refer to: 👉 **[typical-layout.md](typical-layout.md)**.
+
+---
+
+
 The beads database is **not** in the git tree. It rides on the `refs/dolt/data`
 side ref of the **`kevmoo/sdk` fork** (not the upstream `dart.googlesource.com`
 remote), so it is carried by the fork, recovered with `bd`, and never lost as
@@ -122,7 +131,7 @@ If an agent or user operates under a configured role like `beads.role = contribu
 * When authoring or mutating tasks (`bd create`, `bd update`, `bd close`) inside any checkout under `{workspace-root}/*`, **ALWAYS verify `bd where` resolves to `.bare/.beads`**.
 * If creating issues from a nested worktree where contributor shunting might be active, pass explicit repository routing:
   ```bash
-  bd create "..." --repo /usr/local/google/home/kevmoo/github/dart-sdk/.bare
-  ```
+  bd create "..." --repo {workspace-root}/.bare
+```
 
 

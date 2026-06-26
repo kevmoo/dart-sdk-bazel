@@ -4,6 +4,12 @@ This directory houses the active coordination, progress tracking, and developer 
 
 ---
 
+## 🏛️ Workspace Architecture & Terminology
+
+For details on the typical Bare Repository + Sandbox Worktree layout used across forks by `kevmoo`, variable definitions like `{workspace-root}`, and links to master agent playbooks, refer to: 👉 **[typical-layout.md](typical-layout.md)**.
+
+---
+
 ## ⚡ Quick Start (Build & Run)
 
 If you are a contributor (human or AI agent) looking to build or run the SDK using Bazel, here is what you need to know right now.
@@ -131,6 +137,7 @@ dart tools/bazel/fork_delta.dart --diff modified-tools
 Only the following active files and directories are maintained in `docs/bazel-migration/`. All historical scoping and design documents have been pruned and are preserved in the **Git history**.
 
 *   [README.md](README.md) — This file. Entry point and developer guide.
+*   [typical-layout.md](typical-layout.md) — Explanation of Kevmoo's multi-fork bare repository and sandbox worktree layout conventions.
 *   [GUIDELINES.md](GUIDELINES.md) — The 14 Bazel architectural migration rules and engineering guidelines.
 *   [BACKLOG.md](BACKLOG.md) — The active backlog and coordination board (generated from beads).
 *   [BEADS.md](BEADS.md) — Task tracking setup + workflow: how to install `bd` and bootstrap the task DB on a new machine.
