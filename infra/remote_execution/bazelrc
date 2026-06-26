@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 build:remote-cache --remote_cache=https://storage.googleapis.com/dart-sdk-bazel-cache
 build:remote-cache --google_default_credentials=true
+build:remote-cache --remote_cache_async
 
 # Enable upload to cache (CI should always do this, devs can optionally disable it if they have slow upload)
 build:remote-cache --remote_upload_local_results=true
