@@ -979,9 +979,9 @@ _dart2wasm_test = rule(
     attrs = {
         "main": attr.label(mandatory = True, allow_single_file = [".dart"]),
         "srcs": attr.label_list(allow_files = True),
-        "_dartaotruntime": attr.label(default = Label("//runtime/bin:dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
-        "_dart2wasm_snapshot": attr.label(default = Label("//utils/dart2wasm:dart2wasm_asserts_snapshot"), allow_single_file = True),
         "_d8_files": attr.label(default = Label("//third_party/d8:d8_files")),
+        "_dart2wasm_snapshot": attr.label(default = Label("//utils/dart2wasm:dart2wasm_asserts_snapshot"), allow_single_file = True),
+        "_dartaotruntime": attr.label(default = Label("//runtime/bin:dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
         "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
         "_platform_dill": attr.label(default = Label("//utils/dart2wasm:compile_dart2wasm_platform")),
         "_run_wasm_js": attr.label(default = Label("//:pkg/dart2wasm/bin/run_wasm.js"), allow_single_file = True),
