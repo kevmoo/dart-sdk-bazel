@@ -935,15 +935,15 @@ if [ -z "$D8_BIN" ]; then
   echo "Error: Could not locate d8 executable in runfiles." >&2
   exit 1
 fi
-RUN_WASM="${{TEST_SRCDIR}}/{workspace_name}/{run_wasm_js}"
-WASM_MJS="${{TEST_SRCDIR}}/{workspace_name}/{wasm_mjs}"
-WASM_BIN="${{TEST_SRCDIR}}/{workspace_name}/{wasm_bin}"
+RUN_WASM="${{TEST_SRCDIR}}/{run_wasm_js}"
+WASM_MJS="${{TEST_SRCDIR}}/{wasm_mjs}"
+WASM_BIN="${{TEST_SRCDIR}}/{wasm_bin}"
 exec "$D8_BIN" --stack-trace-limit=20 "$RUN_WASM" -- "$WASM_MJS" "$WASM_BIN"
 """.format(
+        run_wasm_js = _runfiles_path(ctx, ctx.file._run_wasm_js),
+        wasm_bin = _runfiles_path(ctx, wasm_out),
+        wasm_mjs = _runfiles_path(ctx, mjs_out),
         workspace_name = ctx.workspace_name,
-        run_wasm_js = ctx.file._run_wasm_js.short_path,
-        wasm_mjs = mjs_out.short_path,
-        wasm_bin = wasm_out.short_path,
     )
 
     ctx.actions.write(
@@ -1036,7 +1036,7 @@ def _dart_analyze_test_impl(ctx):
 
     runner = ctx.actions.declare_file(ctx.label.name + "_runner.sh")
 
-    srcs_list = ['"${{TEST_SRCDIR}}/{}/{}"'.format(ctx.workspace_name, f.short_path) for f in ctx.files.srcs]
+    srcs_list = ['"${{TEST_SRCDIR}}/{}"'.format(_runfiles_path(ctx, f)) for f in ctx.files.srcs]
 
     script_content = """#!/bin/bash
 set -euo pipefail
@@ -1055,11 +1055,6 @@ for path in \\
     break
   fi
 done
-  if [ -f "$path" ] && [ -x "$path" ]; then
-    DART_BIN="$path"
-    break
-  fi
-done
 
 if [ -z "$DART_BIN" ] && [ -d "$TEST_SRCDIR" ]; then
   DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x 2>/dev/null | head -n 1 || true)
@@ -1070,10 +1065,12 @@ if [ -z "$DART_BIN" ]; then
   exit 1
 fi
 
+export DART_PACKAGE_CONFIG="${{TEST_SRCDIR}}/{package_config}"
 exec "$DART_BIN" analyze {srcs}
 """.format(
-        workspace_name = ctx.workspace_name,
+        package_config = _runfiles_path(ctx, ctx.file._package_config),
         srcs = " ".join(srcs_list),
+        workspace_name = ctx.workspace_name,
     )
 
     ctx.actions.write(
@@ -1083,7 +1080,7 @@ exec "$DART_BIN" analyze {srcs}
     )
 
     runfiles = ctx.runfiles(
-        files = ctx.files.srcs,
+        files = ctx.files.srcs + [ctx.file._package_config],
         transitive_files = ctx.attr._sdk_files[DefaultInfo].files,
     )
     return [DefaultInfo(executable = runner, runfiles = runfiles)]
@@ -1093,6 +1090,7 @@ _dart_analyze_test = rule(
     test = True,
     attrs = {
         "srcs": attr.label_list(allow_files = [".dart"]),
+        "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
         "_sdk_files": attr.label(default = Label("@prebuilt_dart_sdk//:sdk_files")),
     },
 )
