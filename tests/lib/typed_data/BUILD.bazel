@@ -1,0 +1,39 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+load("//tools/bazel/dart:defs.bzl", "dart2wasm_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# TODO(beads: sdk-u0p): Expand this targeted test target list into a full,
+# auto-discovering dart_test_matrix macro that tests across VM, dart2js, ddc,
+# and dart2wasm targets.
+simd_tests = [
+    "float32x4_clamp_test.dart",
+    "float32x4_compare_test.dart",
+    "float32x4_cross_test.dart",
+    "float32x4_list_test.dart",
+    "float32x4_shuffle_test.dart",
+    "float32x4_sign_mask_test.dart",
+    "float32x4_test.dart",
+    "float32x4_transpose_test.dart",
+    "float32x4_two_arg_shuffle_test.dart",
+    "float64x2_clamp_test.dart",
+    "float64x2_functional_test.dart",
+    "float64x2_typed_list_test.dart",
+    "int32x4_arithmetic_test.dart",
+    "int32x4_list_test.dart",
+    "int32x4_shuffle_test.dart",
+    "int32x4_sign_mask_test.dart",
+    "int32x4_test.dart",
+    "unmodifiable_typed_data_simd_test.dart",
+]
+
+[
+    dart2wasm_test(
+        name = t.replace(".dart", ""),
+        main = t,
+    )
+    for t in simd_tests
+]

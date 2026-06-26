@@ -13,6 +13,7 @@ package(default_visibility = ["//visibility:public"])
 # every file in the package so the gn-shaped source lists keep working.
 exports_files(glob(
     [
+        "**/*.dart",
         "**/*.h",
         "**/*.hpp",
         "**/*.hh",

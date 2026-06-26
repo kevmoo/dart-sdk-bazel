@@ -1172,20 +1172,8 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir,
     '.csv',
     '.xml',
     '.dill',
-    '.snapshot',
     '.bin',
     '.dart_fn',
-    '.wasm',
-    '.so',
-    '.dylib',
-    '.dll',
-    '.aot',
-    '.exe',
-    '.js',
-    '.map',
-    '.options',
-    '.packages',
-    '.isolate_kit',
   };
 
   for (final entity in dir.listSync(recursive: true)) {
@@ -1205,10 +1193,8 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir,
 
       final dotIndex = filename.lastIndexOf('.');
       if (dotIndex != -1) {
-        final ext = filename.substring(dotIndex).toLowerCase();
-        final isAllowedExt = allowedExtensions.contains(ext);
-        final isHelperDart = ext == '.dart' && !filename.endsWith('_test.dart');
-        if (isAllowedExt || isHelperDart) {
+        final ext = filename.substring(dotIndex);
+        if (allowedExtensions.contains(ext.toLowerCase())) {
           if (pkgDir == 'co19') {
             final relPath = path.substring(sourceDir.length + 1);
             resources.add('@dart_co19_tests//:$relPath');
