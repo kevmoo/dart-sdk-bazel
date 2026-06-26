@@ -1003,6 +1003,11 @@ def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
     """Hermetic Bazel rule for compiling and running a Dart Wasm performance benchmark."""
 
     # TODO(beads: sdk-245): Add performance JSON emitter output handling and runner flags.
+    tags = kwargs.get("tags", [])
+    if "manual" not in tags:
+        tags = tags + ["manual"]
+    kwargs["tags"] = tags
+
     _dart2wasm_test(
         name = name,
         main = main,
@@ -1011,6 +1016,9 @@ def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
     )
 
 def _dart_analyze_test_impl(ctx):
+    if not ctx.files.srcs:
+        fail("The 'srcs' attribute must not be empty for dart_analyze_test.")
+
     runner = ctx.actions.declare_file(ctx.label.name + "_runner.sh")
 
     srcs_list = ['"${{TEST_SRCDIR}}/{}/{}"'.format(ctx.workspace_name, f.short_path) for f in ctx.files.srcs]
