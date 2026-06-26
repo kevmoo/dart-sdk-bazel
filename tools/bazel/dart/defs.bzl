@@ -1013,7 +1013,7 @@ def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
 def _dart_analyze_test_impl(ctx):
     runner = ctx.actions.declare_file(ctx.label.name + "_runner.sh")
 
-    srcs_list = ["${{TEST_SRCDIR}}/{}/{}".format(ctx.workspace_name, f.short_path) for f in ctx.files.srcs]
+    srcs_list = ['"${{TEST_SRCDIR}}/{}/{}"'.format(ctx.workspace_name, f.short_path) for f in ctx.files.srcs]
 
     script_content = """#!/bin/bash
 set -euo pipefail
