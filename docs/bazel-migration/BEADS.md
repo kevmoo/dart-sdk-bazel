@@ -113,3 +113,16 @@ trap 'git config --global --unset url.git@github.com:.pushinsteadof' EXIT
 PATH=$PATH:$HOME/go/bin bd dolt push
 ```
 
+### 3. Multi-User Database Routing Safeguard (`--repo`)
+In this bare proxy container workspace architecture (`{workspace-root}`), all worktrees share the canonical database at `{bare-repo}/.beads/`.
+
+If an agent or user operates under a configured role like `beads.role = contributor`, running `bd create` without an explicit repo target will silently route the new issue into the global user planning DB (`~/.beads-planning`), separating it from the shared repository database.
+
+**Mandatory Guardrail:**
+* When authoring or mutating tasks (`bd create`, `bd update`, `bd close`) inside any checkout under `{workspace-root}/*`, **ALWAYS verify `bd where` resolves to `.bare/.beads`**.
+* If creating issues from a nested worktree where contributor shunting might be active, pass explicit repository routing:
+  ```bash
+  bd create "..." --repo /usr/local/google/home/kevmoo/github/dart-sdk/.bare
+  ```
+
+

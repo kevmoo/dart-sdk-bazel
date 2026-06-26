@@ -131,6 +131,7 @@ dart tools/bazel/fork_delta.dart --diff modified-tools
 Only the following active files and directories are maintained in `docs/bazel-migration/`. All historical scoping and design documents have been pruned and are preserved in the **Git history**.
 
 *   [README.md](README.md) — This file. Entry point and developer guide.
+*   [GUIDELINES.md](GUIDELINES.md) — The 14 Bazel architectural migration rules and engineering guidelines.
 *   [BACKLOG.md](BACKLOG.md) — The active backlog and coordination board (generated from beads).
 *   [BEADS.md](BEADS.md) — Task tracking setup + workflow: how to install `bd` and bootstrap the task DB on a new machine.
 *   [STATUS.md](STATUS.md) — The living session-by-session progress tracker.
