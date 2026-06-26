@@ -1017,9 +1017,9 @@ def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
     """
 
     # TODO(beads: sdk-245): Add performance JSON emitter output handling and runner flags.
-    tags = kwargs.get("tags", [])
+    tags = list(kwargs.get("tags", []))
     if "manual" not in tags:
-        tags = tags + ["manual"]
+        tags.append("manual")
     kwargs["tags"] = tags
 
     _dart2wasm_test(
@@ -1057,7 +1057,7 @@ for path in \\
 done
 
 if [ -z "$DART_BIN" ] && [ -d "$TEST_SRCDIR" ]; then
-  DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x 2>/dev/null | head -n 1 || true)
+  DART_BIN=$(find -L "$TEST_SRCDIR" \\( -name dart -o -name dart.exe \\) -type f -perm -u+x 2>/dev/null | head -n 1 || true)
 fi
 
 if [ -z "$DART_BIN" ]; then
