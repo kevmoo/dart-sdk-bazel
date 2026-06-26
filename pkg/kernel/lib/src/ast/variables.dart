@@ -39,6 +39,7 @@ sealed class Variable extends VariableBase implements ContextConsumer {
   static const int FlagWildcard = 1 << 11;
   static const int FlagSuperInitializingFormal = 1 << 12;
   static const int FlagErroneouslyInitialized = 1 << 13;
+  static const int FlagRenamedPrivateNamedParameter = 1 << 14;
 
   /// The static type of the variable, either declared or inferred type during
   /// type inference.
@@ -147,37 +148,14 @@ sealed class Variable extends VariableBase implements ContextConsumer {
 
   void clearAnnotations();
 
-  new empty();
-
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEqualsOffset];
-
-  bool get hasIsFinal;
-  bool get hasIsConst;
-  bool get hasIsLate;
-  bool get hasIsInitializingFormal;
-  bool get hasIsSynthesized;
-  bool get hasIsHoisted;
-  bool get hasHasDeclaredInitializer;
-  bool get hasIsCovariantByClass;
-  bool get hasIsRequired;
-  bool get hasIsCovariantByDeclaration;
-  bool get hasIsLowered;
-  bool get hasIsWildcard;
-  bool get hasIsSuperInitializingFormal;
-  bool get hasIsErroneouslyInitialized;
 
   /// Whether the variable is assignable.
   ///
   /// This is `true` if the variable is neither constant nor final, or if it
   /// is late final without an initializer.
   bool get isAssignable;
-
-  /// The name of the variable as provided in the source code.
-  ///
-  /// The name of a variable can only be omitted if the variable is synthesized.
-  /// Otherwise, its name is as provided in the source code.
-  abstract String? name;
 
   @override
   R accept<R>(VariableVisitor<R> visitor);
@@ -198,8 +176,8 @@ sealed class Variable extends VariableBase implements ContextConsumer {
 /// (which is a [Statement]) marks the spot of the original variable declaration
 /// in the Dart program.
 class LocalVariable extends Variable {
-  @override
-  String? cosmeticName;
+  /// The name of the variable as provided in the source code.
+  String name;
 
   @override
   DartType type;
@@ -218,16 +196,14 @@ class LocalVariable extends Variable {
   Expression? initializer;
 
   new({
-    required String name,
+    required this.name,
     DartType? type,
     bool isFinal = false,
     bool isConst = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     this.initializer,
-  }) : type = type ?? const DynamicType(),
-       cosmeticName = name,
-       super.empty() {
+  }) : type = type ?? const DynamicType() {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isWildcard = isWildcard;
@@ -426,51 +402,6 @@ class LocalVariable extends Variable {
   }
 
   @override
-  String? get name => cosmeticName;
-
-  @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => false;
-
-  @override
-  bool get hasIsSynthesized => true;
-
-  @override
-  bool get hasIsHoisted => true;
-
-  @override
-  bool get hasHasDeclaredInitializer => false;
-
-  @override
-  bool get hasIsCovariantByClass => false;
-
-  @override
-  bool get hasIsRequired => false;
-
-  @override
-  bool get hasIsCovariantByDeclaration => false;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => true;
-
-  @override
-  bool get hasIsSuperInitializingFormal => false;
-
-  @override
-  bool get hasIsErroneouslyInitialized => false;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -492,15 +423,17 @@ class LocalVariable extends Variable {
   }
 
   @override
-  set name(String? value) {
-    cosmeticName = value;
+  String? get cosmeticName => name;
+
+  @override
+  void set cosmeticName(String? value) {
+    name = value!;
   }
 }
 
 /// A late local variable.
 class LateVariable extends Variable {
-  @override
-  String? cosmeticName;
+  String name;
 
   @override
   DartType type;
@@ -519,16 +452,14 @@ class LateVariable extends Variable {
   Expression? initializer;
 
   new({
-    required String name,
+    required String this.name,
     DartType? type,
     bool isFinal = false,
     bool isConst = false,
     bool isWildcard = false,
     bool hasDeclaredInitializer = false,
     this.initializer,
-  }) : type = type ?? const DynamicType(),
-       cosmeticName = name,
-       super.empty() {
+  }) : type = type ?? const DynamicType() {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isLate = true;
@@ -727,51 +658,6 @@ class LateVariable extends Variable {
   }
 
   @override
-  String? get name => cosmeticName;
-
-  @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => false;
-
-  @override
-  bool get hasIsSynthesized => true;
-
-  @override
-  bool get hasIsHoisted => true;
-
-  @override
-  bool get hasHasDeclaredInitializer => false;
-
-  @override
-  bool get hasIsCovariantByClass => false;
-
-  @override
-  bool get hasIsRequired => false;
-
-  @override
-  bool get hasIsCovariantByDeclaration => false;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => true;
-
-  @override
-  bool get hasIsSuperInitializingFormal => false;
-
-  @override
-  bool get hasIsErroneouslyInitialized => false;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -793,8 +679,11 @@ class LateVariable extends Variable {
   }
 
   @override
-  set name(String? value) {
-    cosmeticName = value;
+  String? get cosmeticName => name;
+
+  @override
+  void set cosmeticName(String? value) {
+    name = value!;
   }
 }
 
@@ -826,11 +715,12 @@ class CatchVariable extends Variable {
     DartType? type,
     bool isWildcard = false,
     bool isFinal = false,
+    bool isSynthesized = false,
   }) : catchVariableName = name,
-       type = type ?? const DynamicType(),
-       super.empty() {
+       type = type ?? const DynamicType() {
     this.isWildcard = isWildcard;
     this.isFinal = isFinal;
+    this.isSynthesized = isSynthesized;
   }
 
   @override
@@ -970,11 +860,13 @@ class CatchVariable extends Variable {
   }
 
   @override
-  bool get isSynthesized => false;
+  bool get isSynthesized => flags & Variable.FlagSynthesized != 0;
 
   @override
   void set isSynthesized(bool value) {
-    throw new UnsupportedError("${this.runtimeType}.isSynthesized=");
+    flags = value
+        ? (flags | Variable.FlagSynthesized)
+        : (flags & ~Variable.FlagSynthesized);
   }
 
   @override
@@ -1024,48 +916,6 @@ class CatchVariable extends Variable {
   }
 
   @override
-  bool get hasIsFinal => false;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => false;
-
-  @override
-  bool get hasIsSynthesized => false;
-
-  @override
-  bool get hasIsHoisted => false;
-
-  @override
-  bool get hasHasDeclaredInitializer => false;
-
-  @override
-  bool get hasIsCovariantByClass => false;
-
-  @override
-  bool get hasIsRequired => false;
-
-  @override
-  bool get hasIsCovariantByDeclaration => false;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => false;
-
-  @override
-  bool get hasIsSuperInitializingFormal => false;
-
-  @override
-  bool get hasIsErroneouslyInitialized => false;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -1085,14 +935,6 @@ class CatchVariable extends Variable {
   void clearAnnotations() {
     annotations.clear();
   }
-
-  @override
-  String? get name => cosmeticName;
-
-  @override
-  set name(String? value) {
-    cosmeticName = value;
-  }
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
@@ -1111,7 +953,7 @@ sealed class FunctionParameter extends Variable {
     required bool isLowered,
     required bool isSynthesized,
     required bool isWildcard,
-  }) : super.empty() {
+  }) {
     this.defaultValue?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isCovariantByClass = isCovariantByClass;
@@ -1392,56 +1234,6 @@ class PositionalParameter extends FunctionParameter {
   }
 
   @override
-  String? get name => cosmeticName;
-
-  @override
-  void set name(String? value) {
-    cosmeticName = value;
-  }
-
-  @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => true;
-
-  @override
-  bool get hasIsSynthesized => true;
-
-  @override
-  bool get hasIsHoisted => false;
-
-  @override
-  bool get hasHasDeclaredInitializer => true;
-
-  @override
-  bool get hasIsCovariantByClass => true;
-
-  @override
-  bool get hasIsRequired => true;
-
-  @override
-  bool get hasIsCovariantByDeclaration => true;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => true;
-
-  @override
-  bool get hasIsSuperInitializingFormal => true;
-
-  @override
-  bool get hasIsErroneouslyInitialized => true;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -1483,7 +1275,19 @@ class NamedParameter extends FunctionParameter {
     super.isLowered = false,
     super.isSynthesized = false,
     super.isWildcard = false,
-  }) : type = type ?? const DynamicType();
+    bool isRenamedPrivateNamedParameter = false,
+  }) : type = type ?? const DynamicType() {
+    this.isRenamedPrivateNamedParameter = isRenamedPrivateNamedParameter;
+  }
+
+  bool get isRenamedPrivateNamedParameter =>
+      flags & Variable.FlagRenamedPrivateNamedParameter != 0;
+
+  void set isRenamedPrivateNamedParameter(bool value) {
+    flags = value
+        ? (flags | Variable.FlagRenamedPrivateNamedParameter)
+        : (flags & ~Variable.FlagRenamedPrivateNamedParameter);
+  }
 
   @override
   // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
@@ -1550,66 +1354,16 @@ class NamedParameter extends FunctionParameter {
   }
 
   @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => true;
-
-  @override
-  bool get hasIsSynthesized => true;
-
-  @override
-  bool get hasIsHoisted => false;
-
-  @override
-  bool get hasHasDeclaredInitializer => true;
-
-  @override
-  bool get hasIsCovariantByClass => true;
-
-  @override
-  bool get hasIsRequired => true;
-
-  @override
-  bool get hasIsCovariantByDeclaration => true;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => true;
-
-  @override
-  bool get hasIsSuperInitializingFormal => true;
-
-  @override
-  bool get hasIsErroneouslyInitialized => true;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
   int fileEqualsOffset = TreeNode.noOffset;
-
-  @override
-  String? get name => parameterName;
-
-  @override
-  void set name(String? value) {
-    parameterName = value!;
-  }
 }
 
 /// The variable storage for `this`.
 class ThisVariable extends Variable {
   @override
-  String get cosmeticName => "this-variable";
+  String get cosmeticName => "";
 
   @override
   void set cosmeticName(String? value) {}
@@ -1630,7 +1384,7 @@ class ThisVariable extends Variable {
   @override
   late VariableContext context;
 
-  new({required this.type}) : super.empty() {
+  new({required this.type}) {
     // All [Variable]s must be serialized uniformly.
     flags |= Variable.FlagFinal;
   }
@@ -1798,51 +1552,6 @@ class ThisVariable extends Variable {
   }
 
   @override
-  String? get name => cosmeticName;
-
-  @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => false;
-
-  @override
-  bool get hasIsSynthesized => false;
-
-  @override
-  bool get hasIsHoisted => false;
-
-  @override
-  bool get hasHasDeclaredInitializer => false;
-
-  @override
-  bool get hasIsCovariantByClass => false;
-
-  @override
-  bool get hasIsRequired => false;
-
-  @override
-  bool get hasIsCovariantByDeclaration => false;
-
-  @override
-  bool get hasIsLowered => false;
-
-  @override
-  bool get hasIsWildcard => false;
-
-  @override
-  bool get hasIsSuperInitializingFormal => false;
-
-  @override
-  bool get hasIsErroneouslyInitialized => false;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -1861,11 +1570,6 @@ class ThisVariable extends Variable {
   @override
   void clearAnnotations() {
     annotations.clear();
-  }
-
-  @override
-  set name(String? value) {
-    cosmeticName = value;
   }
 }
 
@@ -1902,8 +1606,8 @@ class SyntheticVariable extends Variable {
     // be synthesized.
     bool isSynthesized = true,
     bool hasDeclaredInitializer = false,
-  }) : type = type ?? const DynamicType(),
-       super.empty() {
+    bool isWildcard = false,
+  }) : type = type ?? const DynamicType() {
     this.initializer?.parent = this;
     this.isFinal = isFinal;
     this.isLowered = isLowered;
@@ -2090,51 +1794,6 @@ class SyntheticVariable extends Variable {
   bool get isAssignable => !isConst && !isFinal;
 
   @override
-  String? get name => cosmeticName;
-
-  @override
-  bool get hasIsFinal => true;
-
-  @override
-  bool get hasIsConst => true;
-
-  @override
-  bool get hasIsLate => true;
-
-  @override
-  bool get hasIsInitializingFormal => false;
-
-  @override
-  bool get hasIsSynthesized => true;
-
-  @override
-  bool get hasIsHoisted => true;
-
-  @override
-  bool get hasHasDeclaredInitializer => false;
-
-  @override
-  bool get hasIsCovariantByClass => false;
-
-  @override
-  bool get hasIsRequired => false;
-
-  @override
-  bool get hasIsCovariantByDeclaration => false;
-
-  @override
-  bool get hasIsLowered => true;
-
-  @override
-  bool get hasIsWildcard => false;
-
-  @override
-  bool get hasIsSuperInitializingFormal => false;
-
-  @override
-  bool get hasIsErroneouslyInitialized => false;
-
-  @override
   int binaryOffsetNoTag = -1;
 
   @override
@@ -2154,11 +1813,6 @@ class SyntheticVariable extends Variable {
   void clearAnnotations() {
     annotations.clear();
   }
-
-  @override
-  set name(String? value) {
-    cosmeticName = value;
-  }
 }
 
 /// The enum reflecting the kind of a variable context. A context is
@@ -2170,10 +1824,14 @@ enum CaptureKind { notCaptured, directCaptured, assertCaptured }
 /// serves as the "declaration" of the variables it contains for the runtime
 /// environments.
 class VariableContext {
-  final CaptureKind captureKind;
-  final List<VariableBase> variables;
+  CaptureKind captureKind;
+  List<VariableBase> variables;
 
-  new({required this.captureKind, required this.variables});
+  new({required this.captureKind, required this.variables}) {
+    for (VariableBase variable in variables) {
+      variable.context = this;
+    }
+  }
 
   void addVariable(VariableBase variable) {
     variable.context = this;

@@ -128,7 +128,7 @@ final dartSetCurrentThreadOwnsIsolate = DynamicLibrary.executable()
     .asFunction<void Function()>();
 
 int threadMain(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = Isolate.create(debugName: "helperMain");
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
   });
@@ -196,7 +196,7 @@ void openLatch() {
 }
 
 int threadMainPinned(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = Isolate.create(debugName: "helperPinned");
 
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
@@ -266,12 +266,14 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
 final isHelperInThreadMainWaitingLatchRunning = Uint8List(1);
 
 int threadMainWaitingLatch(Pointer<Void> data) {
-  final helper = Isolate.create(debugName: "helper");
+  final helper = Isolate.create(debugName: "helperWaitingLatch");
 
   dartNewSendPort(nativeSendPort[0]).send(helper);
 
   helper.runSync(() {
-    isHelperInThreadMainWaitingLatchRunning[0] = 1;
+    mutexCondvar.runLocked(() {
+      isHelperInThreadMainWaitingLatchRunning[0] = 1;
+    });
     waitLatch();
   });
   print('shutting down the isolate');
@@ -287,7 +289,9 @@ Future<void> testFailRunSyncWithTimeout() async {
   final completer = Completer();
   final rp = RawReceivePort((Isolate child_isolate) async {
     print('received $child_isolate');
-    while (isHelperInThreadMainWaitingLatchRunning[0] == 0) {
+    while (mutexCondvar.runLocked(
+      () => isHelperInThreadMainWaitingLatchRunning[0] == 0,
+    )) {
       // Let the thread which should do `helper.runSync`
       // actually do that.
       await Future.delayed(Duration(milliseconds: 10));
@@ -329,9 +333,15 @@ Future<void> testFailRunSyncWithTimeout() async {
 }
 
 Future<void> testFailRunSyncDifferentIsolateGroup() async {
-  final isolate = await Isolate.spawnUri(Platform.script, <String>[
-    "worker",
-  ], null);
+  final rpFromChild = ReceivePort();
+  final rpChildIsDone = ReceivePort();
+  final isolate = await Isolate.spawnUri(
+    Platform.script,
+    <String>["worker"],
+    rpFromChild.sendPort,
+    onExit: rpChildIsDone.sendPort,
+    onError: rpChildIsDone.sendPort,
+  );
   Expect.isNotNull(isolate);
   Expect.throws(
     () => isolate.runSync(() {
@@ -343,13 +353,19 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
           "Target isolate should be part of the same isolate group.",
         ),
   );
+  final spChildControl = (await rpFromChild.first) as SendPort;
+  spChildControl.send('please, exit');
+  await rpChildIsDone.first;
 }
 
-main(List<String> args, List<SendPort>? message) async {
-  if (message != null) {
+main(List<String> args, SendPort? toParent) async {
+  if (toParent != null) {
     Expect.equals(1, args.length);
     Expect.equals("worker", args[0]);
-    await ReceivePort().first;
+    final rp = ReceivePort();
+    // child isolate provides a sendport to parent, so it can tell when to exit
+    toParent.send(rp.sendPort);
+    await rp.first;
     return;
   }
 

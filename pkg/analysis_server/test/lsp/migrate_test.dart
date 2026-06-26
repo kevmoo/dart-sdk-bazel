@@ -36,9 +36,10 @@ environment:
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.0.0 -> ^3.1.0''',
+  - test_project: ^3.0.0 -> ^3.1.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -51,13 +52,12 @@ environment:
   Future<void> test_bumpSdkConstraint_emptyPubspec() async {
     await _setupProject(pubspecContent: '');
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: 'No SDK constraints were bumped.',
     );
   }
 
   Future<void> test_bumpSdkConstraint_multiplePackages() async {
-    await initialize();
-
     var project1Path = pathContext.join(projectFolderPath, 'project1');
     var project2Path = pathContext.join(projectFolderPath, 'project2');
 
@@ -73,12 +73,25 @@ environment:
   sdk: '^3.2.0'
 ''');
 
+    await initialize();
+
     await _assertMigrationResult(
       uris: [Uri.file(project1Path), Uri.file(project2Path)],
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
-- project1: ^3.0.0 -> ^3.1.0
-- project2: ^3.2.0 -> ^3.3.0''',
+  - project1: ^3.0.0 -> ^3.1.0
+  - project2: ^3.2.0 -> ^3.3.0''',
+      expectedEdit: '''
+>>>>>>>>>> project1/pubspec.yaml
+name: project1
+environment:
+  sdk: '^3.1.0'
+>>>>>>>>>> project2/pubspec.yaml
+name: project2
+environment:
+  sdk: '^3.3.0'
+''',
     );
   }
 
@@ -89,6 +102,7 @@ name: test_project
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: 'No SDK constraints were bumped.',
     );
   }
@@ -102,6 +116,7 @@ environment:
 ''',
     );
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: contains('>=3.0.0 <4.0.0 -> >=3.1.0'),
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
@@ -122,7 +137,43 @@ environment:
     );
     await _assertMigrationResult(
       uris: [Uri.file(otherDirPath)],
+      apply: true,
       expectedSummary: contains('- other_project: Skipped (not analyzed)'),
+    );
+  }
+
+  Future<void> test_dryRun() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(var int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+Would bump SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes would be made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes would be made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
     );
   }
 
@@ -131,7 +182,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -154,7 +205,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [mainFileUri]),
+      DartMigrateParams(uris: [mainFileUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -180,7 +231,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [validUri, invalidUri]),
+      DartMigrateParams(uris: [validUri, invalidUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -200,7 +251,7 @@ environment:
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -221,7 +272,7 @@ environment:
     var dirUri = Uri.file(convertPath('/non/existent/dir'));
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [dirUri]),
+      DartMigrateParams(uris: [dirUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -244,7 +295,7 @@ resolution: workspace
 
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: [projectFolderUri]),
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
     );
     var response = await sendRequestToServer(request);
 
@@ -260,6 +311,172 @@ resolution: workspace
     );
   }
 
+  Future<void> test_fullMigration_313() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new(int x);
+  new name(String s);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_fullMigration_313_multiplePackages() async {
+    failTestOnErrorDiagnostic = false;
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(var int x);
+}
+''');
+
+    newFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(otherFilePath, '''
+class D {
+  D(final int y);
+}
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 2 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  other_package/lib/other.dart
+    extraneous_modifier • 1 fix
+
+Post-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 1 fix
+
+  other_package/lib/other.dart
+    unnecessary_type_name_in_constructor • 1 fix''',
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/lib/other.dart
+class D {
+  new(int y);
+}
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+>>>>>>>>>> lib/main.dart
+class C {
+  new(int x);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_postMigration_313() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+  new name();
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
   Future<void> test_preMigration_313() async {
     failTestOnErrorDiagnostic = false;
     newFile(pubspecFilePath, '''
@@ -272,9 +489,16 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x, y) {}
@@ -300,9 +524,19 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  my_project/lib/other.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -342,10 +576,20 @@ environment:
 
     await _assertMigrationResult(
       uris: [projectFolderUri, toUri(otherPackagePath)],
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
-- test_project: ^3.12.0 -> ^3.13.0
-- other_package: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix
+
+  other_package/lib/other.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 void f(y) {}
@@ -390,9 +634,19 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 2 files.
+
+  my_project/lib/a.dart
+    extraneous_modifier • 1 fix
+
+  my_project/lib/src/b.dart
+    extraneous_modifier • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/a.dart
 void m(int x) {}
@@ -418,9 +672,10 @@ environment:
     await initialize();
 
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -462,9 +717,16 @@ environment:
 
     // Migrate ONLY the parent package.
     await _assertMigrationResult(
+      apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
-- test_project: ^3.12.0 -> ^3.13.0''',
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  1 fix made in 1 file.
+
+  my_project/lib/main.dart
+    avoid_final_parameters • 1 fix''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -478,17 +740,19 @@ environment:
 
   Future<void> test_validDirectory() async {
     await _setupProject(pubspecContent: 'name: test_project');
-    await _assertMigrationResult();
+    await _assertMigrationResult(apply: true);
   }
 
   Future<void> _assertMigrationResult({
     List<Uri>? uris,
     Object? expectedSummary,
     String? expectedEdit,
+    bool apply = false,
   }) async {
+    await initialAnalysis;
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: uris ?? [projectFolderUri]),
+      DartMigrateParams(uris: uris ?? [projectFolderUri], apply: apply),
     );
     var response = await sendRequestToServer(request);
 
@@ -500,7 +764,9 @@ environment:
     if (expectedSummary != null) {
       expect(result.summary, expectedSummary);
     }
-    if (expectedEdit != null) {
+    if (!apply) {
+      expect(result.edit, isNull);
+    } else if (expectedEdit != null) {
       verifyEdit(result.edit!, expectedEdit);
     }
   }
@@ -509,9 +775,9 @@ environment:
     required String pubspecContent,
     String? customPubspecFilePath,
   }) async {
-    await initialize();
-
     var pubspecPath = customPubspecFilePath ?? pubspecFilePath;
     newFile(pubspecPath, pubspecContent);
+
+    await initialize();
   }
 }

@@ -31,7 +31,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -106,11 +106,19 @@ class PluginServer {
   /// [_contextCollection] is disposed.
   StreamSubscription<Object>? _eventsSubscription;
 
+  /// Whether to fall back to the global [Registry.ruleRegistry] if a plugin
+  /// registry is not found by name.
+  ///
+  /// Only older Dart SDKs call `PluginServer.new`, which sets this to `true`.
+  /// Otherwise it is `false`.
+  final bool _useGlobalRegistry;
+
   PluginServer({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
-       _plugins = plugins {
+       _plugins = plugins,
+       _useGlobalRegistry = true {
     int i = 0;
     for (var plugin in plugins) {
       var registry = PluginRegistryImpl(plugin.name);
@@ -138,7 +146,8 @@ class PluginServer {
     required ResourceProvider resourceProvider,
     required Map<String, Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
-       _plugins = plugins.values.toList() {
+       _plugins = plugins.values.toList(),
+       _useGlobalRegistry = false {
     for (var MapEntry(key: name, value: plugin) in plugins.entries) {
       var registry = PluginRegistryImpl(plugin.name);
       registries[name.toLowerCase()] = registry;
@@ -396,9 +405,6 @@ class PluginServer {
     // a safe default.
     definingContextUnit ??= allUnits.first;
 
-    // TODO(srawlins): Enable timing similar to what the linter package's
-    // `benchmark.dart` script does.
-    var ruleVisitorRegistry = RuleVisitorRegistryImpl(enableTiming: false);
     var package = analysisContext.contextRoot.workspace.findPackageFor(
       libraryPath,
     );
@@ -418,6 +424,9 @@ class PluginServer {
     var severityMapping = <DiagnosticCode, protocol.AnalysisErrorSeverity?>{};
 
     for (var configuration in analysisOptions.pluginConfigurations) {
+      // TODO(srawlins): Enable timing similar to what the linter package's
+      // `benchmark.dart` script does.
+      var ruleVisitorRegistry = RuleVisitorRegistryImpl(enableTiming: false);
       runZonedGuarded(
         () => _computeDiagnosticsFromPlugin(
           configuration,
@@ -523,7 +532,15 @@ class PluginServer {
     severityMapping,
   }) {
     if (!configuration.isEnabled) return;
-    var registry = registries[configuration.name] ?? Registry.ruleRegistry;
+    RegistryBase? registry = registries[configuration.name.toLowerCase()];
+    if (registry == null) {
+      if (!_useGlobalRegistry) {
+        return;
+      }
+      // Only use the global registry if the `.new` constructor was used (by
+      // older Dart SDKs). We'll remove this when we break from that API.
+      registry = Registry.ruleRegistry;
+    }
     var rules = registry.enabled({
       for (var entry in configuration.diagnosticConfigs.entries)
         entry.key.toLowerCase(): entry.value,

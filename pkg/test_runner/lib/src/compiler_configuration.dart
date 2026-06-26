@@ -1125,8 +1125,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     List<String> arguments,
     Map<String, String> environmentOverrides,
   ) {
-    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    var compareIl = '$pkgVmDir/tool/compare_il$shellScriptExtension';
+    var compareIl = 'pkg/vm/tool/compare_il$shellScriptExtension';
 
     var args = [
       arguments.firstWhere((arg) => arg.endsWith('_il_test.dart')),
@@ -1654,8 +1653,7 @@ abstract mixin class VMKernelCompilerMixin {
     List<String> arguments,
     Map<String, String> environmentOverrides,
   ) {
-    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var genKernel = 'pkg/vm/tool/gen_kernel$shellScriptExtension';
 
     var kernelBinariesFolder = _configuration.buildDirectory;
     if (_useSdk) {
@@ -1685,10 +1683,10 @@ abstract mixin class VMKernelCompilerMixin {
             name.startsWith('--enable-experiment=') ||
             name.startsWith('--keep-class-names-implementing='),
       ),
-      '-Ddart.vm.product=$isProductMode',
-      '-Ddart.vm.asan=$isAsan',
-      '-Ddart.vm.msan=$isMsan',
-      '-Ddart.vm.tsan=$isTsan',
+      if (isProductMode) '-Ddart.vm.product=true',
+      if (isAsan) '-Ddart.vm.asan=true',
+      if (isMsan) '-Ddart.vm.msan=true',
+      if (isTsan) '-Ddart.vm.tsan=true',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))

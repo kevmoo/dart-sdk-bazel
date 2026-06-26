@@ -135,18 +135,16 @@ abstract class AbstractLspAnalysisServerTest
         return response == null
             ? null
             : {
-                pluginIsolate: Future.delayed(
-                  respondAfter,
-                ).then((_) => response.toResponse('-', 1)),
+                pluginIsolate: Future.delayed(respondAfter)
+                    .then((_) => response.toResponse('-', 1)),
               };
       };
     }
 
     if (respondWith != null) {
       pluginManager.broadcastResults = {
-        pluginIsolate: Future.delayed(
-          respondAfter,
-        ).then((_) => respondWith.toResponse('-', 1)),
+        pluginIsolate: Future.delayed(respondAfter)
+            .then((_) => respondWith.toResponse('-', 1)),
       };
     }
 
@@ -589,6 +587,17 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setCompletionListApplyKindSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'completion': {
+          'completionList': {'applyKindSupport': supported},
+        },
+      },
+    );
+  }
+
   void setCompletionListDefaults(List<String> defaults) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -712,6 +721,12 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('hover');
   }
 
+  /// Enables support for the legacy custom SnippetTextEdit support that was
+  /// used prior to LSP v3.18 getting standard support.
+  void setLegacySnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
   void setLineFoldingOnly() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -745,8 +760,15 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
-  void setSnippetTextEditSupport([bool supported = true]) {
-    experimentalCapabilities['snippetTextEdit'] = supported;
+  void setSignatureHelpNullActiveParameterSupport([bool supported = true]) {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {
+        'signatureHelp': {
+          'signatureInformation': {'noActiveParameterSupport': supported},
+        },
+      },
+    );
   }
 
   /// Sets the supported [CodeActionKind]s for this client. This implies

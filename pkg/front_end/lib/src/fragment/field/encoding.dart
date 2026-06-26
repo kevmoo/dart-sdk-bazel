@@ -207,6 +207,7 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
       _field!.initializer = initializer..parent = _field;
     }
     _field!.scope = scopeProviderInfo?.scope;
+    _field!.thisVariable = scopeProviderInfo?.thisVariable;
   }
 
   @override
@@ -575,7 +576,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       "Type has not been computed for field ${_fragment.name}.",
     );
     if (needsPromotion) {
-      Variable variable = extern.createVariableCache(
+      SyntheticVariable variable = extern.createVariableCache(
         _createFieldGet(_field!),
         _type!.withDeclaredNullability(Nullability.nullable),
       );

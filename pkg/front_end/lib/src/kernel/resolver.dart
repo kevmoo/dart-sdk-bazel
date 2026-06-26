@@ -871,7 +871,7 @@ class Resolver {
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token token,
-    required ExpressionCompilationData expressionCompilerDataCarrier,
+    required ExpressionCompilationData expressionCompilationData,
     required List<InternalVariable> extraKnownVariables,
     required ExpressionEvaluationHelper expressionEvaluationHelper,
     required Variable? extensionThis,
@@ -892,13 +892,13 @@ class Resolver {
     int wildcardVariableIndex = 0;
     InternalVariable? internalExtensionThis;
     List<FormalParameterBuilder>? formals =
-        expressionCompilerDataCarrier.positionalParameters.length == 0
+        expressionCompilationData.positionalParameters.length == 0
         ? null
         : new List<FormalParameterBuilder>.generate(
-            expressionCompilerDataCarrier.positionalParameters.length,
+            expressionCompilationData.positionalParameters.length,
             (int i) {
               PositionalParameter parameter =
-                  expressionCompilerDataCarrier.positionalParameters[i];
+                  expressionCompilationData.positionalParameters[i];
               InternalPositionalParameter formal =
                   new InternalPositionalParameter(
                     astVariable: parameter,
@@ -926,8 +926,6 @@ class Resolver {
                 fileUri: fileUri,
                 hasImmediatelyDeclaredInitializer: false,
                 wildcardIndex: wildcardIndex,
-                isClosureContextLoweringEnabled:
-                    libraryBuilder.loader.isClosureContextLoweringEnabled,
                 variable: formal,
               );
             },
@@ -949,7 +947,7 @@ class Resolver {
 
     List<NominalParameterBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter
-        in expressionCompilerDataCarrier.typeParameters) {
+        in expressionCompilationData.typeParameters) {
       typeParameterBuilders ??= <NominalParameterBuilder>[];
       typeParameterBuilders.add(
         new DillNominalParameterBuilder(
@@ -1327,7 +1325,9 @@ class Resolver {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      bodyBuilderContext.registerNoBodyConstructor();
+      bodyBuilderContext.registerNoBodyConstructor(
+        thisVariable: scopeProviderInfo?.thisVariable,
+      );
     } else if (body != null &&
         bodyBuilderContext.isMixinClass &&
         !bodyBuilderContext.isFactory) {

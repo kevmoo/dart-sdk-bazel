@@ -5,6 +5,7 @@
 // OtherResources=../../tools/gn.py
 
 import "dart:io";
+
 import "package:path/path.dart";
 
 main() {
