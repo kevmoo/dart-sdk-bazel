@@ -222,7 +222,7 @@ WorkspaceEdit createRenameEdit(
 
 /// Creates a [lsp.WorkspaceEdit] from a [server.SourceChange].
 ///
-/// Can return experimental [lsp.SnippetableTextEdit]s if the following are true:
+/// Can return experimental [lsp.LegacySnippetTextEdit]s if the following are true:
 /// - the client has indicated support for in the experimental section of their
 ///   client capabilities, and
 /// - [allowSnippets] is true, and
@@ -251,7 +251,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // existing file with a single edit and that there is either a selection or a
   // linked edit group (otherwise there's no value in snippets).
   if (!allowSnippets ||
-      !clientCapabilities.experimentalSnippetTextEdit ||
+      !clientCapabilities.legacySnippetTextEdit ||
       !clientCapabilities.documentChanges ||
       filePath == null ||
       lineInfo == null ||
@@ -271,7 +271,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   }
 
   var fileEdit = change.edits.single;
-  var snippetEdits = toSnippetTextEdits(
+  var snippetEdits = toLegacySnippetTextEdits(
     fileEdit.file,
     fileEdit,
     change.linkedEditGroups,
@@ -288,7 +288,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
           (e) =>
               Either3<
                 lsp.AnnotatedTextEdit,
-                lsp.SnippetableTextEdit,
+                lsp.LegacySnippetTextEdit,
                 lsp.TextEdit
               >.t2(e),
         )
@@ -523,9 +523,8 @@ lsp.Location? fragmentToLocation(
 
   int? nameOffset;
   int? nameLength;
-  if (fragment case PropertyAccessorFragmentImpl(
-    :var isOriginDeclaration,
-  ) when !isOriginDeclaration) {
+  if (fragment case PropertyAccessorFragmentImpl(:var isOriginDeclaration)
+      when !isOriginDeclaration) {
     var element = fragment.element.nonSynthetic;
     nameOffset = element.firstFragment.nameOffset;
     nameLength = element.firstFragment.name?.length;
@@ -661,6 +660,59 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
 bool isDartDocument(lsp.TextDocumentIdentifier doc) => isDartUri(doc.uri);
 
 bool isDartUri(Uri uri) => uri.path.endsWith('.dart');
+
+/// Creates a [lsp.LegacySnippetTextEdit] for a set of edits using Linked Edit
+/// Groups.
+///
+/// Edit groups offsets are based on the entire content being modified after all
+/// edits, so [editOffset] must to take into account both the offset of the edit
+/// _and_ any delta from edits prior to this one in the file.
+///
+/// [selectionOffset] is also absolute and assumes `edit.replacement` will be
+/// inserted at [editOffset].
+lsp.LegacySnippetTextEdit legacySnippetTextEditFromEditGroups(
+  String filePath,
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required List<server.LinkedEditGroup> editGroups,
+  required int editOffset,
+  required int? selectionOffset,
+  required int? selectionLength,
+}) {
+  return lsp.LegacySnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringForEditGroups(
+      edit.replacement,
+      filePath: filePath,
+      editGroups: editGroups,
+      editOffset: editOffset,
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+    ),
+  );
+}
+
+/// Creates a [lsp.LegacySnippetTextEdit] for an edit with a selection
+/// placeholder.
+///
+/// [selectionOffsetRelative] is relative to (and therefore must be within) the
+/// edit.
+lsp.LegacySnippetTextEdit legacySnippetTextEditWithSelection(
+  server.LineInfo lineInfo,
+  server.SourceEdit edit, {
+  required int selectionOffsetRelative,
+  int? selectionLength,
+}) {
+  return lsp.LegacySnippetTextEdit(
+    insertTextFormat: lsp.InsertTextFormat.Snippet,
+    range: toRange(lineInfo, edit.offset, edit.length),
+    newText: buildSnippetStringWithTabStops(edit.replacement, [
+      selectionOffsetRelative,
+      selectionLength ?? 0,
+    ]),
+  );
+}
 
 /// Converts a [server.Location] to an [lsp.Range] by translating the
 /// offset/length using a `LineInfo`.
@@ -883,59 +935,6 @@ ChangeAnnotation? recordEditAnnotation(
 String relevanceToSortText(int relevance) =>
     (sortTextMaxValue - relevance).toString();
 
-/// Creates a [lsp.SnippetableTextEdit] for a set of edits using Linked Edit
-/// Groups.
-///
-/// Edit groups offsets are based on the entire content being modified after all
-/// edits, so [editOffset] must to take into account both the offset of the edit
-/// _and_ any delta from edits prior to this one in the file.
-///
-/// [selectionOffset] is also absolute and assumes `edit.replacement` will be
-/// inserted at [editOffset].
-lsp.SnippetableTextEdit snippetTextEditFromEditGroups(
-  String filePath,
-  server.LineInfo lineInfo,
-  server.SourceEdit edit, {
-  required List<server.LinkedEditGroup> editGroups,
-  required int editOffset,
-  required int? selectionOffset,
-  required int? selectionLength,
-}) {
-  return lsp.SnippetableTextEdit(
-    insertTextFormat: lsp.InsertTextFormat.Snippet,
-    range: toRange(lineInfo, edit.offset, edit.length),
-    newText: buildSnippetStringForEditGroups(
-      edit.replacement,
-      filePath: filePath,
-      editGroups: editGroups,
-      editOffset: editOffset,
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-    ),
-  );
-}
-
-/// Creates a [lsp.SnippetableTextEdit] for an edit with a selection
-/// placeholder.
-///
-/// [selectionOffsetRelative] is relative to (and therefore must be within) the
-/// edit.
-lsp.SnippetableTextEdit snippetTextEditWithSelection(
-  server.LineInfo lineInfo,
-  server.SourceEdit edit, {
-  required int selectionOffsetRelative,
-  int? selectionLength,
-}) {
-  return lsp.SnippetableTextEdit(
-    insertTextFormat: lsp.InsertTextFormat.Snippet,
-    range: toRange(lineInfo, edit.offset, edit.length),
-    newText: buildSnippetStringWithTabStops(edit.replacement, [
-      selectionOffsetRelative,
-      selectionLength ?? 0,
-    ]),
-  );
-}
-
 lsp.CompletionItem snippetToCompletionItem(
   lsp.LspAnalysisServer server,
   LspClientCapabilities capabilities,
@@ -979,7 +978,7 @@ lsp.CompletionItem snippetToCompletionItem(
 
   /// Convert the changes to TextEdits using snippet tokens for linked edit
   /// groups.
-  var mainFileEdits = toSnippetTextEdits(
+  var mainFileEdits = toLegacySnippetTextEdits(
     file,
     thisFilesChange,
     changes.linkedEditGroups,
@@ -1152,7 +1151,7 @@ lsp.CompletionItem toCompletionItem(
   required DocumentationPreference includeDocumentation,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  CompletionItemResolutionInfo? resolutionData,
+  CompletionResolutionInfo? resolutionData,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
@@ -1444,6 +1443,44 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
   }
 }
 
+List<lsp.LegacySnippetTextEdit> toLegacySnippetTextEdits(
+  String filePath,
+  server.SourceFileEdit change,
+  List<server.LinkedEditGroup> editGroups,
+  LineInfo lineInfo, {
+  required int? selectionOffset,
+  required int? selectionLength,
+}) {
+  var snippetEdits = <lsp.LegacySnippetTextEdit>[];
+
+  // Edit groups offsets are based on the document after the edits are applied.
+  // This means we must compute an offset delta for each edit that takes into
+  // account all edits that might be made before it in the document (which are
+  // after it in the edits). To do this, reverse the list when computing the
+  // offsets, but reverse them back to the original list order when returning so
+  // that we do not apply them incorrectly in tests (where we will apply them
+  // in-sequence).
+
+  var offsetDelta = 0;
+  for (var edit in change.edits.reversed) {
+    snippetEdits.add(
+      legacySnippetTextEditFromEditGroups(
+        filePath,
+        lineInfo,
+        edit,
+        editGroups: editGroups,
+        editOffset: edit.offset + offsetDelta,
+        selectionOffset: selectionOffset,
+        selectionLength: selectionLength,
+      ),
+    );
+
+    offsetDelta += edit.replacement.length - edit.length;
+  }
+
+  return snippetEdits.reversed.toList();
+}
+
 lsp.Location toLocation(
   ClientUriConverter uriConverter,
   server.Location location,
@@ -1526,9 +1563,10 @@ lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
 }
 
 lsp.SignatureHelp toSignatureHelp(
-  Set<lsp.MarkupKind>? preferredFormats,
-  server.SignatureInformation signature,
-) {
+  server.SignatureInformation signature, {
+  required Set<lsp.MarkupKind>? preferredFormats,
+  required bool clientSupportsNullActiveParameter,
+}) {
   // For now, we only support returning one (though we may wish to use named
   // args. etc. to provide one for each possible "next" option when the cursor
   // is at the end ready to provide another argument).
@@ -1586,54 +1624,18 @@ lsp.SignatureHelp toSignatureHelp(
       ),
     ],
     activeSignature: 0, // activeSignature
-    // We must provide a unsigned integer here but it's possible there isn't
-    // a valid value (because the user might be in the 10th argument of an
-    // invocation that only takes 1). The LSP spec allows us to send an
-    // out-of-bounds value so send the first out-of-bound value (`.length`). The
-    // spec says this may be treated as 0, however VS Code will not highlight
-    // any parameter in this case (which is preferred and hopefully other
-    // clients may copy).
     activeParameter:
-        signature.activeParameterIndex ?? signature.parameters.length,
+        signature.activeParameterIndex ??
+        // If the client doesn't support `null`, we still must provide an
+        // unsigned integer. The LSP spec allows us to send an out-of-bounds
+        // value so send the first out-of-bound value (`.length`). The spec
+        // says this may be treated as 0, however VS Code will not highlight
+        // any parameter in this case (which is preferred and hopefully other
+        // clients may copy).
+        (clientSupportsNullActiveParameter
+            ? null
+            : signature.parameters.length),
   );
-}
-
-List<lsp.SnippetableTextEdit> toSnippetTextEdits(
-  String filePath,
-  server.SourceFileEdit change,
-  List<server.LinkedEditGroup> editGroups,
-  LineInfo lineInfo, {
-  required int? selectionOffset,
-  required int? selectionLength,
-}) {
-  var snippetEdits = <lsp.SnippetableTextEdit>[];
-
-  // Edit groups offsets are based on the document after the edits are applied.
-  // This means we must compute an offset delta for each edit that takes into
-  // account all edits that might be made before it in the document (which are
-  // after it in the edits). To do this, reverse the list when computing the
-  // offsets, but reverse them back to the original list order when returning so
-  // that we do not apply them incorrectly in tests (where we will apply them
-  // in-sequence).
-
-  var offsetDelta = 0;
-  for (var edit in change.edits.reversed) {
-    snippetEdits.add(
-      snippetTextEditFromEditGroups(
-        filePath,
-        lineInfo,
-        edit,
-        editGroups: editGroups,
-        editOffset: edit.offset + offsetDelta,
-        selectionOffset: selectionOffset,
-        selectionLength: selectionLength,
-      ),
-    );
-
-    offsetDelta += edit.replacement.length - edit.length;
-  }
-
-  return snippetEdits.reversed.toList();
 }
 
 ErrorOr<server.SourceRange> toSourceRange(
@@ -1689,7 +1691,7 @@ lsp.TextDocumentEdit toTextDocumentEdit(
   );
 }
 
-Either3<lsp.AnnotatedTextEdit, lsp.SnippetableTextEdit, lsp.TextEdit>
+Either3<lsp.AnnotatedTextEdit, lsp.LegacySnippetTextEdit, lsp.TextEdit>
 toTextDocumentEditEdit(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
@@ -1701,7 +1703,7 @@ toTextDocumentEditEdit(
   if (annotationIdentifier != null) {
     return Either3<
       lsp.AnnotatedTextEdit,
-      lsp.SnippetableTextEdit,
+      lsp.LegacySnippetTextEdit,
       lsp.TextEdit
     >.t1(
       lsp.AnnotatedTextEdit(
@@ -1711,20 +1713,19 @@ toTextDocumentEditEdit(
       ),
     );
   }
-  if (!capabilities.experimentalSnippetTextEdit ||
-      selectionOffsetRelative == null) {
+  if (!capabilities.legacySnippetTextEdit || selectionOffsetRelative == null) {
     return Either3<
       lsp.AnnotatedTextEdit,
-      lsp.SnippetableTextEdit,
+      lsp.LegacySnippetTextEdit,
       lsp.TextEdit
     >.t3(toTextEdit(lineInfo, edit));
   }
   return Either3<
     lsp.AnnotatedTextEdit,
-    lsp.SnippetableTextEdit,
+    lsp.LegacySnippetTextEdit,
     lsp.TextEdit
   >.t2(
-    snippetTextEditWithSelection(
+    legacySnippetTextEditWithSelection(
       lineInfo,
       edit,
       selectionOffsetRelative: selectionOffsetRelative,

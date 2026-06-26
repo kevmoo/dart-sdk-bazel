@@ -101,7 +101,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   });
 }
 
@@ -395,7 +395,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -798,7 +798,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required Variable? thisVariable,
+    required ThisVariable? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -953,7 +953,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       closureNamedParameters.add(newParameter);
       closureNamedArguments.add(
         extern.createNamedExpression(
-          parameter.name!,
+          parameter.parameterName,
           extern.createVariableGet(newParameter, fileOffset: fileOffset),
         ),
       );

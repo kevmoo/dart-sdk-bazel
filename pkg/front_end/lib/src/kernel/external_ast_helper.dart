@@ -167,8 +167,8 @@ CastPattern createCastPattern({
 
 Catch createCatch({
   required DartType guard,
-  required Variable? exception,
-  required Variable? stackTrace,
+  required CatchVariable? exception,
+  required CatchVariable? stackTrace,
   required Statement body,
   required Scope? scope,
   required int fileOffset,
@@ -644,7 +644,7 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(Variable variable, Expression body, {int? fileOffset}) {
+Let createLet(SyntheticVariable variable, Expression body, {int? fileOffset}) {
   return new Let(variable, body)
     ..fileOffset = fileOffset ?? variable.fileOffset;
 }
@@ -839,6 +839,7 @@ NamedParameter createNamedParameter({
   bool isLowered = false,
   bool isSynthesized = false,
   bool isWildcard = false,
+  bool isRenamedPrivateNamedParameter = false,
   required int fileOffset,
 }) {
   return new NamedParameter(
@@ -855,6 +856,7 @@ NamedParameter createNamedParameter({
     isLowered: isLowered,
     isSynthesized: isSynthesized,
     isWildcard: isWildcard,
+    isRenamedPrivateNamedParameter: isRenamedPrivateNamedParameter,
   )..fileOffset = fileOffset;
 }
 
@@ -1316,7 +1318,7 @@ VariableDeclaration createUninitializedVariableDeclaration({
 /// Creates a [Variable] for [expression] with the static [type]
 /// using `expression.fileOffset` as the file offset for the declaration.
 // TODO(johnniwinther): Merge the use of this with [createVariableCache].
-Variable createVariable(
+SyntheticVariable createVariable(
   Expression expression,
   DartType type, {
   String? cosmeticName,
@@ -1339,7 +1341,7 @@ Variable createVariable(
 
 /// Creates a [Variable] for caching [expression] of the static
 /// [type] using `expression.fileOffset` as the file offset for the declaration.
-Variable createVariableCache(
+SyntheticVariable createVariableCache(
   Expression expression,
   DartType type, {
   int? fileOffset,

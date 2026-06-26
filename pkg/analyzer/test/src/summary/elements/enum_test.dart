@@ -2241,7 +2241,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -2262,7 +2262,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<String>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: String}
                   argumentList: ArgumentList
@@ -3167,7 +3167,7 @@ library
                         rightBracket: > @22
                       element: <testLibrary>::@enum::E
                       type: E<double>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: double}
                   argumentList: ArgumentList
@@ -5350,7 +5350,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -6045,7 +6045,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -6241,7 +6241,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int, int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int, U: int}
                   argumentList: ArgumentList
@@ -6695,11 +6695,11 @@ library
                     period: . @0
                     name: SimpleIdentifier
                       token: named @-1
-                      element: ConstructorMember
+                      element: SubstitutedConstructorElementImpl
                         baseElement: <testLibrary>::@enum::A::@constructor::named
                         substitution: {T: int}
                       staticType: null
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::named
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -8875,7 +8875,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -11903,7 +11903,7 @@ library
                         rightBracket: > @33
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -12062,7 +12062,7 @@ library
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -12347,7 +12347,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {U: dynamic}
                   argumentList: ArgumentList
@@ -12867,7 +12867,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -13400,7 +13400,7 @@ library
                         rightBracket: > @30
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -13890,7 +13890,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -13966,6 +13966,244 @@ library
 ''');
   }
 
+  test_enum_typeParameters_augmentation_chain_bounds_int_int() async {
+    var library = await buildLibrary(r'''
+enum A<T extends int> {
+  v
+}
+augment enum A<T extends int> {}
+''');
+
+    configuration.withConstantInitializers = false;
+    configuration.withDefaultType = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+              nextFragment: #F4
+          fields
+            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@enum::A::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A<int>
+              inducedGetter: #F6
+            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::A::@getter::v
+                      staticType: A<int>
+                  rightBracket: ] @0
+                  staticType: List<A<int>>
+              inducedGetter: #F8
+          constructors
+            #F9 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@constructor::new
+              typeName: A
+          getters
+            #F6 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@enum::A::@getter::v
+              inducingVariable: #F5
+            #F8 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@getter::values
+              inducingVariable: #F7
+        #F2 isAugmentation enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
+          element: <testLibrary>::@enum::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+  enums
+    isSimplyBounded enum A
+      reference: <testLibrary>::@enum::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+          bound: int
+          defaultType: int
+      supertype: Enum
+      fields
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
+          reference: <testLibrary>::@enum::A::@field::v
+          firstFragment: #F5
+          type: A<int>
+          constantInitializer
+            fragment: #F5
+            expression: expression_0
+          getter: <testLibrary>::@enum::A::@getter::v
+        isConst isOriginEnumValues isStatic values
+          reference: <testLibrary>::@enum::A::@field::values
+          firstFragment: #F7
+          type: List<A<int>>
+          constantInitializer
+            fragment: #F7
+            expression: expression_1
+          getter: <testLibrary>::@enum::A::@getter::values
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::A::@constructor::new
+          firstFragment: #F9
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        isOriginVariable isStatic v
+          reference: <testLibrary>::@enum::A::@getter::v
+          firstFragment: #F6
+          returnType: A<int>
+          variable: <testLibrary>::@enum::A::@field::v
+        isOriginVariable isStatic values
+          reference: <testLibrary>::@enum::A::@getter::values
+          firstFragment: #F8
+          returnType: List<A<int>>
+          variable: <testLibrary>::@enum::A::@field::values
+''');
+  }
+
+  test_enum_typeParameters_augmentation_chain_bounds_int_string() async {
+    var library = await buildLibrary(r'''
+enum A<T extends int> {
+  v
+}
+augment enum A<T extends String> {}
+''');
+
+    configuration.withConstantInitializers = false;
+    configuration.withDefaultType = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
+              element: #E0 T
+              nextFragment: #F4
+          fields
+            #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@enum::A::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: A @-1
+                      element: <testLibrary>::@enum::A
+                      type: A<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::A::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: A<int>
+              inducedGetter: #F6
+            #F7 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::A::@getter::v
+                      staticType: A<int>
+                  rightBracket: ] @0
+                  staticType: List<A<int>>
+              inducedGetter: #F8
+          constructors
+            #F9 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@constructor::new
+              typeName: A
+          getters
+            #F6 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@enum::A::@getter::v
+              inducingVariable: #F5
+            #F8 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::A::@getter::values
+              inducingVariable: #F7
+        #F2 isAugmentation enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
+          element: <testLibrary>::@enum::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+  enums
+    isSimplyBounded enum A
+      reference: <testLibrary>::@enum::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+          bound: int
+          defaultType: int
+      supertype: Enum
+      fields
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
+          reference: <testLibrary>::@enum::A::@field::v
+          firstFragment: #F5
+          type: A<int>
+          constantInitializer
+            fragment: #F5
+            expression: expression_0
+          getter: <testLibrary>::@enum::A::@getter::v
+        isConst isOriginEnumValues isStatic values
+          reference: <testLibrary>::@enum::A::@field::values
+          firstFragment: #F7
+          type: List<A<int>>
+          constantInitializer
+            fragment: #F7
+            expression: expression_1
+          getter: <testLibrary>::@enum::A::@getter::values
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::A::@constructor::new
+          firstFragment: #F9
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        isOriginVariable isStatic v
+          reference: <testLibrary>::@enum::A::@getter::v
+          firstFragment: #F6
+          returnType: A<int>
+          variable: <testLibrary>::@enum::A::@field::v
+        isOriginVariable isStatic values
+          reference: <testLibrary>::@enum::A::@getter::values
+          firstFragment: #F8
+          returnType: List<A<int>>
+          variable: <testLibrary>::@enum::A::@field::values
+''');
+  }
+
   test_enum_typeParameters_augmentation_chain_count_112() async {
     var library = await buildLibrary(r'''
 enum E<T> { v }
@@ -14001,7 +14239,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -14129,7 +14367,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -14261,7 +14499,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic, dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic, U: dynamic}
                   argumentList: ArgumentList
@@ -14381,7 +14619,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<num, num>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: num, U: num}
                   argumentList: ArgumentList
@@ -14601,140 +14839,6 @@ library
 ''');
   }
 
-  test_enum_typeParameters_defaultType() async {
-    var library = await buildLibrary(r'''
-enum A<T extends B> {
-  v
-}
-class B {}
-
-augment enum A<T extends B> {}
-''');
-
-    configuration.withConstantInitializers = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
-          element: <testLibrary>::@class::B
-          constructors
-            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
-              element: <testLibrary>::@class::B::@constructor::new
-              typeName: B
-      enums
-        #F3 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@enum::A
-          nextFragment: #F4
-          typeParameters
-            #F5 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
-              element: #E0 T
-              nextFragment: #F6
-          fields
-            #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
-              element: <testLibrary>::@enum::A::@field::v
-              initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
-                      name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A<B>
-                    element: ConstructorMember
-                      baseElement: <testLibrary>::@enum::A::@constructor::new
-                      substitution: {T: B}
-                  argumentList: ArgumentList
-                    leftParenthesis: ( @0
-                    rightParenthesis: ) @0
-                  staticType: A<B>
-              inducedGetter: #F8
-            #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@field::values
-              initializer: expression_1
-                ListLiteral
-                  leftBracket: [ @0
-                  elements
-                    SimpleIdentifier
-                      token: v @-1
-                      element: <testLibrary>::@enum::A::@getter::v
-                      staticType: A<B>
-                  rightBracket: ] @0
-                  staticType: List<A<B>>
-              inducedGetter: #F10
-          constructors
-            #F11 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@constructor::new
-              typeName: A
-          getters
-            #F8 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
-              element: <testLibrary>::@enum::A::@getter::v
-              inducingVariable: #F7
-            #F10 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@getter::values
-              inducingVariable: #F9
-        #F4 isAugmentation enum A (nameOffset:53) (firstTokenOffset:40) (offset:53)
-          element: <testLibrary>::@enum::A
-          previousFragment: #F3
-          typeParameters
-            #F6 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
-              element: #E0 T
-              previousFragment: #F5
-  classes
-    isSimplyBounded class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F1
-      constructors
-        isOriginImplicitDefault new
-          reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F2
-  enums
-    isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A
-      firstFragment: #F3
-      typeParameters
-        #E0 T
-          firstFragment: #F5
-          bound: B
-      supertype: Enum
-      fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::A::@field::v
-          firstFragment: #F7
-          type: A<B>
-          constantInitializer
-            fragment: #F7
-            expression: expression_0
-          getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@field::values
-          firstFragment: #F9
-          type: List<A<B>>
-          constantInitializer
-            fragment: #F9
-            expression: expression_1
-          getter: <testLibrary>::@enum::A::@getter::values
-      constructors
-        hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
-          reference: <testLibrary>::@enum::A::@constructor::new
-          firstFragment: #F11
-          superConstructor: dart:core::@class::Enum::@constructor::new
-      getters
-        isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::A::@getter::v
-          firstFragment: #F8
-          returnType: A<B>
-          variable: <testLibrary>::@enum::A::@field::v
-        isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@getter::values
-          firstFragment: #F10
-          returnType: List<A<B>>
-          variable: <testLibrary>::@enum::A::@field::values
-''');
-  }
-
   test_enum_typeParameters_defaultType_cycle_genericFunctionType() async {
     var library = await buildLibrary(r'''
 enum E<T extends void Function(E)> {}
@@ -14836,7 +14940,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -15836,7 +15940,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -17634,7 +17738,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -18586,7 +18690,7 @@ library
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::E::@constructor::new
                       substitution: {T: dynamic}
                   argumentList: ArgumentList
@@ -18855,7 +18959,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList
@@ -19648,7 +19752,7 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::new
                       substitution: {T: int}
                   argumentList: ArgumentList

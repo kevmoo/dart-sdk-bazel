@@ -9,6 +9,7 @@ library package_isolate_test;
 
 import 'dart:io';
 import 'dart:isolate';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;

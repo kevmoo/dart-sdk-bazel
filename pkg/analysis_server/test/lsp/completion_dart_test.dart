@@ -38,6 +38,7 @@ import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CompletionDataMergeTest);
     defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(CompletionLabelDetailsTest);
     defineReflectiveTests(CompletionTest);
@@ -100,6 +101,70 @@ linter:
   rules:
 $lintsYaml
 ''');
+  }
+}
+
+@reflectiveTest
+class CompletionDataMergeTest extends AbstractCompletionTest {
+  Future<void> initializeServer() async {
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    await initialAnalysis;
+  }
+
+  Future<void> test_supported() async {
+    setCompletionListApplyKindSupport();
+
+    content = '^';
+    await initializeServer();
+
+    var completionList = await getCompletionList(
+      mainFileUri,
+      code.position.position,
+    );
+
+    // File should be populated at the list level (itemDefaults.data).
+    var listResolutionInfo = CompletionResolutionInfo.fromJson(
+      completionList.itemDefaults?.data as Map<String, Object?>,
+    ) as DartCompletionRequestResolutionInfo;
+    expect(listResolutionInfo.file, mainFilePath);
+
+    // every item should have a null file (or no data at all).
+    for (var item in completionList.items) {
+      var data = item.data as DartCompletionItemResolutionInfo?;
+      expect(data?.file, isNull);
+    }
+  }
+
+  Future<void> test_unsupported() async {
+    setCompletionListApplyKindSupport(false);
+
+    content = '^';
+    await initializeServer();
+
+    var completionList = await getCompletionList(
+      mainFileUri,
+      code.position.position,
+    );
+
+    // We should have no list-level data.
+    expect(completionList.itemDefaults?.data, isNull);
+
+    // every item should have either no data (because it doesn't need
+    // resolving), or the file.
+    for (var item in completionList.items) {
+      var data = item.data as DartCompletionItemResolutionInfo?;
+      expect(data?.file, anyOf(isNull, mainFilePath));
+    }
+
+    // Ensure at least some items actually had data, so the check above was
+    // valid (since it would pass if we lost all data from all items).
+    expect(
+      completionList.items,
+      anyElement(
+        isA<CompletionItem>().having((item) => item.data, 'data', isNotNull),
+      ),
+    );
   }
 }
 
@@ -510,9 +575,9 @@ void f(Other r) {
     var resolved = await resolveCompletion(completion);
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -624,7 +689,7 @@ var id = myConstru^
       var completion = completions.singleWhere(
         (completion) => completion.label == label,
       );
-      var info = completion.data as DartCompletionResolutionInfo?;
+      var info = completion.data as DartCompletionMergedResolutionInfo?;
       var importUri = info?.importUris.singleOrNull;
 
       expect(importUri, autoImport ?? isNull);
@@ -3823,9 +3888,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4039,9 +4104,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4136,9 +4201,9 @@ void f(String a) {
     // Verify the edits.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -4329,15 +4394,15 @@ void f() {
 
     var newContentReplaceMode = applyTextEdits(
       code.code,
-      [
-        textEditForReplace(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [textEditForReplace(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     var newContentInsertMode = applyTextEdits(
       code.code,
-      [
-        textEditForInsert(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [textEditForInsert(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4405,9 +4470,9 @@ void f() {
     // Apply all current-document edits.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
     expect(
       newContent,
@@ -4653,9 +4718,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     // Ensure both edits were made - the completion, and the inserted import.
@@ -4714,9 +4779,9 @@ class BaseImpl extends Base {
 
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolved.textEdit!),
-      ].followedBy(resolved.additionalTextEdits!).toList(),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
     );
 
     expect(
@@ -4929,9 +4994,9 @@ void f() {
     // Apply both the main completion edit and the additionalTextEdits atomically.
     var newContent = applyTextEdits(
       code.code,
-      [
-        toTextEdit(resolvedCompletion.textEdit!),
-      ].followedBy(resolvedCompletion.additionalTextEdits ?? []).toList(),
+      [toTextEdit(resolvedCompletion.textEdit!)]
+          .followedBy(resolvedCompletion.additionalTextEdits ?? [])
+          .toList(),
     );
 
     expect(newContent, equalsNormalized(expectedContent));

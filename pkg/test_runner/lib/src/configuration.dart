@@ -14,8 +14,8 @@ import 'compiler_configuration.dart';
 import 'deflake_info.dart';
 import 'feature.dart';
 import 'path.dart';
-import 'repository.dart';
 import 'runtime_configuration.dart';
+import 'repository.dart';
 import 'testing_servers.dart';
 
 export 'package:smith/smith.dart';

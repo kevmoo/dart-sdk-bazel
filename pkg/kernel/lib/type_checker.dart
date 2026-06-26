@@ -1447,10 +1447,8 @@ class TypeCheckingVisitor
           node.interfaceTarget.enclosingClass == coreTypes.mapClass &&
           node.interfaceTarget.kind == ProcedureKind.Operator &&
           node.interfaceTarget.name == indexSetName;
-      if (node.arguments.positional case [
-        InvalidExpression(),
-        NullLiteral(),
-      ] when isMapIndexSet) {
+      if (node.arguments.positional case [InvalidExpression(), NullLiteral()]
+          when isMapIndexSet) {
         return const InvalidType();
       } else {
         visitExpression(node.receiver);

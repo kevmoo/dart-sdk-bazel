@@ -5,7 +5,9 @@
 // OtherResources=process_check_arguments_script.dart
 
 import "package:expect/expect.dart";
+
 import "dart:io";
+
 import "process_test_util.dart";
 
 test(args) {

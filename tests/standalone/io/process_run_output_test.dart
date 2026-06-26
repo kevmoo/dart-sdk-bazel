@@ -8,8 +8,10 @@
 // OtherResources=process_std_io_script2.dart
 
 import "package:expect/expect.dart";
+
 import "dart:convert";
 import "dart:io";
+
 import "process_test_util.dart";
 
 checkOutput(String encoding, output) {

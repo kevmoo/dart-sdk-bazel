@@ -249,8 +249,8 @@ class _Collect extends RecursiveVisitor {
       localParameters[param] = info.ensurePositional(i)
         ..observeParameter(member, param, shaker);
     }
-    for (Variable param in fun.namedParameters) {
-      localParameters[param] = info.ensureNamed(param.name!)
+    for (NamedParameter param in fun.namedParameters) {
+      localParameters[param] = info.ensureNamed(param.parameterName)
         ..observeParameter(member, param, shaker);
     }
 
@@ -636,7 +636,7 @@ class _Transform extends RecursiveVisitor {
         final Constructor constructor = call.parent as Constructor;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            Variable argVar = SyntheticVariable(
+            SyntheticVariable argVar = SyntheticVariable(
               initializer: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
@@ -652,7 +652,7 @@ class _Transform extends RecursiveVisitor {
         Expression current = call as Expression;
         forEachArgumentRev(args, info, (Expression arg, _ParameterInfo param) {
           if (mayHaveOrSeeSideEffects(arg) && !isUnusedParam(arg)) {
-            Variable argVar = SyntheticVariable(
+            SyntheticVariable argVar = SyntheticVariable(
               initializer: arg,
               type: arg.getStaticType(typeContext),
               isFinal: true,
@@ -664,7 +664,7 @@ class _Transform extends RecursiveVisitor {
         if (receiver != null && mayHaveOrSeeSideEffects(receiver)) {
           assert(!isUnusedParam(receiver));
           assert(receiver.parent == call);
-          final Variable receiverVar = SyntheticVariable(
+          final SyntheticVariable receiverVar = SyntheticVariable(
             initializer: receiver,
             type: receiver.getStaticType(typeContext),
             isFinal: true,

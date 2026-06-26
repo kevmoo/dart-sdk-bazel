@@ -146,8 +146,12 @@ class AssignedVariablesImpl
 
   @override
   AssignedVariablesNodeInfo popNode() {
-    _insideAsserts?.popNode();
-    _outsideAsserts?.popNode();
+    _insideAsserts
+        // Coverage-ignore(suite): Not run.
+        ?.popNode();
+    _outsideAsserts
+        // Coverage-ignore(suite): Not run.
+        ?.popNode();
     return _delegate.popNode();
   }
 
@@ -159,8 +163,12 @@ class AssignedVariablesImpl
   @override
   void pushNode(AssignedVariablesNodeInfo node) {
     _delegate.pushNode(node);
-    _insideAsserts?.pushNode(node);
-    _outsideAsserts?.pushNode(node);
+    _insideAsserts
+    // Coverage-ignore(suite): Not run.
+    ?.pushNode(node);
+    _outsideAsserts
+    // Coverage-ignore(suite): Not run.
+    ?.pushNode(node);
   }
 
   @override
@@ -205,8 +213,9 @@ class AssignedVariablesImpl
   void write(InternalVariable variable) {
     _delegate.write(variable);
     if (_isInsideAssert) {
-      // Coverage-ignore-block(suite): Not run.
-      _insideAsserts?.write(variable);
+      _insideAsserts
+      // Coverage-ignore(suite): Not run.
+      ?.write(variable);
     } else {
       _outsideAsserts?.write(variable);
     }

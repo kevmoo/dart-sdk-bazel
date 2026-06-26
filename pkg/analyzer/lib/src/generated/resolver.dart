@@ -398,6 +398,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
+  /// If a class, or mixin, is being resolved, the type of the class, after
+  /// applying type promotion of `this`.
+  ///
+  /// If an extension is being resolved, the type of `this`, the declared
+  /// extended type.
+  ///
+  /// If the feature `this-promotion` is disabled, this getter returns the same
+  /// value as [thisType].
+  ///
+  /// Otherwise `null`.
+  TypeImpl? get effectiveThisType =>
+      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView() as TypeImpl? ??
+      thisType;
+
   @override
   FlowAnalysis<
     AstNodeImpl,
@@ -434,10 +448,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   bool get strictCasts => analysisOptions.strictCasts;
 
-  /// If a class, or mixin, is being resolved, the type of the class.
+  /// If a class, or mixin, is being resolved, the type of the class, before
+  /// applying type promotion of `this`.
   ///
   /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type, or promoted.
+  /// extended type.
+  ///
+  /// If the feature `this-promotion` is disabled, this getter returns the same
+  /// value as [effectiveThisType].
   ///
   /// Otherwise `null`.
   TypeImpl? get thisType {
@@ -2185,6 +2203,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     var analysisResult = analyzeAwaitExpression(
+      node,
       node.expression,
       contextType.wrapSharedTypeSchemaView(),
     );
@@ -5219,6 +5238,18 @@ class _WhyNotPromotedVisitor
   }
 
   @override
+  List<DiagnosticMessage> visitDemoteViaSuspension(
+    DemoteViaSuspension<PromotableElementImpl> reason,
+  ) {
+    var node = reason.node as AstNode;
+    if (_dataForTesting != null) {
+      _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
+    }
+    var variableName = reason.variable.name;
+    return [_contextMessageForSuspension(variableName, node, reason)];
+  }
+
+  @override
   List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
   ) {
@@ -5353,6 +5384,22 @@ class _WhyNotPromotedVisitor
         url: reason.documentationLink.url,
       ),
     ];
+  }
+
+  DiagnosticMessageImpl _contextMessageForSuspension(
+    String? variableName,
+    AstNode node,
+    DemoteViaSuspension<PromotableElementImpl> reason,
+  ) {
+    return DiagnosticMessageImpl(
+      filePath: source.fullName,
+      message:
+          "Variable '${variableName!}' could not be promoted due to an "
+          "'await' or 'yield'",
+      offset: node.offset,
+      length: node.length,
+      url: reason.documentationLink.url,
+    );
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(

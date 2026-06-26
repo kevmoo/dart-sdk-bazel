@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+
 import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
-  List<Info> _list
+  List<Info> _list,
 ) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
@@ -34,9 +35,8 @@ enum ScopeProviderInfoKind {
 
 class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
-
   Scope? scope;
-  Variable? thisVariable;
+  ThisVariable? thisVariable;
 
   new({required this.kind});
 }
@@ -180,7 +180,6 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   });
 }
 
-// Coverage-ignore(suite): Not run.
 class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
@@ -189,9 +188,8 @@ class TrivialContextAllocationStrategy
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
-    _ensureVariableContextInCurrentScope(
-      captureKind: captureKind,
-    ).addVariable(variable);
+    _ensureVariableContextInCurrentScope(captureKind: captureKind)
+        .addVariable(variable);
   }
 
   @override
@@ -200,6 +198,7 @@ class TrivialContextAllocationStrategy
   }) => new ScopeProviderInfo(kind: scopeProviderInfoKind);
 }
 
+// Coverage-ignore(suite): Not run.
 class CollectorScopeProviderInfo extends ScopeProviderInfo {
   /// Link to [CollectorScopeProviderInfo] that the current info object
   /// delegates collecting captured variables to.
@@ -212,6 +211,7 @@ class CollectorScopeProviderInfo extends ScopeProviderInfo {
   new({required super.kind});
 }
 
+// Coverage-ignore(suite): Not run.
 class LoopDepthAllocationStrategy
     extends ContextAllocationStrategy<CollectorScopeProviderInfo> {
   @override
@@ -282,9 +282,8 @@ class LoopDepthAllocationStrategy
         captureKind: captureKind,
       )!.addVariable(variable);
     } else {
-      _ensureVariableContextInCurrentScope(
-        captureKind: captureKind,
-      ).addVariable(variable);
+      _ensureVariableContextInCurrentScope(captureKind: captureKind)
+          .addVariable(variable);
 
       // In case it was the first not uncaptured variable (that is, either
       // captured or assert-captured) for the current scope, and it didn't have

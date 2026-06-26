@@ -47,6 +47,7 @@ import 'package:kernel/kernel.dart'
         LibraryPart,
         Name,
         NamedNode,
+        NamedParameter,
         Node,
         Nullability,
         Procedure,
@@ -1876,6 +1877,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Map<String, DartType> usedDefinitions = new Map<String, DartType>.of(
       inputDefinitions,
     );
+    final Set<String> renamedPrivateNamedParameter = {};
 
     return await context.runInContext((_) async {
       CompilationUnit? compilationUnit = lastGoodKernelTarget!.loader
@@ -1890,6 +1892,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<InternalVariable> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
+      Set<String> removedDefinitionNames = {};
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1952,6 +1955,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
             DartType? existingType = usedDefinitions[def.key];
 
+            if (existingType != null &&
+                def.value is NamedParameter &&
+                (def.value as NamedParameter).isRenamedPrivateNamedParameter) {
+              // We have to rename this for correct scope lookups.
+              renamedPrivateNamedParameter.add(def.key);
+            }
+
             if (existingType == null) {
               // We found a variable, but we weren't told about it.
               // For now we'll only do something special if it's a const
@@ -2011,6 +2021,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 usedType = usedType.toNonNull();
               }
               usedDefinitions[def.key] = usedType;
+            }
+          }
+
+          for (String name in usedDefinitions.keys) {
+            if (definitionsAddedByUser != null &&
+                definitionsAddedByUser.contains(name)) {
+              // Don't remove user-provided "fake" definitions.
+              continue;
+            }
+            if (!foundScope.variables.containsKey(name)) {
+              removedDefinitionNames.add(name);
             }
           }
         }
@@ -2074,7 +2095,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                     subBuilder.invokeTarget?.function?.positionalParameters;
                 if (positionals != null &&
                     positionals.isNotEmpty &&
-                    isExtensionThisName(positionals.first.name) &&
+                    isExtensionThisName(positionals.first.cosmeticName) &&
                     usedDefinitions.containsKey(syntheticThisName)) {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly
@@ -2243,6 +2264,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<PositionalParameter> positionalParameters = [];
       for (MapEntry<String, DartType> def in usedDefinitions.entries) {
         String name = def.key;
+        if (renamedPrivateNamedParameter.contains(name)) {
+          // We rename it here so scopes will be correct.
+          name = "_$name";
+        }
         DartType type = def.value;
         PositionalParameter variable = extern.createPositionalParameter(
           cosmeticName: name,
@@ -2259,11 +2284,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // The `#this` variable is special.
           extensionThis = variable..isLowered = true;
           positionalParametersUsedForCompiling.add(variable);
-        } else {
-          // For now include everything, but in the future we'll only add
-          // if this definition was found in the kernel tree.
+        } else if (!removedDefinitionNames.contains(name)) {
+          // If this definition hasn't been removed we use it for compiling.
           positionalParametersUsedForCompiling.add(variable);
-
+        } else {
           // TODO(jensj): Possibly pass the variables not in scope in an
           // additional list so that we can compile to using these if we would
           // have otherwise created a compile time error --- see comment on
@@ -2289,7 +2313,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       ExpressionEvaluationHelper expressionEvaluationHelper =
           new ExpressionEvaluationHelperImpl(extraKnownVariables, hierarchy);
 
-      ExpressionCompilationData expressionCompilerDataCarrier =
+      ExpressionCompilationData expressionCompilationData =
           new ExpressionCompilationData(
             fileOffset: TreeNode.noOffset,
             typeParameters: typeDefinitions,
@@ -2301,7 +2325,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             debugLibrary,
             className ?? extensionName,
             (className != null && !isStatic) || extensionThis != null,
-            expressionCompilerDataCarrier,
+            expressionCompilationData,
             extensionThis,
             extraKnownVariables,
             expressionEvaluationHelper,
@@ -2319,7 +2343,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
-        containsSuperCalls: expressionCompilerDataCarrier.containsSuperCalls,
+        containsSuperCalls: expressionCompilationData.containsSuperCalls,
       );
       procedure.parent = cls ?? libraryBuilder.library;
 

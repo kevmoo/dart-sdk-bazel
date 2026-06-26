@@ -1941,31 +1941,6 @@ bool _canParseCompletionItemLabelDetails(
   return true;
 }
 
-bool _canParseCompletionItemResolutionInfo(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionItemResolutionInfo.canParse(value, reporter)) {
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseCompletionItemTagOptions(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2033,6 +2008,31 @@ bool _canParseCompletionOptions(
     }
     if ((!nullCheck || value != null) &&
         !CompletionOptions.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseCompletionResolutionInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !CompletionResolutionInfo.canParse(value, reporter)) {
       return false;
     }
   } finally {
@@ -3450,7 +3450,7 @@ bool _canParseLinkedEditingRangeClientCapabilities(
   return true;
 }
 
-bool _canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
+bool _canParseListAnnotatedTextEditLegacySnippetTextEditTextEdit(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -3469,10 +3469,10 @@ bool _canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
         (value is! List<Object?> ||
             value.any((item) =>
                 !AnnotatedTextEdit.canParse(item, reporter) &&
-                !SnippetableTextEdit.canParse(item, reporter) &&
+                !LegacySnippetTextEdit.canParse(item, reporter) &&
                 !TextEdit.canParse(item, reporter)))) {
       reporter.reportError(
-          'must be of type List<Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>>');
+          'must be of type List<Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>>');
       return false;
     }
   } finally {
@@ -7194,16 +7194,16 @@ bool _canParseWorkspaceSymbolClientCapabilities(
   return true;
 }
 
-Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>
-    _eitherAnnotatedTextEditSnippetableTextEditTextEdit(Object? value) {
+Either3<AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit>
+    _eitherAnnotatedTextEditLegacySnippetTextEditTextEdit(Object? value) {
   return AnnotatedTextEdit.canParse(value, nullLspJsonReporter)
       ? Either3.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
-      : SnippetableTextEdit.canParse(value, nullLspJsonReporter)
+      : LegacySnippetTextEdit.canParse(value, nullLspJsonReporter)
           ? Either3.t2(
-              SnippetableTextEdit.fromJson(value as Map<String, Object?>))
+              LegacySnippetTextEdit.fromJson(value as Map<String, Object?>))
           : TextEdit.canParse(value, nullLspJsonReporter)
               ? Either3.t3(TextEdit.fromJson(value as Map<String, Object?>))
-              : throw '$value was not one of (AnnotatedTextEdit, SnippetableTextEdit, TextEdit)';
+              : throw '$value was not one of (AnnotatedTextEdit, LegacySnippetTextEdit, TextEdit)';
 }
 
 Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>
@@ -13864,7 +13864,7 @@ class CompletionItem implements ToJsonable {
 
   /// A data entry field that is preserved on a completion item between a
   /// [CompletionRequest] and a [CompletionResolveRequest].
-  final CompletionItemResolutionInfo? data;
+  final CompletionResolutionInfo? data;
 
   /// Indicates if this item is deprecated.
   /// @deprecated Use `tags` instead.
@@ -14123,7 +14123,7 @@ class CompletionItem implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionItemResolutionInfo(obj, reporter, 'data',
+      if (!_canParseCompletionResolutionInfo(obj, reporter, 'data',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -14206,8 +14206,7 @@ class CompletionItem implements ToJsonable {
         .toList();
     final dataJson = json['data'];
     final data = dataJson != null
-        ? CompletionItemResolutionInfo.fromJson(
-            dataJson as Map<String, Object?>)
+        ? CompletionResolutionInfo.fromJson(dataJson as Map<String, Object?>)
         : null;
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;
@@ -31355,6 +31354,27 @@ class PartialResultParams implements ToJsonable {
     if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
       return ColorPresentationParams.fromJson(json);
     }
+    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
+      return ReferenceParams.fromJson(json);
+    }
+    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
+      return DeclarationParams.fromJson(json);
+    }
+    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return DefinitionParams.fromJson(json);
+    }
+    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightParams.fromJson(json);
+    }
+    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
+      return ImplementationParams.fromJson(json);
+    }
+    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
+      return MonikerParams.fromJson(json);
+    }
     if (SelectionRangeParams.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeParams.fromJson(json);
     }
@@ -31363,6 +31383,9 @@ class PartialResultParams implements ToJsonable {
     }
     if (SemanticTokensRangeParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRangeParams.fromJson(json);
+    }
+    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionParams.fromJson(json);
     }
     if (DocumentDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return DocumentDiagnosticParams.fromJson(json);
@@ -31391,9 +31414,6 @@ class PartialResultParams implements ToJsonable {
     if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeParams.fromJson(json);
     }
-    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
-      return ReferenceParams.fromJson(json);
-    }
     if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensParams.fromJson(json);
     }
@@ -31405,27 +31425,6 @@ class PartialResultParams implements ToJsonable {
     }
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
-    }
-    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
-      return CompletionParams.fromJson(json);
-    }
-    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
-      return DeclarationParams.fromJson(json);
-    }
-    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return DefinitionParams.fromJson(json);
-    }
-    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightParams.fromJson(json);
-    }
-    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
-      return ImplementationParams.fromJson(json);
-    }
-    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
-      return MonikerParams.fromJson(json);
-    }
-    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionParams.fromJson(json);
     }
     final partialResultTokenJson = json['partialResultToken'];
     final partialResultToken = partialResultTokenJson == null
@@ -38292,14 +38291,28 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 
   static StaticRegistrationOptions fromJson(Map<String, Object?> json) {
+    if (DiagnosticRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DiagnosticRegistrationOptions.fromJson(json);
+    }
+    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensRegistrationOptions.fromJson(json);
+    }
+    if (NotebookDocumentSyncRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return NotebookDocumentSyncRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentContentRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return TextDocumentContentRegistrationOptions.fromJson(json);
+    }
+    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlayHintRegistrationOptions.fromJson(json);
+    }
     if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CallHierarchyRegistrationOptions.fromJson(json);
     }
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
-    }
-    if (DiagnosticRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DiagnosticRegistrationOptions.fromJson(json);
     }
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
@@ -38309,9 +38322,6 @@ class StaticRegistrationOptions implements ToJsonable {
     }
     if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ImplementationRegistrationOptions.fromJson(json);
-    }
-    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlayHintRegistrationOptions.fromJson(json);
     }
     if (InlineCompletionRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -38324,19 +38334,8 @@ class StaticRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
     }
-    if (NotebookDocumentSyncRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return NotebookDocumentSyncRegistrationOptions.fromJson(json);
-    }
     if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeRegistrationOptions.fromJson(json);
-    }
-    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensRegistrationOptions.fromJson(json);
-    }
-    if (TextDocumentContentRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return TextDocumentContentRegistrationOptions.fromJson(json);
     }
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
@@ -39999,7 +39998,7 @@ class TextDocumentEdit implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
+      if (!_canParseListAnnotatedTextEditLegacySnippetTextEditTextEdit(
           obj, reporter, 'edits',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -40016,8 +40015,8 @@ class TextDocumentEdit implements ToJsonable {
   static TextDocumentEdit fromJson(Map<String, Object?> json) {
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
-        .map(
-            (item) => _eitherAnnotatedTextEditSnippetableTextEditTextEdit(item))
+        .map((item) =>
+            _eitherAnnotatedTextEditLegacySnippetTextEditTextEdit(item))
         .toList();
     final textDocumentJson = json['textDocument'];
     final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(
@@ -40576,23 +40575,17 @@ class TextDocumentPositionParams implements ToJsonable {
   }
 
   static TextDocumentPositionParams fromJson(Map<String, Object?> json) {
-    if (InlineCompletionParams.canParse(json, nullLspJsonReporter)) {
-      return InlineCompletionParams.fromJson(json);
-    }
     if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
       return ReferenceParams.fromJson(json);
+    }
+    if (InlineCompletionParams.canParse(json, nullLspJsonReporter)) {
+      return InlineCompletionParams.fromJson(json);
     }
     if (RenameParams.canParse(json, nullLspJsonReporter)) {
       return RenameParams.fromJson(json);
     }
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
-    }
-    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpParams.fromJson(json);
-    }
-    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyPrepareParams.fromJson(json);
     }
     if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
       return DeclarationParams.fromJson(json);
@@ -40603,23 +40596,29 @@ class TextDocumentPositionParams implements ToJsonable {
     if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
       return DocumentHighlightParams.fromJson(json);
     }
-    if (HoverParams.canParse(json, nullLspJsonReporter)) {
-      return HoverParams.fromJson(json);
-    }
     if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
       return ImplementationParams.fromJson(json);
-    }
-    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return LinkedEditingRangeParams.fromJson(json);
     }
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
-      return PrepareRenameParams.fromJson(json);
+    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpParams.fromJson(json);
     }
     if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionParams.fromJson(json);
+    }
+    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyPrepareParams.fromJson(json);
+    }
+    if (HoverParams.canParse(json, nullLspJsonReporter)) {
+      return HoverParams.fromJson(json);
+    }
+    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return LinkedEditingRangeParams.fromJson(json);
+    }
+    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
+      return PrepareRenameParams.fromJson(json);
     }
     if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
       return TypeHierarchyPrepareParams.fromJson(json);
@@ -40684,48 +40683,46 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   }
 
   static TextDocumentRegistrationOptions fromJson(Map<String, Object?> json) {
-    if (TextDocumentChangeRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return TextDocumentChangeRegistrationOptions.fromJson(json);
-    }
-    if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyRegistrationOptions.fromJson(json);
-    }
-    if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeActionRegistrationOptions.fromJson(json);
-    }
-    if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CodeLensRegistrationOptions.fromJson(json);
-    }
-    if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return CompletionRegistrationOptions.fromJson(json);
-    }
-    if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DeclarationRegistrationOptions.fromJson(json);
-    }
-    if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DefinitionRegistrationOptions.fromJson(json);
-    }
     if (DiagnosticRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DiagnosticRegistrationOptions.fromJson(json);
     }
-    if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentColorRegistrationOptions.fromJson(json);
-    }
-    if (DocumentFormattingRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return DocumentFormattingRegistrationOptions.fromJson(json);
-    }
-    if (DocumentHighlightRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return DocumentHighlightRegistrationOptions.fromJson(json);
-    }
-    if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return DocumentLinkRegistrationOptions.fromJson(json);
+    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SemanticTokensRegistrationOptions.fromJson(json);
     }
     if (DocumentOnTypeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentOnTypeFormattingRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentChangeRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return TextDocumentChangeRegistrationOptions.fromJson(json);
+    }
+    if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CompletionRegistrationOptions.fromJson(json);
+    }
+    if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeActionRegistrationOptions.fromJson(json);
+    }
+    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return InlayHintRegistrationOptions.fromJson(json);
+    }
+    if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpRegistrationOptions.fromJson(json);
+    }
+    if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyRegistrationOptions.fromJson(json);
+    }
+    if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return CodeLensRegistrationOptions.fromJson(json);
+    }
+    if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DeclarationRegistrationOptions.fromJson(json);
+    }
+    if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentColorRegistrationOptions.fromJson(json);
+    }
+    if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DocumentLinkRegistrationOptions.fromJson(json);
     }
     if (DocumentRangeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -40737,14 +40734,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeRegistrationOptions.fromJson(json);
     }
-    if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return HoverRegistrationOptions.fromJson(json);
-    }
     if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ImplementationRegistrationOptions.fromJson(json);
-    }
-    if (InlayHintRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return InlayHintRegistrationOptions.fromJson(json);
     }
     if (InlineCompletionRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
@@ -40757,33 +40748,41 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
     }
-    if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return MonikerRegistrationOptions.fromJson(json);
-    }
-    if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return ReferenceRegistrationOptions.fromJson(json);
-    }
     if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return RenameRegistrationOptions.fromJson(json);
     }
     if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeRegistrationOptions.fromJson(json);
     }
-    if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SemanticTokensRegistrationOptions.fromJson(json);
-    }
-    if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpRegistrationOptions.fromJson(json);
-    }
-    if (TextDocumentSaveRegistrationOptions.canParse(
-        json, nullLspJsonReporter)) {
-      return TextDocumentSaveRegistrationOptions.fromJson(json);
-    }
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
     }
     if (TypeHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeHierarchyRegistrationOptions.fromJson(json);
+    }
+    if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return DefinitionRegistrationOptions.fromJson(json);
+    }
+    if (DocumentFormattingRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return DocumentFormattingRegistrationOptions.fromJson(json);
+    }
+    if (DocumentHighlightRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return DocumentHighlightRegistrationOptions.fromJson(json);
+    }
+    if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return HoverRegistrationOptions.fromJson(json);
+    }
+    if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return MonikerRegistrationOptions.fromJson(json);
+    }
+    if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
+      return ReferenceRegistrationOptions.fromJson(json);
+    }
+    if (TextDocumentSaveRegistrationOptions.canParse(
+        json, nullLspJsonReporter)) {
+      return TextDocumentSaveRegistrationOptions.fromJson(json);
     }
     final documentSelectorJson = json['documentSelector'];
     final documentSelector = (documentSelectorJson as List<Object?>?)
@@ -41234,8 +41233,8 @@ class TextEdit implements ToJsonable {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
     }
-    if (SnippetableTextEdit.canParse(json, nullLspJsonReporter)) {
-      return SnippetableTextEdit.fromJson(json);
+    if (LegacySnippetTextEdit.canParse(json, nullLspJsonReporter)) {
+      return LegacySnippetTextEdit.fromJson(json);
     }
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
@@ -43409,20 +43408,41 @@ class WorkDoneProgressParams implements ToJsonable {
     if (ColorPresentationParams.canParse(json, nullLspJsonReporter)) {
       return ColorPresentationParams.fromJson(json);
     }
+    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
+      return ReferenceParams.fromJson(json);
+    }
     if (DocumentRangeFormattingParams.canParse(json, nullLspJsonReporter)) {
       return DocumentRangeFormattingParams.fromJson(json);
     }
     if (DocumentRangesFormattingParams.canParse(json, nullLspJsonReporter)) {
       return DocumentRangesFormattingParams.fromJson(json);
     }
+    if (InlineCompletionParams.canParse(json, nullLspJsonReporter)) {
+      return InlineCompletionParams.fromJson(json);
+    }
     if (InlineValueParams.canParse(json, nullLspJsonReporter)) {
       return InlineValueParams.fromJson(json);
     }
-    if (DocumentFormattingParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentFormattingParams.fromJson(json);
+    if (RenameParams.canParse(json, nullLspJsonReporter)) {
+      return RenameParams.fromJson(json);
     }
-    if (InlayHintParams.canParse(json, nullLspJsonReporter)) {
-      return InlayHintParams.fromJson(json);
+    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
+      return CompletionParams.fromJson(json);
+    }
+    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
+      return DeclarationParams.fromJson(json);
+    }
+    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return DefinitionParams.fromJson(json);
+    }
+    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentHighlightParams.fromJson(json);
+    }
+    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
+      return ImplementationParams.fromJson(json);
+    }
+    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
+      return MonikerParams.fromJson(json);
     }
     if (SelectionRangeParams.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeParams.fromJson(json);
@@ -43433,14 +43453,38 @@ class WorkDoneProgressParams implements ToJsonable {
     if (SemanticTokensRangeParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRangeParams.fromJson(json);
     }
+    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
+      return SignatureHelpParams.fromJson(json);
+    }
+    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
+      return TypeDefinitionParams.fromJson(json);
+    }
+    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return CallHierarchyPrepareParams.fromJson(json);
+    }
+    if (DocumentFormattingParams.canParse(json, nullLspJsonReporter)) {
+      return DocumentFormattingParams.fromJson(json);
+    }
+    if (HoverParams.canParse(json, nullLspJsonReporter)) {
+      return HoverParams.fromJson(json);
+    }
+    if (InlayHintParams.canParse(json, nullLspJsonReporter)) {
+      return InlayHintParams.fromJson(json);
+    }
+    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
+      return LinkedEditingRangeParams.fromJson(json);
+    }
+    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
+      return PrepareRenameParams.fromJson(json);
+    }
+    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
+      return TypeHierarchyPrepareParams.fromJson(json);
+    }
     if (InitializeParams.canParse(json, nullLspJsonReporter)) {
       return InitializeParams.fromJson(json);
     }
     if (DocumentDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return DocumentDiagnosticParams.fromJson(json);
-    }
-    if (ExecuteCommandParams.canParse(json, nullLspJsonReporter)) {
-      return ExecuteCommandParams.fromJson(json);
     }
     if (WorkspaceDiagnosticParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceDiagnosticParams.fromJson(json);
@@ -43463,17 +43507,11 @@ class WorkDoneProgressParams implements ToJsonable {
     if (DocumentSymbolParams.canParse(json, nullLspJsonReporter)) {
       return DocumentSymbolParams.fromJson(json);
     }
+    if (ExecuteCommandParams.canParse(json, nullLspJsonReporter)) {
+      return ExecuteCommandParams.fromJson(json);
+    }
     if (FoldingRangeParams.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeParams.fromJson(json);
-    }
-    if (InlineCompletionParams.canParse(json, nullLspJsonReporter)) {
-      return InlineCompletionParams.fromJson(json);
-    }
-    if (ReferenceParams.canParse(json, nullLspJsonReporter)) {
-      return ReferenceParams.fromJson(json);
-    }
-    if (RenameParams.canParse(json, nullLspJsonReporter)) {
-      return RenameParams.fromJson(json);
     }
     if (SemanticTokensParams.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensParams.fromJson(json);
@@ -43486,45 +43524,6 @@ class WorkDoneProgressParams implements ToJsonable {
     }
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
-    }
-    if (CompletionParams.canParse(json, nullLspJsonReporter)) {
-      return CompletionParams.fromJson(json);
-    }
-    if (SignatureHelpParams.canParse(json, nullLspJsonReporter)) {
-      return SignatureHelpParams.fromJson(json);
-    }
-    if (CallHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return CallHierarchyPrepareParams.fromJson(json);
-    }
-    if (DeclarationParams.canParse(json, nullLspJsonReporter)) {
-      return DeclarationParams.fromJson(json);
-    }
-    if (DefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return DefinitionParams.fromJson(json);
-    }
-    if (DocumentHighlightParams.canParse(json, nullLspJsonReporter)) {
-      return DocumentHighlightParams.fromJson(json);
-    }
-    if (HoverParams.canParse(json, nullLspJsonReporter)) {
-      return HoverParams.fromJson(json);
-    }
-    if (ImplementationParams.canParse(json, nullLspJsonReporter)) {
-      return ImplementationParams.fromJson(json);
-    }
-    if (LinkedEditingRangeParams.canParse(json, nullLspJsonReporter)) {
-      return LinkedEditingRangeParams.fromJson(json);
-    }
-    if (MonikerParams.canParse(json, nullLspJsonReporter)) {
-      return MonikerParams.fromJson(json);
-    }
-    if (PrepareRenameParams.canParse(json, nullLspJsonReporter)) {
-      return PrepareRenameParams.fromJson(json);
-    }
-    if (TypeDefinitionParams.canParse(json, nullLspJsonReporter)) {
-      return TypeDefinitionParams.fromJson(json);
-    }
-    if (TypeHierarchyPrepareParams.canParse(json, nullLspJsonReporter)) {
-      return TypeHierarchyPrepareParams.fromJson(json);
     }
     final workDoneTokenJson = json['workDoneToken'];
     final workDoneToken =

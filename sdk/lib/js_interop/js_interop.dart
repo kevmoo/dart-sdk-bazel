@@ -239,7 +239,7 @@ extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction<T extends Function>._(
-  JSExportedDartFunctionType _jsExportedDartFunction
+  JSExportedDartFunctionType _jsExportedDartFunction,
 ) implements JSFunction<T>, JSExportedDartFunctionType {}
 
 /// The synchronous [JS iterable protocol].
@@ -637,7 +637,7 @@ extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-  JSUint8ClampedArrayType _jsUint8ClampedArray
+  JSUint8ClampedArrayType _jsUint8ClampedArray,
 ) implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
@@ -929,7 +929,7 @@ extension type JSBigInt._(JSBigIntType _jsBigInt)
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-  ExternalDartReferenceType<T> _externalDartReference
+  ExternalDartReferenceType<T> _externalDartReference,
 ) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
@@ -2150,14 +2150,14 @@ external JSObject get globalContext;
 /// instance member names or their renames, to callbacks that call the
 /// corresponding Dart instance members.
 ///
-/// If [proto] is provided, it will be used as the prototype for the created
+/// If [prototype] is provided, it will be used as the prototype for the created
 /// object.
 ///
 /// See https://dart.dev/interop/js-interop/mock for more details on how to
 /// declare classes that can be used in this method.
 external JSObject createJSInteropWrapper<T extends Object>(
   T dartObject, [
-  JSObject? proto = null,
+  JSObject? prototype = null,
 ]);
 
 // TODO(srujzs): Expose this method when we handle conformance checking for

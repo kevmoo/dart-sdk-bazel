@@ -304,9 +304,8 @@ class TypeParserEnvironment {
 
   TypeParserEnvironment extendWithStructuralParameters(String? typeParameters) {
     if (typeParameters?.isEmpty ?? true) return this;
-    return extendToFunctionTypeParameterEnvironment(
-      typeParameters!,
-    ).environment;
+    return extendToFunctionTypeParameterEnvironment(typeParameters!)
+        .environment;
   }
 
   ParameterEnvironment extendToParameterEnvironment(String typeParameters) {

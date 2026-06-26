@@ -17,7 +17,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -2877,7 +2877,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var actualType = formalParameter.explicitFragmentType;
       if (actualType != null) {
         var expectedType = firstParameter.element.type;
-        if (!typeSystem.isEqualTo(actualType, expectedType)) {
+        if (actualType is InvalidType || expectedType is InvalidType) {
+          return;
+        }
+        if (actualType != expectedType) {
           diagnosticReporter.report(
             diag.augmentationFormalParameterTypeMismatch
                 .withArguments(
@@ -3140,7 +3143,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var expectedType = fragment.element.returnType;
     var actualType = returnTypeNode.typeOrThrow;
-    if (typeSystem.isEqualTo(actualType, expectedType)) {
+    if (actualType is InvalidType || expectedType is InvalidType) {
+      return;
+    }
+    if (actualType == expectedType) {
       return;
     }
 
@@ -3207,8 +3213,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (typeParameterNode.bound case var boundNode?) {
         var firstBound = firstTypeParameter.element.bound;
-        if (firstBound == null ||
-            !typeSystem.isEqualTo(boundNode.typeOrThrow, firstBound)) {
+        if (firstBound == null || boundNode.typeOrThrow != firstBound) {
           diagnosticReporter.report(
             diag.augmentationTypeParameterBound.at(boundNode),
           );
@@ -6526,8 +6531,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonRedirectingGenerativeConstructorWithPrimary(
-    ConstructorDeclaration node,
+    ConstructorDeclarationImpl node,
   ) {
+    var fragment = node.declaredFragment!;
+    if (fragment.isAugmentation) return;
+
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null ||
         enclosingClass is ExtensionTypeElement ||
@@ -6535,10 +6543,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    if (node.factoryKeyword != null ||
-        node.initializers.any((i) => i is RedirectingConstructorInvocation)) {
-      return;
-    }
+    var element = fragment.element;
+    if (element.isFactory) return;
+    if (element.isRedirecting) return;
 
     diagnosticReporter.report(
       diag.nonRedirectingGenerativeConstructorWithPrimary.atSourceRange(

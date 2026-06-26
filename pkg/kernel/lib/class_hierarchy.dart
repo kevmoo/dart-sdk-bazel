@@ -255,9 +255,8 @@ mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
         );
         if (supertype != null) {
           if (implement.typeArguments.isNotEmpty) {
-            supertype = Substitution.fromInterfaceType(
-              implement,
-            ).substituteSupertype(supertype);
+            supertype = Substitution.fromInterfaceType(implement)
+                .substituteSupertype(supertype);
           }
           return new InterfaceType(
             supertype.classNode,
@@ -1156,9 +1155,9 @@ class ClosedWorldClassHierarchy
     Supertype? castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
     if (superclass.typeParameters.isEmpty) return const <DartType>[];
-    return Substitution.fromInterfaceType(
-      type,
-    ).substituteSupertype(castedType).typeArguments;
+    return Substitution.fromInterfaceType(type)
+        .substituteSupertype(castedType)
+        .typeArguments;
   }
 
   @override
