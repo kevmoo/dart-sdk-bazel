@@ -420,6 +420,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-b5h] Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update unmigratedGnSuites in run_test_universe.dart to map Suite names to tracking Bead IDs
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-baw] Debian Package Build Target
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -566,6 +579,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Replace GitHub Actions monolithic tarball disk-cache restoration with streaming datacenter remote cache cluster to eliminate 30s job startup extraction penalty.
 - **Success Criteria**:
 
 ---
