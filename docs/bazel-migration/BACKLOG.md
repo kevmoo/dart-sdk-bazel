@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 79/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 75/108 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -64,10 +64,10 @@ graph TD
     sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::pending
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::pending
-    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
+    sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::pending
     sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
     sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
-    sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::completed
+    sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::pending
     sdk_67o.7["sdk-67o.7:<br>{REC-FAST-3} Document RAM-backed Bazel output base {tmpfs / /dev/shm}"]:::pending
     sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::completed
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
@@ -84,7 +84,7 @@ graph TD
     sdk_arr["sdk-arr:<br>Enable standard Bazel lint and formatting checks {Buildifier}"]:::completed
     sdk_b0q["sdk-b0q:<br>Fix SDK packaging VM product mode configuration mismatch"]:::completed
     sdk_b34["sdk-b34:<br>GN: Split C-only and C++-only flags in compiler configs"]:::completed
-    sdk_b5h["sdk-b5h:<br>Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map"]:::completed
+    sdk_b5h["sdk-b5h:<br>Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map"]:::pending
     sdk_baw["sdk-baw:<br>Debian Package Build Target"]:::completed
     sdk_brm["sdk-brm:<br>Merge upstream Dart SDK at 3.13.0-207.0.dev"]:::completed
     sdk_c1x["sdk-c1x:<br>Audit and Apply Code Review Learnings across Bazel codebase"]:::completed
@@ -116,7 +116,6 @@ graph TD
     sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::completed
     sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
-    sdk_n0q["sdk-n0q:<br>Setup Bazel cache auto-cleanup"]:::completed
     sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
     sdk_o1h["sdk-o1h:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
@@ -307,6 +306,19 @@ graph TD
 
 ---
 
+### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-67o.4] [REC-FAST-2] Granular shard sizing & subdirectory target splitting
 - **Status**: `[PENDING]`
 - **Prerequisites**: `sdk-67o`
@@ -329,6 +341,19 @@ graph TD
   - None
 - **Description**:
   Offload test execution and sandbox creation to distributed cloud worker pools to eliminate local inode limits and parallelize 4,600+ shards.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Enhance Starlark test generation macros to automatically detect and append required .dill, .snapshot, and helper .dart files to target data attributes.
 - **Success Criteria**:
 
 ---
@@ -389,6 +414,19 @@ graph TD
   - None
 - **Description**:
   Track Starlark test generation and execution for fuzzer suite
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-b5h] Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map
+- **Status**: `[PENDING]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update unmigratedGnSuites in run_test_universe.dart to map Suite names to tracking Bead IDs
 - **Success Criteria**:
 
 ---
