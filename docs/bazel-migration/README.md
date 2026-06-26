@@ -36,7 +36,20 @@ Execute these from the repository root:
     ```
     This produces a self-contained `dartvm` binary at `bazel-bin/runtime/bin/dartvm` with all necessary dills and ICU data embedded hermetically from source.
 
-### 3. Smoke Test (Verify the VM)
+### 3. Remote Caching & GCS Setup (Speeding Up Builds)
+The repository is integrated with a shared Google Cloud Storage remote cache (`https://storage.googleapis.com/dart-sdk-bazel-cache`).
+
+1. **Double-Check Authentication**: Before enabling the remote cache locally, ensure your machine has valid Google Application Default Credentials:
+   ```bash
+   gcloud auth application-default login
+   ```
+2. **Use the Cache When it Makes Sense**: Append `--config=remote-cache` to any `bazel build` or `bazel test` command (or add `build --config=remote-cache` to your `~/.bazelrc`):
+   ```bash
+   bazel build --config=remote-cache //sdk:create_sdk
+   ```
+   *Note: Using the remote cache is recommended for clean builds, switching branches, or multi-worktree development to avoid re-compiling shared C++ dependencies and tools.*
+
+### 4. Smoke Test (Verify the VM)
 To verify your built VM works correctly, run a simple Dart script:
 
 ```bash
@@ -55,7 +68,7 @@ bazel-bin/runtime/bin/dartvm /tmp/hello.dart
 # [1, 4, 9]
 ```
 
-### 4. Running Dart Scripts with `bazel run`
+### 5. Running Dart Scripts with `bazel run`
 We support running Dart scripts directly inside the Bazel sandbox using `bazel run` (thanks to the `dart_binary` rule):
 
 ```bash
