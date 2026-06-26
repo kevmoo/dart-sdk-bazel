@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 78/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 79/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ---
 
@@ -54,7 +54,7 @@ graph TD
     sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
     sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
     sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
-    sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::pending
+    sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::completed
     sdk_67o.7["sdk-67o.7:<br>{REC-FAST-3} Document RAM-backed Bazel output base {tmpfs / /dev/shm}"]:::pending
     sdk_6tn["sdk-6tn:<br>Establish test completion matrix for Bazel migration"]:::completed
     sdk_6uq["sdk-6uq:<br>{bazel} @dart_tests extension: replace manual 'Force refetch trigger: N' with automatic invalidation"]:::completed
@@ -311,19 +311,6 @@ graph TD
   - None
 - **Description**:
   Offload test execution and sandbox creation to distributed cloud worker pools to eliminate local inode limits and parallelize 4,600+ shards.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Enhance Starlark test generation macros to automatically detect and append required .dill, .snapshot, and helper .dart files to target data attributes.
 - **Success Criteria**:
 
 ---
