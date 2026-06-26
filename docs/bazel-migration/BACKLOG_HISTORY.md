@@ -233,6 +233,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Enhance Starlark test generation macros to automatically detect and append required .dill, .snapshot, and helper .dart files to target data attributes.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
