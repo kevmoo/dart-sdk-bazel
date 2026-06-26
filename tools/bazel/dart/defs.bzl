@@ -991,7 +991,14 @@ _dart2wasm_test = rule(
 )
 
 def dart2wasm_test(name, main, srcs = [], **kwargs):
-    """Hermetic, fast-iteration Bazel test rule for compiling and running a Dart Wasm test."""
+    """Hermetic Bazel test rule for Dart Wasm tests.
+
+    Args:
+      name: Target name.
+      main: Main Dart test file.
+      srcs: Additional source files.
+      **kwargs: Additional rule arguments.
+    """
     _dart2wasm_test(
         name = name,
         main = main,
@@ -1000,7 +1007,14 @@ def dart2wasm_test(name, main, srcs = [], **kwargs):
     )
 
 def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
-    """Hermetic Bazel rule for compiling and running a Dart Wasm performance benchmark."""
+    """Hermetic Bazel rule for Dart Wasm performance benchmarks.
+
+    Args:
+      name: Target name.
+      main: Main Dart benchmark file.
+      srcs: Additional source files.
+      **kwargs: Additional rule arguments.
+    """
 
     # TODO(beads: sdk-245): Add performance JSON emitter output handling and runner flags.
     tags = kwargs.get("tags", [])
@@ -1015,6 +1029,7 @@ def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
         **kwargs
     )
 
+# buildifier: disable=external-path
 def _dart_analyze_test_impl(ctx):
     if not ctx.files.srcs:
         fail("The 'srcs' attribute must not be empty for dart_analyze_test.")
@@ -1035,6 +1050,11 @@ for path in \\
   "${{TEST_SRCDIR}}/{workspace_name}/tools/sdks/dart-sdk/bin/dart" \\
   "${{TEST_SRCDIR}}/prebuilt_dart_sdk/bin/dart" \\
   "${{TEST_SRCDIR}}/{workspace_name}/external/prebuilt_dart_sdk/bin/dart"; do
+  if [ -f "$path" ] && [ -x "$path" ]; then
+    DART_BIN="$path"
+    break
+  fi
+done
   if [ -f "$path" ] && [ -x "$path" ]; then
     DART_BIN="$path"
     break
