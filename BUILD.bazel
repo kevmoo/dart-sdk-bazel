@@ -113,6 +113,8 @@ filegroup(
             "third_party/pkg/core/pkgs/**",
             "third_party/pkg/native/pkgs/**",
             "third_party/pkg/test/pkgs/**",
+            "third_party/pkg/tools/pkgs/**",
+            "third_party/pkg/vector_math/**",
         ],
         allow_empty = True,
     ),

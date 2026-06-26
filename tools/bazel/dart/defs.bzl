@@ -866,3 +866,243 @@ def prebuilt_dart_aot_snapshot(name, main, srcs = [], **kwargs):
         out = name + ".snapshot",
         **kwargs
     )
+
+# --- Fast, Direct Wasm Test Execution ---
+
+def _dart2wasm_test_rule_impl(ctx):
+    wasm_out = ctx.actions.declare_file(ctx.label.name + ".wasm")
+    mjs_out = ctx.actions.declare_file(ctx.label.name + ".mjs")
+
+    platform_dills = [f for f in ctx.files._platform_dill if f.path.endswith("dart2wasm_platform.dill")]
+    if not platform_dills:
+        fail("Could not find dart2wasm_platform.dill in _platform_dill")
+    platform_dill = platform_dills[0]
+
+    compile_inputs = depset(
+        direct = [
+            ctx.file.main,
+            ctx.file._dartaotruntime,
+            ctx.file._dart2wasm_snapshot,
+            ctx.file._package_config,
+        ] + ctx.files._platform_dill + ctx.files.srcs,
+        transitive = [
+            ctx.attr._test_resources[DefaultInfo].files,
+            ctx.attr._test_package_sources[DefaultInfo].files,
+        ],
+    )
+
+    args = ctx.actions.args()
+    args.add(ctx.file._dart2wasm_snapshot.path)
+    args.add("--platform=" + platform_dill.path)
+    args.add("-O0")
+    args.add("--enable-asserts")
+    args.add("--enable-experimental-wasm-interop")
+    args.add("--packages=" + ctx.file._package_config.path)
+    args.add(ctx.file.main.path)
+    args.add(wasm_out.path)
+
+    ctx.actions.run(
+        inputs = compile_inputs,
+        outputs = [wasm_out, mjs_out],
+        executable = ctx.executable._dartaotruntime,
+        arguments = [args],
+        mnemonic = "Dart2WasmCompile",
+        progress_message = "Compiling %{label} to Wasm",
+    )
+
+    runner = ctx.actions.declare_file(ctx.label.name + "_runner.sh")
+    script_content = """#!/bin/bash
+set -euo pipefail
+if [ -z "${{TEST_SRCDIR:-}}" ]; then
+  TEST_SRCDIR="$0.runfiles"
+fi
+D8_BIN=""
+for path in \\
+  "${{TEST_SRCDIR}}/{workspace_name}/third_party/d8/macos/arm64/d8" \\
+  "${{TEST_SRCDIR}}/{workspace_name}/third_party/d8/macos/x64/d8" \\
+  "${{TEST_SRCDIR}}/{workspace_name}/third_party/d8/linux/x64/d8" \\
+  "${{TEST_SRCDIR}}/{workspace_name}/third_party/d8/linux/arm64/d8" \\
+  "${{TEST_SRCDIR}}/{workspace_name}/third_party/d8/windows/x64/d8.exe"; do
+  if [ -f "$path" ] && [ -x "$path" ]; then
+    D8_BIN="$path"
+    break
+  fi
+done
+if [ -z "$D8_BIN" ] && [ -d "$TEST_SRCDIR" ]; then
+  D8_BIN=$(find -L "$TEST_SRCDIR" \\( -name d8 -o -name d8.exe \\) -type f -perm -u+x 2>/dev/null | head -n 1 || true)
+fi
+if [ -z "$D8_BIN" ]; then
+  echo "Error: Could not locate d8 executable in runfiles." >&2
+  exit 1
+fi
+RUN_WASM="${{TEST_SRCDIR}}/{run_wasm_js}"
+WASM_MJS="${{TEST_SRCDIR}}/{wasm_mjs}"
+WASM_BIN="${{TEST_SRCDIR}}/{wasm_bin}"
+exec "$D8_BIN" --stack-trace-limit=20 "$RUN_WASM" -- "$WASM_MJS" "$WASM_BIN"
+""".format(
+        run_wasm_js = _runfiles_path(ctx, ctx.file._run_wasm_js),
+        wasm_bin = _runfiles_path(ctx, wasm_out),
+        wasm_mjs = _runfiles_path(ctx, mjs_out),
+        workspace_name = ctx.workspace_name,
+    )
+
+    ctx.actions.write(
+        output = runner,
+        content = script_content,
+        is_executable = True,
+    )
+
+    runfiles = ctx.runfiles(
+        files = [
+            runner,
+            wasm_out,
+            mjs_out,
+            ctx.file._run_wasm_js,
+        ],
+        transitive_files = depset(
+            transitive = [
+                ctx.attr._d8_files[DefaultInfo].files,
+            ],
+        ),
+    )
+
+    return [
+        DefaultInfo(
+            executable = runner,
+            runfiles = runfiles,
+        ),
+    ]
+
+_dart2wasm_test = rule(
+    implementation = _dart2wasm_test_rule_impl,
+    test = True,
+    attrs = {
+        "main": attr.label(mandatory = True, allow_single_file = [".dart"]),
+        "srcs": attr.label_list(allow_files = True),
+        "_d8_files": attr.label(default = Label("//third_party/d8:d8_files")),
+        "_dart2wasm_snapshot": attr.label(default = Label("//utils/dart2wasm:dart2wasm_asserts_snapshot"), allow_single_file = True),
+        "_dartaotruntime": attr.label(default = Label("//runtime/bin:dartaotruntime"), executable = True, allow_single_file = True, cfg = "exec"),
+        "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
+        "_platform_dill": attr.label(default = Label("//utils/dart2wasm:compile_dart2wasm_platform")),
+        "_run_wasm_js": attr.label(default = Label("//:pkg/dart2wasm/bin/run_wasm.js"), allow_single_file = True),
+        "_test_package_sources": attr.label(default = Label("//:test_package_sources")),
+        "_test_resources": attr.label(default = Label("//:dart2wasm_test_resources")),
+    },
+)
+
+def dart2wasm_test(name, main, srcs = [], **kwargs):
+    """Hermetic Bazel test rule for Dart Wasm tests.
+
+    Args:
+      name: Target name.
+      main: Main Dart test file.
+      srcs: Additional source files.
+      **kwargs: Additional rule arguments.
+    """
+    _dart2wasm_test(
+        name = name,
+        main = main,
+        srcs = srcs,
+        **kwargs
+    )
+
+def dart2wasm_benchmark(name, main, srcs = [], **kwargs):
+    """Hermetic Bazel rule for Dart Wasm performance benchmarks.
+
+    Args:
+      name: Target name.
+      main: Main Dart benchmark file.
+      srcs: Additional source files.
+      **kwargs: Additional rule arguments.
+    """
+
+    # TODO(beads: sdk-245): Add performance JSON emitter output handling and runner flags.
+    tags = list(kwargs.get("tags", []))
+    if "manual" not in tags:
+        tags.append("manual")
+    kwargs["tags"] = tags
+
+    _dart2wasm_test(
+        name = name,
+        main = main,
+        srcs = srcs,
+        **kwargs
+    )
+
+# buildifier: disable=external-path
+def _dart_analyze_test_impl(ctx):
+    if not ctx.files.srcs:
+        fail("The 'srcs' attribute must not be empty for dart_analyze_test.")
+
+    runner = ctx.actions.declare_file(ctx.label.name + "_runner.sh")
+
+    srcs_list = ['"${{TEST_SRCDIR}}/{}"'.format(_runfiles_path(ctx, f)) for f in ctx.files.srcs]
+
+    script_content = """#!/bin/bash
+set -euo pipefail
+
+if [ -z "${{TEST_SRCDIR:-}}" ]; then
+  TEST_SRCDIR="$0.runfiles"
+fi
+
+DART_BIN=""
+for path in \\
+  "${{TEST_SRCDIR}}/{workspace_name}/tools/sdks/dart-sdk/bin/dart" \\
+  "${{TEST_SRCDIR}}/prebuilt_dart_sdk/bin/dart" \\
+  "${{TEST_SRCDIR}}/{workspace_name}/external/prebuilt_dart_sdk/bin/dart"; do
+  if [ -f "$path" ] && [ -x "$path" ]; then
+    DART_BIN="$path"
+    break
+  fi
+done
+
+if [ -z "$DART_BIN" ] && [ -d "$TEST_SRCDIR" ]; then
+  DART_BIN=$(find -L "$TEST_SRCDIR" \\( -name dart -o -name dart.exe \\) -type f -perm -u+x 2>/dev/null | head -n 1 || true)
+fi
+
+if [ -z "$DART_BIN" ]; then
+  echo "Error: Could not locate dart executable in runfiles." >&2
+  exit 1
+fi
+
+export DART_PACKAGE_CONFIG="${{TEST_SRCDIR}}/{package_config}"
+exec "$DART_BIN" analyze {srcs}
+""".format(
+        package_config = _runfiles_path(ctx, ctx.file._package_config),
+        srcs = " ".join(srcs_list),
+        workspace_name = ctx.workspace_name,
+    )
+
+    ctx.actions.write(
+        output = runner,
+        content = script_content,
+        is_executable = True,
+    )
+
+    runfiles = ctx.runfiles(
+        files = ctx.files.srcs + [ctx.file._package_config],
+        transitive_files = ctx.attr._sdk_files[DefaultInfo].files,
+    )
+    return [DefaultInfo(executable = runner, runfiles = runfiles)]
+
+_dart_analyze_test = rule(
+    implementation = _dart_analyze_test_impl,
+    test = True,
+    attrs = {
+        "srcs": attr.label_list(allow_files = [".dart"]),
+        "_package_config": attr.label(default = Label("//:package_config_json"), allow_single_file = True),
+        "_sdk_files": attr.label(default = Label("@prebuilt_dart_sdk//:sdk_files")),
+    },
+)
+
+def dart_analyze_test(name, srcs = [], **kwargs):
+    """Hermetic Bazel test rule for running 'dart analyze' over Dart source files."""
+    _dart_analyze_test(
+        name = name,
+        srcs = srcs,
+        **kwargs
+    )
+
+# TODO(beads: sdk-u0p, sdk-wax, sdk-67o.2): Implement the unified `dart_test_matrix`
+# macro and status file parser to automatically expand target suites (VM, Wasm, JS, DDC)
+# and handle tag-based quarantining across tests/lib and tests/web.
