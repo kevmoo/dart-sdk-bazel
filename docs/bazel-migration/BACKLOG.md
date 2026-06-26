@@ -19,6 +19,19 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 - **Global Lock**: `[unlocked]`
 - **Overall Progress**: 79/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
+### 🏷️ Tag Distribution Metrics
+
+| Tag | Scope / Description | Active | Deferred (Later) |
+| :--- | :--- | :---: | :---: |
+| `bazel-build` | Tasks relating to Bazel BUILD rules, starlark macros, and build graph construction. | 0 | 0 |
+| `cxx-deps` | Tasks handling C++ header dependencies, include paths, and native libraries. | 0 | 0 |
+| `ffi-integration` | Dart FFI and native binding migration tasks. | 0 | 0 |
+| `vm-runtime` | Dart VM core runtime, memory management, and GC compilation rules under Bazel. | 0 | 0 |
+| `wasm` | WebAssembly / dart2wasm toolchain compilation targets. | 0 | 0 |
+| `cleanup` | Code cleanup, dead code removal, and refactoring tasks. | 0 | 0 |
+| `documentation` | Documentation updates, guidelines, and reflection notes. | 0 | 0 |
+| `later` | Deferred tasks scheduled for post-migration iterations. | 0 | 0 |
+
 ---
 
 ## 🗺️ Dependency Graph
@@ -186,6 +199,7 @@ graph TD
 
 ### 🎯 [sdk-245] Track sandboxed execution of benchmarks suite under Bazel
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -199,6 +213,7 @@ graph TD
 
 ### 🎯 [sdk-2w0] Add Starlark test discovery for modular compilation and hot reload test suites
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -212,6 +227,7 @@ graph TD
 
 ### 🎯 [sdk-4kr] Upstream Hermetic OtherResources Annotations for IO Tests
 - **Status**: `[PENDING]`
+- **Tags**: `general-cleanup`, `non-bazel`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -225,6 +241,7 @@ graph TD
 
 ### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `vm`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -238,6 +255,7 @@ graph TD
 
 ### 🎯 [sdk-65j] Upstream Test Runner Metadata Dumping Optimization
 - **Status**: `[IN_PROGRESS]`
+- **Tags**: `general-cleanup`, `non-bazel`
 - **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/513342)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -330,6 +348,7 @@ graph TD
 
 ### 🎯 [sdk-8ut] Windows MSVC Toolchain Port
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_003`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -347,6 +366,7 @@ graph TD
 
 ### 🎯 [sdk-9ep] Investigate migrating Dart package dependency syncing to Bazel
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_038`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -375,6 +395,7 @@ graph TD
 
 ### 🎯 [sdk-c2c] RBE (Remote Build Execution) Verification
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_006`
 - **Prerequisites**: `sdk-31k`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -391,6 +412,7 @@ graph TD
 
 ### 🎯 [sdk-duv] Streamline and Optimize Bazel Build Definitions
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-8ut`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -407,6 +429,7 @@ graph TD
 
 ### 🎯 [sdk-duv.2] Implement persistent workers for Dart compilations
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -473,6 +496,7 @@ graph TD
 
 ### 🎯 [sdk-ji8] Investigate Google3 Alignment
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_028`
 - **Prerequisites**: `sdk-c2c`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -501,6 +525,7 @@ graph TD
 
 ### 🎯 [sdk-qzb] Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `rbe`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -527,6 +552,7 @@ graph TD
 
 ### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -540,6 +566,7 @@ graph TD
 
 ### 🎯 [sdk-wax] Enable general web/HTML tests (tests/web) and fix dart2js suite configuration
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `web`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -553,6 +580,7 @@ graph TD
 
 ### 🎯 [sdk-win] CI LUCI Recipe Migration
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_026`
 - **Prerequisites**: `sdk-8ut`, `sdk-c2c`, `sdk-n4o`, `sdk-y6l`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -568,6 +596,7 @@ graph TD
 
 ### 🎯 [sdk-wxe] Define VM stress execution matrix flags (--stress-gc, --stress-reload) in Bazel test configs
 - **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -581,6 +610,7 @@ graph TD
 
 ### 🎯 [sdk-y6l] Android & Fuchsia Target Platform Registration
 - **Status**: `[BLOCKED]`
+- **Tags**: `bazel-migration`, `status:blocked`, `task:TASK_004`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`

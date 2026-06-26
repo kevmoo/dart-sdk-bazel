@@ -1,0 +1,34 @@
+{
+  "bazel-build": {
+    "description": "Tasks relating to Bazel BUILD rules, starlark macros, and build graph construction.",
+    "later": false
+  },
+  "cxx-deps": {
+    "description": "Tasks handling C++ header dependencies, include paths, and native libraries.",
+    "later": false
+  },
+  "ffi-integration": {
+    "description": "Dart FFI and native binding migration tasks.",
+    "later": false
+  },
+  "vm-runtime": {
+    "description": "Dart VM core runtime, memory management, and GC compilation rules under Bazel.",
+    "later": false
+  },
+  "wasm": {
+    "description": "WebAssembly / dart2wasm toolchain compilation targets.",
+    "later": false
+  },
+  "cleanup": {
+    "description": "Code cleanup, dead code removal, and refactoring tasks.",
+    "later": false
+  },
+  "documentation": {
+    "description": "Documentation updates, guidelines, and reflection notes.",
+    "later": false
+  },
+  "later": {
+    "description": "Deferred tasks scheduled for post-migration iterations.",
+    "later": true
+  }
+}

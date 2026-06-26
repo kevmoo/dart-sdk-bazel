@@ -6,11 +6,6 @@
 //
 //     tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart
 //     bd dolt push        # ship the beads change to the fork (refs/dolt/data)
-//
-// Task status is read LIVE from each bead (closed=COMPLETED, blocked=BLOCKED,
-// in_progress=IN_PROGRESS, open=PENDING), so closing a bead moves it to history
-// on the next run. Original TASK_NNN ids are preserved via metadata.task_id;
-// beads created without one fall back to their bead id (e.g. sdk-a3f).
 
 import 'dart:convert';
 import 'dart:io';
@@ -39,6 +34,7 @@ class Task {
   final String title;
   final String status;
   final List<String> prerequisites;
+  final List<String> labels;
   final String owner;
   final String commit;
   final List<String> targetFiles;
@@ -52,6 +48,7 @@ class Task {
     required this.title,
     required this.status,
     required this.prerequisites,
+    required this.labels,
     required this.owner,
     required this.commit,
     required this.targetFiles,
@@ -60,10 +57,41 @@ class Task {
     required this.description,
     required this.externalRef,
   });
+
+  bool isLater(Map<String, Map<String, dynamic>> tagDefs) {
+    for (final label in labels) {
+      final def = tagDefs[label];
+      if (def != null && def['later'] == true) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 void main() {
   final Directory scriptDir = File(Platform.script.toFilePath()).parent;
+  final File tagDefsFile = File('${scriptDir.path}/beads/tag_definitions.json');
+
+  Map<String, Map<String, dynamic>> tagDefs = {};
+  if (tagDefsFile.existsSync()) {
+    try {
+      final String content = tagDefsFile.readAsStringSync();
+      final Map raw = jsonDecode(content) as Map;
+      tagDefs = raw.map(
+        (k, v) => MapEntry(k.toString(), (v as Map).cast<String, dynamic>()),
+      );
+
+      // Sync to beads memory
+      Process.runSync('bd', [
+        'remember',
+        'tag-definitions',
+        content.replaceAll('\n', ' '),
+      ]);
+    } catch (e) {
+      stderr.writeln('Warning: Failed to load tag_definitions.json: $e');
+    }
+  }
 
   final ProcessResult res = Process.runSync('bd', ['export']);
   if (res.exitCode != 0) {
@@ -84,7 +112,6 @@ void main() {
   }
 
   String dispId(Map<String, dynamic> r) => r['id'] as String;
-
   String orNone(dynamic v) => (v is String && v.isNotEmpty) ? v : 'none';
 
   final List<Task> tasks = [];
@@ -100,12 +127,15 @@ void main() {
           ..sort();
     final List criteria =
         jsonDecode(md['success_criteria'] as String? ?? '[]') as List;
+    final List<String> labels = (r['labels'] as List? ?? []).cast<String>();
+
     tasks.add(
       Task(
         id: dispId(r),
         title: r['title'] as String,
         status: kStatus[r['status']] ?? 'PENDING',
         prerequisites: prereqs,
+        labels: labels,
         owner: orNone(md['owner']),
         commit: orNone(md['commit']),
         targetFiles: (jsonDecode(md['target_files'] as String? ?? '[]') as List)
@@ -132,7 +162,7 @@ void main() {
 
   File(
     '${scriptDir.path}/BACKLOG.md',
-  ).writeAsStringSync(generateBacklog(tasks));
+  ).writeAsStringSync(generateBacklog(tasks, tagDefs));
   File(
     '${scriptDir.path}/BACKLOG_HISTORY.md',
   ).writeAsStringSync(generateHistory(tasks));
@@ -186,10 +216,20 @@ String generateMermaid(List<Task> tasks) {
   return sb.toString();
 }
 
-String generateBacklog(List<Task> tasks) {
+String generateBacklog(
+  List<Task> tasks,
+  Map<String, Map<String, dynamic>> tagDefs,
+) {
   final int done = tasks.where((t) => t.status == 'COMPLETED').length;
-  final List<Task> active = tasks
+  final List<Task> uncompleted = tasks
       .where((t) => t.status != 'COMPLETED')
+      .toList();
+
+  final List<Task> active = uncompleted
+      .where((t) => !t.isLater(tagDefs))
+      .toList();
+  final List<Task> later = uncompleted
+      .where((t) => t.isLater(tagDefs))
       .toList();
 
   final StringBuffer sb = StringBuffer();
@@ -230,6 +270,26 @@ String generateBacklog(List<Task> tasks) {
     '- **Overall Progress**: $done/${tasks.length} Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))',
   );
   sb.writeln();
+
+  if (tagDefs.isNotEmpty) {
+    sb.writeln('### 🏷️ Tag Distribution Metrics');
+    sb.writeln();
+    sb.writeln('| Tag | Scope / Description | Active | Deferred (Later) |');
+    sb.writeln('| :--- | :--- | :---: | :---: |');
+    final RegExp validTagRegex = RegExp(r'^[a-z0-9-]+$');
+    for (final entry in tagDefs.entries) {
+      final tag = entry.key;
+      final desc = entry.value['description'] ?? '';
+      final activeCount = active.where((t) => t.labels.contains(tag)).length;
+      final laterCount = later.where((t) => t.labels.contains(tag)).length;
+      final tagLabel = validTagRegex.hasMatch(tag)
+          ? '`$tag`'
+          : '`$tag` 🚨 INVALID TAG FORMAT';
+      sb.writeln('| $tagLabel | $desc | $activeCount | $laterCount |');
+    }
+    sb.writeln();
+  }
+
   sb.writeln('---');
   sb.writeln();
   sb.writeln('## 🗺️ Dependency Graph');
@@ -243,7 +303,7 @@ String generateBacklog(List<Task> tasks) {
   sb.writeln('## 📋 Active Backlog');
   sb.writeln();
   if (active.isEmpty) {
-    sb.writeln('🎉 **All tasks completed!**');
+    sb.writeln('🎉 **No active tasks pending!**');
   } else {
     for (final Task task in active) {
       sb.writeln(generateTaskMarkdown(task));
@@ -251,6 +311,20 @@ String generateBacklog(List<Task> tasks) {
       sb.writeln();
     }
   }
+
+  if (later.isNotEmpty) {
+    sb.writeln();
+    sb.writeln('---');
+    sb.writeln();
+    sb.writeln('## ⏳ Deferred Backlog (`later`)');
+    sb.writeln();
+    for (final Task task in later) {
+      sb.writeln(generateTaskMarkdown(task));
+      sb.writeln('---');
+      sb.writeln();
+    }
+  }
+
   return sb.toString();
 }
 
@@ -298,6 +372,9 @@ String generateTaskMarkdown(Task task) {
   final StringBuffer sb = StringBuffer();
   sb.writeln('### 🎯 [${task.id}] ${task.title}');
   sb.writeln('- **Status**: `[${task.status}]`');
+  if (task.labels.isNotEmpty) {
+    sb.writeln('- **Tags**: ${task.labels.map((l) => '`$l`').join(', ')}');
+  }
   if (task.externalRef.isNotEmpty) {
     final label = formatExternalRef(task.externalRef);
     sb.writeln('- **PR/External Ref**: [$label](${task.externalRef})');

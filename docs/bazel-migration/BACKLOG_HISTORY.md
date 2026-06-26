@@ -8,6 +8,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-0dc] Retire `restore.sh` entirely
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_021`
 - **Prerequisites**: `sdk-31k`, `sdk-3jc`
 - **Owner**: `[jetski]`
 - **Commit**: `[be97c7e236f]`
@@ -26,6 +27,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-2f2] Investigate Upstreaming Non-Bazel Fixes to Main
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_027`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -41,6 +43,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-31k] Migrate Third-Party Dependencies to Hermetic Bzlmod Overlays
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_017`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -64,6 +67,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-3jc] Migrate `packages.bzl` target generation to a dynamic Bzlmod extension
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_020`
 - **Prerequisites**: `sdk-31k`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
@@ -122,6 +126,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-4rb] Unified Test Repository with Configuration Subtargets
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_013`
 - **Prerequisites**: `sdk-5uz`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -140,6 +145,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
 - **Status**: `[COMPLETED]`
+- **Tags**: `agent-skill`, `bazel-migration`, `tooling`
 - **Prerequisites**: `sdk-fnn`, `sdk-zi3`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -153,6 +159,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-50x] Non-Flattened Direct Import Mapping for Test Caching
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_010`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[304f78ec535]`
@@ -170,6 +177,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-5db] Minor SDK Assembly Stubs Resolution
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_008`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -187,6 +195,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-5uz] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_012`
 - **Prerequisites**: `sdk-50x`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -204,6 +213,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-5zs] Resolve Bzlmod Lockfile Drift
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_015`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -274,6 +284,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-7nj] Emit canonical `cc_test` rules for self-contained test binaries
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_041`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -300,6 +311,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-84z] VM: Fix pre-existing buildifier lint warnings in utils/ddc/rules.bzl
 - **Status**: `[COMPLETED]`
+- **Tags**: `sdk-cleanup`
 - **PR/External Ref**: [PR #20](https://github.com/kevmoo/sdk/pull/20)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -327,6 +339,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-91p] Port `samples/embedder` targets to Bazel
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_019`
 - **Prerequisites**: `sdk-e8u`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
@@ -354,6 +367,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-9qx] Design: Bazel-powered developer workflow bridge for upstream work
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `design`, `tooling`
 - **Prerequisites**: `sdk-9ep`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -380,6 +394,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-arr] Enable standard Bazel lint and formatting checks (Buildifier)
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_039`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[none]`
@@ -406,6 +421,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-b0q] Fix SDK packaging VM product mode configuration mismatch
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_033`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -421,6 +437,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-b34] GN: Split C-only and C++-only flags in compiler configs
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `sdk-cleanup`
 - **PR/External Ref**: [Link](https://dart-review.googlesource.com/c/sdk/+/510181)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -448,6 +465,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-baw] Debian Package Build Target
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_025`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -476,6 +494,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-c1x] Audit and Apply Code Review Learnings across Bazel codebase
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_031`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -496,6 +515,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-cfi] ICU: Expose checked-in data headers in build definitions
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `sdk-cleanup`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -509,6 +529,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-cte] Fix Bazel wildcard target evaluation and package loading errors
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_035`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -559,6 +580,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-duv.1] Relocate macOS C++ flag filtering to select{} blocks
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -572,6 +594,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-duv.3] Decouple test cache dependencies via depset dill summaries
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -585,6 +608,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-duv.4] Optimize GitHub Actions CI Bazel caching and sandbox execution
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -598,6 +622,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:pending`, `task:TASK_029`
 - **Prerequisites**: `sdk-duv`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -611,6 +636,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-dz3] Relocate and Migrate Worktree Symlinker to Dart
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_009`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -629,6 +655,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-e8u] Compile `dart_engine` Shared Libraries JIT/AOT
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_018`
 - **Prerequisites**: `sdk-31k`
 - **Owner**: `[none]`
 - **Commit**: `[local]`
@@ -644,6 +671,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-fnn] Tooling: Implement script to export Bazel-tested changes back to Main
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `tooling`
 - **Prerequisites**: `sdk-9qx`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -657,6 +685,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-fok] Pre-Computed Package Import Mapping (Fine-Grained Opt-in)
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_002`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[dynamic]`
@@ -687,6 +716,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-gmk] Prune upstream Bazel files from vendored third_party
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `sdk-cleanup`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -714,6 +744,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-i4n] Migrate VM Platform and Kernel Service Dill Compilation to Starlark
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_016`
 - **Prerequisites**: `sdk-5db`
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -732,6 +763,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-j1a] Python Test Wrapper Unit Testing
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_014`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -750,6 +782,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-jrr] Repo-Local Upstream SDK Merge Flow Skill
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_011`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[648fea99a8d]`
@@ -765,6 +798,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-k3n] Implement `bazel run` support for running Dart scripts
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_040`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -784,6 +818,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-k9l] Design and implement Dart Dev Compiler (ddc) web test execution architecture
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `ddc`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -797,6 +832,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-mpb] Migrate co19 conformance tests to Bazel as isolated Bzlmod repo (@dart_co19_tests)
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `co19`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -836,6 +872,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-n4o] Dynamic Browser Testing Downloads
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_005`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -866,6 +903,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-o1h] Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_030`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -896,6 +934,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-qtd] Cleanup migration documentation and legacy instructions
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_037`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -912,6 +951,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-rog] VM: Define formal GN target for public VM embedding C API
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `sdk-cleanup`
 - **PR/External Ref**: [PR #19](https://github.com/kevmoo/sdk/pull/19)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -939,6 +979,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-s5g] Dynamic Package Dependency Mapping
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_001`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[4bbcd110701]`
@@ -955,6 +996,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-s7k] Investigate Bazel aspects for formatting and analysis checks
 - **Status**: `[COMPLETED]`
+- **Tags**: `pending`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -968,6 +1010,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-tjm] Simulator Target Configurations
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_024`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -1028,6 +1071,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-uft] VM AOT Test Suite Integration
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_022`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -1045,6 +1089,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-uj3] Audit and convert remaining cc_library stubs to filegroup or alias
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_036`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[a047d5e924f]`
@@ -1065,6 +1110,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-ur8] Add Chrome/Firefox test configurations to Bazel target generator
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_034`
 - **Prerequisites**: `sdk-b0q`
 - **Owner**: `[local]`
 - **Commit**: `[local]`
@@ -1081,6 +1127,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-v49] Design and implement virtual namespaced package targets
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `review-pending`
 - **PR/External Ref**: [PR #15](https://github.com/kevmoo/dart-sdk-bazel/pull/15)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -1095,6 +1142,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-vlg] Sanitizer Test Configuration Mapping
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_023`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -1110,6 +1158,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-w7m] VM: Eliminate preprocessor symbol toggles in dfe.cc
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `sdk-cleanup`
 - **PR/External Ref**: [PR #18](https://github.com/kevmoo/sdk/pull/18)
 - **Prerequisites**: None
 - **Owner**: `[none]`
@@ -1124,6 +1173,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-we0] Sanitizer Suite Verification
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_007`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[local]`
@@ -1165,6 +1215,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-xql] Fix package config generator for workspace packages and dynamic language versions
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `status:completed`, `task:TASK_032`
 - **Prerequisites**: None
 - **Owner**: `[jetski]`
 - **Commit**: `[local]`
@@ -1194,6 +1245,7 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ### 🎯 [sdk-zi3] Tooling: Implement script to import upstream CL/PR into Bazel workspace
 - **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `tooling`
 - **Prerequisites**: `sdk-9qx`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
