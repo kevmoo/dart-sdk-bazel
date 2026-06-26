@@ -570,19 +570,6 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
-- **Status**: `[COMPLETED]`
-- **Prerequisites**: `sdk-duv`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Replace GitHub Actions monolithic tarball disk-cache restoration with streaming datacenter remote cache cluster to eliminate 30s job startup extraction penalty.
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-dz3] Relocate and Migrate Worktree Symlinker to Dart
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -791,6 +778,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Wire up the remaining helper stubs (copy_prebuilt_devtools, compile_platform.exe, gen_kernel.exe, git_version) in utils/dartdev/BUILD.bazel and utils/BUILD.bazel to finalize SDK assembly.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-n0q] Setup Bazel cache auto-cleanup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Configure lifecycle rules on the GCS bucket 'dart-sdk-bazel-cache' (or the configured remote cache) to automatically clean up old cache artifacts and prevent storage costs from growing indefinitely.
 - **Success Criteria**:
 
 ---

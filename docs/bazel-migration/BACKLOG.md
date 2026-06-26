@@ -85,7 +85,7 @@ graph TD
     sdk_duv.2["sdk-duv.2:<br>Implement persistent workers for Dart compilations"]:::pending
     sdk_duv.3["sdk-duv.3:<br>Decouple test cache dependencies via depset dill summaries"]:::completed
     sdk_duv.4["sdk-duv.4:<br>Optimize GitHub Actions CI Bazel caching and sandbox execution"]:::completed
-    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::completed
+    sdk_duv.5["sdk-duv.5:<br>Evaluate and deploy gRPC/HTTP Remote Cache cluster {BuildBuddy/GCS} for shared team and CI caching"]:::pending
     sdk_dz3["sdk-dz3:<br>Relocate and Migrate Worktree Symlinker to Dart"]:::completed
     sdk_e8u["sdk-e8u:<br>Compile `dart_engine` Shared Libraries JIT/AOT"]:::completed
     sdk_f0w["sdk-f0w:<br>Spike: Evaluate Aspect CLI & Aspect Extension Language {AXL} for Monorepo Workflow Orchestration"]:::pending
@@ -95,7 +95,6 @@ graph TD
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
-    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::pending
     sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
@@ -103,6 +102,7 @@ graph TD
     sdk_k9l["sdk-k9l:<br>Design and implement Dart Dev Compiler {ddc} web test execution architecture"]:::completed
     sdk_mpb["sdk-mpb:<br>Migrate co19 conformance tests to Bazel as isolated Bzlmod repo {@dart_co19_tests}"]:::completed
     sdk_mv2["sdk-mv2:<br>{M3} Wire up DevTools and Core Utility Binaries"]:::completed
+    sdk_n0q["sdk-n0q:<br>Setup Bazel cache auto-cleanup"]:::completed
     sdk_n4o["sdk-n4o:<br>Dynamic Browser Testing Downloads"]:::completed
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
     sdk_o1h["sdk-o1h:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
@@ -443,6 +443,19 @@ graph TD
 
 ---
 
+### 🎯 [sdk-duv.5] Evaluate and deploy gRPC/HTTP Remote Cache cluster (BuildBuddy/GCS) for shared team and CI caching
+- **Status**: `[PENDING]`
+- **Prerequisites**: `sdk-duv`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Replace GitHub Actions monolithic tarball disk-cache restoration with streaming datacenter remote cache cluster to eliminate 30s job startup extraction penalty.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-f0w] Spike: Evaluate Aspect CLI & Aspect Extension Language (AXL) for Monorepo Workflow Orchestration
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -479,19 +492,6 @@ graph TD
   • What to look for: Are there syntax conflicts, functions, or type assertions valid in AXL that will confuse devs when they switch back to writing standard BUILD.bazel or .bzl macros?
   What are the specific linters (e.g., ESLint, Ruff, Clang-Tidy) or formatting pain points currently causing the most friction in your migration?
   
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Recreate gs://dart-sdk-bazel-cache in single region us-west1 to reduce Class A PUT upload costs by 50% ($0.05 per 10k vs $0.10) and drop developer RTT latency in Seattle to ~5-10ms.
 - **Success Criteria**:
 
 ---
