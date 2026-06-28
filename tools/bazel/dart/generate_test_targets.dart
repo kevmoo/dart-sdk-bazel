@@ -713,8 +713,15 @@ void main(List<String> args) async {
             var runnerScript = config.compiler == 'ddc'
                 ? '//:run_ddc_test.sh'
                 : '//:run_single_test.sh';
+
+            final isMetaTest = pkgDir == 'pkg/analyzer' &&
+                (relPathInPkg.startsWith('tool/') ||
+                    relPathInPkg == 'test/verify_diagnostics_test.dart' ||
+                    relPathInPkg == 'test/verify_docs_test.dart' ||
+                    relPathInPkg == 'test/verify_tests_test.dart');
+            final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
             individualTargets.add('''sh_test(
-    name = "$targetName",
+    name = "$targetName",$tagsAttr
     srcs = ["$runnerScript"],
     data = [
 $targetDepsStr
