@@ -714,8 +714,9 @@ void main(List<String> args) async {
                 ? '//:run_ddc_test.sh'
                 : '//:run_single_test.sh';
 
+            final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
-            final isMetaTest = pkgDir == 'pkg/analyzer' &&
+            final isMetaTest = normalizedPkgDir == 'pkg/analyzer' &&
                 (normalizedPath.startsWith('tool/') ||
                     (normalizedPath.startsWith('test/verify_') &&
                         normalizedPath.endsWith('_test.dart')));
