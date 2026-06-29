@@ -65,8 +65,10 @@ void main(List<String> args) async {
   debugBuf.writeln('Suites from Starlark: $suites');
 
   final manualPatterns = <String, List<String>>{};
+  final quarantinePatterns = <String, List<String>>{};
   final extraBaselineDeps = <String, List<String>>{};
   final extraDepsByPattern = <String, Map<String, List<String>>>{};
+  final timeoutsByPattern = <String, Map<String, String>>{};
   final globalExtraDepsByPattern = <String, List<String>>{};
 
   final suiteConfigFile =
@@ -86,6 +88,12 @@ void main(List<String> args) async {
           manualPatterns[pkgPath] = patterns;
         }
 
+        final quarantineList =
+            List<String>.from(pkgConfig['quarantine_patterns'] as List? ?? []);
+        if (quarantineList.isNotEmpty) {
+          quarantinePatterns[pkgPath] = quarantineList;
+        }
+
         final baseDeps =
             List<String>.from(pkgConfig['extra_baseline_deps'] as List? ?? []);
         if (baseDeps.isNotEmpty) {
@@ -100,6 +108,16 @@ void main(List<String> args) async {
             mapped[patEntry.key] = List<String>.from(patEntry.value as List);
           }
           extraDepsByPattern[pkgPath] = mapped;
+        }
+
+        final timeoutsMap =
+            pkgConfig['timeouts_by_pattern'] as Map<String, dynamic>? ?? {};
+        if (timeoutsMap.isNotEmpty) {
+          final mappedTimeouts = <String, String>{};
+          for (final tEntry in timeoutsMap.entries) {
+            mappedTimeouts[tEntry.key] = tEntry.value as String;
+          }
+          timeoutsByPattern[pkgPath] = mappedTimeouts;
         }
       }
 
@@ -784,7 +802,11 @@ void main(List<String> args) async {
               if (normalizedPkgDir == mEntry.key ||
                   normalizedPkgDir.endsWith('/${mEntry.key}')) {
                 for (final pattern in mEntry.value) {
-                  if (_matchesPattern(normalizedPath, pattern)) {
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
                     isMetaTest = true;
                     break;
                   }
@@ -792,9 +814,60 @@ void main(List<String> args) async {
                 if (isMetaTest) break;
               }
             }
-            final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
+
+            var isQuarantined = false;
+            for (final qEntry in quarantinePatterns.entries) {
+              if (normalizedPkgDir == qEntry.key ||
+                  normalizedPkgDir.endsWith('/${qEntry.key}')) {
+                for (final pattern in qEntry.value) {
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
+                    isQuarantined = true;
+                    break;
+                  }
+                }
+                if (isQuarantined) break;
+              }
+            }
+
+            String? targetTimeout;
+            for (final tEntry in timeoutsByPattern.entries) {
+              if (normalizedPkgDir == tEntry.key ||
+                  normalizedPkgDir.endsWith('/${tEntry.key}')) {
+                for (final patEntry in tEntry.value.entries) {
+                  final pattern = patEntry.key;
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
+                    targetTimeout = patEntry.value;
+                    break;
+                  }
+                }
+                if (targetTimeout != null) break;
+              }
+            }
+
+            final tagsList = <String>[];
+            if (isQuarantined) {
+              tagsList.add('quarantine');
+            }
+            if (isQuarantined || isMetaTest) {
+              tagsList.add('manual');
+            }
+            final tagsAttr = tagsList.isNotEmpty
+                ? '\n    tags = [${tagsList.map((t) => '"$t"').join(', ')}],'
+                : '';
+            final timeoutAttr = targetTimeout != null
+                ? '\n    timeout = "$targetTimeout",'
+                : '';
+
             individualTargets.add('''sh_test(
-    name = "$targetName",$tagsAttr
+    name = "$targetName",$tagsAttr$timeoutAttr
     srcs = ["$runnerScript"],
     data = [
 $targetDepsStr

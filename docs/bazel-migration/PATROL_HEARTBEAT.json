@@ -1,10 +1,10 @@
 {
   "status": "COMPLETED",
-  "timestamp": "2026-06-23T15:11:37.527182Z",
-  "completed_targets": 2301,
-  "total_targets": 2301,
+  "timestamp": "2026-06-29T18:10:01.817830Z",
+  "completed_targets": 2237,
+  "total_targets": 2237,
   "percent": "100.0",
-  "elapsed_minutes": "492.1",
+  "elapsed_minutes": "71.0",
   "eta_remaining_minutes": "0.0",
-  "rate_targets_per_sec": "0.08"
+  "rate_targets_per_sec": "0.52"
 }
