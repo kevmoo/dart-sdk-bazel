@@ -88,4 +88,4 @@ jobs:
 
     - name: Test pkg/analyzer (full suite)
       run: |
-        bazel test --config=ci @dart_tests//pkg/analyzer:all
+        bazel test --config=ci @dart_tests//pkg/analyzer/...

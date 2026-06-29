@@ -40,6 +40,10 @@ void main(List<String> args) async {
     }
   }
 
+  if (maxShards > 50) {
+    maxShards = 50;
+  }
+
   if (workspaceDir == null || outputDir == null) {
     print(
       'Usage: generate_test_targets.dart --workspace-dir=<dir> --output-dir=<dir> [--suite=<suite>...]',
@@ -222,18 +226,8 @@ void main(List<String> args) async {
       final name = tc['name'] as String;
       if (name == 'standalone/check_for_aot_snapshot_jit_test') continue;
 
-      final parts = name.split('/');
-      String pkgDir;
-      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
-      if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
-        pkgDir = parts[0];
-      } else if (parts.length >= 2) {
-        pkgDir = '${parts[0]}/${parts[1]}';
-      } else {
-        pkgDir = '${parts[0]}/misc';
-      }
-
       final filePathAbs = tc['file_path'] as String;
+      final pkgDir = getPkgRootAndDir(name, filePathAbs, workspaceDir).pkgDir;
       if (filePathAbs.startsWith(generatedPrefix)) {
         final relativeToGenerated = filePathAbs.substring(
           generatedPrefix.length,
@@ -271,19 +265,10 @@ void main(List<String> args) async {
       final name = tc['name'] as String;
       if (name == 'standalone/check_for_aot_snapshot_jit_test') continue;
 
-      final parts = name.split('/');
-      String pkgDir;
-      const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
-      if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
-        pkgDir = parts[0];
-      } else if (parts.length >= 2) {
-        pkgDir = '${parts[0]}/${parts[1]}';
-      } else {
-        pkgDir = '${parts[0]}/misc';
-      }
+      final filePathAbs = tc['file_path'] as String;
+      final pkgDir = getPkgRootAndDir(name, filePathAbs, workspaceDir).pkgDir;
 
       // Move generated files
-      final filePathAbs = tc['file_path'] as String;
       final generatedPrefix = '$outputDir/out/$configName/generated_tests/';
       if (filePathAbs.startsWith(generatedPrefix)) {
         final relativeToGenerated = filePathAbs.substring(
@@ -395,13 +380,32 @@ void main(List<String> args) async {
     final configsMap = entry.value;
     final packageWorkspaceFiles = <String>{};
 
+    final pkgRoot = getPkgRootFromPkgDir(pkgDir);
+    final normalizedPkgRoot = pkgRoot.replaceAll('\\', '/');
+
     // Ensure package directory exists
     Directory('$outputDir/$pkgDir').createSync(recursive: true);
 
-    final suiteSourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+    final suiteSourceDir = getSuiteSourceDir(workspaceDir, pkgRoot, co19Dir);
     final testImportsFile = File('$suiteSourceDir/test_imports.json');
     final hasFineGrained = testImportsFile.existsSync();
     final useIndividualTargets = hasFineGrained;
+
+    if (!useIndividualTargets && pkgRoot != 'co19') {
+      final granularSourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+      final dir = Directory(granularSourceDir);
+      if (dir.existsSync()) {
+        final files = dir.listSync(recursive: true);
+        for (final file in files) {
+          if (file is File) {
+            final filePathAbs = file.path;
+            final relativePath = p.relative(filePathAbs, from: workspaceDir);
+            final label = _resolveWorkspaceLabel(workspaceDir, relativePath);
+            packageWorkspaceFiles.add(label);
+          }
+        }
+      }
+    }
 
     Map<String, dynamic>? testImportsMap;
     if (hasFineGrained) {
@@ -426,11 +430,11 @@ void main(List<String> args) async {
       }
     }
 
-    final pubspecPath = '$workspaceDir/$pkgDir/pubspec.yaml';
+    final pubspecPath = '$workspaceDir/$pkgRoot/pubspec.yaml';
     final pubspecDeps = _parsePubspecDependencies(pubspecPath, debugBuf);
 
-    final parts = pkgDir.split('/');
-    final pkgName = parts.length >= 2 ? parts[1] : null;
+    final rootParts = pkgRoot.split('/');
+    final pkgName = rootParts.length >= 2 ? rootParts[1] : null;
 
     final individualTargets = <String>[];
     final shardedTargets = <String>[];
@@ -650,21 +654,21 @@ void main(List<String> args) async {
               _resolveWorkspaceLabel(workspaceDir, relResPath),
             );
             if (hasFineGrained) {
-              final relResInPkg = relResPath.substring(pkgDir.length + 1);
+              final relResInPkgRoot = relResPath.substring(pkgRoot.length + 1);
               final resDeps = _computeTransitiveClosure(
-                relResInPkg,
+                relResInPkgRoot,
                 testImportsMap!,
               );
               final suiteSourceDir =
-                  getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
-              final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
+                  getSuiteSourceDir(workspaceDir, pkgRoot, co19Dir);
+              final suiteRelPrefix = getSuiteRelPrefix(pkgRoot);
               for (final dep in resDeps) {
                 if (!File('$suiteSourceDir/$dep').existsSync() &&
                     !Directory('$suiteSourceDir/$dep').existsSync()) {
                   continue;
                 }
                 final fgName = _getFilegroupTargetName(dep);
-                final label = pkgDir == 'co19'
+                final label = pkgRoot == 'co19'
                     ? '@dart_co19_tests//:$dep'
                     : _resolveWorkspaceLabel(
                         workspaceDir,
@@ -681,31 +685,32 @@ void main(List<String> args) async {
         }
 
         if (useIndividualTargets) {
-          String relPathInPkg;
+          String relPathInPkgRoot;
           if (const {
             'corelib',
             'standalone',
             'ffi',
             'language',
-          }.contains(pkgDir)) {
+            'co19',
+          }.contains(pkgRoot)) {
             if (relativePath.startsWith('tests/')) {
-              relPathInPkg = relativePath.substring(
-                'tests/'.length + pkgDir.length + 1,
+              relPathInPkgRoot = relativePath.substring(
+                'tests/'.length + pkgRoot.length + 1,
               );
             } else {
-              final pkgIndex = relativePath.indexOf('$pkgDir/');
+              final pkgIndex = relativePath.indexOf('$pkgRoot/');
               if (pkgIndex != -1) {
-                relPathInPkg = relativePath.substring(
-                  pkgIndex + pkgDir.length + 1,
+                relPathInPkgRoot = relativePath.substring(
+                  pkgIndex + pkgRoot.length + 1,
                 );
               } else {
-                relPathInPkg = relativePath.substring(pkgDir.length + 1);
+                relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
               }
             }
           } else {
-            relPathInPkg = relativePath.substring(pkgDir.length + 1);
+            relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
           }
-          final targetName = '${_toTargetName(relPathInPkg)}_$configName';
+          final targetName = '${_toTargetName(relPathInPkgRoot)}_$configName';
 
           if (seenTargets.add(targetName)) {
             final targetDeps = <String>{
@@ -716,7 +721,7 @@ void main(List<String> args) async {
               ...resourceDeps,
             };
 
-            final normalizedPath = relPathInPkg.replaceAll('\\', '/');
+            final normalizedPath = relPathInPkgRoot.replaceAll('\\', '/');
             for (final gEntry in globalExtraDepsByPattern.entries) {
               if (_matchesPattern(normalizedPath, gEntry.key)) {
                 targetDeps.addAll(gEntry.value);
@@ -724,8 +729,8 @@ void main(List<String> args) async {
             }
 
             for (final pEntry in extraDepsByPattern.entries) {
-              if (normalizedPkgDir == pEntry.key ||
-                  normalizedPkgDir.endsWith('/${pEntry.key}')) {
+              if (normalizedPkgRoot == pEntry.key ||
+                  normalizedPkgRoot.endsWith('/${pEntry.key}')) {
                 for (final patEntry in pEntry.value.entries) {
                   if (_matchesPattern(normalizedPath, patEntry.key)) {
                     targetDeps.addAll(patEntry.value);
@@ -735,21 +740,21 @@ void main(List<String> args) async {
             }
 
             if (hasFineGrained) {
-              if (testImportsMap!.containsKey(relPathInPkg)) {
+              if (testImportsMap!.containsKey(relPathInPkgRoot)) {
                 final localDeps = _computeTransitiveClosure(
-                  relPathInPkg,
+                  relPathInPkgRoot,
                   testImportsMap,
                 );
                 final suiteSourceDir =
-                    getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
-                final suiteRelPrefix = getSuiteRelPrefix(pkgDir);
+                    getSuiteSourceDir(workspaceDir, pkgRoot, co19Dir);
+                final suiteRelPrefix = getSuiteRelPrefix(pkgRoot);
                 for (final dep in localDeps) {
                   if (!File('$suiteSourceDir/$dep').existsSync() &&
                       !Directory('$suiteSourceDir/$dep').existsSync()) {
                     continue;
                   }
                   final fgName = _getFilegroupTargetName(dep);
-                  final label = pkgDir == 'co19'
+                  final label = pkgRoot == 'co19'
                       ? '@dart_co19_tests//:$dep'
                       : _resolveWorkspaceLabel(
                           workspaceDir,
@@ -779,7 +784,7 @@ void main(List<String> args) async {
                 }
                 // And also depend on the whole package from virtual repo (all files)
                 // for runtime reads via packageRoot.
-                if (pkgDir.startsWith('pkg/') && pkgName != null) {
+                if (pkgRoot.startsWith('pkg/') && pkgName != null) {
                   targetDeps.add(
                     '@dart_packages//pkg/$pkgName:sdk_package_sources',
                   );
@@ -874,7 +879,7 @@ $targetDepsStr
     ],
     args = [
         "--config-json=\$(location :tests_metadata_$configName.json)",
-        "--run-only=$relPathInPkg",
+        "--run-only=$relPathInPkgRoot",
     ],
 )''');
           }
@@ -927,7 +932,7 @@ $targetDepsStr
         pkgJson.writeAsStringSync(jsonEncode(enrichedCases));
 
         if (!useIndividualTargets) {
-          if (pkgDir.startsWith('pkg/') && pkgName != null) {
+          if (pkgRoot.startsWith('pkg/') && pkgName != null) {
             otherDeps.add('@dart_packages//pkg/$pkgName');
           }
 
@@ -935,7 +940,10 @@ $targetDepsStr
               .where((d) => !d.startsWith(':tests_metadata'))
               .toSet();
           baselineDepsSet.addAll(otherDeps);
-          if (pkgDir == 'co19') {
+          if (pkgDir.startsWith('co19/')) {
+            final subSuite = pkgDir.substring('co19/'.length);
+            baselineDepsSet.add('@dart_co19_tests//:${subSuite}_files');
+          } else if (pkgDir == 'co19') {
             baselineDepsSet.add('@dart_co19_tests//:co19_files');
           }
           final baselineDepsList = baselineDepsSet.toList()..sort();
@@ -952,10 +960,9 @@ $targetDepsStr
           var runnerScript = config.compiler == 'ddc'
               ? '//:run_ddc_test.sh'
               : '//:run_single_test.sh';
-          final dataRule = pkgDir == 'co19'
-              ? '    data = [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],'
-              : '    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],';
-          final envRule = pkgDir == 'co19'
+          final dataRule =
+              '    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],';
+          final envRule = pkgRoot == 'co19'
               ? '\n    env = {\n        "DART_CO19_SRC": "../dart_co19_tests",\n    },'
               : '';
           shardedTargets.add('''sh_test(
@@ -1002,7 +1009,7 @@ $targetsStr
     } else {
       if (shardedTargets.isNotEmpty) {
         final String workspaceFilesRule;
-        if (pkgDir == 'co19') {
+        if (pkgRoot == 'co19') {
           workspaceFilesRule = '''filegroup(
     name = "workspace_files",
     srcs = [
@@ -1525,4 +1532,66 @@ bool _matchesPattern(String path, String pattern) {
     return regex.hasMatch(path);
   }
   return path == pattern;
+}
+
+({String pkgRoot, String pkgDir}) getPkgRootAndDir(
+    String name, String filePathAbs, String workspaceDir) {
+  final parts = name.split('/');
+  if (parts.isEmpty) {
+    return (pkgRoot: 'misc', pkgDir: 'misc');
+  }
+
+  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
+  final firstSegment = parts[0];
+
+  if (coarseSuites.contains(firstSegment)) {
+    if (firstSegment == 'co19') {
+      if (parts.length >= 2) {
+        return (pkgRoot: 'co19', pkgDir: 'co19/${parts[1]}');
+      } else {
+        return (pkgRoot: 'co19', pkgDir: 'co19/misc');
+      }
+    } else {
+      // other coarse suites: corelib, standalone, ffi, language
+      if (parts.length >= 3) {
+        return (pkgRoot: firstSegment, pkgDir: '$firstSegment/${parts[1]}');
+      } else {
+        return (pkgRoot: firstSegment, pkgDir: '$firstSegment/misc');
+      }
+    }
+  } else {
+    // pkg/ or other packages
+    final String pkgRoot;
+    if (parts.length >= 2) {
+      pkgRoot = '${parts[0]}/${parts[1]}';
+    } else {
+      pkgRoot = parts[0];
+    }
+
+    String pkgDir = pkgRoot;
+    if (p.isWithin(workspaceDir, filePathAbs)) {
+      final relative = p.relative(filePathAbs, from: workspaceDir);
+      final parentDir = p.dirname(relative);
+      pkgDir = p.posix.joinAll(p.split(parentDir));
+    } else {
+      final nameParent = p.posix.dirname(name);
+      if (nameParent != '.' && nameParent.isNotEmpty) {
+        pkgDir = nameParent;
+      }
+    }
+    return (pkgRoot: pkgRoot, pkgDir: pkgDir);
+  }
+}
+
+String getPkgRootFromPkgDir(String pkgDir) {
+  final parts = pkgDir.split('/');
+  if (parts.isEmpty) return 'misc';
+  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
+  if (coarseSuites.contains(parts[0])) {
+    return parts[0];
+  }
+  if (parts.length >= 2) {
+    return '${parts[0]}/${parts[1]}';
+  }
+  return parts[0];
 }

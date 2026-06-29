@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:status_file/expectation.dart';
 import 'android.dart';
 import 'browser_controller.dart';
 import 'build_configurations.dart';
@@ -393,9 +394,9 @@ Future<void> _dumpConfigurationsMetadata(
           testCase.configuration.configuration,
         ),
         "file_path": testCase.testFile.path.toNativePath(),
-        "expected_outcome": testCase.expectedOutcomes
-            .map((e) => e.toString())
-            .toList(),
+        "expected_outcome": (testCase.realExpected != Expectation.pass)
+            ? [testCase.realExpected.toString()]
+            : testCase.expectedOutcomes.map((e) => e.toString()).toList(),
         "commands": testCase.commands.map((cmd) {
           if (cmd is ProcessCommand) {
             return {
