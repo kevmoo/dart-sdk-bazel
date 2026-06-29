@@ -686,7 +686,6 @@ void main(List<String> args) async {
           final targetName = '${_toTargetName(relPathInPkg)}_$configName';
 
           if (seenTargets.add(targetName)) {
-            final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
             final targetDeps = <String>{
               ...baselineDeps,
               testFileLabel,
@@ -1436,14 +1435,20 @@ String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
   return path.replaceAll('\\', '/');
 }
 
+final _globCache = <String, RegExp>{};
+
 bool _matchesPattern(String path, String pattern) {
   if (pattern.endsWith('**')) {
     final prefix = pattern.substring(0, pattern.length - 2);
     return path.startsWith(prefix);
   }
   if (pattern.contains('*')) {
-    final regexPattern = '^${RegExp.escape(pattern).replaceAll(r'\*', '.*')}\$';
-    return RegExp(regexPattern).hasMatch(path);
+    final regex = _globCache.putIfAbsent(pattern, () {
+      final regexPattern =
+          '^${RegExp.escape(pattern).replaceAll(r'\*', '.*')}\$';
+      return RegExp(regexPattern);
+    });
+    return regex.hasMatch(path);
   }
   return path == pattern;
 }
