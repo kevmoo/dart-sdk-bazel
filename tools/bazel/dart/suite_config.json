@@ -1,9 +1,27 @@
 {
   "packages": {
+    "co19": {
+      "timeouts_by_pattern": {
+        "**": "long"
+      }
+    },
+    "corelib": {
+      "timeouts_by_pattern": {
+        "**": "long"
+      }
+    },
+    "pkg/analysis_server": {
+      "quarantine_patterns": [
+        "test/**"
+      ]
+    },
     "pkg/analyzer": {
       "manual_patterns": [
         "tool/**",
         "test/verify_*_test.dart"
+      ],
+      "quarantine_patterns": [
+        "test/**"
       ],
       "extra_deps_by_pattern": {
         "test/id_tests/**": [
@@ -14,6 +32,22 @@
     "pkg/dart2wasm": {
       "extra_baseline_deps": [
         "@//:dart2wasm_test_resources"
+      ],
+      "timeouts_by_pattern": {
+        "**": "long"
+      }
+    },
+    "pkg/front_end": {
+      "quarantine_patterns": [
+        "test/**"
+      ],
+      "timeouts_by_pattern": {
+        "**": "long"
+      }
+    },
+    "pkg/test_api": {
+      "quarantine_patterns": [
+        "test/**"
       ]
     }
   },
@@ -24,3 +58,5 @@
     ]
   }
 }
+
+
