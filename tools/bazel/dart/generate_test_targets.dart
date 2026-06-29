@@ -64,7 +64,9 @@ void main(List<String> args) async {
   debugBuf.writeln('co19 Dir: $co19Dir');
   debugBuf.writeln('Suites from Starlark: $suites');
 
-  final packageConfigs = <String, PackageConfig>{};
+  final manualPatterns = <String, List<String>>{};
+  final extraBaselineDeps = <String, List<String>>{};
+  final extraDepsByPattern = <String, Map<String, List<String>>>{};
   final globalExtraDepsByPattern = <String, List<String>>{};
 
   final suiteConfigFile =
@@ -80,21 +82,25 @@ void main(List<String> args) async {
 
         final patterns =
             List<String>.from(pkgConfig['manual_patterns'] as List? ?? []);
+        if (patterns.isNotEmpty) {
+          manualPatterns[pkgPath] = patterns;
+        }
+
         final baseDeps =
             List<String>.from(pkgConfig['extra_baseline_deps'] as List? ?? []);
+        if (baseDeps.isNotEmpty) {
+          extraBaselineDeps[pkgPath] = baseDeps;
+        }
 
         final depsByPatternMap =
             pkgConfig['extra_deps_by_pattern'] as Map<String, dynamic>? ?? {};
-        final mappedDeps = <String, List<String>>{};
-        for (final patEntry in depsByPatternMap.entries) {
-          mappedDeps[patEntry.key] = List<String>.from(patEntry.value as List);
+        if (depsByPatternMap.isNotEmpty) {
+          final mapped = <String, List<String>>{};
+          for (final patEntry in depsByPatternMap.entries) {
+            mapped[patEntry.key] = List<String>.from(patEntry.value as List);
+          }
+          extraDepsByPattern[pkgPath] = mapped;
         }
-
-        packageConfigs[pkgPath] = PackageConfig(
-          manualPatterns: patterns,
-          extraBaselineDeps: baseDeps,
-          extraDepsByPattern: mappedDeps,
-        );
       }
 
       final globalMap =
@@ -368,21 +374,6 @@ void main(List<String> args) async {
     final pkgDir = entry.key;
     final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
 
-    PackageConfig? matchedConfig;
-    for (final pEntry in packageConfigs.entries) {
-      if (normalizedPkgDir == pEntry.key ||
-          normalizedPkgDir.endsWith('/${pEntry.key}')) {
-        matchedConfig = pEntry.value;
-        break;
-      }
-    }
-
-    final pkgManualPatterns = matchedConfig?.manualPatterns ?? const <String>[];
-    final pkgBaselineDeps =
-        matchedConfig?.extraBaselineDeps ?? const <String>[];
-    final pkgDepsByPattern =
-        matchedConfig?.extraDepsByPattern ?? const <String, List<String>>{};
-
     final configsMap = entry.value;
     final packageWorkspaceFiles = <String>{};
 
@@ -533,8 +524,11 @@ void main(List<String> args) async {
         });
       }
 
-      if (pkgBaselineDeps.isNotEmpty) {
-        baselineDeps.addAll(pkgBaselineDeps);
+      for (final bEntry in extraBaselineDeps.entries) {
+        if (normalizedPkgDir == bEntry.key ||
+            normalizedPkgDir.endsWith('/${bEntry.key}')) {
+          baselineDeps.addAll(bEntry.value);
+        }
       }
 
       if ([
@@ -704,17 +698,20 @@ void main(List<String> args) async {
               ...resourceDeps,
             };
 
-            final normalizedPathForDeps = relPathInPkg.replaceAll('\\', '/');
+            final normalizedPath = relPathInPkg.replaceAll('\\', '/');
             for (final gEntry in globalExtraDepsByPattern.entries) {
-              if (_matchesPattern(normalizedPathForDeps, gEntry.key)) {
+              if (_matchesPattern(normalizedPath, gEntry.key)) {
                 targetDeps.addAll(gEntry.value);
               }
             }
 
-            if (pkgDepsByPattern.isNotEmpty) {
-              for (final patEntry in pkgDepsByPattern.entries) {
-                if (_matchesPattern(normalizedPathForDeps, patEntry.key)) {
-                  targetDeps.addAll(patEntry.value);
+            for (final pEntry in extraDepsByPattern.entries) {
+              if (normalizedPkgDir == pEntry.key ||
+                  normalizedPkgDir.endsWith('/${pEntry.key}')) {
+                for (final patEntry in pEntry.value.entries) {
+                  if (_matchesPattern(normalizedPath, patEntry.key)) {
+                    targetDeps.addAll(patEntry.value);
+                  }
                 }
               }
             }
@@ -782,14 +779,17 @@ void main(List<String> args) async {
                 ? '//:run_ddc_test.sh'
                 : '//:run_single_test.sh';
 
-            final normalizedPath = relPathInPkg.replaceAll('\\', '/');
             var isMetaTest = false;
-            if (pkgManualPatterns.isNotEmpty) {
-              for (final pattern in pkgManualPatterns) {
-                if (_matchesPattern(normalizedPath, pattern)) {
-                  isMetaTest = true;
-                  break;
+            for (final mEntry in manualPatterns.entries) {
+              if (normalizedPkgDir == mEntry.key ||
+                  normalizedPkgDir.endsWith('/${mEntry.key}')) {
+                for (final pattern in mEntry.value) {
+                  if (_matchesPattern(normalizedPath, pattern)) {
+                    isMetaTest = true;
+                    break;
+                  }
                 }
+                if (isMetaTest) break;
               }
             }
             final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
@@ -1452,16 +1452,4 @@ bool _matchesPattern(String path, String pattern) {
     return regex.hasMatch(path);
   }
   return path == pattern;
-}
-
-class PackageConfig {
-  final List<String> manualPatterns;
-  final List<String> extraBaselineDeps;
-  final Map<String, List<String>> extraDepsByPattern;
-
-  PackageConfig({
-    required this.manualPatterns,
-    required this.extraBaselineDeps,
-    required this.extraDepsByPattern,
-  });
 }
