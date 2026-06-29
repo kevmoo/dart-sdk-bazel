@@ -716,7 +716,8 @@ void main(List<String> args) async {
 
             final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
-            final isMetaTest = normalizedPkgDir == 'pkg/analyzer' &&
+            final isMetaTest = (normalizedPkgDir == 'pkg/analyzer' ||
+                    normalizedPkgDir.endsWith('/pkg/analyzer')) &&
                 (normalizedPath.startsWith('tool/') ||
                     (normalizedPath.startsWith('test/verify_') &&
                         normalizedPath.endsWith('_test.dart')));
