@@ -108,6 +108,9 @@ void main(List<String> args) async {
       stderr.writeln('Error: Failed to parse suite_config.json: $e');
       rethrow;
     }
+  } else {
+    throw FileSystemException(
+        'Required suite configuration file not found', suiteConfigFile.path);
   }
 
   // Use the dart binary this generator is already running under (the .bzl
@@ -1443,7 +1446,7 @@ bool _matchesPattern(String path, String pattern) {
   if (pattern.contains('*')) {
     final regex = _globCache.putIfAbsent(pattern, () {
       final regexPattern =
-          '^${RegExp.escape(pattern).replaceAll(r'\*', '.*')}\$';
+          '^${RegExp.escape(pattern).replaceAll(r'\*\*', '.*').replaceAll(r'\*', '[^/]*')}\$';
       return RegExp(regexPattern);
     });
     return regex.hasMatch(path);
