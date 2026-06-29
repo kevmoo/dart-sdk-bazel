@@ -717,9 +717,8 @@ void main(List<String> args) async {
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
             final isMetaTest = pkgDir == 'pkg/analyzer' &&
                 (normalizedPath.startsWith('tool/') ||
-                    normalizedPath == 'test/verify_diagnostics_test.dart' ||
-                    normalizedPath == 'test/verify_docs_test.dart' ||
-                    normalizedPath == 'test/verify_tests_test.dart');
+                    (normalizedPath.startsWith('test/verify_') &&
+                        normalizedPath.endsWith('_test.dart')));
             final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
             individualTargets.add('''sh_test(
     name = "$targetName",$tagsAttr
