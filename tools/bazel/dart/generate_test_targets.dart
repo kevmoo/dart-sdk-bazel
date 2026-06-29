@@ -64,9 +64,7 @@ void main(List<String> args) async {
   debugBuf.writeln('co19 Dir: $co19Dir');
   debugBuf.writeln('Suites from Starlark: $suites');
 
-  final manualPatterns = <String, List<String>>{};
-  final extraBaselineDeps = <String, List<String>>{};
-  final extraDepsByPattern = <String, Map<String, List<String>>>{};
+  final packageConfigs = <String, PackageConfig>{};
   final globalExtraDepsByPattern = <String, List<String>>{};
 
   final suiteConfigFile =
@@ -82,25 +80,21 @@ void main(List<String> args) async {
 
         final patterns =
             List<String>.from(pkgConfig['manual_patterns'] as List? ?? []);
-        if (patterns.isNotEmpty) {
-          manualPatterns[pkgPath] = patterns;
-        }
-
         final baseDeps =
             List<String>.from(pkgConfig['extra_baseline_deps'] as List? ?? []);
-        if (baseDeps.isNotEmpty) {
-          extraBaselineDeps[pkgPath] = baseDeps;
-        }
 
         final depsByPatternMap =
             pkgConfig['extra_deps_by_pattern'] as Map<String, dynamic>? ?? {};
-        if (depsByPatternMap.isNotEmpty) {
-          final mapped = <String, List<String>>{};
-          for (final patEntry in depsByPatternMap.entries) {
-            mapped[patEntry.key] = List<String>.from(patEntry.value as List);
-          }
-          extraDepsByPattern[pkgPath] = mapped;
+        final mappedDeps = <String, List<String>>{};
+        for (final patEntry in depsByPatternMap.entries) {
+          mappedDeps[patEntry.key] = List<String>.from(patEntry.value as List);
         }
+
+        packageConfigs[pkgPath] = PackageConfig(
+          manualPatterns: patterns,
+          extraBaselineDeps: baseDeps,
+          extraDepsByPattern: mappedDeps,
+        );
       }
 
       final globalMap =
@@ -371,32 +365,20 @@ void main(List<String> args) async {
     final pkgDir = entry.key;
     final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
 
-    List<String>? pkgManualPatterns;
-    for (final mEntry in manualPatterns.entries) {
-      if (normalizedPkgDir == mEntry.key ||
-          normalizedPkgDir.endsWith('/${mEntry.key}')) {
-        pkgManualPatterns = mEntry.value;
-        break;
-      }
-    }
-
-    List<String>? pkgBaselineDeps;
-    for (final bEntry in extraBaselineDeps.entries) {
-      if (normalizedPkgDir == bEntry.key ||
-          normalizedPkgDir.endsWith('/${bEntry.key}')) {
-        pkgBaselineDeps = bEntry.value;
-        break;
-      }
-    }
-
-    Map<String, List<String>>? pkgDepsByPattern;
-    for (final pEntry in extraDepsByPattern.entries) {
+    PackageConfig? matchedConfig;
+    for (final pEntry in packageConfigs.entries) {
       if (normalizedPkgDir == pEntry.key ||
           normalizedPkgDir.endsWith('/${pEntry.key}')) {
-        pkgDepsByPattern = pEntry.value;
+        matchedConfig = pEntry.value;
         break;
       }
     }
+
+    final pkgManualPatterns = matchedConfig?.manualPatterns ?? const <String>[];
+    final pkgBaselineDeps =
+        matchedConfig?.extraBaselineDeps ?? const <String>[];
+    final pkgDepsByPattern =
+        matchedConfig?.extraDepsByPattern ?? const <String, List<String>>{};
 
     final configsMap = entry.value;
     final packageWorkspaceFiles = <String>{};
@@ -548,7 +530,7 @@ void main(List<String> args) async {
         });
       }
 
-      if (pkgBaselineDeps != null) {
+      if (pkgBaselineDeps.isNotEmpty) {
         baselineDeps.addAll(pkgBaselineDeps);
       }
 
@@ -726,7 +708,7 @@ void main(List<String> args) async {
               }
             }
 
-            if (pkgDepsByPattern != null) {
+            if (pkgDepsByPattern.isNotEmpty) {
               for (final patEntry in pkgDepsByPattern.entries) {
                 if (_matchesPattern(normalizedPathForDeps, patEntry.key)) {
                   targetDeps.addAll(patEntry.value);
@@ -799,7 +781,7 @@ void main(List<String> args) async {
 
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
             var isMetaTest = false;
-            if (pkgManualPatterns != null) {
+            if (pkgManualPatterns.isNotEmpty) {
               for (final pattern in pkgManualPatterns) {
                 if (_matchesPattern(normalizedPath, pattern)) {
                   isMetaTest = true;
@@ -1467,4 +1449,16 @@ bool _matchesPattern(String path, String pattern) {
     return regex.hasMatch(path);
   }
   return path == pattern;
+}
+
+class PackageConfig {
+  final List<String> manualPatterns;
+  final List<String> extraBaselineDeps;
+  final Map<String, List<String>> extraDepsByPattern;
+
+  PackageConfig({
+    required this.manualPatterns,
+    required this.extraBaselineDeps,
+    required this.extraDepsByPattern,
+  });
 }
