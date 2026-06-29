@@ -230,6 +230,58 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o.1] [REC-FAST-4] Dynamic Test Timeout Tiers (timeout = "long") for heavy AOT/WASM suites
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update Starlark test macros to explicitly assign timeout = 'long' (900s) or 'eternal' (3600s) to heavy WASM/AOT compiled suites instead of relying on default 'moderate' (300s).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.2] [REC-FIX-3] Target Quarantining Allowlist (tags = ["quarantine"])
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Apply tags = ['manual', 'quarantine'] to currently unmigrated or flaky test targets so bazel test //... runs 100% green.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.3] [REC-FIX-1] Migrate pkg/... test harnesses to package:runfiles lookup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Refactor relative filesystem path lookups across pkg/analyzer, pkg/analysis_server, and pkg/front_end to resolve assets dynamically via package:runfiles.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Enhance Starlark test generation macros to automatically detect and append required .dill, .snapshot, and helper .dart files to target data attributes.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
@@ -420,6 +472,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Move C++-only flags/warnings (like -Wheader-hygiene) from shared cflags to cflags_cc in build/config/compiler/BUILD.gn. This prevents language-mismatch warnings on pure C targets and ensures accurate compilation databases. Ref: docs/bazel-migration/todo_issues/issue_00001_split_conlyopts_cxxopts.md
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-b5h] Follow-up PR #44: convert unmigrated suites to Suite -> Bead ID map
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update unmigratedGnSuites in run_test_universe.dart to map Suite names to tracking Bead IDs
 - **Success Criteria**:
 
 ---
@@ -814,6 +879,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Wire up the remaining helper stubs (copy_prebuilt_devtools, compile_platform.exe, gen_kernel.exe, git_version) in utils/dartdev/BUILD.bazel and utils/BUILD.bazel to finalize SDK assembly.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-n0q] Setup Bazel cache auto-cleanup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Configure lifecycle rules on the GCS bucket 'dart-sdk-bazel-cache' (or the configured remote cache) to automatically clean up old cache artifacts and prevent storage costs from growing indefinitely.
 - **Success Criteria**:
 
 ---
