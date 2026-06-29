@@ -269,6 +269,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o.4] [REC-FAST-2] Granular shard sizing & subdirectory target splitting
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Split massive test suites like co19 and pkg by subdirectory (e.g. @dart_tests//co19/LanguageFeatures/...) to prevent shard timeouts and improve cache granularity.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-67o.6] [REC-FIX-2] Automated hermetic asset scanning in Starlark macros
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-67o`

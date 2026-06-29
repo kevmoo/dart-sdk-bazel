@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 81/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 82/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -65,7 +65,7 @@ graph TD
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::completed
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::completed
     sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
-    sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::pending
+    sdk_67o.4["sdk-67o.4:<br>{REC-FAST-2} Granular shard sizing & subdirectory target splitting"]:::completed
     sdk_67o.5["sdk-67o.5:<br>{REC-FAST-1} Enable Remote Build Execution {RBE} & Remote Caching"]:::pending
     sdk_67o.6["sdk-67o.6:<br>{REC-FIX-2} Automated hermetic asset scanning in Starlark macros"]:::completed
     sdk_67o.7["sdk-67o.7:<br>{REC-FAST-3} Document RAM-backed Bazel output base {tmpfs / /dev/shm}"]:::pending
@@ -277,19 +277,6 @@ graph TD
   - None
 - **Description**:
   Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-67o.4] [REC-FAST-2] Granular shard sizing & subdirectory target splitting
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Split massive test suites like co19 and pkg by subdirectory (e.g. @dart_tests//co19/LanguageFeatures/...) to prevent shard timeouts and improve cache granularity.
 - **Success Criteria**:
 
 ---
