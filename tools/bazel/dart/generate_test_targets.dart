@@ -713,8 +713,17 @@ void main(List<String> args) async {
             var runnerScript = config.compiler == 'ddc'
                 ? '//:run_ddc_test.sh'
                 : '//:run_single_test.sh';
+
+            final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
+            final normalizedPath = relPathInPkg.replaceAll('\\', '/');
+            final isMetaTest = (normalizedPkgDir == 'pkg/analyzer' ||
+                    normalizedPkgDir.endsWith('/pkg/analyzer')) &&
+                (normalizedPath.startsWith('tool/') ||
+                    (normalizedPath.startsWith('test/verify_') &&
+                        normalizedPath.endsWith('_test.dart')));
+            final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
             individualTargets.add('''sh_test(
-    name = "$targetName",
+    name = "$targetName",$tagsAttr
     srcs = ["$runnerScript"],
     data = [
 $targetDepsStr
