@@ -802,7 +802,11 @@ void main(List<String> args) async {
               if (normalizedPkgDir == mEntry.key ||
                   normalizedPkgDir.endsWith('/${mEntry.key}')) {
                 for (final pattern in mEntry.value) {
-                  if (_matchesPattern(normalizedPath, pattern)) {
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
                     isMetaTest = true;
                     break;
                   }
@@ -816,7 +820,11 @@ void main(List<String> args) async {
               if (normalizedPkgDir == qEntry.key ||
                   normalizedPkgDir.endsWith('/${qEntry.key}')) {
                 for (final pattern in qEntry.value) {
-                  if (_matchesPattern(normalizedPath, pattern)) {
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
                     isQuarantined = true;
                     break;
                   }
@@ -830,7 +838,12 @@ void main(List<String> args) async {
               if (normalizedPkgDir == tEntry.key ||
                   normalizedPkgDir.endsWith('/${tEntry.key}')) {
                 for (final patEntry in tEntry.value.entries) {
-                  if (_matchesPattern(normalizedPath, patEntry.key)) {
+                  final pattern = patEntry.key;
+                  final workspaceRelativePattern = normalizedPkgDir == '.'
+                      ? pattern
+                      : '$normalizedPkgDir/$pattern';
+                  if (_matchesPattern(
+                      normalizedPath, workspaceRelativePattern)) {
                     targetTimeout = patEntry.value;
                     break;
                   }
