@@ -320,11 +320,15 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       for (final arg in arguments) {
         if (arg == '-O1' || arg == '-O2' || arg == '-O3' || arg == '-O4') {
           hasOptimization = true;
+        } else if (arg == '-O0') {
+          hasOptimization = false;
         }
         if (arg.startsWith('--optimization-level=')) {
           final level = arg.substring('--optimization-level='.length);
           if (level != '0') {
             hasOptimization = true;
+          } else {
+            hasOptimization = false;
           }
         }
       }

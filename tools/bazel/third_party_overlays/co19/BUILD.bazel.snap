@@ -22,3 +22,44 @@ filegroup(
         ],
     ),
 )
+
+filegroup(
+    name = "Language_files",
+    srcs = glob(
+        ["Language/**/*", "Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "LanguageFeatures_files",
+    srcs = glob(
+        ["LanguageFeatures/**/*", "Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "LibTest_files",
+    srcs = glob(
+        ["LibTest/**/*", "Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "TypeSystem_files",
+    srcs = glob(
+        ["TypeSystem/**/*", "Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "VM_files",
+    srcs = glob(
+        ["VM/**/*", "Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
