@@ -1,0 +1,26 @@
+{
+  "packages": {
+    "pkg/analyzer": {
+      "manual_patterns": [
+        "tool/**",
+        "test/verify_*_test.dart"
+      ],
+      "extra_deps_by_pattern": {
+        "test/id_tests/**": [
+          "@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources"
+        ]
+      }
+    },
+    "pkg/dart2wasm": {
+      "extra_baseline_deps": [
+        "@//:dart2wasm_test_resources"
+      ]
+    }
+  },
+  "global_extra_deps_by_pattern": {
+    "tool/messages/generate_test.dart": [
+      "@dart_packages//pkg/front_end:sdk_package_sources",
+      "@dart_packages//pkg/analysis_server:sdk_package_sources"
+    ]
+  }
+}

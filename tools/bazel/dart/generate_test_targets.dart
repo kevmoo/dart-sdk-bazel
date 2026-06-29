@@ -64,6 +64,57 @@ void main(List<String> args) async {
   debugBuf.writeln('co19 Dir: $co19Dir');
   debugBuf.writeln('Suites from Starlark: $suites');
 
+  final manualPatterns = <String, List<String>>{};
+  final extraBaselineDeps = <String, List<String>>{};
+  final extraDepsByPattern = <String, Map<String, List<String>>>{};
+  final globalExtraDepsByPattern = <String, List<String>>{};
+
+  final suiteConfigFile =
+      File('$workspaceDir/tools/bazel/dart/suite_config.json');
+  if (suiteConfigFile.existsSync()) {
+    try {
+      final decoded = jsonDecode(suiteConfigFile.readAsStringSync())
+          as Map<String, dynamic>;
+      final packagesMap = decoded['packages'] as Map<String, dynamic>? ?? {};
+      for (final entry in packagesMap.entries) {
+        final pkgPath = entry.key;
+        final pkgConfig = entry.value as Map<String, dynamic>? ?? {};
+
+        final patterns =
+            List<String>.from(pkgConfig['manual_patterns'] as List? ?? []);
+        if (patterns.isNotEmpty) {
+          manualPatterns[pkgPath] = patterns;
+        }
+
+        final baseDeps =
+            List<String>.from(pkgConfig['extra_baseline_deps'] as List? ?? []);
+        if (baseDeps.isNotEmpty) {
+          extraBaselineDeps[pkgPath] = baseDeps;
+        }
+
+        final depsByPatternMap =
+            pkgConfig['extra_deps_by_pattern'] as Map<String, dynamic>? ?? {};
+        if (depsByPatternMap.isNotEmpty) {
+          final mapped = <String, List<String>>{};
+          for (final patEntry in depsByPatternMap.entries) {
+            mapped[patEntry.key] = List<String>.from(patEntry.value as List);
+          }
+          extraDepsByPattern[pkgPath] = mapped;
+        }
+      }
+
+      final globalMap =
+          decoded['global_extra_deps_by_pattern'] as Map<String, dynamic>? ??
+              {};
+      for (final gEntry in globalMap.entries) {
+        globalExtraDepsByPattern[gEntry.key] =
+            List<String>.from(gEntry.value as List);
+      }
+    } catch (e) {
+      debugBuf.writeln('Warning: Failed to parse suite_config.json: $e');
+    }
+  }
+
   // Use the dart binary this generator is already running under (the .bzl
   // resolves it via @prebuilt_dart_sdk and spawns us with it). The previous
   // hardcoded $workspaceDir/tools/sdks/dart-sdk path does not exist on hosts
@@ -317,6 +368,7 @@ void main(List<String> args) async {
   // 4. Write directory BUILD.bazel and tests_metadata_<config>.json files
   for (final entry in packageGroups.entries) {
     final pkgDir = entry.key;
+    final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
     final configsMap = entry.value;
     final packageWorkspaceFiles = <String>{};
 
@@ -467,8 +519,12 @@ void main(List<String> args) async {
         });
       }
 
-      if (pkgDir == 'pkg/dart2wasm') {
-        baselineDeps.add('@//:dart2wasm_test_resources');
+      for (final bEntry in extraBaselineDeps.entries) {
+        final configuredPkg = bEntry.key;
+        if (normalizedPkgDir == configuredPkg ||
+            normalizedPkgDir.endsWith('/$configuredPkg')) {
+          baselineDeps.addAll(bEntry.value);
+        }
       }
 
       if ([
@@ -630,6 +686,7 @@ void main(List<String> args) async {
           final targetName = '${_toTargetName(relPathInPkg)}_$configName';
 
           if (seenTargets.add(targetName)) {
+            final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
             final targetDeps = <String>{
               ...baselineDeps,
               testFileLabel,
@@ -638,17 +695,23 @@ void main(List<String> args) async {
               ...resourceDeps,
             };
 
-            if (relPathInPkg == 'tool/messages/generate_test.dart') {
-              targetDeps
-                  .add('@dart_packages//pkg/front_end:sdk_package_sources');
-              targetDeps.add(
-                  '@dart_packages//pkg/analysis_server:sdk_package_sources');
+            final normalizedPathForDeps = relPathInPkg.replaceAll('\\', '/');
+            for (final gEntry in globalExtraDepsByPattern.entries) {
+              if (_matchesPattern(normalizedPathForDeps, gEntry.key)) {
+                targetDeps.addAll(gEntry.value);
+              }
             }
 
-            if (pkgDir == 'pkg/analyzer' &&
-                relPathInPkg.startsWith('test/id_tests/')) {
-              targetDeps.add(
-                  '@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources');
+            for (final entry in extraDepsByPattern.entries) {
+              final configuredPkg = entry.key;
+              if (normalizedPkgDir == configuredPkg ||
+                  normalizedPkgDir.endsWith('/$configuredPkg')) {
+                for (final patEntry in entry.value.entries) {
+                  if (_matchesPattern(normalizedPathForDeps, patEntry.key)) {
+                    targetDeps.addAll(patEntry.value);
+                  }
+                }
+              }
             }
 
             if (hasFineGrained) {
@@ -714,13 +777,21 @@ void main(List<String> args) async {
                 ? '//:run_ddc_test.sh'
                 : '//:run_single_test.sh';
 
-            final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
-            final isMetaTest = (normalizedPkgDir == 'pkg/analyzer' ||
-                    normalizedPkgDir.endsWith('/pkg/analyzer')) &&
-                (normalizedPath.startsWith('tool/') ||
-                    (normalizedPath.startsWith('test/verify_') &&
-                        normalizedPath.endsWith('_test.dart')));
+            var isMetaTest = false;
+            for (final entry in manualPatterns.entries) {
+              final configuredPkg = entry.key;
+              if (normalizedPkgDir == configuredPkg ||
+                  normalizedPkgDir.endsWith('/$configuredPkg')) {
+                for (final pattern in entry.value) {
+                  if (_matchesPattern(normalizedPath, pattern)) {
+                    isMetaTest = true;
+                    break;
+                  }
+                }
+              }
+              if (isMetaTest) break;
+            }
             final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
             individualTargets.add('''sh_test(
     name = "$targetName",$tagsAttr
@@ -1363,4 +1434,16 @@ String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
   }
 
   return path.replaceAll('\\', '/');
+}
+
+bool _matchesPattern(String path, String pattern) {
+  if (pattern.endsWith('**')) {
+    final prefix = pattern.substring(0, pattern.length - 2);
+    return path.startsWith(prefix);
+  }
+  if (pattern.contains('*')) {
+    final regexPattern = '^${RegExp.escape(pattern).replaceAll(r'\*', '.*')}\$';
+    return RegExp(regexPattern).hasMatch(path);
+  }
+  return path == pattern;
 }
