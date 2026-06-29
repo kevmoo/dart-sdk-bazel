@@ -842,8 +842,8 @@ void main(List<String> args) async {
             final tagsList = <String>[];
             if (isQuarantined) {
               tagsList.add('quarantine');
-              tagsList.add('manual');
-            } else if (isMetaTest) {
+            }
+            if (isQuarantined || isMetaTest) {
               tagsList.add('manual');
             }
             final tagsAttr = tagsList.isNotEmpty
