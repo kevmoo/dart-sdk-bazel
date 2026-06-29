@@ -111,7 +111,8 @@ void main(List<String> args) async {
             List<String>.from(gEntry.value as List);
       }
     } catch (e) {
-      debugBuf.writeln('Warning: Failed to parse suite_config.json: $e');
+      stderr.writeln('Error: Failed to parse suite_config.json: $e');
+      rethrow;
     }
   }
 
@@ -369,6 +370,34 @@ void main(List<String> args) async {
   for (final entry in packageGroups.entries) {
     final pkgDir = entry.key;
     final normalizedPkgDir = pkgDir.replaceAll('\\', '/');
+
+    List<String>? pkgManualPatterns;
+    for (final mEntry in manualPatterns.entries) {
+      if (normalizedPkgDir == mEntry.key ||
+          normalizedPkgDir.endsWith('/${mEntry.key}')) {
+        pkgManualPatterns = mEntry.value;
+        break;
+      }
+    }
+
+    List<String>? pkgBaselineDeps;
+    for (final bEntry in extraBaselineDeps.entries) {
+      if (normalizedPkgDir == bEntry.key ||
+          normalizedPkgDir.endsWith('/${bEntry.key}')) {
+        pkgBaselineDeps = bEntry.value;
+        break;
+      }
+    }
+
+    Map<String, List<String>>? pkgDepsByPattern;
+    for (final pEntry in extraDepsByPattern.entries) {
+      if (normalizedPkgDir == pEntry.key ||
+          normalizedPkgDir.endsWith('/${pEntry.key}')) {
+        pkgDepsByPattern = pEntry.value;
+        break;
+      }
+    }
+
     final configsMap = entry.value;
     final packageWorkspaceFiles = <String>{};
 
@@ -519,12 +548,8 @@ void main(List<String> args) async {
         });
       }
 
-      for (final bEntry in extraBaselineDeps.entries) {
-        final configuredPkg = bEntry.key;
-        if (normalizedPkgDir == configuredPkg ||
-            normalizedPkgDir.endsWith('/$configuredPkg')) {
-          baselineDeps.addAll(bEntry.value);
-        }
+      if (pkgBaselineDeps != null) {
+        baselineDeps.addAll(pkgBaselineDeps);
       }
 
       if ([
@@ -701,14 +726,10 @@ void main(List<String> args) async {
               }
             }
 
-            for (final entry in extraDepsByPattern.entries) {
-              final configuredPkg = entry.key;
-              if (normalizedPkgDir == configuredPkg ||
-                  normalizedPkgDir.endsWith('/$configuredPkg')) {
-                for (final patEntry in entry.value.entries) {
-                  if (_matchesPattern(normalizedPathForDeps, patEntry.key)) {
-                    targetDeps.addAll(patEntry.value);
-                  }
+            if (pkgDepsByPattern != null) {
+              for (final patEntry in pkgDepsByPattern.entries) {
+                if (_matchesPattern(normalizedPathForDeps, patEntry.key)) {
+                  targetDeps.addAll(patEntry.value);
                 }
               }
             }
@@ -778,18 +799,13 @@ void main(List<String> args) async {
 
             final normalizedPath = relPathInPkg.replaceAll('\\', '/');
             var isMetaTest = false;
-            for (final entry in manualPatterns.entries) {
-              final configuredPkg = entry.key;
-              if (normalizedPkgDir == configuredPkg ||
-                  normalizedPkgDir.endsWith('/$configuredPkg')) {
-                for (final pattern in entry.value) {
-                  if (_matchesPattern(normalizedPath, pattern)) {
-                    isMetaTest = true;
-                    break;
-                  }
+            if (pkgManualPatterns != null) {
+              for (final pattern in pkgManualPatterns) {
+                if (_matchesPattern(normalizedPath, pattern)) {
+                  isMetaTest = true;
+                  break;
                 }
               }
-              if (isMetaTest) break;
             }
             final tagsAttr = isMetaTest ? '\n    tags = ["manual"],' : '';
             individualTargets.add('''sh_test(
