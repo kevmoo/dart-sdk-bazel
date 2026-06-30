@@ -39,8 +39,43 @@ if [ -z "$TEST_SRCDIR" ]; then
   exit 2
 fi
 
-DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
-RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_single_test.dart -type f | head -n 1)
+DART_BIN=""
+if [ -n "$DART_BIN_RLOCATION" ] && [ -f "$TEST_SRCDIR/$DART_BIN_RLOCATION" ]; then
+  DART_BIN="$TEST_SRCDIR/$DART_BIN_RLOCATION"
+fi
+if [ -z "$DART_BIN" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/prebuilt_dart_sdk/bin/dart" \
+    "$TEST_SRCDIR/_main/external/prebuilt_dart_sdk/bin/dart" \
+    "$TEST_SRCDIR/_main/runtime/bin/dartvm" \
+    "$TEST_SRCDIR/runtime/bin/dartvm"; do
+    if [ -f "$CANDIDATE" ]; then
+      DART_BIN="$CANDIDATE"
+      break
+    fi
+  done
+fi
+if [ -z "$DART_BIN" ]; then
+  DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
+fi
+
+RUNNER_DART=""
+if [ -n "$RUNNER_DART_RLOCATION" ] && [ -f "$TEST_SRCDIR/$RUNNER_DART_RLOCATION" ]; then
+  RUNNER_DART="$TEST_SRCDIR/$RUNNER_DART_RLOCATION"
+fi
+if [ -z "$RUNNER_DART" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/_main/pkg/test_runner/bin/run_single_test.dart" \
+    "$TEST_SRCDIR/pkg/test_runner/bin/run_single_test.dart"; do
+    if [ -f "$CANDIDATE" ]; then
+      RUNNER_DART="$CANDIDATE"
+      break
+    fi
+  done
+fi
+if [ -z "$RUNNER_DART" ]; then
+  RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_single_test.dart -type f | head -n 1)
+fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
   echo "Error: Dynamic launcher was unable to locate dart or run_single_test.dart in runfiles!"
@@ -48,24 +83,33 @@ if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
 fi
 
 PKG_CONFIG=""
-for CANDIDATE in \
-  "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
-  "$TEST_SRCDIR/.dart_tool/package_config.json" \
-  "$TEST_SRCDIR/_main/package_config.json" \
-  "$TEST_SRCDIR/package_config.json"; do
-  if [ -f "$CANDIDATE" ]; then
-    PKG_CONFIG="$CANDIDATE"
-    break
-  fi
-done
+if [ -n "$PACKAGE_CONFIG_RLOCATION" ] && [ -f "$TEST_SRCDIR/$PACKAGE_CONFIG_RLOCATION" ]; then
+  PKG_CONFIG="$TEST_SRCDIR/$PACKAGE_CONFIG_RLOCATION"
+fi
+if [ -z "$PKG_CONFIG" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/_main/package_config.json" \
+    "$TEST_SRCDIR/package_config.json"; do
+    if [ -f "$CANDIDATE" ]; then
+      PKG_CONFIG="$CANDIDATE"
+      break
+    fi
+  done
+fi
 if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
   STAGING_DIR=$(dirname "$PKG_CONFIG")
-  mkdir -p "$STAGING_DIR/tools/bazel/dart"
-  cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json"
-  DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
+  mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
+  cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
+  if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
+    DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
+  else
+    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+  fi
 fi
 
 CHROMEDRIVER_BIN=""
@@ -97,46 +141,72 @@ if [ -z "$TEST_SRCDIR" ]; then
   exit 2
 fi
 
-for CANDIDATE in \
-  "$TEST_SRCDIR/_main/runtime/bin/dartvm" \
-  "$TEST_SRCDIR/runtime/bin/dartvm" \
-  "$TEST_SRCDIR/_main/dart-sdk/bin/dart" \
-  "$TEST_SRCDIR/dart-sdk/bin/dart"; do
-  if [ -f "$CANDIDATE" ]; then
-    DART_BIN="$CANDIDATE"
-    break
-  fi
-done
+DART_BIN=""
+if [ -n "$DART_BIN_RLOCATION" ] && [ -f "$TEST_SRCDIR/$DART_BIN_RLOCATION" ]; then
+  DART_BIN="$TEST_SRCDIR/$DART_BIN_RLOCATION"
+fi
+if [ -z "$DART_BIN" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/_main/runtime/bin/dartvm" \
+    "$TEST_SRCDIR/runtime/bin/dartvm" \
+    "$TEST_SRCDIR/_main/dart-sdk/bin/dart" \
+    "$TEST_SRCDIR/dart-sdk/bin/dart"; do
+    if [ -f "$CANDIDATE" ]; then
+      DART_BIN="$CANDIDATE"
+      break
+    fi
+  done
+fi
 if [ -z "$DART_BIN" ]; then
   DART_BIN=$(find -L "$TEST_SRCDIR" -name dart -type f -perm -u+x | head -n 1)
 fi
-for CANDIDATE in \
-  "$TEST_SRCDIR/_main/pkg/test_runner/bin/run_ddc_test.dart" \
-  "$TEST_SRCDIR/pkg/test_runner/bin/run_ddc_test.dart"; do
-  if [ -f "$CANDIDATE" ]; then
-    RUNNER_DART="$CANDIDATE"
-    break
-  fi
-done
+
+RUNNER_DART=""
+if [ -n "$RUNNER_DART_RLOCATION" ] && [ -f "$TEST_SRCDIR/$RUNNER_DART_RLOCATION" ]; then
+  RUNNER_DART="$TEST_SRCDIR/$RUNNER_DART_RLOCATION"
+fi
+if [ -z "$RUNNER_DART" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/_main/pkg/test_runner/bin/run_ddc_test.dart" \
+    "$TEST_SRCDIR/pkg/test_runner/bin/run_ddc_test.dart"; do
+    if [ -f "$CANDIDATE" ]; then
+      RUNNER_DART="$CANDIDATE"
+      break
+    fi
+  done
+fi
 if [ -z "$RUNNER_DART" ]; then
   RUNNER_DART=$(find -L "$TEST_SRCDIR" -name run_ddc_test.dart -type f | head -n 1)
 fi
 
-for CANDIDATE in \
-  "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
-  "$TEST_SRCDIR/.dart_tool/package_config.json" \
-  "$TEST_SRCDIR/_main/package_config.json" \
-  "$TEST_SRCDIR/package_config.json"; do
-  if [ -f "$CANDIDATE" ]; then
-    PKG_CONFIG="$CANDIDATE"
-    break
-  fi
-done
+PKG_CONFIG=""
+if [ -n "$PACKAGE_CONFIG_RLOCATION" ] && [ -f "$TEST_SRCDIR/$PACKAGE_CONFIG_RLOCATION" ]; then
+  PKG_CONFIG="$TEST_SRCDIR/$PACKAGE_CONFIG_RLOCATION"
+fi
+if [ -z "$PKG_CONFIG" ]; then
+  for CANDIDATE in \
+    "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/_main/package_config.json" \
+    "$TEST_SRCDIR/package_config.json"; do
+    if [ -f "$CANDIDATE" ]; then
+      PKG_CONFIG="$CANDIDATE"
+      break
+    fi
+  done
+fi
 if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
-  DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+  STAGING_DIR=$(dirname "$PKG_CONFIG")
+  mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
+  cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
+  if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
+    DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
+  else
+    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+  fi
 fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
