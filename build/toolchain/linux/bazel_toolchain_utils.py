@@ -14,7 +14,7 @@ def find_toolchain_binary(binary_name):
         except Exception:
             pass
 
-    matches = sorted(glob.glob(f"external/*/bin/{binary_name}"))
+    matches = sorted(glob.glob(f"external/dart_linux_*_clang/bin/{binary_name}"))
     machine = platform.machine()
     host_arch = "x64" if machine in ("x86_64", "AMD64") else "arm64"
     arch_matches = [m for m in matches if f"_{host_arch}_" in m]
@@ -24,7 +24,7 @@ def find_toolchain_binary(binary_name):
         return matches[0]
 
     print(
-        f"Error: {binary_name} not found in execroot under external/*/bin/{binary_name}",
+        f"Error: {binary_name} not found in execroot under external/dart_linux_*_clang/bin/{binary_name}",
         file=sys.stderr,
     )
     sys.exit(1)
