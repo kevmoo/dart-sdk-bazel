@@ -26,12 +26,13 @@ def _dart_linux_clang_impl(repo_ctx):
     use_local = src.exists
 
     if use_local:
+        repo_ctx.watch_tree(src)
         for sub in ["bin", "lib", "include"]:
             child = src.get_child(sub)
             if child.exists:
                 repo_ctx.symlink(child, sub)
 
-        CLANG_BIN_VAL = str(src.get_child("bin"))
+        CLANG_BIN_VAL = "external/{}/bin".format(repo_ctx.name)
 
         # Use relative paths under external repository to ensure sandbox safety
         CLANG_ROOT_REAL_VAL = "external/{}".format(repo_ctx.name)
@@ -61,7 +62,7 @@ def _dart_linux_clang_impl(repo_ctx):
             output = ".",
             type = "zip",
         )
-        CLANG_BIN_VAL = str(repo_ctx.path("bin"))
+        CLANG_BIN_VAL = "external/{}/bin".format(repo_ctx.name)
 
         # Use relative paths under external repository to ensure sandbox safety
         CLANG_ROOT_REAL_VAL = "external/{}".format(repo_ctx.name)
@@ -86,6 +87,7 @@ def _dart_linux_sysroot_impl(repo_ctx):
     use_local = src.exists
 
     if use_local:
+        repo_ctx.watch_tree(src)
         py_script = repo_ctx.path("symlink_sysroot.py")
         repo_ctx.file(py_script, content = """
 import os
@@ -153,12 +155,10 @@ for root, dirs, files in os.walk(src, followlinks=True):
 
 _dart_linux_sysroot = repository_rule(
     implementation = _dart_linux_sysroot_impl,
-    local = True,
 )
 
 _dart_linux_clang = repository_rule(
     implementation = _dart_linux_clang_impl,
-    local = True,
 )
 
 def _ext_impl(_ctx):

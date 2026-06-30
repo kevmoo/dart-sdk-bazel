@@ -7,7 +7,7 @@ package(default_visibility = ["//visibility:public"])
 # sandboxes the clang install and sysroot correctly.
 filegroup(
     name = "clang_files",
-    srcs = glob(["*_wrapper.py"]) + [
+    srcs = glob(["bazel_*.py"]) + [
         "@dart_linux_x64_clang//:all_files",
         "@dart_linux_x64_sysroot//:all_files",
     ],
