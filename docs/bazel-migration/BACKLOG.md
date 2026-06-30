@@ -272,6 +272,7 @@ graph TD
 - **Description**:
   Achieve 100% zero-prerequisite build, test execution, and pass rates across all 5,788 test targets on fresh checkouts using Bazel.
 - **Success Criteria**:
+  - [ ] All 5,788 test targets build and pass on a clean checkout out-of-the-box.
 
 ---
 
@@ -285,6 +286,7 @@ graph TD
 - **Description**:
   Ensure Bazel repository rules (@prebuilt_dart_sdk, @dart_clang, etc.) fetch/declare all host toolchains and C++ sysroots automatically so clean checkouts require zero pre-installed system compilers or pre-built GN artifacts.
 - **Success Criteria**:
+  - [ ] Bazel automatically provisions all compiler/sysroot toolchains without external host dependencies.
 
 ---
 
@@ -298,6 +300,7 @@ graph TD
 - **Description**:
   Remediate the 2,296 target build-step errors by fixing runfile lookups, header include quotes, C++ compilation dependencies, and package_config.json resolution.
 - **Success Criteria**:
+  - [ ] Zero target compilation failures during `run_test_universe.dart` execution.
 
 ---
 
@@ -311,6 +314,7 @@ graph TD
 - **Description**:
   Map Dart test runner .status file expectations (e.g. simarm64, simriscv64, analyzer skips/failures) into generate_test_targets.dart quarantine tags so platform-specific expected failures are not flagged as Bazel regressions.
 - **Success Criteria**:
+  - [ ] All platform-specific skips/expected failures match `.status` definitions.
 
 ---
 
@@ -324,6 +328,7 @@ graph TD
 - **Description**:
   Create a clean ./tools/bazel/test_everything.sh wrapper script that bootstraps prebuilt Dart SDK, checks disk/RAM bounds, sets optimal sandbox_base=/tmp flags, and invokes run_test_universe.dart.
 - **Success Criteria**:
+  - [ ] Single entrypoint script `./tools/bazel/test_everything.sh` executes full test suite reliably out-of-the-box.
 
 ---
 
