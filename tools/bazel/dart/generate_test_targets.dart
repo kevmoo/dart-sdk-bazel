@@ -1578,12 +1578,12 @@ bool _matchesPattern(String path, String pattern) {
     return switch ((suite, rest)) {
       ('co19', [final sub, ...]) => (pkgRoot: 'co19', pkgDir: 'co19/$sub'),
       ('co19', []) => (pkgRoot: 'co19', pkgDir: 'co19/misc'),
-      ('dartdevc', [_, final sub, ...]) => (
+      ('dartdevc', [final sub, _, ...]) => (
           pkgRoot: 'dartdevc',
           pkgDir: 'dartdevc/$sub'
         ),
       ('dartdevc', _) => (pkgRoot: 'dartdevc', pkgDir: 'dartdevc'),
-      (_, [_, final sub, ...]) => (pkgRoot: suite, pkgDir: '$suite/$sub'),
+      (_, [final sub, _, ...]) => (pkgRoot: suite, pkgDir: '$suite/$sub'),
       (_, _) => (pkgRoot: suite, pkgDir: '$suite/misc'),
     };
   }

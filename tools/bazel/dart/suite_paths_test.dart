@@ -18,8 +18,10 @@ void main() {
   final ws = '/sdk';
   check(getSuiteSourceDir(ws, 'language'), '/sdk/tests/language',
       'language suite source dir');
-  check(getSuiteSourceDir(ws, 'corelib'), '/sdk/tests/corelib',
+  check(getSuiteSourceDir(ws, 'corelib'), '/sdk/tests/lib',
       'corelib suite source dir');
+  check(getSuiteSourceDir(ws, 'corelib/async'), '/sdk/tests/lib/async',
+      'corelib/async suite source dir');
   check(getSuiteSourceDir(ws, 'pkg/compiler'), '/sdk/pkg/compiler',
       'pkg suite source dir');
   check(getSuiteSourceDir(ws, 'co19', '/ext/co19'), '/ext/co19',
@@ -31,6 +33,9 @@ void main() {
       'fuzzer suite source dir');
 
   check(getSuiteRelPrefix('language'), 'tests/language', 'language rel prefix');
+  check(getSuiteRelPrefix('corelib'), 'tests/lib', 'corelib rel prefix');
+  check(getSuiteRelPrefix('corelib/async'), 'tests/lib/async',
+      'corelib/async rel prefix');
   check(getSuiteRelPrefix('dartdevc'), 'tests/dartdevc', 'dartdevc rel prefix');
   check(getSuiteRelPrefix('fuzzer'), 'runtime/tools/dartfuzz',
       'fuzzer rel prefix');

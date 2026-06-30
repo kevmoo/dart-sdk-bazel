@@ -13,6 +13,13 @@ String getSuiteSourceDir(String workspaceDir, String pkgDir,
     final base = co19Dir ?? '$workspaceDir/tests/co19/src';
     return '$base/$subSuite';
   }
+  if (pkgDir == 'corelib') {
+    return '$workspaceDir/tests/lib';
+  }
+  if (pkgDir.startsWith('corelib/')) {
+    final subPath = pkgDir.substring('corelib/'.length);
+    return '$workspaceDir/tests/lib/$subPath';
+  }
   if (pkgDir == 'fuzzer') {
     return '$workspaceDir/runtime/tools/dartfuzz';
   }
@@ -20,13 +27,7 @@ String getSuiteSourceDir(String workspaceDir, String pkgDir,
     final subPath = pkgDir.substring('fuzzer/'.length);
     return '$workspaceDir/runtime/tools/dartfuzz/$subPath';
   }
-  for (final suite in {
-    'corelib',
-    'standalone',
-    'ffi',
-    'language',
-    'dartdevc'
-  }) {
+  for (final suite in {'standalone', 'ffi', 'language', 'dartdevc'}) {
     if (pkgDir == suite) {
       return '$workspaceDir/tests/$suite';
     }
@@ -47,6 +48,13 @@ String getSuiteRelPrefix(String pkgDir) {
     final subSuite = pkgDir.substring('co19/'.length);
     return 'tests/co19/src/$subSuite';
   }
+  if (pkgDir == 'corelib') {
+    return 'tests/lib';
+  }
+  if (pkgDir.startsWith('corelib/')) {
+    final subPath = pkgDir.substring('corelib/'.length);
+    return 'tests/lib/$subPath';
+  }
   if (pkgDir == 'fuzzer') {
     return 'runtime/tools/dartfuzz';
   }
@@ -54,13 +62,7 @@ String getSuiteRelPrefix(String pkgDir) {
     final subPath = pkgDir.substring('fuzzer/'.length);
     return 'runtime/tools/dartfuzz/$subPath';
   }
-  for (final suite in {
-    'corelib',
-    'standalone',
-    'ffi',
-    'language',
-    'dartdevc'
-  }) {
+  for (final suite in {'standalone', 'ffi', 'language', 'dartdevc'}) {
     if (pkgDir == suite) {
       return 'tests/$suite';
     }
