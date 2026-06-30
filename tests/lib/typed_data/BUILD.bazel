@@ -6,6 +6,8 @@ load("//tools/bazel/dart:defs.bzl", "dart2wasm_test")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(glob(["*.dart"]))
+
 # TODO(beads: sdk-u0p): Expand this targeted test target list into a full,
 # auto-discovering dart_test_matrix macro that tests across VM, dart2js, ddc,
 # and dart2wasm targets.

@@ -6,6 +6,8 @@ load("//tools/bazel/dart:defs.bzl", "dart2wasm_test", "dart_analyze_test")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(glob(["*.dart"]))
+
 dart2wasm_test(
     name = "simd_test",
     main = "simd_test.dart",
