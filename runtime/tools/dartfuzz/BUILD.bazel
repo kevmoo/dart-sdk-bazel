@@ -7,9 +7,9 @@ dart_library(
     name = "dartfuzz_lib",
     srcs = glob(["*.dart"]),
     deps = [
-        "@dart_packages//pkg/analyzer",
-        "@dart_packages//pkg/args",
-        "@dart_packages//pkg/matcher",
+        "@dart_packages//pkg/analyzer:analyzer",
+        "@dart_packages//pkg/args:args",
+        "@dart_packages//pkg/matcher:matcher",
     ],
 )
 
