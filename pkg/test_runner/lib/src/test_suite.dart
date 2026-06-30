@@ -254,9 +254,7 @@ abstract class TestSuite {
     ).append('generated_$name').append(dirname).append(testUniqueName);
 
     TestUtils.mkdirRecursive(Path('.'), generatedTestPath);
-    return File(
-      generatedTestPath.toNativePath(),
-    ).path.replaceAll('\\', '/');
+    return File(generatedTestPath.toNativePath()).path.replaceAll('\\', '/');
   }
 
   /// Create a directories for generated assets (tests, html files,
@@ -713,23 +711,25 @@ class StandardTestSuite extends TestSuite {
   factory StandardTestSuite.forDirectory(
     TestConfiguration configuration,
     Path directory,
-    String? testSubdirectory,
-  ) {
-    var name = directory.filename;
+    String? testSubdirectory, {
+    String? suiteName,
+  }) {
+    var name = suiteName ?? directory.filename;
+    var statusDirName = directory.filename;
 
     var statusPaths = [
-      '$directory/$name.status',
+      '$directory/$statusDirName.status',
       '$directory/.status',
-      '$directory/${name}_app_jit.status',
-      '$directory/${name}_analyzer.status',
-      '$directory/${name}_analyzer2.status',
-      '$directory/${name}_dart2js.status',
-      '$directory/${name}_dart2wasm.status',
-      '$directory/${name}_dartdevc.status',
-      '$directory/${name}_kernel.status',
-      '$directory/${name}_precompiled.status',
-      '$directory/${name}_spec_parser.status',
-      '$directory/${name}_vm.status',
+      '$directory/${statusDirName}_app_jit.status',
+      '$directory/${statusDirName}_analyzer.status',
+      '$directory/${statusDirName}_analyzer2.status',
+      '$directory/${statusDirName}_dart2js.status',
+      '$directory/${statusDirName}_dart2wasm.status',
+      '$directory/${statusDirName}_dartdevc.status',
+      '$directory/${statusDirName}_kernel.status',
+      '$directory/${statusDirName}_precompiled.status',
+      '$directory/${statusDirName}_spec_parser.status',
+      '$directory/${statusDirName}_vm.status',
     ];
 
     // For third_party/pkg, we need a status file outside the third_party dirs.

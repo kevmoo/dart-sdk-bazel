@@ -1122,6 +1122,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
+- **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-u24] [test_runner] --built-with-bazel: 'bazel info' probe has no timeout
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None

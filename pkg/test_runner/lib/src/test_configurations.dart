@@ -37,7 +37,7 @@ final testSuiteDirectories = [
   SuiteDirectory('pkg'),
   SuiteDirectory('runtime/tests/vm'),
   SuiteDirectory('samples'),
-  SuiteDirectory('tests/corelib'),
+  SuiteDirectory('tests/lib', null, 'corelib'),
   SuiteDirectory('tests/dartdevc'),
   SuiteDirectory('tests/ffi'),
   SuiteDirectory('tests/language'),
@@ -67,8 +67,12 @@ final class SuiteDirectory {
   /// If `null`, then all tests in [directory] are found.
   final String? testSubdirectory;
 
-  SuiteDirectory(String directoryPath, [this.testSubdirectory])
-    : directory = Path(directoryPath);
+  /// The name of the test suite. Defaults to [directory.filename].
+  final String name;
+
+  SuiteDirectory(String directoryPath, [this.testSubdirectory, String? name])
+    : directory = Path(directoryPath),
+      name = name ?? Path(directoryPath).filename;
 }
 
 // TODO(26372): Ensure that the returned future awaits on all started tasks.
@@ -163,13 +167,14 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in testSuiteDirectories) {
-        var name = testSuiteDir.directory.filename;
+        var name = testSuiteDir.name;
         if (configuration.selectors.containsKey(name)) {
           testSuites.add(
             StandardTestSuite.forDirectory(
               configuration,
               testSuiteDir.directory,
               testSuiteDir.testSubdirectory,
+              suiteName: name,
             ),
           );
         }
@@ -350,13 +355,14 @@ Future<void> _dumpConfigurationsMetadata(
       testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in testSuiteDirectories) {
-        var name = testSuiteDir.directory.filename;
+        var name = testSuiteDir.name;
         if (configuration.selectors.containsKey(name)) {
           testSuites.add(
             StandardTestSuite.forDirectory(
               configuration,
               testSuiteDir.directory,
               testSuiteDir.testSubdirectory,
+              suiteName: name,
             ),
           );
         }

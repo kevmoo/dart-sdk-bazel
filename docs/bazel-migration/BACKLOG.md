@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 86/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 87/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -131,7 +131,7 @@ graph TD
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
     sdk_tjm["sdk-tjm:<br>Simulator Target Configurations"]:::completed
     sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
-    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::pending
+    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::completed
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_uft["sdk-uft:<br>VM AOT Test Suite Integration"]:::completed
@@ -467,20 +467,6 @@ graph TD
   - None
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
-- **Status**: `[PENDING]`
-- **Tags**: `bazel-migration`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---
