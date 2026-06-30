@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import glob
 import os
+import platform
 import sys
 
 
@@ -14,9 +15,11 @@ def find_toolchain_binary(binary_name):
             pass
 
     matches = sorted(glob.glob(f"external/*/bin/{binary_name}"))
-    dart_matches = [m for m in matches if "dart_" in m]
-    if dart_matches:
-        return dart_matches[0]
+    machine = platform.machine()
+    host_arch = "x64" if machine in ("x86_64", "AMD64") else "arm64"
+    arch_matches = [m for m in matches if f"_{host_arch}_" in m]
+    if arch_matches:
+        return arch_matches[0]
     if matches:
         return matches[0]
 
