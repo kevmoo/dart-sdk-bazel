@@ -14,9 +14,22 @@ def find_toolchain_binary(binary_name):
         except Exception:
             pass
 
-    matches = sorted(glob.glob(f"external/*dart_linux_*_clang/bin/{binary_name}"))
+    patterns = [
+        f"external/*dart_linux_*_clang/bin/{binary_name}",
+        f"../../external/*dart_linux_*_clang/bin/{binary_name}",
+    ]
+    matches = []
+    for p in patterns:
+        matches.extend(sorted(glob.glob(p)))
+
     machine = platform.machine()
-    host_arch = "x64" if machine in ("x86_64", "AMD64") else "arm64"
+    if machine in ("x86_64", "AMD64"):
+        host_arch = "x64"
+    elif machine in ("aarch64", "arm64"):
+        host_arch = "arm64"
+    else:
+        host_arch = machine
+
     arch_matches = [m for m in matches if f"_{host_arch}_" in m]
     if arch_matches:
         return arch_matches[0]
