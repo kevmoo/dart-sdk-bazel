@@ -22,7 +22,6 @@ const activeStarlarkSuites = {
 const unmigratedGnSuites = {
   'modular': 'sdk-2w0',
   'hot_reload': 'sdk-2w0',
-  'lib': 'sdk-u0p',
   'web (HTML)': 'sdk-wax',
   'runtime (C++ unit/service)': 'sdk-4z5',
   'benchmarks': 'sdk-245',
