@@ -193,6 +193,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-5m4.1] Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Ensure Bazel repository rules (@prebuilt_dart_sdk, @dart_clang, etc.) fetch/declare all host toolchains and C++ sysroots automatically so clean checkouts require zero pre-installed system compilers or pre-built GN artifacts. Once hermetic toolchains land, update .bazelrc to scope  so --config=ci and default builds can utilize remote C++ action caching.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-5uz] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_012`

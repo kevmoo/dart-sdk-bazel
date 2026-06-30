@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 87/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 88/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -59,7 +59,7 @@ graph TD
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
     sdk_5m4["sdk-5m4:<br>Epic: 100% Zero-Prerequisite 'Test Everything' for Dart SDK"]:::pending
-    sdk_5m4.1["sdk-5m4.1:<br>Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules"]:::pending
+    sdk_5m4.1["sdk-5m4.1:<br>Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules"]:::completed
     sdk_5m4.2["sdk-5m4.2:<br>Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl"]:::pending
     sdk_5m4.3["sdk-5m4.3:<br>Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters"]:::pending
     sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::pending
@@ -273,19 +273,6 @@ graph TD
   - None
 - **Description**:
   Achieve 100% zero-prerequisite build, test execution, and pass rates across all 5,788 test targets on fresh checkouts using Bazel.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-5m4.1] Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules
-- **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-5m4`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Ensure Bazel repository rules (@prebuilt_dart_sdk, @dart_clang, etc.) fetch/declare all host toolchains and C++ sysroots automatically so clean checkouts require zero pre-installed system compilers or pre-built GN artifacts. Once hermetic toolchains land, update .bazelrc to scope  so --config=ci and default builds can utilize remote C++ action caching.
 - **Success Criteria**:
 
 ---
