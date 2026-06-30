@@ -1200,7 +1200,7 @@ const _configs = <_TestConfig>[
     mode: 'release',
     compiler: 'ddc',
     runtime: 'chrome',
-    suites: ['language', 'corelib', 'co19'],
+    suites: ['language', 'corelib', 'co19', 'dartdevc'],
     extraFlags: [],
   ),
   (
@@ -1488,6 +1488,15 @@ Set<String> _parsePubspecDependencies(
   return deps;
 }
 
+const _coarseSuites = {
+  'corelib',
+  'standalone',
+  'ffi',
+  'language',
+  'co19',
+  'dartdevc'
+};
+
 String _getPkgDirFromFlatName(String flatName) {
   var name = flatName;
   if (name.startsWith('tests_')) {
@@ -1496,15 +1505,12 @@ String _getPkgDirFromFlatName(String flatName) {
     name = name.substring('multitest_'.length);
   }
 
-  final parts = name.split('_');
-  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
-  if (parts.isNotEmpty && coarseSuites.contains(parts[0])) {
-    return parts[0];
-  } else if (parts.length >= 2) {
-    return '${parts[0]}/${parts[1]}';
-  } else {
-    return '${parts[0]}/misc';
-  }
+  return switch (name.split('_')) {
+    [final suite, ...] when _coarseSuites.contains(suite) => suite,
+    [final p1, final p2, ...] => '$p1/$p2',
+    [final p1] => '$p1/misc',
+    [] => 'misc',
+  };
 }
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
@@ -1566,61 +1572,48 @@ bool _matchesPattern(String path, String pattern) {
 ({String pkgRoot, String pkgDir}) getPkgRootAndDir(
     String name, String filePathAbs, String workspaceDir) {
   final parts = name.split('/');
-  if (parts.isEmpty) {
-    return (pkgRoot: 'misc', pkgDir: 'misc');
+
+  if (parts case [final suite, ...final rest]
+      when _coarseSuites.contains(suite)) {
+    return switch ((suite, rest)) {
+      ('co19', [final sub, ...]) => (pkgRoot: 'co19', pkgDir: 'co19/$sub'),
+      ('co19', []) => (pkgRoot: 'co19', pkgDir: 'co19/misc'),
+      ('dartdevc', [_, final sub, ...]) => (
+          pkgRoot: 'dartdevc',
+          pkgDir: 'dartdevc/$sub'
+        ),
+      ('dartdevc', _) => (pkgRoot: 'dartdevc', pkgDir: 'dartdevc'),
+      (_, [_, final sub, ...]) => (pkgRoot: suite, pkgDir: '$suite/$sub'),
+      (_, _) => (pkgRoot: suite, pkgDir: '$suite/misc'),
+    };
   }
 
-  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
-  final firstSegment = parts[0];
+  // pkg/ or other packages
+  final pkgRoot = switch (parts) {
+    [final p1, final p2, ...] => '$p1/$p2',
+    [final p1] => p1,
+    [] => 'misc',
+  };
 
-  if (coarseSuites.contains(firstSegment)) {
-    if (firstSegment == 'co19') {
-      if (parts.length >= 2) {
-        return (pkgRoot: 'co19', pkgDir: 'co19/${parts[1]}');
-      } else {
-        return (pkgRoot: 'co19', pkgDir: 'co19/misc');
-      }
-    } else {
-      // other coarse suites: corelib, standalone, ffi, language
-      if (parts.length >= 3) {
-        return (pkgRoot: firstSegment, pkgDir: '$firstSegment/${parts[1]}');
-      } else {
-        return (pkgRoot: firstSegment, pkgDir: '$firstSegment/misc');
-      }
-    }
+  String pkgDir = pkgRoot;
+  if (p.isWithin(workspaceDir, filePathAbs)) {
+    final relative = p.relative(filePathAbs, from: workspaceDir);
+    final parentDir = p.dirname(relative);
+    pkgDir = p.posix.joinAll(p.split(parentDir));
   } else {
-    // pkg/ or other packages
-    final String pkgRoot;
-    if (parts.length >= 2) {
-      pkgRoot = '${parts[0]}/${parts[1]}';
-    } else {
-      pkgRoot = parts[0];
+    final nameParent = p.posix.dirname(name);
+    if (nameParent != '.' && nameParent.isNotEmpty) {
+      pkgDir = nameParent;
     }
-
-    String pkgDir = pkgRoot;
-    if (p.isWithin(workspaceDir, filePathAbs)) {
-      final relative = p.relative(filePathAbs, from: workspaceDir);
-      final parentDir = p.dirname(relative);
-      pkgDir = p.posix.joinAll(p.split(parentDir));
-    } else {
-      final nameParent = p.posix.dirname(name);
-      if (nameParent != '.' && nameParent.isNotEmpty) {
-        pkgDir = nameParent;
-      }
-    }
-    return (pkgRoot: pkgRoot, pkgDir: pkgDir);
   }
+  return (pkgRoot: pkgRoot, pkgDir: pkgDir);
 }
 
 String getPkgRootFromPkgDir(String pkgDir) {
-  final parts = pkgDir.split('/');
-  if (parts.isEmpty) return 'misc';
-  const coarseSuites = {'corelib', 'standalone', 'ffi', 'language', 'co19'};
-  if (coarseSuites.contains(parts[0])) {
-    return parts[0];
-  }
-  if (parts.length >= 2) {
-    return '${parts[0]}/${parts[1]}';
-  }
-  return parts[0];
+  return switch (pkgDir.split('/')) {
+    [final suite, ...] when _coarseSuites.contains(suite) => suite,
+    [final p1, final p2, ...] => '$p1/$p2',
+    [final p1] => p1,
+    [] => 'misc',
+  };
 }

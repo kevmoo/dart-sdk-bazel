@@ -25,7 +25,15 @@ void main() {
   check(getSuiteSourceDir(ws, 'co19', '/ext/co19'), '/ext/co19',
       'co19 external repo dir');
 
+  check(getSuiteSourceDir(ws, 'dartdevc'), '/sdk/tests/dartdevc',
+      'dartdevc suite source dir');
+  check(getSuiteSourceDir(ws, 'fuzzer'), '/sdk/runtime/tools/dartfuzz',
+      'fuzzer suite source dir');
+
   check(getSuiteRelPrefix('language'), 'tests/language', 'language rel prefix');
+  check(getSuiteRelPrefix('dartdevc'), 'tests/dartdevc', 'dartdevc rel prefix');
+  check(getSuiteRelPrefix('fuzzer'), 'runtime/tools/dartfuzz',
+      'fuzzer rel prefix');
   check(getSuiteRelPrefix('pkg/compiler'), 'pkg/compiler', 'pkg rel prefix');
 
   if (failures > 0) {

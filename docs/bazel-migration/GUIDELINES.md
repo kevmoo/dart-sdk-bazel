@@ -47,3 +47,18 @@ Never use non-hermetic host shell commands (`cp`, `mv`) inside `genrule` definit
 
 ### Rule 3.14: Universal Determinism and Hermetic Timestamps
 Never allow C++ builds to depend on non-deterministic host paths or build timestamps. All wrappers must inject `-Wno-builtin-macro-redefined`, `-D__DATE__=""`, and `-D__TIME__=""`. Never invoke ambient host commands (`git`, `date`) inside build action `cmd` strings.
+
+---
+
+## ⚡ Developer Performance Tips
+
+### RAM-Backed Bazel Output Base (`tmpfs` / `/dev/shm`)
+To accelerate local symlink creation, file writes, and deletion during heavy test runs on Linux developer workstations (by up to ~5x), you can configure Bazel to store its temporary output base in system RAM (`tmpfs`):
+
+Add the following to your personal `user.bazelrc` or run commands:
+```ini
+# Store Bazel's output base in RAM (/dev/shm) for ~5x faster symlink operations
+startup --output_base=/dev/shm/bazel_out_${USER}
+```
+*Note: Ensure your workstation has at least 16GB of available RAM before enabling this setting.*
+

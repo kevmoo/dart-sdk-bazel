@@ -295,6 +295,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o.7] [REC-FAST-3] Document RAM-backed Bazel output base (tmpfs / /dev/shm)
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-67o`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Document workstation setup to mount --output_base on tmpfs to accelerate symlink creation/deletion by 5x.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-6tn] Establish test completion matrix for Bazel migration
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: None
