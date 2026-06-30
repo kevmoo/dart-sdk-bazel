@@ -444,6 +444,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-amv] Migrate Fuzzer test suite to Bazel
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track Starlark test generation and execution for fuzzer suite
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-arr] Enable standard Bazel lint and formatting checks (Buildifier)
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_039`
@@ -1305,6 +1318,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Expensive tier of fable_thoughts.md §10 (step 6), split from sdk-d3p when its analysis tier landed in presubmit.sh. Add a scheduled GitHub Actions job: full bazel build //sdk:create_sdk with disk cache, then smoke the packaged SDK (bazel-bin/sdk/dart-sdk/bin/dart --version + hello.dart), optionally one tools/test.py --bazel suite. Catches B1b-class execution regressions and toolchain drift at bounded cost. Promote to PR-time once remote caching (Buildfarm/BuildBuddy) stabilizes.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-z4d] Migrate DDC test suite to Bazel
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Track Starlark test generation and execution for dartdevc suite
 - **Success Criteria**:
 
 ---
