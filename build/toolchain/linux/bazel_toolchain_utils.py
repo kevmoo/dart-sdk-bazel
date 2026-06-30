@@ -3,11 +3,6 @@ import glob
 import os
 import sys
 
-# Ensure script directory is in sys.path for python module imports
-_script_dir = os.path.dirname(os.path.realpath(__file__))
-if _script_dir not in sys.path:
-    sys.path.insert(0, _script_dir)
-
 
 def find_toolchain_binary(binary_name):
     if not os.path.exists("external"):

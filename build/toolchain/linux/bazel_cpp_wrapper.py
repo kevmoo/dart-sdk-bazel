@@ -2,6 +2,8 @@
 import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 from bazel_toolchain_utils import find_toolchain_binary
 
 
