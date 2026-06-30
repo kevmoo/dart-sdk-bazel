@@ -392,7 +392,8 @@ void main(List<String> args) async {
     final useIndividualTargets = hasFineGrained;
 
     if (!useIndividualTargets && pkgRoot != 'co19') {
-      final granularSourceDir = getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+      final granularSourceDir =
+          getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
       final dir = Directory(granularSourceDir);
       if (dir.existsSync()) {
         final files = dir.listSync(recursive: true);
@@ -444,6 +445,13 @@ void main(List<String> args) async {
       final cases = configEntry.value;
       final config = _configs.firstWhere((c) => c.name == configName);
 
+      final dartBinLabel = config.compiler == 'ddc'
+          ? '@//runtime/bin:dartvm'
+          : '@prebuilt_dart_sdk//:bin/dart';
+      final runnerScriptLabel = config.compiler == 'ddc'
+          ? '@//pkg/test_runner/bin:run_ddc_test.dart'
+          : '@//pkg/test_runner/bin:run_single_test.dart';
+
       // Compute baseline deps for this config
       final baselineDeps = <String>{
         ':tests_metadata_$configName.json',
@@ -478,7 +486,10 @@ void main(List<String> args) async {
           '@//:test_package_sources',
         ]);
       } else {
-        baselineDeps.add('@//sdk:create_sdk');
+        baselineDeps.addAll([
+          '@prebuilt_dart_sdk//:bin/dart',
+          '@//sdk:create_sdk',
+        ]);
       }
 
       if (filegroups.containsKey('fg_package_resources')) {
@@ -871,12 +882,23 @@ void main(List<String> args) async {
                 ? '\n    timeout = "$targetTimeout",'
                 : '';
 
+            final co19EnvStr = pkgRoot == 'co19'
+                ? '\n        "DART_CO19_SRC": "../dart_co19_tests",'
+                : '';
+            final envAttr = '''
+    env = {
+        "DART_BIN_RLOCATION": "\$(rlocationpath $dartBinLabel)",
+        "RUNNER_DART_RLOCATION": "\$(rlocationpath $runnerScriptLabel)",
+        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @//:package_config_json)",$co19EnvStr
+    },''';
+
             individualTargets.add('''sh_test(
     name = "$targetName",$tagsAttr$timeoutAttr
     srcs = ["$runnerScript"],
     data = [
 $targetDepsStr
     ],
+$envAttr
     args = [
         "--config-json=\$(location :tests_metadata_$configName.json)",
         "--run-only=$relPathInPkgRoot",
@@ -962,13 +984,20 @@ $targetDepsStr
               : '//:run_single_test.sh';
           final dataRule =
               '    data = glob(["gen_tests/$configName/**/*.dart", "gen_tests/$configName/**/*.html"], allow_empty = True) + [\n        ":workspace_files",\n        ":tests_metadata_$configName.json",\n$dataListStr\n    ],';
-          final envRule = pkgRoot == 'co19'
-              ? '\n    env = {\n        "DART_CO19_SRC": "../dart_co19_tests",\n    },'
+          final co19EnvStr = pkgRoot == 'co19'
+              ? '\n        "DART_CO19_SRC": "../dart_co19_tests",'
               : '';
+          final envRule = '''
+    env = {
+        "DART_BIN_RLOCATION": "\$(rlocationpath $dartBinLabel)",
+        "RUNNER_DART_RLOCATION": "\$(rlocationpath $runnerScriptLabel)",
+        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @//:package_config_json)",$co19EnvStr
+    },''';
           shardedTargets.add('''sh_test(
     name = "tests_$configName",
     srcs = ["$runnerScript"],
-$dataRule$envRule
+$dataRule
+$envRule
     args = ["--config-json=\$(location :tests_metadata_$configName.json)"],
     shard_count = $shardCount,
 )''');

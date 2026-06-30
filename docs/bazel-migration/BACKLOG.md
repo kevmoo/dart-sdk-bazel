@@ -123,7 +123,7 @@ graph TD
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
-    sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::pending
+    sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::inProgress
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_s5g["sdk-s5g:<br>Dynamic Package Dependency Mapping"]:::completed
@@ -485,7 +485,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-qzb] Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Tags**: `bazel-migration`, `rbe`
 - **Prerequisites**: None
 - **Owner**: `[none]`
