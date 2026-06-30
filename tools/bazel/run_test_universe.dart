@@ -15,6 +15,7 @@ const activeStarlarkSuites = {
   'pkg',
   'web/wasm',
   'co19',
+  'dartdevc',
 };
 
 /// All GN/Ninja/RCI suites known on disk mapped to their tracking Bead ID.
@@ -23,10 +24,8 @@ const unmigratedGnSuites = {
   'hot_reload': 'sdk-2w0',
   'lib': 'sdk-u0p',
   'web (HTML)': 'sdk-wax',
-  'dartdevc': 'sdk-z4d',
   'runtime (C++ unit/service)': 'sdk-4z5',
   'benchmarks': 'sdk-245',
-  'fuzzer': 'sdk-amv',
 };
 
 /// All 23 Starlark test configs discovered in generate_test_targets.dart.

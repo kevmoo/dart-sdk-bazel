@@ -1,14 +1,11 @@
 {
-  "timestamp": "2026-06-29T18:10:01.818538Z",
+  "timestamp": "2026-06-30T03:30:47.872918Z",
   "watchdog_interval_seconds": 300,
   "quarantine": {
     "skip_suites": [],
     "only_suites": [],
     "skip_configs": [],
-    "only_configs": [
-      "vm_release",
-      "wasm_release"
-    ]
+    "only_configs": []
   },
   "universe_gap_analysis": {
     "active_starlark_suites": [
@@ -18,390 +15,88 @@
       "ffi",
       "pkg",
       "web/wasm",
-      "co19"
+      "co19",
+      "dartdevc"
     ],
     "unmigrated_gn_suites": {
       "modular": "sdk-2w0",
       "hot_reload": "sdk-2w0",
       "lib": "sdk-u0p",
       "web (HTML)": "sdk-wax",
-      "dartdevc": "sdk-z4d",
       "runtime (C++ unit/service)": "sdk-4z5",
-      "benchmarks": "sdk-245",
-      "fuzzer": "sdk-amv"
+      "benchmarks": "sdk-245"
     }
   },
   "config_results": {
     "vm_release": {
-      "total_targets": 2232,
-      "passed": 1922,
-      "failed": 300,
-      "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_inference_data_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_class_order_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_generic_methods_generic_method_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_type_substitution_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_deferred_constant3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_need3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_trivial_abstract_value_domain_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_dead_code_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_dump_info_dump_info_new_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_inference1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_record_use_record_use_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_redundant_phi_eliminator_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_constant_namer_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_shift_right_unsigned_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_get_hover_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_regress_10231_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_licm_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_serialization_diff3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_jsinterop_world_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dart_runtime_service:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_bound_check_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_source_map_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_disable_rti_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_dart2js_batch_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_class_set_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_model_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_type_combination_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/test_runner:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/testing:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/js_shared:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_inference8_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_forloop_box_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_backend_type_helper_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_list_tracer_length_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_bundle_parts_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_need2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_get_navigation_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_load_graph_segmentation2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dartdev:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dart_data_home:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_constant_folding_codeUnitAt_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_number_output_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_codegen_shard1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_analyses_analyze_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inlining_meta_annotations2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dtd_impl:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_generic_methods_world_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_load_mapping_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/vm_snapshot_analysis:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_elide_callthrough_stub_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_closures_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/_fe_analyzer_shared:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dev_compiler:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_code_motion_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simriscv64",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_not_in_main_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_new_rti_is_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:tool_kernel_visitor_test_info_visitor_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/vm_service:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server_plugin:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_name_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_inference0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_is_function_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_supermixin_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_string_interpolation_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//ffi:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dartpad_worker:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_closure_call_of_static_reduction_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_emit_const_fields_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_subtype_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_native_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/smith:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inlining_meta_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:tool_generators_ast_generator_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_set_priority_files_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_closure_codegen_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_callers_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_vm_release_simarm64",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_dead_phi_eliminator_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_ssa_phi_codegen_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_codegen_shard0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_trust_type_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_map_tracer_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_update_content_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_modulo_remainder_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_member_usage_member_usage_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_null_check_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_arithmetic_simplification_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_identity_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_no_duplicate_constructor_body_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer_testing:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_load_deferred_library_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_simple_inferrer_relations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_field_update_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_dart2js_batch2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_jsinterop_declaration_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_side_effects_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dart2bytecode:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_dont_inline_deferred_globals_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_class_codegen_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_inverse_operator_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_optimization_optimization_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_dont_inline_deferred_constants_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_tool_graph_isomorphizer_graph_isomorphizer_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:tool_ast_ast_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_follow_constant_dependencies_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_mapping_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_src_services_correction_fix_data_driven_replaced_by_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_jsinterop_interop_anonymous_unreachable_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:tool_api_generate_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/frontend_server_client:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_source_mapping_operators_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/native_stack_traces:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_js_js_constant_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_emission3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_is_inference2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_bitops2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_equals_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_gvn_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_no_duplicate_constructor_body2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_load_graph_segmentation_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:test_src_dart_analysis_driver_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dwds:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_custom_split_custom_split_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:integration_test_search_find_element_references_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_guard_unuser_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/cfg:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_bitops1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/frontend_server:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_null_flat_type_mask_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_field_analysis_kfield_analysis_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/status_file:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_jumps_jump_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_cfe_constant_swarm_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_emission0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_benchmarks_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_field_analysis_jfield_analysis_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:integration_test_lsp_handle_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_serialization_diff1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_emission2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_cfe_constant_evaluation0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dwds_test_common:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:tool_spec_check_all_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_if_do_while_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_annotations_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_services_completion_dart_declaration_declaring_parameter_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_is_inference_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_emission1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_reanalyze_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_factory_call_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_type_mask_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer_cli:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_emit_type_checks_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_edit_sort_members_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_parameter_phi_elimination_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_mixin_typevariable_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_inline_restrictions_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_negation_shift_regression_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_type_mask2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:test_verify_diagnostics_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:integration_test_coverage_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_declare_once_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_string_escapes_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_cfe_constant_evaluation1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map_simple_id0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_load_elimination_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/native_compiler:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_js_js_spec_optimization_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_source_mapping_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_array_static_intercept_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer_plugin:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_verify_sorted_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_enqueuer_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_top_level_closure_tree_shake_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_instantiated_classes_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_forwarding_stub_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_literal_list_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_analysis_get_errors_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_union_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:integration_test_server_message_scheduler_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_analyses_api_dynamic_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map_simple_id1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_strength_eq_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server_client:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_world_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_output_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_type_mask_disjoint_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_inference4_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_jsarray_indexof_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/vm:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_need0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_trust_type_annotations2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_multiple_apps_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/linter:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_pragma_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_no_duplicate_stub_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_source_mapping_invokes_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_generic_methods_generic_method_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_inference3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_stacktrace_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_generic_method_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_nomapping_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_minified_names_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_inference5_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_on_disk_split_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_types_of_captured_variables_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dart2wasm:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_for_in_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_no_such_method_enabled_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_all_native_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_jsinterop_internal_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_inference3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_rti_need1_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_serialization_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_late_field_redundancy_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_edit_organize_directives_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_constant_folding_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_expect_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_strong_mode_impact_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_string_add_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_tree_shaking_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_dill_loader_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_future_or_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_strong_mode_closed_world_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dart2js_info:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_value_range_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_instance_call_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_static_closure_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_switch_empty_default_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inlining_meta_annotations3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_interceptor_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_expect_annotations2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_js_js_spec_string_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_load_id_map_simple_id2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_dump_info2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/modular_test:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_class_codegen2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_impact_impact_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_no_platform_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_constant_value_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_list_tracer_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_in_memory_split_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_list_tracer_node_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inlining_inlining_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_minify_many_locals_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_generic_methods_instantiation_stub_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_interceptor_almost_constant_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_sourcemaps_stepping_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_unneeded_part_js_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_edit_bulk_fixes_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_follow_implicit_super_regression_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_no_such_method_forwarders_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_inference2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_subtypeset_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_no_constructor_body_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_needs_no_such_method_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/perf_witness:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_rti_runtime_type_hint_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_side_effect_tdiv_regression_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_cfe_annotations_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_null_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_field_codegen_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dtd:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_edit_format_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/js_ast:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_serialization_diff2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_user_crash_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_pretty_parameter_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/js_runtime:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_unused_empty_map_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_deferred_loading_deferred_loading_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_type_inference2_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_dump_info_dump_info_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_builtin_interceptor_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_late_field_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_model_cfe_constant_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_serialization_serialization_diff0_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_use_strict_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_loop_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analyzer:test_verify_tests_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_value_range3_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_generic_methods_function_type_variable_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/analysis_server:test_tool_lsp_spec_readme_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_closure_closure_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/dds:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_variance_subtype_cast_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/kernel:tests_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_literal_map_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_inference_record_type_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_equivalence_id_testing_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_generate_at_use_site_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_tdiv_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_use_checks_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_codegen_interpolation_folding_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/compiler:test_end_to_end_modular_loader_test_dart_vm_release",
-        "@@+dart_tests_extension+dart_tests//pkg/front_end:tests_vm_release"
-      ],
-      "by_suite": {
-        "language": {
-          "total": 4,
-          "passed": 0,
-          "failed": 0
-        },
-        "corelib": {
-          "total": 4,
-          "passed": 0,
-          "failed": 0
-        },
-        "standalone": {
-          "total": 4,
-          "passed": 0,
-          "failed": 0
-        },
-        "ffi": {
-          "total": 1,
-          "passed": 0,
-          "failed": 0
-        },
-        "pkg": {
-          "total": 2218,
-          "passed": 0,
-          "failed": 0
-        },
-        "web/wasm": {
-          "total": 0,
-          "passed": 0,
-          "failed": 0
-        },
-        "co19": {
-          "total": 1,
-          "passed": 0,
-          "failed": 0
-        },
-        "unknown": {
-          "total": 0,
-          "passed": 1922,
-          "failed": 300
-        }
-      }
-    },
-    "vm_debug": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 3102,
+      "passed": 3102,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 544,
+          "passed": 544,
           "failed": 0
         },
         "corelib": {
+          "total": 170,
+          "passed": 170,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 36,
+          "passed": 36,
+          "failed": 0
+        },
+        "ffi": {
+          "total": 53,
+          "passed": 53,
+          "failed": 0
+        },
+        "pkg": {
+          "total": 2293,
+          "passed": 2293,
+          "failed": 0
+        },
+        "web/wasm": {
           "total": 0,
           "passed": 0,
           "failed": 0
         },
-        "standalone": {
+        "co19": {
+          "total": 6,
+          "passed": 6,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        }
+      }
+    },
+    "vm_debug": {
+      "total_targets": 189,
+      "passed": 189,
+      "failed": 0,
+      "status": "Active",
+      "failed_targets": [],
+      "by_suite": {
+        "language": {
+          "total": 136,
+          "passed": 136,
+          "failed": 0
+        },
+        "corelib": {
+          "total": 44,
+          "passed": 44,
+          "failed": 0
+        },
+        "standalone": {
+          "total": 9,
+          "passed": 9,
           "failed": 0
         },
         "ffi": {
@@ -420,6 +115,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -427,30 +127,30 @@
       }
     },
     "vm_product": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 242,
+      "passed": 242,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 136,
+          "passed": 136,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 44,
+          "passed": 44,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
-          "passed": 0,
+          "total": 9,
+          "passed": 9,
           "failed": 0
         },
         "ffi": {
-          "total": 0,
-          "passed": 0,
+          "total": 53,
+          "passed": 53,
           "failed": 0
         },
         "pkg": {
@@ -467,27 +167,29 @@
           "total": 0,
           "passed": 0,
           "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
         }
       }
     },
     "wasm_release": {
-      "total_targets": 5,
-      "passed": 0,
-      "failed": 2,
+      "total_targets": 177,
+      "passed": 177,
+      "failed": 0,
       "status": "Active",
-      "failed_targets": [
-        "@@+dart_tests_extension+dart_tests//web/wasm_js_shared:tests_wasm_release",
-        "@@+dart_tests_extension+dart_tests//corelib:tests_wasm_release"
-      ],
+      "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 1,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 1,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -507,36 +209,41 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 0,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
-          "total": 1,
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
           "passed": 0,
           "failed": 0
         },
-        "unknown": {
-          "total": 0,
-          "passed": 0,
-          "failed": 2
+        "tests": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
         }
       }
     },
     "wasm_asserts": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -555,32 +262,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_optimized": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -599,32 +316,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_chrome_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -643,32 +370,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_chrome_asserts": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -687,32 +424,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_chrome_optimized": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -731,32 +478,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_firefox_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -775,32 +532,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "wasm_firefox_asserts": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 172,
+      "passed": 172,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 138,
+          "passed": 138,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
@@ -819,32 +586,42 @@
           "failed": 0
         },
         "web/wasm": {
-          "total": 0,
-          "passed": 0,
+          "total": 2,
+          "passed": 2,
           "failed": 0
         },
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 5,
+          "passed": 5,
           "failed": 0
         }
       }
     },
     "dart2js_chrome_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 171,
+      "passed": 171,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 139,
+          "passed": 139,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 26,
+          "passed": 26,
           "failed": 0
         },
         "standalone": {
@@ -868,27 +645,37 @@
           "failed": 0
         },
         "co19": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 1,
+          "passed": 1,
           "failed": 0
         }
       }
     },
     "ddc_chrome_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 169,
+      "passed": 169,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 137,
+          "passed": 137,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 23,
+          "passed": 23,
           "failed": 0
         },
         "standalone": {
@@ -912,27 +699,32 @@
           "failed": 0
         },
         "co19": {
-          "total": 0,
-          "passed": 0,
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 4,
+          "passed": 4,
           "failed": 0
         }
       }
     },
     "dart2js_firefox_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 166,
+      "passed": 166,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 139,
+          "passed": 139,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 26,
+          "passed": 26,
           "failed": 0
         },
         "standalone": {
@@ -958,35 +750,45 @@
         "co19": {
           "total": 0,
           "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "tests": {
+          "total": 1,
+          "passed": 1,
           "failed": 0
         }
       }
     },
     "cfe_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 179,
+      "passed": 179,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 142,
+          "passed": 142,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 27,
+          "passed": 27,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
-          "passed": 0,
+          "total": 7,
+          "passed": 7,
           "failed": 0
         },
         "ffi": {
-          "total": 0,
-          "passed": 0,
+          "total": 3,
+          "passed": 3,
           "failed": 0
         },
         "pkg": {
@@ -1000,6 +802,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1007,25 +814,25 @@
       }
     },
     "vm_aot_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 751,
+      "passed": 751,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
-          "passed": 0,
+          "total": 544,
+          "passed": 544,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
-          "passed": 0,
+          "total": 170,
+          "passed": 170,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
-          "passed": 0,
+          "total": 32,
+          "passed": 32,
           "failed": 0
         },
         "ffi": {
@@ -1044,6 +851,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1054,7 +866,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1088,6 +900,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1098,7 +915,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1132,6 +949,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1142,7 +964,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1176,6 +998,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1186,7 +1013,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1220,6 +1047,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1230,7 +1062,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1264,6 +1096,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0
@@ -1274,7 +1111,7 @@
       "total_targets": 0,
       "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Skipped / Filtered Out",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1311,12 +1148,17 @@
           "total": 0,
           "passed": 0,
           "failed": 0
+        },
+        "dartdevc": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
         }
       }
     },
     "analyzer_release": {
-      "total_targets": 0,
-      "passed": 0,
+      "total_targets": 6,
+      "passed": 6,
       "failed": 0,
       "status": "Active",
       "failed_targets": [],
@@ -1352,6 +1194,11 @@
           "failed": 0
         },
         "co19": {
+          "total": 6,
+          "passed": 6,
+          "failed": 0
+        },
+        "dartdevc": {
           "total": 0,
           "passed": 0,
           "failed": 0

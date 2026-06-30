@@ -270,6 +270,7 @@ def _test_ext_impl(ctx):
             "pkg",
             "web/wasm",
             "co19",
+            "dartdevc",
         ],
     )
     return ctx.extension_metadata(reproducible = True)
@@ -278,4 +279,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 46
+# Force refetch trigger: 47

@@ -1,0 +1,53 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//tools/bazel/dart:defs.bzl", "dart_binary", "dart_library")
+
+package(default_visibility = ["//visibility:public"])
+
+dart_library(
+    name = "dartfuzz_lib",
+    srcs = glob(["*.dart"]),
+    deps = [
+        "@dart_packages//pkg/analyzer",
+        "@dart_packages//pkg/args",
+        "@dart_packages//pkg/matcher",
+    ],
+)
+
+dart_binary(
+    name = "dartfuzz",
+    main = "dartfuzz.dart",
+    sources = ":dartfuzz_lib",
+)
+
+dart_binary(
+    name = "dartfuzz_test_bin",
+    main = "dartfuzz_test.dart",
+    sources = ":dartfuzz_lib",
+)
+
+sh_test(
+    name = "dartfuzz_test",
+    srcs = [":dartfuzz_test_bin"],
+)
+
+dart_binary(
+    name = "flag_fuzzer_dart2js_bin",
+    main = "flag_fuzzer_dart2js.dart",
+    sources = ":dartfuzz_lib",
+)
+
+sh_test(
+    name = "flag_fuzzer_dart2js",
+    srcs = [":flag_fuzzer_dart2js_bin"],
+)
+
+dart_binary(
+    name = "flag_fuzzer_dart2wasm_bin",
+    main = "flag_fuzzer_dart2wasm.dart",
+    sources = ":dartfuzz_lib",
+)
+
+sh_test(
+    name = "flag_fuzzer_dart2wasm",
+    srcs = [":flag_fuzzer_dart2wasm_bin"],
+)

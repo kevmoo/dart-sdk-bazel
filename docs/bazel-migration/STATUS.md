@@ -30,6 +30,11 @@
 **Active claims (who is editing what right now):**
 - `sdk-65j` (Antigravity): Upstream Test Runner Metadata Dumping Optimization (PR pending)
 
+Session 144 — **(Coder) Migrated sdk-z4d (DDC) and sdk-amv (Fuzzer) test suites to Bazel.**
+- **Migrated DDC Test Suite (`sdk-z4d`)**: Configured `dartdevc` suite path mappings in `suite_paths.dart`, added `dartdevc` to `coarseSuites` sets and `ddc_chrome_release` configuration in `generate_test_targets.dart`, and updated `test_rules.bzl` dynamic repo extension.
+- **Migrated Fuzzer Suite (`sdk-amv`)**: Created `runtime/tools/dartfuzz/BUILD.bazel` with `dart_binary` and `sh_test` targets (`dartfuzz`, `dartfuzz_test`, `flag_fuzzer_dart2js`, `flag_fuzzer_dart2wasm`) and added `fuzzer` suite path mapping in `suite_paths.dart`.
+- **Updated Test Universe**: Removed `fuzzer` and `dartdevc` from `unmigratedGnSuites` in `run_test_universe.dart` and added `dartdevc` to `activeStarlarkSuites`.
+
 Session 143 — **(Antigravity) Overhauled project READMEs, established permanent default worktree, reconciled Beads DB.**
 - **Overhauled Main Readmes**: Saved official upstream docs as `README.upstream.md` and overhauled `README.md` to clearly explain the Bazel fork project, provide quickstart instructions (`mkagenttree`), and link to migration resources.
 - **Established Permanent Default Worktree**: Created permanent default Bazel checkout at `~/github/dart-sdk/bazel/agent-bazel-main/sdk` sitting on `main`.
