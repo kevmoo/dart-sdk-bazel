@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 82/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 83/109 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -123,7 +123,7 @@ graph TD
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
-    sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::inProgress
+    sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::completed
     sdk_rog["sdk-rog:<br>VM: Define formal GN target for public VM embedding C API"]:::completed
     sdk_rwz["sdk-rwz:<br>{M3} Wire up Sanitizer SDK AOT Runtimes"]:::completed
     sdk_s5g["sdk-s5g:<br>Dynamic Package Dependency Mapping"]:::completed
@@ -480,20 +480,6 @@ graph TD
   - None
 - **Description**:
   gemini-code-assist consumer code review is sunset: new installs blocked 2026-06-18, ALL review activity ceases 2026-07-17. It has been the only reviewer catching critical pre-merge bugs (Starlark set() in PR #15, undefined var in PR #16, hand-BUILD clobbering in PR #15, read-only-runfiles writes in PR #13). Plan per docs/bazel-migration/fable_thoughts.md §9-§10: (a) mechanize classes 1-6 (extension-evaluating CI steps, exit-code rules, subprocess helper, portability greps, protected-files manifest, env-specific-string audit), (b) add tools/bazel/presubmit.sh single-command local gate, (c) substitute a model-based reviewer (e.g. Claude review action / .agents review checklist) for judgment classes 7-8. Deadline-driven: P1.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-qzb] Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps
-- **Status**: `[IN_PROGRESS]`
-- **Tags**: `bazel-migration`, `rbe`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---

@@ -988,6 +988,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-qzb] Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps
+- **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `rbe`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-rog] VM: Define formal GN target for public VM embedding C API
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `sdk-cleanup`
