@@ -13,7 +13,7 @@ build --workspace_status_command=tools/bazel/workspace_status.py
 
 # Run C++ compilations standalone to resolve local toolchain and sysroot symlinks on the host,
 # while keeping all other actions (Dart compiles, genrules, tests) fully sandboxed.
-build --strategy=CppCompile=standalone
+build:local --strategy=CppCompile=standalone
 
 # Memory and I/O execution optimizations for Action Cache and Disk Cache verification
 build --experimental_inmemory_dotd_files
