@@ -75,8 +75,33 @@ Flags:
 ''');
 }
 
+double getFreeDiskGb(String path) {
+  try {
+    final res = Process.runSync('df', ['-kP', path]);
+    if (res.exitCode == 0) {
+      final lines = (res.stdout as String).trim().split('\n');
+      if (lines.length >= 2) {
+        final parts = lines[1].trim().split(RegExp(r'\s+'));
+        if (parts.length >= 4) {
+          final freeKb = double.tryParse(parts[3]);
+          if (freeKb != null) {
+            return freeKb / 1024 / 1024;
+          }
+        }
+      }
+    }
+  } catch (_) {}
+  return -1.0;
+}
+
 void writeHeartbeat(String path, Map<String, dynamic> data) {
   try {
+    final tmpFree = getFreeDiskGb(Directory.systemTemp.path);
+    final wsFree = getFreeDiskGb('.');
+    data['disk_free_gb'] = {
+      'tmp': tmpFree >= 0 ? tmpFree.toStringAsFixed(1) : 'unknown',
+      'workspace': wsFree >= 0 ? wsFree.toStringAsFixed(1) : 'unknown',
+    };
     final file = File(path);
     file.parent.createSync(recursive: true);
     final tmpFile = File('$path.tmp');
@@ -88,22 +113,31 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
   } catch (_) {}
 }
 
-String determineSuite(String target) {
-  if (target.startsWith('@dart_tests//pkg/')) {
+String determineSuite(String rawTarget) {
+  var target = rawTarget;
+  if (target.startsWith('@@')) {
+    target = target.substring(2);
+  } else if (target.startsWith('@')) {
+    target = target.substring(1);
+  }
+  final doubleSlashIdx = target.indexOf('//');
+  if (doubleSlashIdx != -1) {
+    target = target.substring(doubleSlashIdx + 2);
+  }
+  if (target.startsWith('pkg/')) {
     return 'pkg';
-  } else if (target.startsWith('@dart_tests//web/wasm')) {
+  } else if (target.startsWith('web/wasm/') ||
+      target.startsWith('web/wasm:') ||
+      target == 'web/wasm') {
     return 'web/wasm';
   }
-  const prefix = '@dart_tests//';
-  if (target.startsWith(prefix)) {
-    final colonIdx = target.indexOf(':', prefix.length);
-    if (colonIdx != -1) {
-      final path = target.substring(prefix.length, colonIdx);
-      final slashIdx = path.indexOf('/');
-      return slashIdx != -1 ? path.substring(0, slashIdx) : path;
-    }
+  final colonIdx = target.indexOf(':');
+  final path = colonIdx != -1 ? target.substring(0, colonIdx) : target;
+  if (path.isEmpty) {
+    return 'unknown';
   }
-  return 'unknown';
+  final slashIdx = path.indexOf('/');
+  return slashIdx != -1 ? path.substring(0, slashIdx) : path;
 }
 
 void main(List<String> args) async {
@@ -111,6 +145,7 @@ void main(List<String> args) async {
   final onlySuites = <String>{};
   final skipConfigs = <String>{};
   final onlyConfigs = <String>{};
+  final bazelStartupArgs = <String>[];
   final bazelArgs = <String>['--keep_going', '--test_output=errors'];
   var outputPath = 'docs/bazel-migration/test_matrix_results.json';
   var heartbeatPath = 'docs/bazel-migration/PATROL_HEARTBEAT.json';
@@ -135,6 +170,8 @@ void main(List<String> args) async {
       outputPath = arg.substring('--output='.length);
     } else if (arg.startsWith('--heartbeat=')) {
       heartbeatPath = arg.substring('--heartbeat='.length);
+    } else if (arg.startsWith('--bazel-startup-arg=')) {
+      bazelStartupArgs.add(arg.substring('--bazel-startup-arg='.length));
     } else if (arg.startsWith('--bazel-arg=')) {
       bazelArgs.add(arg.substring('--bazel-arg='.length));
     } else if (arg.startsWith('--watchdog-interval=')) {
@@ -153,6 +190,7 @@ void main(List<String> args) async {
 
   print('🔍 Querying Bazel for all @dart_tests//... test targets...');
   final queryRes = await Process.run('bazel', [
+    ...bazelStartupArgs,
     'query',
     'tests(@dart_tests//...)',
   ]);
@@ -171,6 +209,9 @@ void main(List<String> args) async {
   print('📦 Total discovered Starlark test targets: ${allTargets.length}');
 
   final filteredTargets = <String>[];
+  final sortedKnownConfigs = knownConfigs.toList()
+    ..sort((a, b) => b.length.compareTo(a.length));
+
   for (final target in allTargets) {
     final suite = determineSuite(target);
     if (onlySuites.isNotEmpty && !onlySuites.contains(suite)) {
@@ -181,7 +222,7 @@ void main(List<String> args) async {
     }
 
     String? matchedConfig;
-    for (final c in knownConfigs) {
+    for (final c in sortedKnownConfigs) {
       if (target.endsWith('_$c') || target.contains('_${c}_')) {
         matchedConfig = c;
         break;
@@ -265,7 +306,15 @@ void main(List<String> args) async {
   } else {
     print('\n🚀 Executing Bazel tests across universe...');
     final tempFile = File('bazel_test_targets.tmp');
-    await tempFile.writeAsString(filteredTargets.join('\n'));
+    final normalizedTargets = filteredTargets.map((t) {
+      if (t.startsWith('@@//')) {
+        return t.substring(2);
+      } else if (t.startsWith('@//')) {
+        return t.substring(1);
+      }
+      return t;
+    }).toList();
+    await tempFile.writeAsString(normalizedTargets.join('\n'));
 
     final bepFile = File('test_bep.json');
     if (bepFile.existsSync()) {
@@ -330,6 +379,7 @@ void main(List<String> args) async {
 
     try {
       final fullArgs = [
+        ...bazelStartupArgs,
         'test',
         ...bazelArgs,
         '--build_event_json_file=test_bep.json',
@@ -366,7 +416,7 @@ void main(List<String> args) async {
 
               if (label != null) {
                 String? cfg;
-                for (final c in knownConfigs) {
+                for (final c in sortedKnownConfigs) {
                   if (label.endsWith('_$c') || label.contains('_${c}_')) {
                     cfg = c;
                     break;

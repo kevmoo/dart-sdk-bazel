@@ -76,14 +76,9 @@ void main(List<String> args) {
   buf.writeln('## 📦 Starlark Test Completion Matrix (Suite × Configuration)');
   buf.writeln();
 
-  final primaryConfigs = [
-    'vm_release',
-    'vm_debug',
-    'wasm_release',
-    'cfe_release',
-  ];
+  final primaryConfigs = ['vm_release', 'wasm_release', 'cfe_release'];
   buf.writeln(
-    '| Suite | `vm_release` | `vm_debug` | `wasm_release` | `cfe_release` | Total Targets |',
+    '| Suite | `vm_release` | `wasm_release` | `cfe_release` | `Other Configs` | Total Targets |',
   );
   buf.writeln('|---|---|---|---|---|---|');
 
@@ -97,7 +92,14 @@ void main(List<String> args) {
   final sortedSuiteNames = allSuitesDiscovered.toList()..sort();
   for (final sName in sortedSuiteNames) {
     var suiteTotal = 0;
+    var suitePassed = 0;
+    var suiteFailed = 0;
     final rowCells = <String>[];
+
+    var primaryTotalSum = 0;
+    var primaryPassedSum = 0;
+    var primaryFailedSum = 0;
+
     for (final cfgName in primaryConfigs) {
       final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
       final bySuite = cfg['by_suite'] as Map<String, dynamic>? ?? {};
@@ -105,6 +107,10 @@ void main(List<String> args) {
       final total = sMap['total'] as int? ?? 0;
       final passed = sMap['passed'] as int? ?? 0;
       final failed = sMap['failed'] as int? ?? 0;
+
+      primaryTotalSum += total;
+      primaryPassedSum += passed;
+      primaryFailedSum += failed;
 
       if (total == 0) {
         rowCells.add('❄️');
@@ -114,12 +120,28 @@ void main(List<String> args) {
         rowCells.add('✅ $passed / $total');
       }
     }
+
     for (final cfgName in sortedCfgNames) {
       final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
       final bySuite = cfg['by_suite'] as Map<String, dynamic>? ?? {};
       final sMap = bySuite[sName] as Map<String, dynamic>? ?? {};
       suiteTotal += (sMap['total'] as int? ?? 0);
+      suitePassed += (sMap['passed'] as int? ?? 0);
+      suiteFailed += (sMap['failed'] as int? ?? 0);
     }
+
+    final restTotal = (suiteTotal - primaryTotalSum).clamp(0, suiteTotal);
+    final restPassed = (suitePassed - primaryPassedSum).clamp(0, suitePassed);
+    final restFailed = (suiteFailed - primaryFailedSum).clamp(0, suiteFailed);
+
+    if (restTotal == 0) {
+      rowCells.add('❄️');
+    } else if (restFailed > 0) {
+      rowCells.add('❌ $restPassed / $restTotal');
+    } else {
+      rowCells.add('✅ $restPassed / $restTotal');
+    }
+
     buf.writeln('| **`$sName`** | ${rowCells.join(' | ')} | **$suiteTotal** |');
   }
 

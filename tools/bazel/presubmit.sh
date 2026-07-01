@@ -93,13 +93,38 @@ if [ -n "$ambient_matches" ]; then
   fail "genrule audit: ambient host command (git/date) found inside cmd string (use --workspace_status_command or stamping)"
 fi
 
+BAZEL_STARTUP_ARGS=()
+if [ -w /dev/shm ]; then
+  SHM_EXEC_ALLOWED=false
+  if touch /dev/shm/test_exec_$$ 2>/dev/null; then
+    if chmod +x /dev/shm/test_exec_$$ 2>/dev/null && /dev/shm/test_exec_$$ 2>/dev/null; then
+      SHM_EXEC_ALLOWED=true
+    fi
+    rm -f /dev/shm/test_exec_$$ || true
+  fi
+  if [ "$SHM_EXEC_ALLOWED" = true ]; then
+    SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+    if [[ ! "$SHM_FREE_INODES" =~ ^[0-9]+$ ]]; then
+      SHM_FREE_INODES=0
+    fi
+    SHM_FREE_KB=$(df -kP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+    if [[ ! "$SHM_FREE_KB" =~ ^[0-9]+$ ]]; then
+      SHM_FREE_KB=0
+    fi
+    if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_KB" -gt 15728640 ]; then
+      USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
+      BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
+    fi
+  fi
+fi
+
 step "python helpers byte-compile"
 if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py_compile; then
   fail "py_compile of tools/bazel python helpers"
 fi
 
 step "bazel analysis (--nobuild) of flagship targets"
-if ! bazel build --nobuild \
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build --nobuild \
   //sdk:create_sdk \
   //runtime/bin:dartvm \
   //utils:gen_kernel_exe \
@@ -108,12 +133,12 @@ if ! bazel build --nobuild \
 fi
 
 step "module extension: @dart_packages"
-if ! bazel query '@dart_packages//pkg/...' >/dev/null; then
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" query '@dart_packages//pkg/...' >/dev/null; then
   fail "@dart_packages extension evaluation"
 fi
 
 step "module extension: @dart_tests (slowest step, ~1 min warm)"
-if ! bazel query '@dart_tests//...' >/dev/null; then
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" query '@dart_tests//...' >/dev/null; then
   fail "@dart_tests extension evaluation"
 fi
 
@@ -122,7 +147,13 @@ DART=tools/sdks/dart-sdk/bin/dart
 if [ ! -x "$DART" ]; then
   # CI: the SDK is downloaded by the third_party extension (which the queries
   # above just evaluated) instead of living in the gclient-synced workspace.
-  DART=$(ls "$(bazel info output_base)"/external/*prebuilt_dart_sdk*/bin/dart 2>/dev/null | head -n 1 || true)
+  OUTPUT_BASE=$(bazel "${BAZEL_STARTUP_ARGS[@]}" info output_base 2>/dev/null || true)
+  if [ -n "$OUTPUT_BASE" ]; then
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
+  fi
 fi
 if [ -n "$DART" ] && [ -x "$DART" ]; then
   if ! git ls-files 'tools/bazel/**/*.dart' 'tools/bazel/*.dart' 'docs/bazel-migration/*.dart' \
@@ -131,6 +162,11 @@ if [ -n "$DART" ] && [ -x "$DART" ]; then
   fi
 else
   echo "SKIP: no dart binary found (tools/sdks/dart-sdk absent and no fetched prebuilt SDK)"
+fi
+
+step "entrypoint script validation: test_everything.sh"
+if ! ./tools/bazel/test_everything.sh --help >/dev/null; then
+  fail "tools/bazel/test_everything.sh --help execution"
 fi
 
 echo
