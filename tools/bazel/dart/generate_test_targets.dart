@@ -832,20 +832,53 @@ void main(List<String> args) async {
             }
 
             var isQuarantined = false;
-            for (final qEntry in quarantinePatterns.entries) {
-              if (normalizedPkgDir == qEntry.key ||
-                  normalizedPkgDir.endsWith('/${qEntry.key}')) {
-                for (final pattern in qEntry.value) {
-                  final workspaceRelativePattern = normalizedPkgDir == '.'
-                      ? pattern
-                      : '$normalizedPkgDir/$pattern';
-                  if (_matchesPattern(
-                      normalizedPath, workspaceRelativePattern)) {
-                    isQuarantined = true;
-                    break;
-                  }
+
+            // Expected outcomes from .status files dumped via test_runner metadata
+            // automatically trigger target quarantining (tags = ["quarantine", "manual"]).
+            final expectedOutcome = tc['expected_outcome'];
+            if (expectedOutcome != null) {
+              final outcomes = <String>[];
+              if (expectedOutcome is Iterable) {
+                outcomes.addAll(
+                  expectedOutcome
+                      .where((e) => e != null)
+                      .map((e) => e.toString().trim())
+                      .where((s) => s.isNotEmpty),
+                );
+              } else if (expectedOutcome is String) {
+                outcomes.addAll(
+                  expectedOutcome
+                      .split(',')
+                      .map((s) => s.trim())
+                      .where((s) => s.isNotEmpty),
+                );
+              }
+              for (final outcome in outcomes) {
+                if (outcome != 'Pass' &&
+                    outcome != 'Slow' &&
+                    outcome != 'ExtraSlow') {
+                  isQuarantined = true;
+                  break;
                 }
-                if (isQuarantined) break;
+              }
+            }
+
+            if (!isQuarantined) {
+              for (final qEntry in quarantinePatterns.entries) {
+                if (normalizedPkgDir == qEntry.key ||
+                    normalizedPkgDir.endsWith('/${qEntry.key}')) {
+                  for (final pattern in qEntry.value) {
+                    final workspaceRelativePattern = normalizedPkgDir == '.'
+                        ? pattern
+                        : '$normalizedPkgDir/$pattern';
+                    if (_matchesPattern(
+                        normalizedPath, workspaceRelativePattern)) {
+                      isQuarantined = true;
+                      break;
+                    }
+                  }
+                  if (isQuarantined) break;
+                }
               }
             }
 
