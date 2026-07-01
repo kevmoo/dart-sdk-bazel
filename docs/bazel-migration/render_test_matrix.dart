@@ -130,9 +130,9 @@ void main(List<String> args) {
       suiteFailed += (sMap['failed'] as int? ?? 0);
     }
 
-    final restTotal = suiteTotal - primaryTotalSum;
-    final restPassed = suitePassed - primaryPassedSum;
-    final restFailed = suiteFailed - primaryFailedSum;
+    final restTotal = (suiteTotal - primaryTotalSum).clamp(0, suiteTotal);
+    final restPassed = (suitePassed - primaryPassedSum).clamp(0, suitePassed);
+    final restFailed = (suiteFailed - primaryFailedSum).clamp(0, suiteFailed);
 
     if (restTotal == 0) {
       rowCells.add('❄️');

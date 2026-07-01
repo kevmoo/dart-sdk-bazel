@@ -77,7 +77,7 @@ Flags:
 
 Future<double> getFreeDiskGb(String path) async {
   try {
-    final res = await Process.run('df', ['-k', path]);
+    final res = await Process.run('df', ['-kP', path]);
     if (res.exitCode == 0) {
       final lines = (res.stdout as String).trim().split('\n');
       if (lines.length >= 2) {
@@ -94,7 +94,7 @@ Future<double> getFreeDiskGb(String path) async {
   return -1.0;
 }
 
-void writeHeartbeat(String path, Map<String, dynamic> data) async {
+Future<void> writeHeartbeat(String path, Map<String, dynamic> data) async {
   try {
     final tmpFree = await getFreeDiskGb('/tmp');
     final wsFree = await getFreeDiskGb('.');

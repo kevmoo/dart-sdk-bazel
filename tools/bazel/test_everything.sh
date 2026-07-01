@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../.."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$SCRIPT_DIR"
 
 show_help() {
   cat <<'EOF'
@@ -44,7 +45,10 @@ DART="tools/sdks/dart-sdk/bin/dart"
 if [ ! -x "$DART" ]; then
   OUTPUT_BASE=$(bazel info output_base 2>/dev/null || true)
   if [ -n "$OUTPUT_BASE" ]; then
-    DART=$(ls "$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart 2>/dev/null | head -n 1 || true)
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
   fi
 fi
 
@@ -53,7 +57,10 @@ if [ -z "$DART" ] || [ ! -x "$DART" ]; then
   bazel query '@dart_sdk//...' >/dev/null 2>&1 || true
   OUTPUT_BASE=$(bazel info output_base 2>/dev/null || true)
   if [ -n "$OUTPUT_BASE" ]; then
-    DART=$(ls "$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart 2>/dev/null | head -n 1 || true)
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
   fi
 fi
 
@@ -73,7 +80,7 @@ elif command -v free >/dev/null 2>&1; then
   RAM_AVAIL_MB=$(free -m | awk '/Mem:/ {print $7}' || true)
 fi
 
-RAM_AVAIL_GB=$(( RAM_AVAIL_MB / 1024 ))
+RAM_AVAIL_GB=$(( ${RAM_AVAIL_MB:-4090} / 1024 ))
 
 # Calculate safe local test jobs: 1 job per ~2.5 GB available RAM, capped between 2 and 16
 CALC_JOBS=$(( RAM_AVAIL_GB / 3 ))
@@ -91,10 +98,12 @@ TMP_FREE_GB=$(( TMP_FREE_KB / 1024 / 1024 ))
 SELECTED_SANDBOX="/tmp"
 if [ -w /dev/shm ]; then
   SHM_FREE_INODES=$(df -i /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
-  if [ "$SHM_FREE_INODES" -gt 1000000 ]; then
+  SHM_FREE_KB=$(df -k /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  SHM_FREE_GB=$(( SHM_FREE_KB / 1024 / 1024 ))
+  if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_GB" -gt 15 ]; then
     SELECTED_SANDBOX="/dev/shm"
   fi
-elif [ "$TMP_FREE_GB" -lt 15 ]; then
+elif [[ "$TMP_FREE_GB" =~ ^[0-9]+$ ]] && [ "$TMP_FREE_GB" -lt 15 ]; then
   SELECTED_SANDBOX="/var/tmp"
 fi
 

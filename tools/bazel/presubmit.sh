@@ -127,7 +127,13 @@ DART=tools/sdks/dart-sdk/bin/dart
 if [ ! -x "$DART" ]; then
   # CI: the SDK is downloaded by the third_party extension (which the queries
   # above just evaluated) instead of living in the gclient-synced workspace.
-  DART=$(ls "$(bazel "${BAZEL_STARTUP_ARGS[@]}" info output_base)"/external/*prebuilt_dart_sdk*/bin/dart 2>/dev/null | head -n 1 || true)
+  OUTPUT_BASE=$(bazel "${BAZEL_STARTUP_ARGS[@]}" info output_base 2>/dev/null || true)
+  if [ -n "$OUTPUT_BASE" ]; then
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
+  fi
 fi
 if [ -n "$DART" ] && [ -x "$DART" ]; then
   if ! git ls-files 'tools/bazel/**/*.dart' 'tools/bazel/*.dart' 'docs/bazel-migration/*.dart' \
