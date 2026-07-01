@@ -96,7 +96,7 @@ if [ -w /dev/shm ]; then
   fi
 fi
 
-if [ "$USE_SHM" = false ] && [ "$TMP_FREE_GB" -lt 15 ]; then
+if [ "$USE_SHM" = false ] && [ "$TMP_FREE_GB" -lt 15 ] && [ -d /var/tmp ] && [ -w /var/tmp ]; then
   SELECTED_SANDBOX="/var/tmp"
 fi
 
