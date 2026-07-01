@@ -81,7 +81,7 @@ Future<double> getFreeDiskGb(String path) async {
     if (res.exitCode == 0) {
       final lines = (res.stdout as String).trim().split('\n');
       if (lines.length >= 2) {
-        final parts = lines[1].split(RegExp(r'\s+'));
+        final parts = lines[1].trim().split(RegExp(r'\s+'));
         if (parts.length >= 4) {
           final freeKb = double.tryParse(parts[3]);
           if (freeKb != null) {

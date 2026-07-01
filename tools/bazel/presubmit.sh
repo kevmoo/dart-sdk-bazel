@@ -95,7 +95,7 @@ fi
 
 BAZEL_STARTUP_ARGS=()
 if [ -w /dev/shm ]; then
-  BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root")
+  BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_${USER:-shared}")
 fi
 
 step "python helpers byte-compile"

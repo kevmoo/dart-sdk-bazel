@@ -80,7 +80,11 @@ elif command -v free >/dev/null 2>&1; then
   RAM_AVAIL_MB=$(free -m | awk '/Mem:/ {print $7}' || true)
 fi
 
-RAM_AVAIL_GB=$(( ${RAM_AVAIL_MB:-4090} / 1024 ))
+if [[ ! "$RAM_AVAIL_MB" =~ ^[0-9]+$ ]]; then
+  RAM_AVAIL_MB=4090
+fi
+
+RAM_AVAIL_GB=$(( RAM_AVAIL_MB / 1024 ))
 
 # Calculate safe local test jobs: 1 job per ~2.5 GB available RAM, capped between 2 and 16
 CALC_JOBS=$(( RAM_AVAIL_GB / 3 ))
@@ -92,18 +96,27 @@ if [ "$CALC_JOBS" -gt 16 ]; then
 fi
 
 # Check free disk space & free inodes on /dev/shm (RAM-backed, 15M+ inodes) vs /tmp vs workspace
-TMP_FREE_KB=$(df -k /tmp 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+TMP_FREE_KB=$(df -kP /tmp 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+if [[ ! "$TMP_FREE_KB" =~ ^[0-9]+$ ]]; then
+  TMP_FREE_KB=0
+fi
 TMP_FREE_GB=$(( TMP_FREE_KB / 1024 / 1024 ))
 
 SELECTED_SANDBOX="/tmp"
 if [ -w /dev/shm ]; then
-  SHM_FREE_INODES=$(df -i /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
-  SHM_FREE_KB=$(df -k /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  if [[ ! "$SHM_FREE_INODES" =~ ^[0-9]+$ ]]; then
+    SHM_FREE_INODES=0
+  fi
+  SHM_FREE_KB=$(df -kP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  if [[ ! "$SHM_FREE_KB" =~ ^[0-9]+$ ]]; then
+    SHM_FREE_KB=0
+  fi
   SHM_FREE_GB=$(( SHM_FREE_KB / 1024 / 1024 ))
   if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_GB" -gt 15 ]; then
     SELECTED_SANDBOX="/dev/shm"
   fi
-elif [[ "$TMP_FREE_GB" =~ ^[0-9]+$ ]] && [ "$TMP_FREE_GB" -lt 15 ]; then
+elif [ "$TMP_FREE_GB" -lt 15 ]; then
   SELECTED_SANDBOX="/var/tmp"
 fi
 
@@ -161,7 +174,7 @@ if [ "$HAS_BAZEL_SANDBOX_ARG" = false ]; then
   PASSTHROUGH_ARGS+=("--bazel-arg=--sandbox_base=$FINAL_SANDBOX")
 fi
 
-PASSTHROUGH_ARGS+=("--bazel-startup-arg=--output_user_root=$FINAL_SANDBOX/bazel_user_root")
+PASSTHROUGH_ARGS+=("--bazel-startup-arg=--output_user_root=$FINAL_SANDBOX/bazel_user_root_${USER:-shared}")
 
 if [ "$RUN_MODE" = false ]; then
   PASSTHROUGH_ARGS+=("--dry-run")
