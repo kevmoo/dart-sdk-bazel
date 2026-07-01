@@ -63,3 +63,12 @@ filegroup(
     ),
 )
 
+filegroup(
+    name = "Utils_files",
+    srcs = glob(
+        ["Utils/**/*"],
+        allow_empty = True,
+    ),
+)
+
+
