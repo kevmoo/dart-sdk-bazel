@@ -75,9 +75,9 @@ Flags:
 ''');
 }
 
-Future<double> getFreeDiskGb(String path) async {
+double getFreeDiskGb(String path) {
   try {
-    final res = await Process.run('df', ['-kP', path]);
+    final res = Process.runSync('df', ['-kP', path]);
     if (res.exitCode == 0) {
       final lines = (res.stdout as String).trim().split('\n');
       if (lines.length >= 2) {
@@ -94,10 +94,10 @@ Future<double> getFreeDiskGb(String path) async {
   return -1.0;
 }
 
-Future<void> writeHeartbeat(String path, Map<String, dynamic> data) async {
+void writeHeartbeat(String path, Map<String, dynamic> data) {
   try {
-    final tmpFree = await getFreeDiskGb('/tmp');
-    final wsFree = await getFreeDiskGb('.');
+    final tmpFree = getFreeDiskGb('/tmp');
+    final wsFree = getFreeDiskGb('.');
     data['disk_free_gb'] = {
       'tmp': tmpFree >= 0 ? tmpFree.toStringAsFixed(1) : 'unknown',
       'workspace': wsFree >= 0 ? wsFree.toStringAsFixed(1) : 'unknown',

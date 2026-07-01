@@ -103,6 +103,7 @@ fi
 TMP_FREE_GB=$(( TMP_FREE_KB / 1024 / 1024 ))
 
 SELECTED_SANDBOX="/tmp"
+USE_SHM=false
 if [ -w /dev/shm ]; then
   SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
   if [[ ! "$SHM_FREE_INODES" =~ ^[0-9]+$ ]]; then
@@ -115,8 +116,11 @@ if [ -w /dev/shm ]; then
   SHM_FREE_GB=$(( SHM_FREE_KB / 1024 / 1024 ))
   if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_GB" -gt 15 ]; then
     SELECTED_SANDBOX="/dev/shm"
+    USE_SHM=true
   fi
-elif [ "$TMP_FREE_GB" -lt 15 ]; then
+fi
+
+if [ "$USE_SHM" = false ] && [ "$TMP_FREE_GB" -lt 15 ]; then
   SELECTED_SANDBOX="/var/tmp"
 fi
 
@@ -195,5 +199,7 @@ echo "============================================================"
 echo
 
 # 5. Delegate to run_test_universe.dart & render markdown matrix
-"$DART" tools/bazel/run_test_universe.dart "${PASSTHROUGH_ARGS[@]}"
+RC=0
+"$DART" tools/bazel/run_test_universe.dart "${PASSTHROUGH_ARGS[@]}" || RC=$?
 "$DART" docs/bazel-migration/render_test_matrix.dart docs/bazel-migration/test_matrix_results.json docs/bazel-migration/TEST_COMPLETION_MATRIX.md
+exit "$RC"
