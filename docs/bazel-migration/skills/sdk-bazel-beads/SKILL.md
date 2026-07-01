@@ -36,7 +36,7 @@ Whenever task metadata or status changes in `beads` (`bd`), execute the followin
 
 1. **Regenerate Backlog Markdown Boards**:
    ```bash
-   tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart
+   .agents/scripts/sync_backlog.sh
    ```
 2. **Push Dolt Task Database**:
    ```bash

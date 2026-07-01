@@ -24,7 +24,7 @@ flowchart TD
     A["PR Merged on Remote"] --> B["1. Go to Main Bazel Checkout<br/>cd bazel/main/sdk"]
     B --> C["2. Pull Latest & Verify PR Landed<br/>git pull origin main"]
     C --> D["3. Cleanup Worktree & Local Branch<br/>.agents/scripts/rmagenttree bazel task-name<br/>git branch -d branch-name"]
-    D --> E["4. Update Bead & Backlog Files<br/>bd close bead-id<br/>tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart<br/>git add BACKLOG.md BACKLOG_HISTORY.md<br/>git commit -m 'chore(migration): sync BACKLOG.md'"]
+    D --> E["4. Update Bead & Backlog Files<br/>bd close bead-id<br/>.agents/scripts/sync_backlog.sh<br/>git add BACKLOG.md BACKLOG_HISTORY.md<br/>git commit -m 'chore(migration): sync BACKLOG.md'"]
     E --> F["5. Interactive Authorization<br/>ask_question: Push main branch to origin?"]
     F -->|"Approved"| G["git push origin main"]
     F -->|"Declined"| H["Keep local commit unpushed"]
@@ -60,7 +60,7 @@ Close the corresponding bead issue in the local database and regenerate the back
 bd close <bead-id>
 
 # Regenerate backlog markdown boards
-tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart
+.agents/scripts/sync_backlog.sh
 
 # Stage and commit updated backlog files locally
 git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md
