@@ -168,27 +168,28 @@ if [ "$RUN_MODE" = false ]; then
 fi
 
 # 3. Resolve Prebuilt Dart SDK (Using configured output_user_root)
+resolve_dart_from_bazel() {
+  local output_base
+  output_base=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
+  if [ -n "$output_base" ]; then
+    local dart_paths=("$output_base"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+      return 0
+    fi
+  fi
+  return 1
+}
+
 DART="tools/sdks/dart-sdk/bin/dart"
 if [ ! -x "$DART" ]; then
-  OUTPUT_BASE=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
-  if [ -n "$OUTPUT_BASE" ]; then
-    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
-    if [ -x "${dart_paths[0]:-}" ]; then
-      DART="${dart_paths[0]}"
-    fi
-  fi
+  resolve_dart_from_bazel || true
 fi
 
-if [ -z "$DART" ] || [ ! -x "$DART" ]; then
+if [ ! -x "$DART" ]; then
   echo "📦 Prebuilt Dart SDK not found locally. Fetching via Bazel..."
   bazel "$USER_ROOT_FLAG" query '@dart_packages//pkg/...' >/dev/null 2>&1 || true
-  OUTPUT_BASE=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
-  if [ -n "$OUTPUT_BASE" ]; then
-    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
-    if [ -x "${dart_paths[0]:-}" ]; then
-      DART="${dart_paths[0]}"
-    fi
-  fi
+  resolve_dart_from_bazel || true
 fi
 
 if [ -z "$DART" ] || [ ! -x "$DART" ]; then
