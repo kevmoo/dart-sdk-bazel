@@ -309,8 +309,6 @@ void main(List<String> args) async {
     final normalizedTargets = filteredTargets.map((t) {
       if (t.startsWith('@@//')) {
         return t.substring(2);
-      } else if (t.startsWith('@@')) {
-        return t.substring(1);
       }
       return t;
     }).toList();
