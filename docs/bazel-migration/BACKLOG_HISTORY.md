@@ -219,6 +219,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-5m4.3] Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Map Dart test runner .status file expectations (e.g. simarm64, simriscv64, analyzer skips/failures) into generate_test_targets.dart quarantine tags so platform-specific expected failures are not flagged as Bazel regressions.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-5uz] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_012`
