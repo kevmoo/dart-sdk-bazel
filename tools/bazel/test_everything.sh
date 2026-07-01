@@ -51,7 +51,7 @@ elif command -v free >/dev/null 2>&1; then
   RAM_AVAIL_MB=$(free -m | awk '/Mem:/ {print $7}' || true)
 elif [ "$(uname)" = "Darwin" ]; then
   SYSCTL_MEM=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
-  if [ "$SYSCTL_MEM" -gt 0 ]; then
+  if [[ "$SYSCTL_MEM" =~ ^[0-9]+$ ]] && [ "$SYSCTL_MEM" -gt 0 ]; then
     RAM_AVAIL_MB=$(( SYSCTL_MEM / 1024 / 1024 * 75 / 100 ))
   fi
 fi
@@ -173,7 +173,7 @@ fi
 
 PASSTHROUGH_ARGS+=("--bazel-startup-arg=$USER_ROOT_FLAG")
 
-if [ "$RUN_MODE" = false ]; then
+if [ "$RUN_MODE" = false ] || [ "$EXPLICIT_DRY_RUN" = true ]; then
   PASSTHROUGH_ARGS+=("--dry-run")
 fi
 
