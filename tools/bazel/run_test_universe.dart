@@ -131,6 +131,9 @@ String determineSuite(String rawTarget) {
   }
   final colonIdx = target.indexOf(':');
   final path = colonIdx != -1 ? target.substring(0, colonIdx) : target;
+  if (path.isEmpty) {
+    return 'unknown';
+  }
   final slashIdx = path.indexOf('/');
   return slashIdx != -1 ? path.substring(0, slashIdx) : path;
 }
