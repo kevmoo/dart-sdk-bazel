@@ -181,7 +181,7 @@ fi
 
 if [ -z "$DART" ] || [ ! -x "$DART" ]; then
   echo "📦 Prebuilt Dart SDK not found locally. Fetching via Bazel..."
-  bazel "$USER_ROOT_FLAG" query '@dart_sdk//...' >/dev/null 2>&1 || true
+  bazel "$USER_ROOT_FLAG" query '@dart_packages//pkg/...' >/dev/null 2>&1 || true
   OUTPUT_BASE=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
   if [ -n "$OUTPUT_BASE" ]; then
     dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
