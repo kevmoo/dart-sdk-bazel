@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     # The full build's output base measures ~9 GB locally, and the setup-bazel
     # disk cache keeps a second copy of action outputs — too tight for the
@@ -41,7 +41,7 @@ jobs:
     # non-empty dirs without checking their revision, so a stale partial
     # restore would silently pin wrong revisions.
     - name: Cache third_party/pkg clones
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: third_party/pkg
         key: third-party-pkg-${{ hashFiles('DEPS') }}
