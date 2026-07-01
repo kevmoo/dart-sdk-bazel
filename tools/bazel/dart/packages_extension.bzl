@@ -221,7 +221,7 @@ def _packages_repo_impl(ctx):
                 ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
 
             # 2. Symlink common files in package root (pubspec, analysis options, messages)
-            for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml"]:
+            for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml", "api.txt"]:
                 physical_file = physical_path.get_child(file_name)
                 if physical_file.exists:
                     ctx.symlink(physical_file, virtual_pkg_dir + "/" + file_name)
@@ -413,4 +413,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 6
+# Force invalidation trigger: 7
