@@ -6,7 +6,13 @@ load("//tools/bazel/dart:defs.bzl", "dart2wasm_test")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(glob(["**"]))
+exports_files(glob(
+    ["**"],
+    exclude = [
+        "BUILD",
+        "BUILD.bazel",
+    ],
+))
 
 filegroup(
     name = "dart_files",

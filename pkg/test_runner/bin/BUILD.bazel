@@ -4,4 +4,10 @@
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(glob(["**"]))
+exports_files(glob(
+    ["**"],
+    exclude = [
+        "BUILD",
+        "BUILD.bazel",
+    ],
+))
