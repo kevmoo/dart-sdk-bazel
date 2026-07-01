@@ -301,9 +301,14 @@ void main(List<String> args) async {
   } else {
     print('\n🚀 Executing Bazel tests across universe...');
     final tempFile = File('bazel_test_targets.tmp');
-    final normalizedTargets = filteredTargets
-        .map((t) => t.startsWith('@@') ? t.substring(1) : t)
-        .toList();
+    final normalizedTargets = filteredTargets.map((t) {
+      if (t.startsWith('@@//')) {
+        return t.substring(2);
+      } else if (t.startsWith('@@')) {
+        return t.substring(1);
+      }
+      return t;
+    }).toList();
     await tempFile.writeAsString(normalizedTargets.join('\n'));
 
     final bepFile = File('test_bep.json');
