@@ -193,6 +193,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-5m4] Epic: 100% Zero-Prerequisite 'Test Everything' for Dart SDK
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Achieve 100% zero-prerequisite build, test execution, and pass rates across all 5,788 test targets on fresh checkouts using Bazel.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-5m4.1] Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-5m4`
@@ -228,6 +241,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - None
 - **Description**:
   Map Dart test runner .status file expectations (e.g. simarm64, simriscv64, analyzer skips/failures) into generate_test_targets.dart quarantine tags so platform-specific expected failures are not flagged as Bazel regressions.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.4] Workstream 4: Implement One-Command Developer Entrypoint Script
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a clean ./tools/bazel/test_everything.sh wrapper script that bootstraps prebuilt Dart SDK, checks disk/RAM bounds, sets optimal sandbox_base=/tmp flags, and invokes run_test_universe.dart.
 - **Success Criteria**:
 
 ---
