@@ -142,7 +142,7 @@ if ! bazel "${BAZEL_STARTUP_ARGS[@]}" query '@dart_tests//...' >/dev/null; then
   fail "@dart_tests extension evaluation"
 fi
 
-step "dart analyze (bazel tooling scripts)"
+# Resolve Dart SDK binary
 DART=tools/sdks/dart-sdk/bin/dart
 if [ ! -x "$DART" ]; then
   # CI: the SDK is downloaded by the third_party extension (which the queries
@@ -155,6 +155,8 @@ if [ ! -x "$DART" ]; then
     fi
   fi
 fi
+
+step "dart analyze (bazel tooling scripts)"
 if [ -n "$DART" ] && [ -x "$DART" ]; then
   if ! git ls-files 'tools/bazel/**/*.dart' 'tools/bazel/*.dart' 'docs/bazel-migration/*.dart' \
     | xargs "$DART" analyze; then
@@ -163,10 +165,33 @@ if [ -n "$DART" ] && [ -x "$DART" ]; then
 else
   echo "SKIP: no dart binary found (tools/sdks/dart-sdk absent and no fetched prebuilt SDK)"
 fi
-
 step "entrypoint script validation: test_everything.sh"
 if ! ./tools/bazel/test_everything.sh --help >/dev/null; then
   fail "tools/bazel/test_everything.sh --help execution"
+fi
+
+step "validate test_imports.json files"
+if [ -n "$DART" ] && [ -x "$DART" ]; then
+  packages=(
+    "pkg/analysis_server"
+    "pkg/analyzer"
+    "pkg/compiler"
+  )
+  for pkg in "${packages[@]}"; do
+    echo "Regenerating $pkg/test_imports.json..."
+    if ! "$DART" tools/bazel/dart/gen_test_imports.dart "$pkg"; then
+      fail "Failed to run gen_test_imports.dart for $pkg"
+    fi
+  done
+
+  # Check if git diff detects any changes in those files.
+  # We use git diff --exit-code, which exits with 1 if there are differences.
+  if ! git diff --exit-code "${packages[@]/%//test_imports.json}" >/dev/null 2>&1; then
+    git diff "${packages[@]/%//test_imports.json}"
+    fail "test_imports.json files are out of date. Please run tools/bazel/dart/gen_test_imports.dart for the modified packages and commit the changes."
+  fi
+else
+  echo "SKIP: no dart binary found (tools/sdks/dart-sdk absent and no fetched prebuilt SDK)"
 fi
 
 echo
