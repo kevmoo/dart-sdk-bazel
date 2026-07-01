@@ -62,7 +62,7 @@ graph TD
     sdk_5m4.1["sdk-5m4.1:<br>Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules"]:::completed
     sdk_5m4.2["sdk-5m4.2:<br>Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl"]:::completed
     sdk_5m4.3["sdk-5m4.3:<br>Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters"]:::completed
-    sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::pending
+    sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::inProgress
     sdk_5m4.5["sdk-5m4.5:<br>Workstream 5: CI Path Filtering & Remote Action Cache Setup"]:::completed
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
@@ -278,7 +278,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-5m4.4] Workstream 4: Implement One-Command Developer Entrypoint Script
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: `sdk-5m4`
 - **Owner**: `[none]`
 - **Commit**: `[none]`
