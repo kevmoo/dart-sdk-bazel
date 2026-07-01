@@ -232,6 +232,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-5m4.5] Workstream 5: CI Path Filtering & Remote Action Cache Setup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Configure paths-filter in bazel.yml to skip C++ builds on documentation/backlog PRs and enable Bazel remote action caching.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-5uz] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_012`

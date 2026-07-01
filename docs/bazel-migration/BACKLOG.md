@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 90/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 91/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -63,7 +63,7 @@ graph TD
     sdk_5m4.2["sdk-5m4.2:<br>Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl"]:::completed
     sdk_5m4.3["sdk-5m4.3:<br>Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters"]:::completed
     sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::pending
-    sdk_5m4.5["sdk-5m4.5:<br>Workstream 5: CI Path Filtering & Remote Action Cache Setup"]:::inProgress
+    sdk_5m4.5["sdk-5m4.5:<br>Workstream 5: CI Path Filtering & Remote Action Cache Setup"]:::completed
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
@@ -286,19 +286,6 @@ graph TD
   - None
 - **Description**:
   Create a clean ./tools/bazel/test_everything.sh wrapper script that bootstraps prebuilt Dart SDK, checks disk/RAM bounds, sets optimal sandbox_base=/tmp flags, and invokes run_test_universe.dart.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-5m4.5] Workstream 5: CI Path Filtering & Remote Action Cache Setup
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: `sdk-5m4`
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Configure paths-filter in bazel.yml to skip C++ builds on documentation/backlog PRs and enable Bazel remote action caching.
 - **Success Criteria**:
 
 ---
