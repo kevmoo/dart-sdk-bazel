@@ -17,18 +17,35 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
+    - name: Check paths for doc/backlog changes
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          needs-build:
+            - '**'
+            - '!docs/**'
+            - '!**/*.md'
+
+    - name: Configure Bazel Remote Cache Upload
+      if: steps.filter.outputs.needs-build == 'true'
+      run: |
+        echo "build:remote-cache --remote_upload_local_results=${{ github.event_name != 'pull_request' }}" >> .bazelrc
+
     # clone_dependencies.py (run by the module extensions) shallow-clones 18
     # DEPS repos into the workspace — invisible to every bazel-level cache.
     # EXACT key only, deliberately no restore-keys: the script skips existing
     # non-empty dirs without checking their revision, so a stale partial
     # restore would silently pin wrong revisions.
     - name: Cache third_party/pkg clones
+      if: steps.filter.outputs.needs-build == 'true'
       uses: actions/cache@v5
       with:
         path: third_party/pkg
         key: third-party-pkg-${{ hashFiles('DEPS') }}
 
     - name: Generate Synthetic CI Configurations
+      if: steps.filter.outputs.needs-build == 'true'
       run: |
         python3 tools/bazel/generate_debug_package_config.py
         python3 tools/generate_sdk_version_file.py
@@ -41,12 +58,14 @@ jobs:
     # 10 GB repo budget, and PR runs restore but never write (saves only
     # happen on main), which stops per-branch near-duplicate entries.
     - name: Authenticate to Google Cloud
+      if: steps.filter.outputs.needs-build == 'true'
       uses: google-github-actions/auth@v3
       with:
         workload_identity_provider: 'projects/605394026323/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
         service_account: 'github-actions-cache@bluefin-remote.iam.gserviceaccount.com'
 
     - name: Set up Bazel
+      if: steps.filter.outputs.needs-build == 'true'
       uses: bazel-contrib/setup-bazel@0.19.0
       with:
         bazelisk-cache: true
@@ -59,12 +78,15 @@ jobs:
     # catches the regression classes (missing $(location) prerequisites,
     # Starlark errors in extensions) that a dartvm-only build misses.
     - name: Presubmit (analysis, module extensions, audits)
+      if: steps.filter.outputs.needs-build == 'true'
       run: ./tools/bazel/presubmit.sh
 
     - name: Build Dart VM
+      if: steps.filter.outputs.needs-build == 'true'
       run: |
         bazel build --config=ci //runtime/bin:dartvm
 
     - name: Smoke test pkg/analyzer (ID test harnesses)
+      if: steps.filter.outputs.needs-build == 'true'
       run: |
         bazel test --config=ci @dart_tests//pkg/analyzer/test/id_tests:test_id_tests_constant_test_dart_vm_release @dart_tests//pkg/analyzer/test/id_tests:test_id_tests_nullability_test_dart_vm_release
