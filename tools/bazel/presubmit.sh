@@ -95,11 +95,15 @@ fi
 
 BAZEL_STARTUP_ARGS=()
 if [ -w /dev/shm ]; then
+  SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  if [[ ! "$SHM_FREE_INODES" =~ ^[0-9]+$ ]]; then
+    SHM_FREE_INODES=0
+  fi
   SHM_FREE_KB=$(df -kP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
   if [[ ! "$SHM_FREE_KB" =~ ^[0-9]+$ ]]; then
     SHM_FREE_KB=0
   fi
-  if [ "$SHM_FREE_KB" -gt 15728640 ]; then
+  if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_KB" -gt 15728640 ]; then
     USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
     BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
   fi
