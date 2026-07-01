@@ -8,7 +8,7 @@ DART="$WORKSPACE_ROOT/tools/sdks/dart-sdk/bin/dart"
 SCRIPT="$WORKSPACE_ROOT/docs/bazel-migration/gen_board_from_beads.dart"
 
 if [ ! -x "$DART" ]; then
-    if which dart >/dev/null; then
+    if command -v dart >/dev/null; then
         DART="dart"
     else
         echo "❌ Dart SDK not found at $DART and 'dart' is not in PATH."

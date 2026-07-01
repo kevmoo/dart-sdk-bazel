@@ -2,9 +2,9 @@
 set -euo pipefail
 # Resolve central .agents directory relative to git common dir
 GIT_COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null || true)"
-if [ -n "$GIT_COMMON_DIR" ]; then
+if [ -n "$GIT_COMMON_DIR" ] && [ -d "$GIT_COMMON_DIR/../.agents" ]; then
     CENTRAL_AGENTS="$(cd "$GIT_COMMON_DIR/../.agents" && pwd)"
-    if [ -f "$CENTRAL_AGENTS/scripts/rmagenttree" ]; then
+    if [ -x "$CENTRAL_AGENTS/scripts/rmagenttree" ]; then
         exec "$CENTRAL_AGENTS/scripts/rmagenttree" "$@"
     fi
 fi
