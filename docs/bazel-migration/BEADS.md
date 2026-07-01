@@ -18,9 +18,11 @@ side ref of the **`kevmoo/sdk` fork** (not the upstream `dart.googlesource.com`
 remote), so it is carried by the fork, recovered with `bd`, and never lost as
 long as nobody force-pushes it.
 
-## Learning the `bd` workflow (general)
+## Learning the `bd` workflow & Agent Skill
 
-The general `bd` workflow (`bd ready` / `create` / `show` / `close`, dependency
+For AI agents working on this repository, the mandatory operational instructions are defined in the **`sdk-bazel-beads`** skill (`docs/bazel-migration/skills/sdk-bazel-beads/SKILL.md`).
+
+The general human `bd` workflow (`bd ready` / `create` / `show` / `close`, dependency
 graph, compaction survival) is documented by beads' own **skill**. Install it
 once per machine — either:
 
