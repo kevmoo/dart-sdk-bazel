@@ -83,11 +83,10 @@ USE_SHM=false
 if [ -w /dev/shm ]; then
   SHM_EXEC_ALLOWED=false
   if touch /dev/shm/test_exec_$$ 2>/dev/null; then
-    chmod +x /dev/shm/test_exec_$$ 2>/dev/null
-    if /dev/shm/test_exec_$$ 2>/dev/null; then
+    if chmod +x /dev/shm/test_exec_$$ 2>/dev/null && /dev/shm/test_exec_$$ 2>/dev/null; then
       SHM_EXEC_ALLOWED=true
     fi
-    rm -f /dev/shm/test_exec_$$
+    rm -f /dev/shm/test_exec_$$ || true
   fi
   if [ "$SHM_EXEC_ALLOWED" = true ]; then
     SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
