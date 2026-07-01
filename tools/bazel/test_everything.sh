@@ -90,7 +90,7 @@ if [ -w /dev/shm ]; then
     SHM_FREE_KB=0
   fi
   SHM_FREE_GB=$(( SHM_FREE_KB / 1024 / 1024 ))
-  if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_GB" -gt 15 ]; then
+  if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_KB" -gt 15728640 ]; then
     SELECTED_SANDBOX="/dev/shm"
     USE_SHM=true
   fi
@@ -150,7 +150,8 @@ done
 
 FINAL_JOBS="${CUSTOM_JOBS:-$CALC_JOBS}"
 FINAL_SANDBOX="${CUSTOM_SANDBOX:-$SELECTED_SANDBOX}"
-USER_ROOT_FLAG="--output_user_root=$FINAL_SANDBOX/bazel_user_root_$(id -u)"
+USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
+USER_ROOT_FLAG="--output_user_root=$FINAL_SANDBOX/bazel_user_root_$USER_ID"
 
 if [ "$HAS_BAZEL_JOBS_ARG" = false ]; then
   PASSTHROUGH_ARGS+=("--bazel-arg=--local_test_jobs=$FINAL_JOBS")

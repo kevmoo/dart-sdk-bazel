@@ -99,8 +99,9 @@ if [ -w /dev/shm ]; then
   if [[ ! "$SHM_FREE_KB" =~ ^[0-9]+$ ]]; then
     SHM_FREE_KB=0
   fi
-  if [ "$(( SHM_FREE_KB / 1024 / 1024 ))" -gt 15 ]; then
-    BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$(id -u)")
+  if [ "$SHM_FREE_KB" -gt 15728640 ]; then
+    USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
+    BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
   fi
 fi
 

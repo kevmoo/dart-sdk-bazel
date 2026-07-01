@@ -96,7 +96,7 @@ double getFreeDiskGb(String path) {
 
 void writeHeartbeat(String path, Map<String, dynamic> data) {
   try {
-    final tmpFree = getFreeDiskGb('/tmp');
+    final tmpFree = getFreeDiskGb(Directory.systemTemp.path);
     final wsFree = getFreeDiskGb('.');
     data['disk_free_gb'] = {
       'tmp': tmpFree >= 0 ? tmpFree.toStringAsFixed(1) : 'unknown',
@@ -126,7 +126,9 @@ String determineSuite(String rawTarget) {
   }
   if (target.startsWith('pkg/')) {
     return 'pkg';
-  } else if (target.startsWith('web/wasm')) {
+  } else if (target.startsWith('web/wasm/') ||
+      target.startsWith('web/wasm:') ||
+      target == 'web/wasm') {
     return 'web/wasm';
   }
   final colonIdx = target.indexOf(':');
