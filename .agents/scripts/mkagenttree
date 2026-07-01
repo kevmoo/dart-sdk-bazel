@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Resolve central .agents directory relative to git common dir
+GIT_COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+if [ -n "$GIT_COMMON_DIR" ]; then
+    CENTRAL_AGENTS="$(cd "$GIT_COMMON_DIR/../.agents" && pwd)"
+    if [ -f "$CENTRAL_AGENTS/scripts/mkagenttree" ]; then
+        exec "$CENTRAL_AGENTS/scripts/mkagenttree" "$@"
+    fi
+fi
+echo "❌ Could not locate central .agents/scripts/mkagenttree"
+exit 1
