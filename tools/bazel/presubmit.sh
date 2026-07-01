@@ -95,7 +95,10 @@ fi
 
 BAZEL_STARTUP_ARGS=()
 if [ -w /dev/shm ]; then
-  BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_${USER:-shared}")
+  SHM_FREE_KB=$(df -kP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
+  if [ "$(( SHM_FREE_KB / 1024 / 1024 ))" -gt 5 ]; then
+    BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$(id -u)")
+  fi
 fi
 
 step "python helpers byte-compile"

@@ -40,36 +40,7 @@ Examples:
 EOF
 }
 
-# 1. Resolve Prebuilt Dart SDK
-DART="tools/sdks/dart-sdk/bin/dart"
-if [ ! -x "$DART" ]; then
-  OUTPUT_BASE=$(bazel info output_base 2>/dev/null || true)
-  if [ -n "$OUTPUT_BASE" ]; then
-    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
-    if [ -x "${dart_paths[0]:-}" ]; then
-      DART="${dart_paths[0]}"
-    fi
-  fi
-fi
-
-if [ -z "$DART" ] || [ ! -x "$DART" ]; then
-  echo "📦 Prebuilt Dart SDK not found locally. Fetching via Bazel..."
-  bazel query '@dart_sdk//...' >/dev/null 2>&1 || true
-  OUTPUT_BASE=$(bazel info output_base 2>/dev/null || true)
-  if [ -n "$OUTPUT_BASE" ]; then
-    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
-    if [ -x "${dart_paths[0]:-}" ]; then
-      DART="${dart_paths[0]}"
-    fi
-  fi
-fi
-
-if [ -z "$DART" ] || [ ! -x "$DART" ]; then
-  echo "❌ Error: Unable to locate or fetch prebuilt Dart SDK binary."
-  exit 1
-fi
-
-# 2. Resource Bounds Detection & Safeguards
+# 1. Resource Bounds Detection & Safeguards
 RAM_AVAIL_MB=4090
 if [ -f /proc/meminfo ]; then
   RAM_AVAIL_KB=$(grep -i MemAvailable /proc/meminfo | awk '{print $2}' || true)
@@ -78,6 +49,11 @@ if [ -f /proc/meminfo ]; then
   fi
 elif command -v free >/dev/null 2>&1; then
   RAM_AVAIL_MB=$(free -m | awk '/Mem:/ {print $7}' || true)
+elif [ "$(uname)" = "Darwin" ]; then
+  SYSCTL_MEM=$(sysctl -n hw.memsize 2>/dev/null || echo "0")
+  if [ "$SYSCTL_MEM" -gt 0 ]; then
+    RAM_AVAIL_MB=$(( SYSCTL_MEM / 1024 / 1024 * 75 / 100 ))
+  fi
 fi
 
 if [[ ! "$RAM_AVAIL_MB" =~ ^[0-9]+$ ]]; then
@@ -124,11 +100,12 @@ if [ "$USE_SHM" = false ] && [ "$TMP_FREE_GB" -lt 15 ]; then
   SELECTED_SANDBOX="/var/tmp"
 fi
 
-# 3. Parse Arguments
+# 2. Parse Arguments
 RUN_MODE=false
 EXPLICIT_DRY_RUN=false
 CUSTOM_JOBS=""
 CUSTOM_SANDBOX=""
+OUTPUT_PATH="docs/bazel-migration/test_matrix_results.json"
 PASSTHROUGH_ARGS=()
 HAS_BAZEL_JOBS_ARG=false
 HAS_BAZEL_SANDBOX_ARG=false
@@ -151,6 +128,10 @@ for arg in "$@"; do
     --sandbox-base=*)
       CUSTOM_SANDBOX="${arg#*=}"
       ;;
+    --output=*)
+      OUTPUT_PATH="${arg#*=}"
+      PASSTHROUGH_ARGS+=("$arg")
+      ;;
     --bazel-arg=*)
       BAZEL_VAL="${arg#*=}"
       if [[ "$BAZEL_VAL" == --local_test_jobs=* ]] || [[ "$BAZEL_VAL" == --jobs=* ]]; then
@@ -169,6 +150,7 @@ done
 
 FINAL_JOBS="${CUSTOM_JOBS:-$CALC_JOBS}"
 FINAL_SANDBOX="${CUSTOM_SANDBOX:-$SELECTED_SANDBOX}"
+USER_ROOT_FLAG="--output_user_root=$FINAL_SANDBOX/bazel_user_root_$(id -u)"
 
 if [ "$HAS_BAZEL_JOBS_ARG" = false ]; then
   PASSTHROUGH_ARGS+=("--bazel-arg=--local_test_jobs=$FINAL_JOBS")
@@ -178,10 +160,39 @@ if [ "$HAS_BAZEL_SANDBOX_ARG" = false ]; then
   PASSTHROUGH_ARGS+=("--bazel-arg=--sandbox_base=$FINAL_SANDBOX")
 fi
 
-PASSTHROUGH_ARGS+=("--bazel-startup-arg=--output_user_root=$FINAL_SANDBOX/bazel_user_root_${USER:-shared}")
+PASSTHROUGH_ARGS+=("--bazel-startup-arg=$USER_ROOT_FLAG")
 
 if [ "$RUN_MODE" = false ]; then
   PASSTHROUGH_ARGS+=("--dry-run")
+fi
+
+# 3. Resolve Prebuilt Dart SDK (Using configured output_user_root)
+DART="tools/sdks/dart-sdk/bin/dart"
+if [ ! -x "$DART" ]; then
+  OUTPUT_BASE=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
+  if [ -n "$OUTPUT_BASE" ]; then
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
+  fi
+fi
+
+if [ -z "$DART" ] || [ ! -x "$DART" ]; then
+  echo "📦 Prebuilt Dart SDK not found locally. Fetching via Bazel..."
+  bazel "$USER_ROOT_FLAG" query '@dart_sdk//...' >/dev/null 2>&1 || true
+  OUTPUT_BASE=$(bazel "$USER_ROOT_FLAG" info output_base 2>/dev/null || true)
+  if [ -n "$OUTPUT_BASE" ]; then
+    dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
+    if [ -x "${dart_paths[0]:-}" ]; then
+      DART="${dart_paths[0]}"
+    fi
+  fi
+fi
+
+if [ -z "$DART" ] || [ ! -x "$DART" ]; then
+  echo "❌ Error: Unable to locate or fetch prebuilt Dart SDK binary."
+  exit 1
 fi
 
 # 4. Print Resource Bounds Summary
@@ -201,5 +212,5 @@ echo
 # 5. Delegate to run_test_universe.dart & render markdown matrix
 RC=0
 "$DART" tools/bazel/run_test_universe.dart "${PASSTHROUGH_ARGS[@]}" || RC=$?
-"$DART" docs/bazel-migration/render_test_matrix.dart docs/bazel-migration/test_matrix_results.json docs/bazel-migration/TEST_COMPLETION_MATRIX.md
+"$DART" docs/bazel-migration/render_test_matrix.dart "$OUTPUT_PATH" docs/bazel-migration/TEST_COMPLETION_MATRIX.md
 exit "$RC"
