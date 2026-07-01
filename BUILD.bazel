@@ -110,6 +110,7 @@ filegroup(
             "pkg/expect/**",
             "pkg/js/**",
             "pkg/meta/**",
+            "pkg/smith/**",
             "third_party/pkg/core/pkgs/**",
             "third_party/pkg/native/pkgs/**",
             "third_party/pkg/test/pkgs/**",
