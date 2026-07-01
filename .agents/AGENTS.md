@@ -97,8 +97,11 @@ If your task involves WebAssembly or `dart2wasm`:
 > [!CAUTION]
 > ### 🚨 ABSOLUTE RULE FOR ALL AGENTS: NO INFERRED REMOTE WRITES OR FORCE PUSHES
 > 
-> 1. **IMMEDIATE EXPLICIT AUTHORIZATION:** Every single `git push` (especially `git push --force` or `git push origin ... --force`) and every single `bd dolt push` (or any remote database write) **MUST** be explicitly authorized by the human user **immediately before** it is executed.
-> 2. **NO INFERRED PERMISSION:** Permission **CANNOT** be inferred from earlier statements in the conversation (such as *"let's do that"* or *"please"*). Even if a multi-step plan containing a push was previously approved, the agent **MUST pause and ask for a final, explicit confirmation** right before running the actual push command.
+> 1. **IMMEDIATE EXPLICIT AUTHORIZATION:** Every single `git push` (especially `git push --force` or `git push origin ... --force`), `git commit`, and every single `bd dolt push` (or any remote database write) **MUST** be explicitly authorized by the human user **immediately before** it is executed.
+> 2. **NO INFERRED PERMISSION & NO REPEATED ACTIONS:** Permission **CANNOT** be inferred from earlier statements in the conversation (such as *"let's do that"* or *"please"*).
+>    * Each individual commit or push action requires its own explicit confirmation.
+>    * Prior approval for one push/commit does NOT carry over to subsequent pushes or commits, even if the subsequent changes are minor fixes (e.g., fixing warnings, formatting) to the same work.
+>    * The ONLY exception to this rule is when executing a specific automated loop command like `/pr-loop` against a dedicated feature branch, where the loop logic is designed to push changes programmatically.
 > 3. **HISTORY MODIFICATIONS:** The same rule applies to `git commit --amend`, `git rebase`, or any other history-modifying command. These are destructive operations and **MUST** be explicitly approved immediately before execution.
 > 4. **PENALTY:** Any violation of this rule is considered a critical breach of safety protocols and will result in immediate termination of the agent's session.
 
