@@ -213,5 +213,7 @@ echo
 # 5. Delegate to run_test_universe.dart & render markdown matrix
 RC=0
 "$DART" tools/bazel/run_test_universe.dart "${PASSTHROUGH_ARGS[@]}" || RC=$?
-"$DART" docs/bazel-migration/render_test_matrix.dart "$OUTPUT_PATH" docs/bazel-migration/TEST_COMPLETION_MATRIX.md
+if [ -f "$OUTPUT_PATH" ]; then
+  "$DART" docs/bazel-migration/render_test_matrix.dart "$OUTPUT_PATH" docs/bazel-migration/TEST_COMPLETION_MATRIX.md
+fi
 exit "$RC"
