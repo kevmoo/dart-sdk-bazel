@@ -3662,7 +3662,7 @@ cc_library(
     srcs = [":dart_kernel_service_dill_S_only"],
     additional_compiler_inputs = [":dart_kernel_service_dill_only"],
     copts = [
-        "-Ibazel-out/k8-fastbuild/bin/runtime/bin",
+        "-I$(BINDIR)/runtime/bin",
     ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
@@ -4646,7 +4646,7 @@ cc_library(
     srcs = [":dart_platform_dill_S_only"],
     additional_compiler_inputs = [":dart_vm_platform_dill_only"],
     copts = [
-        "-Ibazel-out/k8-fastbuild/bin/runtime/bin",
+        "-I$(BINDIR)/runtime/bin",
     ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],

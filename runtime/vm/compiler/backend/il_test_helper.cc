@@ -31,13 +31,15 @@ LibraryPtr LoadTestScript(const char* script,
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, resolver, lib_uri);
     if (Dart_IsError(api_lib)) {
-      return Library::null();
+      if (!KernelIsolate::IsRunning()) return Library::null();
+      EXPECT_VALID(api_lib);
     }
   }
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
   if (lib.IsNull()) {
-    return Library::null();
+    if (!KernelIsolate::IsRunning()) return Library::null();
+    EXPECT(!lib.IsNull());
   }
   return lib.ptr();
 }

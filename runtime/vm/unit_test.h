@@ -16,6 +16,7 @@
 #include "vm/dart_entry.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
+#include "vm/kernel_isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -651,18 +652,18 @@ class CompilerTest : public AllStatic {
   do {                                                                         \
     Dart_Handle res_handle = (handle);                                         \
     if (Dart_IsError(res_handle)) {                                            \
-      return;                                                                  \
+      if (!KernelIsolate::IsRunning()) return;                                 \
+      EXPECT_VALID(res_handle);                                                \
     }                                                                          \
-    EXPECT_VALID(res_handle);                                                  \
   } while (0)
 
 #define EXPECT_VALID_OR_RETURN_VAL(handle, val)                                \
   do {                                                                         \
     Dart_Handle res_handle = (handle);                                         \
     if (Dart_IsError(res_handle)) {                                            \
-      return (val);                                                            \
+      if (!KernelIsolate::IsRunning()) return (val);                           \
+      EXPECT_VALID(res_handle);                                                \
     }                                                                          \
-    EXPECT_VALID(res_handle);                                                  \
   } while (0)
 
 #define EXPECT_ERROR(handle, substring)                                        \
