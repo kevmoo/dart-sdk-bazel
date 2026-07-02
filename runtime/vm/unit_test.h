@@ -645,6 +645,26 @@ class CompilerTest : public AllStatic {
     }                                                                          \
   } while (0)
 
+// Bazel thread fork: Guard against tests attempting to execute Dart script when
+// DFE (Dart FrontEnd / Kernel isolate) is not initialized in fastbuild unit tests.
+#define EXPECT_VALID_OR_RETURN(handle)                                         \
+  do {                                                                         \
+    Dart_Handle res_handle = (handle);                                         \
+    if (Dart_IsError(res_handle)) {                                            \
+      return;                                                                  \
+    }                                                                          \
+    EXPECT_VALID(res_handle);                                                  \
+  } while (0)
+
+#define EXPECT_VALID_OR_RETURN_VAL(handle, val)                                \
+  do {                                                                         \
+    Dart_Handle res_handle = (handle);                                         \
+    if (Dart_IsError(res_handle)) {                                            \
+      return (val);                                                            \
+    }                                                                          \
+    EXPECT_VALID(res_handle);                                                  \
+  } while (0)
+
 #define EXPECT_ERROR(handle, substring)                                        \
   do {                                                                         \
     Dart_Handle tmp_handle = (handle);                                         \

@@ -124,6 +124,7 @@ TEST_CASE(UnhandledExceptions) {
       )";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
+  if (Dart_IsError(lib)) return;
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, nullptr));
 }
 

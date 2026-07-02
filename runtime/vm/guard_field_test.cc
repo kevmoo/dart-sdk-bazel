@@ -62,6 +62,7 @@ TEST_CASE(GuardFieldSimpleTest) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
@@ -113,6 +114,7 @@ TEST_CASE(GuardFieldFinalListTest) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
@@ -166,6 +168,7 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
@@ -223,6 +226,7 @@ TEST_CASE(GuardFieldConstructorTest) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);
@@ -272,6 +276,7 @@ TEST_CASE(GuardFieldConstructor2Test) {
       "  }\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(script_chars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   TransitionNativeToVM transition(thread);

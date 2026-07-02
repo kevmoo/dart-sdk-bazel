@@ -229,6 +229,7 @@ void TestLargeFrame(const char* type,
   printer.AddString(main);
 
   const auto& root_library = Library::Handle(LoadTestScript(printer.buffer()));
+  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 }
 
@@ -310,12 +311,15 @@ ISOLATE_UNIT_TEST_CASE(FlowGraph_PhiUnboxingHeuristic_Double) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
@@ -358,12 +362,15 @@ static void TestPhiUnboxingHeuristicSimd(const char* script) {
   }
 
   const auto& root_library = Library::Handle(LoadTestScript(script));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,

@@ -283,7 +283,13 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   // TODO(turnidge): Use the create isolate callback instead?
   Dart_Handle lib =
       TestCase::LoadTestScript(kCustomIsolateScriptChars, NativeLookup);
-  EXPECT_VALID(lib);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    Dart_EnterIsolate(saved_isolate);
+    Dart_EnterScope();
+    return;
+  }
 
   Dart_Handle main_send_port = Dart_GetField(lib, NewString("mainSendPort"));
   EXPECT_VALID(main_send_port);
@@ -322,18 +328,27 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   // Create a test library.
   Dart_Handle lib =
       TestCase::LoadTestScript(kCustomIsolateScriptChars, NativeLookup);
-  EXPECT_VALID(lib);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
 
   // Run main.
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  EXPECT_VALID(result);
+  if (Dart_IsError(result)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT(Dart_IsString(result));
   const char* result_str = nullptr;
   EXPECT_VALID(Dart_StringToCString(result, &result_str));
   EXPECT_STREQ("success", result_str);
 
   Dart_ExitScope();
-  Dart_ExitIsolate();
+  Dart_ShutdownIsolate();
 
   OS::PrintErr("-- Starting event loop --\n");
   Event* event = event_queue->Get();

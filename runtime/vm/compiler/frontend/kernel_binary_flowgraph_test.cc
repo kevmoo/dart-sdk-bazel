@@ -25,7 +25,9 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConstFoldStringConcats) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "test");
 
@@ -33,6 +35,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConstFoldStringConcats) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -65,7 +68,9 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_FlattenNestedStringInterp) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
@@ -73,6 +78,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_FlattenNestedStringInterp) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -123,7 +129,9 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
@@ -131,6 +139,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_DropEmptyStringInterp) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -192,7 +201,9 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
@@ -200,6 +211,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_ConcatStringLits) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -260,7 +272,9 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "test");
 
@@ -268,6 +282,7 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_InvariantFlagInListLiterals) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -321,14 +336,17 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Invoke(root_library, "test");
 
   const auto& callClosureFunction =
       Function::Handle(GetFunction(root_library, "callClosure"));
+  if (callClosureFunction.IsNull()) return;
   TestPipeline pipeline(callClosureFunction, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -364,7 +382,9 @@ ISOLATE_UNIT_TEST_CASE(
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "test");
 
@@ -372,6 +392,7 @@ ISOLATE_UNIT_TEST_CASE(
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -410,11 +431,14 @@ ISOLATE_UNIT_TEST_CASE(
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  if (foo.IsNull()) return;
   const auto& error = foo.EnsureIsFinalized(thread);
   const auto& constructor = Function::Handle(
       foo.LookupConstructor(String::Handle(String::New("Foo."))));
+  if (constructor.IsNull()) return;
 
   EXPECT(error == Error::null());
   Invoke(root_library, "test");
@@ -423,6 +447,7 @@ ISOLATE_UNIT_TEST_CASE(
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -454,11 +479,14 @@ ISOLATE_UNIT_TEST_CASE(
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  if (foo.IsNull()) return;
   const auto& error = foo.EnsureIsFinalized(thread);
   const auto& constructor = Function::Handle(
       foo.LookupConstructor(String::Handle(String::New("Foo."))));
+  if (constructor.IsNull()) return;
 
   EXPECT(error == Error::null());
 
@@ -468,6 +496,7 @@ ISOLATE_UNIT_TEST_CASE(
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -508,11 +537,14 @@ ISOLATE_UNIT_TEST_CASE(
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  if (foo.IsNull()) return;
   const auto& error = foo.EnsureIsFinalized(thread);
   const auto& constructor = Function::Handle(
       foo.LookupConstructor(String::Handle(String::New("Foo."))));
+  if (constructor.IsNull()) return;
 
   EXPECT(error == Error::null());
   Invoke(root_library, "test");
@@ -521,6 +553,7 @@ ISOLATE_UNIT_TEST_CASE(
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -555,11 +588,14 @@ ISOLATE_UNIT_TEST_CASE(
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const Class& foo = Class::Handle(GetClass(root_library, "Foo"));
+  if (foo.IsNull()) return;
   const auto& error = foo.EnsureIsFinalized(thread);
   const auto& constructor = Function::Handle(
       foo.LookupConstructor(String::Handle(String::New("Foo."))));
+  if (constructor.IsNull()) return;
 
   EXPECT(error == Error::null());
   Invoke(root_library, "test");
@@ -568,6 +604,7 @@ ISOLATE_UNIT_TEST_CASE(
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);

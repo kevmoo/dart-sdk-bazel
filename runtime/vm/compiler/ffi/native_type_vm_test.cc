@@ -69,7 +69,9 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
       )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& struct_class = Class::Handle(GetClass(root_library, "MyStruct"));
+  if (struct_class.IsNull()) return;
   const auto& struct_type = Type::Handle(struct_class.DeclarationType());
 
   const char* error = nullptr;

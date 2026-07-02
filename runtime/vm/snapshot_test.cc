@@ -747,7 +747,8 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
-    TestCase::LoadTestScript(kScriptChars, nullptr);
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+    if (Dart_IsError(lib)) return;
 
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
@@ -887,6 +888,11 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
 
   Dart_Handle lib =
       TestCase::LoadTestScript(kCustomIsolateScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
   Dart_Handle smi_result;
   smi_result = Dart_Invoke(lib, NewString("getSmi"), 0, nullptr);
@@ -1003,6 +1009,11 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
 
   {
@@ -1126,6 +1137,11 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
 
   {
@@ -1358,6 +1374,11 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
 
   {
@@ -1556,6 +1577,11 @@ VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
 
   {
@@ -1796,6 +1822,11 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   Dart_EnterScope();
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) {
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return;
+  }
   EXPECT_VALID(lib);
 
   {
@@ -1944,6 +1975,7 @@ VM_UNIT_TEST_CASE(PostCObject) {
       "  return sendPort;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, nullptr);

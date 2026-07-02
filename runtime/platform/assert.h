@@ -269,11 +269,23 @@ inline void Expect::StringEquals(const char* expected, const char* actual) {
 }
 
 inline void Expect::IsSubstring(const char* needle, const char* haystack) {
+  if (haystack == nullptr || needle == nullptr) {
+    Fail("expected <\"%s\"> to be a substring of <\"%s\">",
+         needle != nullptr ? needle : "nullptr",
+         haystack != nullptr ? haystack : "nullptr");
+    return;
+  }
   if (strstr(haystack, needle) != nullptr) return;
   Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
 }
 
 inline void Expect::IsNotSubstring(const char* needle, const char* haystack) {
+  if (haystack == nullptr || needle == nullptr) {
+    Fail("expected <\"%s\"> to not be a substring of <\"%s\">",
+         needle != nullptr ? needle : "nullptr",
+         haystack != nullptr ? haystack : "nullptr");
+    return;
+  }
   if (strstr(haystack, needle) == nullptr) return;
   Fail("expected <\"%s\"> to not be a substring of <\"%s\">", needle, haystack);
 }

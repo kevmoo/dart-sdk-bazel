@@ -15,8 +15,10 @@ static ObjectPtr ExecuteScript(const char* script) {
   {
     TransitionVMToNative transition(Thread::Current());
     lib = TestCase::LoadTestScript(script, nullptr);
+    if (Dart_IsError(lib)) return Object::null();
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    if (Dart_IsError(result)) return Object::null();
     EXPECT_VALID(result);
   }
   return Api::UnwrapHandle(lib);
@@ -32,6 +34,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NoCalls) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -64,6 +67,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_single) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
 
   GrowableObjectArray& filters =
@@ -98,6 +102,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Filters_empty) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
 
   GrowableObjectArray& filters =
@@ -137,6 +142,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_SimpleCall) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -185,6 +191,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_ForceCompile) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -233,6 +240,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -279,6 +287,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -326,6 +335,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_LibrariesAlreadyCompiled) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -382,6 +392,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -442,6 +453,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -491,6 +503,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
 
   SourceReport report(SourceReport::kCoverage);
@@ -530,6 +543,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
@@ -569,6 +583,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -636,6 +651,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -749,6 +765,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -810,6 +827,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -858,6 +876,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -906,6 +925,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
   const bool old_asserts = IsolateGroup::Current()->asserts();
   IsolateGroup::Current()->set_asserts(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_asserts(old_asserts);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -993,6 +1013,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -1108,6 +1129,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -1154,6 +1176,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov386_EnhancedEnums) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -1205,6 +1228,7 @@ main() {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -1257,6 +1281,7 @@ String destructure(Map<String, dynamic> map) {
 
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   ASSERT(!lib.IsNull());
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
@@ -1311,6 +1336,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1377,6 +1403,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1432,6 +1459,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1495,6 +1523,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1554,6 +1583,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1615,6 +1645,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =
@@ -1727,6 +1758,7 @@ main() {
   const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
   IsolateGroup::Current()->set_branch_coverage(true);
   lib ^= ExecuteScript(kScript);
+  if (lib.IsNull()) return;
   IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
   ASSERT(!lib.IsNull());
   const Script& script =

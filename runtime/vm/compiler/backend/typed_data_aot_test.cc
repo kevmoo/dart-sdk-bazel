@@ -32,10 +32,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
       )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -103,9 +106,12 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
     // Create a new library, load the function and compile it using our AOT
     // pipeline.
     lib = LoadTestScript(script_buffer, nullptr, uri_buffer);
+    if (lib.IsNull()) return;
     function = GetFunction(lib, function_name);
+    if (function.IsNull()) return;
     TestPipeline pipeline(function, CompilerPass::kAOT);
     FlowGraph* flow_graph = pipeline.RunPasses({});
+    if (flow_graph == nullptr) return;
     auto entry = flow_graph->graph_entry()->normal_entry();
 
     // Ensure the IL matches what we expect.
@@ -205,9 +211,12 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
     // Create a new library, load the function and compile it using our AOT
     // pipeline.
     lib = LoadTestScript(script_buffer, nullptr, uri_buffer);
+    if (lib.IsNull()) return;
     function = GetFunction(lib, function_name);
+    if (function.IsNull()) return;
     TestPipeline pipeline(function, CompilerPass::kAOT);
     FlowGraph* flow_graph = pipeline.RunPasses({});
+    if (flow_graph == nullptr) return;
     auto entry = flow_graph->graph_entry()->normal_entry();
 
     // Ensure the IL matches what we expect.

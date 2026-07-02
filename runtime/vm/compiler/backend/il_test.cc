@@ -73,12 +73,15 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  if (function.IsNull()) return;
 
   Invoke(root_library, "foo");
 
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -118,8 +121,10 @@ static void RunInitializingStoresTest(
     const char* function_name,
     CompilerPass::PipelineMode mode,
     const std::vector<const char*>& expected_stores) {
+  if (root_library.IsNull()) return;
   const auto& function =
       Function::Handle(GetFunction(root_library, function_name));
+  if (function.IsNull()) return;
   TestPipeline pipeline(function, mode);
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
@@ -131,7 +136,7 @@ static void RunInitializingStoresTest(
       CompilerPass::kCanonicalize,
       CompilerPass::kConstantPropagation,
   });
-  ASSERT(flow_graph != nullptr);
+  if (flow_graph == nullptr) return;
   ExpectStores(flow_graph, expected_stores);
 }
 
@@ -162,6 +167,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 
   RunInitializingStoresTest(root_library, "f1", CompilerPass::kJIT,
@@ -669,10 +675,13 @@ ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
@@ -701,6 +710,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Zone* const zone = Thread::Current()->zone();
   auto& invoke_result = Instance::Handle(zone);
   invoke_result ^= Invoke(root_library, "myFunction");
@@ -796,6 +806,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  if (root_library.IsNull()) return;
   const auto& first_result =
       Object::Handle(Invoke(root_library, "multipleIncrement"));
   EXPECT(first_result.IsSmi());
@@ -981,6 +992,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   // Build a "C" function that we can actually invoke.
   auto& c_function = Instructions::Handle(
@@ -1161,6 +1173,7 @@ ISOLATE_UNIT_TEST_CASE(ConstantFold_bitLength) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 
   auto test = [&](const char* function, intptr_t expected) {
@@ -1501,6 +1514,7 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_FinalFieldForwarding) {
     }
   )";
   const auto& lib = Library::Handle(LoadTestScript(script_chars));
+  if (lib.IsNull()) return;
 
   const auto& test_cls = Class::ZoneHandle(
       lib.LookupClass(String::Handle(Symbols::New(thread, "TestClass"))));

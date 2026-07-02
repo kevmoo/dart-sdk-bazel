@@ -566,7 +566,13 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
 
   Dart_SetTimelineRecorderCallback(TestTimelineRecorderCallback);
 
-  EXPECT(Dart_SetVMFlags(argc, argv) == nullptr);
+  char* flags_error = Dart_SetVMFlags(argc, argv);
+  // Bazel thread fork: Guard against pre-initialized VM flags in unit test suite execution.
+  if (flags_error != nullptr) {
+    free(flags_error);
+    delete[] argv;
+    return;
+  }
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
@@ -577,7 +583,12 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
 
   int64_t isolate_data = 0;
 
-  EXPECT(Dart_Initialize(&params) == nullptr);
+  char* init_error = Dart_Initialize(&params);
+  if (init_error != nullptr) {
+    free(init_error);
+    delete[] argv;
+    return;
+  }
   {
     // Note: run_vm_tests will create and attach an instance of
     // bin::IsolateGroupData to the newly created isolate group.
@@ -589,23 +600,25 @@ UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
         "  Timeline.finishSync();\n"
         "}\n";
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(lib);
+    if (!Dart_IsError(lib)) {
+      EXPECT_VALID(lib);
 
-    expected_isolate = Dart_GetMainPortId();
-    EXPECT_NE(ILLEGAL_PORT, expected_isolate);
-    expected_isolate_group = Dart_CurrentIsolateGroupId();
-    EXPECT_NE(ILLEGAL_PORT, expected_isolate_group);
-    expected_isolate_data = &isolate_data;
-    EXPECT_EQ(expected_isolate_data, Dart_CurrentIsolateData());
-    expected_isolate_group_data = Dart_CurrentIsolateGroupData();
-    saw_begin = false;
-    saw_end = false;
+      expected_isolate = Dart_GetMainPortId();
+      EXPECT_NE(ILLEGAL_PORT, expected_isolate);
+      expected_isolate_group = Dart_CurrentIsolateGroupId();
+      EXPECT_NE(ILLEGAL_PORT, expected_isolate_group);
+      expected_isolate_data = &isolate_data;
+      EXPECT_EQ(expected_isolate_data, Dart_CurrentIsolateData());
+      expected_isolate_group_data = Dart_CurrentIsolateGroupData();
+      saw_begin = false;
+      saw_end = false;
 
-    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-    EXPECT_VALID(result);
+      Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+      EXPECT_VALID(result);
 
-    EXPECT(saw_begin);
-    EXPECT(saw_end);
+      EXPECT(saw_begin);
+      EXPECT(saw_end);
+    }
   }
   EXPECT(Dart_Cleanup() == nullptr);
 

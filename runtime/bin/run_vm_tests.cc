@@ -390,6 +390,7 @@ static int Main(int argc, const char** argv) {
       return 1;
     }
     kernel_snapshot = Utils::StrDup(delim + 1);
+    bin::dfe.set_frontend_filename(kernel_snapshot);
     start_kernel_isolate = true;
     ShiftArgs(&argc, argv);
   }

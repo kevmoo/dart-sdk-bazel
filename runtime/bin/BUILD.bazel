@@ -137,16 +137,9 @@ cc_test(
         "--dfe=runtime/vm/vm_platform.dill",
         "all",
     ],
-    data = [
-        "//runtime:runtime_test_data",
-        "//runtime/vm:vm_platform.dill",
-    ] + glob(
-        [
-            "**/*.cc",
-            "**/*.h",
-        ],
-        allow_empty = True,
-    ),
+    conlyopts = [
+        "-std=c17",
+    ],
     copts = [
         "-Iruntime/include",
         "-Iruntime",
@@ -197,9 +190,6 @@ cc_test(
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),
-    conlyopts = [
-        "-std=c17",
-    ],
     cxxopts = [
         "-fvisibility-inlines-hidden",
         "-fno-omit-frame-pointer",
@@ -213,6 +203,16 @@ cc_test(
         ],
         "//conditions:default": [],
     }),
+    data = [
+        "//runtime:runtime_test_data",
+        "//runtime/vm:vm_platform.dill",
+    ] + glob(
+        [
+            "**/*.cc",
+            "**/*.h",
+        ],
+        allow_empty = True,
+    ),
     linkopts = [
         "-ldl",
         "-lpthread",
@@ -3639,7 +3639,7 @@ genrule(
                                       "  echo '.global _kKernelServiceDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo '_kKernelServiceDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_kernel_service.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_kernel_service.dill\\\"\"; " +
                                       "  echo '.global _kKernelServiceDillSize'; " +
                                       "  echo '_kKernelServiceDillSize:'; " +
                                       "  echo \".quad $$SIZE\"; ",
@@ -3648,7 +3648,7 @@ genrule(
                                       "  echo '.global kKernelServiceDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo 'kKernelServiceDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_kernel_service.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_kernel_service.dill\\\"\"; " +
                                       "  echo '.size kKernelServiceDill, .-kKernelServiceDill'; " +
                                       "  echo '.global kKernelServiceDillSize'; " +
                                       "  echo 'kKernelServiceDillSize:'; " +
@@ -3671,7 +3671,9 @@ cc_library(
     name = "kernel_service_dill_linkable",
     srcs = [":dart_kernel_service_dill_S_only"],
     additional_compiler_inputs = [":dart_kernel_service_dill_only"],
-    copts = select({
+    copts = [
+        "-Ibazel-out/k8-fastbuild/bin/runtime/bin",
+    ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),
@@ -4621,7 +4623,7 @@ genrule(
                                       "  echo '.global _kPlatformDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo '_kPlatformDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_vm_platform.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_vm_platform.dill\\\"\"; " +
                                       "  echo '.global _kPlatformDillSize'; " +
                                       "  echo '_kPlatformDillSize:'; " +
                                       "  echo \".quad $$SIZE\"; ",
@@ -4630,7 +4632,7 @@ genrule(
                                       "  echo '.global kPlatformDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo 'kPlatformDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_vm_platform.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_vm_platform.dill\\\"\"; " +
                                       "  echo '.size kPlatformDill, .-kPlatformDill'; " +
                                       "  echo '.global kPlatformDillSize'; " +
                                       "  echo 'kPlatformDillSize:'; " +
@@ -4653,7 +4655,9 @@ cc_library(
     name = "platform_dill_linkable",
     srcs = [":dart_platform_dill_S_only"],
     additional_compiler_inputs = [":dart_vm_platform_dill_only"],
-    copts = select({
+    copts = [
+        "-Ibazel-out/k8-fastbuild/bin/runtime/bin",
+    ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),

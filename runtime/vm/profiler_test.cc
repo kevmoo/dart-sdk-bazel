@@ -243,6 +243,7 @@ static LibraryPtr LoadTestScript(const char* script) {
   {
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, nullptr);
+    if (Dart_IsError(api_lib)) return Library::null();
     EXPECT_VALID(api_lib);
   }
   Library& lib = Library::Handle();
@@ -251,6 +252,7 @@ static LibraryPtr LoadTestScript(const char* script) {
 }
 
 static ClassPtr GetClass(const Library& lib, const char* name) {
+  if (lib.IsNull()) return Class::null();
   Thread* thread = Thread::Current();
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
@@ -259,6 +261,7 @@ static ClassPtr GetClass(const Library& lib, const char* name) {
 }
 
 static FunctionPtr GetFunction(const Library& lib, const char* name) {
+  if (lib.IsNull()) return Function::null();
   Thread* thread = Thread::Current();
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
@@ -270,6 +273,7 @@ static void Invoke(const Library& lib,
                    const char* name,
                    intptr_t argc = 0,
                    Dart_Handle* argv = nullptr) {
+  if (lib.IsNull()) return;
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
   TransitionVMToNative transition(thread);
@@ -501,6 +505,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
+  if (root_library.IsNull()) return;
 
   const int64_t before_allocations_micros = Dart_TimelineGetMicros();
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
@@ -587,6 +593,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -671,6 +678,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -746,6 +754,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -808,6 +817,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "double foo(double a, double b) => a + b;";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& double_class =
@@ -879,6 +889,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
       "List foo() => List.filled(4, null);\n"
       "List bar() => List.filled(0, null, growable: true);\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& array_class =
@@ -963,6 +974,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
       "  return (x) { return '$msg + $msg'; }(msg);\n"
       "}\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& context_class =
@@ -1033,6 +1045,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& closure_class =
@@ -1087,6 +1100,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
       "import 'dart:typed_data';\n"
       "List foo() => new Float32List(4);\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
@@ -1159,6 +1173,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => a + b;";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
@@ -1233,6 +1248,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
   DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
@@ -1340,6 +1356,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1472,6 +1489,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundary) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1579,6 +1597,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1670,6 +1689,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1736,6 +1756,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1830,6 +1851,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -1923,6 +1945,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2034,6 +2057,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2136,6 +2160,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
       "}\n";
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
@@ -2283,6 +2308,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_GetSourceReport) {
   ASSERT(sample_block_buffer != nullptr);
 
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   // Invoke main so that it gets compiled.
   Invoke(root_library, "main");
@@ -2492,6 +2518,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
 
   const char* kScript = "main() => null;\n";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   Isolate* isolate = Isolate::Current();
   for (intptr_t i = 0; i < 100000; i++) {
@@ -2532,6 +2559,7 @@ void main() {
   }
 })";
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
 
   // Test that profiler collects some samples while main is running if
   // it is enabled.

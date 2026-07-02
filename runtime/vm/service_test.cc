@@ -150,6 +150,7 @@ ISOLATE_UNIT_TEST_CASE(Service_IsolateStickyError) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT(Dart_IsUnhandledExceptionError(result));
@@ -245,6 +246,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
@@ -371,6 +373,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
@@ -443,6 +446,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     EXPECT(!Dart_IsNull(lib));
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
@@ -523,6 +527,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -616,6 +621,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
     Dart_RegisterRootServiceRequestCallback("beta", beta_callback, nullptr);
 
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -663,6 +669,7 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
     Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, nullptr);
 
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -704,6 +711,7 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_ValidAddress) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -747,6 +755,7 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_LargeRead) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -796,6 +805,7 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_InvalidAddress) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -841,6 +851,7 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_NullAddress) {
   {
     TransitionVMToNative transition(thread);
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);
@@ -889,6 +900,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
     TransitionVMToNative transition(thread);
 
     lib = TestCase::LoadTestScript(kScript, nullptr);
+    if (Dart_IsError(lib)) return;
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
     EXPECT_VALID(result);

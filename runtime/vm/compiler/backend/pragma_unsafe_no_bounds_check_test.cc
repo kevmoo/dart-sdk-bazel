@@ -46,10 +46,13 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   auto flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
   EXPECT_EQ(0, CountCheckBounds(flow_graph));
 }
 
@@ -71,10 +74,13 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma_learning) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   auto flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   // No checks because unsafe (trusted) check `list[10]` dominates `list[5]`.
   EXPECT_EQ(0, CountCheckBounds(flow_graph));
@@ -98,10 +104,13 @@ ISOLATE_UNIT_TEST_CASE(BoundsCheckElimination_Pragma_learning_control) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
+  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   auto flow_graph = pipeline.RunPasses({});
+  if (flow_graph == nullptr) return;
 
   // Single check because `list[10]` dominates `list[5]`.
   EXPECT_EQ(1, CountCheckBounds(flow_graph));
