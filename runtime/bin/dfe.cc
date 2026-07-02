@@ -30,9 +30,16 @@ namespace bin {
 //
 // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
 // need to fall back to the built-in one (if we have it).
+// Bazel thread fork: Allow falling back to embedded kKernelServiceDill if linked into binary (kKernelServiceDillSize > 0).
+#if defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64)
 const uint8_t* kernel_service_dill =
     kKernelServiceDillSize > 0 ? kKernelServiceDill : nullptr;
 const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
+#else
+const uint8_t* kernel_service_dill =
+    kKernelServiceDillSize > 0 ? kKernelServiceDill : nullptr;
+const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
+#endif
 
 const uint8_t* platform_dill =
     kPlatformDillSize > 0 ? kPlatformDill : nullptr;
