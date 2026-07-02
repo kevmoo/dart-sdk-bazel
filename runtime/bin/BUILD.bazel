@@ -230,6 +230,7 @@ cc_test(
         "//runtime/bin:core_snapshot_cc",
         "//runtime/bin:crashpad",
         "//runtime/bin:dart_kernel_platform_cc",
+        "//runtime/bin:kernel_service_dill_linkable",
         "//runtime/bin:run_vm_tests_set",
         "@boringssl//:boringssl",
         "@perfetto//:libprotozero",
