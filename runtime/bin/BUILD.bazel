@@ -198,6 +198,7 @@ cc_test(
         "//conditions:default": [],
     }),
     data = [
+        "file_test.cc",
         "//runtime:runtime_test_data",
         "//runtime/vm:vm_platform.dill",
     ],
