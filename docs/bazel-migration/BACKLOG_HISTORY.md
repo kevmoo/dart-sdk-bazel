@@ -143,20 +143,6 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
-### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
-- **Status**: `[COMPLETED]`
-- **Tags**: `bazel-migration`, `vm`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
 - **Status**: `[COMPLETED]`
 - **Tags**: `agent-skill`, `bazel-migration`, `tooling`
