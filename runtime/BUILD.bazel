@@ -24,6 +24,11 @@ exports_files(glob(
     allow_empty = True,
 ))
 
+filegroup(
+    name = "runtime_test_data",
+    srcs = glob(["tests/vm/data/**"]),
+)
+
 cc_library(
     name = "dart_api",
     srcs = [

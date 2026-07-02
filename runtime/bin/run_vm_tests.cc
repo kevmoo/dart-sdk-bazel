@@ -56,7 +56,12 @@ void RawTestCase::Run() {
 }
 
 void TestCaseBase::RunTest() {
-  if (strcmp(run_filter, this->name()) == 0) {
+  if (strcmp(run_filter, "all") == 0 || strcmp(run_filter, "--all") == 0) {
+    if (strcmp(this->expectation(), "Pass") == 0) {
+      this->Run();
+      run_matches++;
+    }
+  } else if (strcmp(run_filter, this->name()) == 0) {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {

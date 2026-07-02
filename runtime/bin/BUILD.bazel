@@ -7,7 +7,7 @@
 # select() wiring. The translator NEVER overwrites this file, so a regen cannot
 # clobber these hand-fixes. See docs/todo_issues/m4_multiconfig_scoping.md §7.
 
-load("//tools/bazel:rules.bzl", "cc_binary", "cc_library")
+load("//tools/bazel:rules.bzl", "cc_binary", "cc_library", "cc_test")
 load(":gen_targets.bzl", "gen_targets")
 
 package(default_visibility = ["//visibility:public"])
@@ -130,6 +130,112 @@ exports_files(glob(
 
 # Machine-derived cc_* targets (dart, gen_snapshot*, … — see gen_targets.bzl).
 gen_targets()
+
+cc_test(
+    name = "run_vm_tests",
+    args = [
+        "--dfe=runtime/vm/vm_platform.dill",
+        "all",
+    ],
+    data = [
+        "//runtime:runtime_test_data",
+        "//runtime/vm:vm_platform.dill",
+    ] + glob(
+        [
+            "**/*.cc",
+            "**/*.h",
+        ],
+        allow_empty = True,
+    ),
+    copts = [
+        "-Iruntime/include",
+        "-Iruntime",
+        "-Ithird_party/boringssl/src/include",
+        "-Ithird_party/perfetto/src/include",
+        "-Ithird_party/zlib",
+        "-fPIE",
+        "-fcolor-diagnostics",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wendif-labels",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-parameter",
+        "-Wno-tautological-constant-compare",
+        "-Wno-unused-but-set-variable",
+        "-Wno-deprecated-non-prototype",
+        "-no-canonical-prefixes",
+        "-ffile-compilation-dir=.",
+        "-fvisibility=hidden",
+        "-D_FILE_OFFSET_BITS=64",
+        "-D_LARGEFILE_SOURCE",
+        "-D_LARGEFILE64_SOURCE",
+        "-Wheader-hygiene",
+        "-Wstring-conversion",
+        "-O2",
+        "-fdata-sections",
+        "-ffunction-sections",
+        "-g3",
+        "-ggdb3",
+        "-fPIE",
+        "-Wno-unused-parameter",
+        "-Wno-unused-private-field",
+        "-Wnon-virtual-dtor",
+        "-Wvla",
+        "-Woverloaded-virtual",
+        "-Wno-comments",
+        "-g3",
+        "-ggdb3",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "-Wnewline-eof",
+        "-Wimplicit-fallthrough",
+        "-fno-strict-vtable-pointers",
+        "-O2",
+        "-fno-omit-frame-pointer",
+    ] + select({
+        "//build/config:debug": [],
+        "//conditions:default": ["-fno-ident"],
+    }),
+    conlyopts = [
+        "-std=c17",
+    ],
+    cxxopts = [
+        "-fvisibility-inlines-hidden",
+        "-fno-omit-frame-pointer",
+        "-std=c++20",
+        "-std=c++20",
+        "-fno-rtti",
+    ] + select({
+        "//build/config:debug": [
+            "-Wno-tautological-undefined-compare",
+            "-Wno-undefined-bool-conversion",
+        ],
+        "//conditions:default": [],
+    }),
+    linkopts = [
+        "-ldl",
+        "-lpthread",
+    ],
+    local_defines = [
+        "SUPPORT_PERFETTO",
+        "DART_PRECOMPILER",
+        "PERFETTO_DISABLE_LOG",
+    ],
+    deps = [
+        "//build/config:dart_mode",
+        "//build/config/sanitizers:deps",
+        "//runtime:libdart_precompiler_testing",
+        "//runtime/bin:common_embedder_dart_io",
+        "//runtime/bin:core_snapshot_cc",
+        "//runtime/bin:crashpad",
+        "//runtime/bin:dart_kernel_platform_cc",
+        "//runtime/bin:run_vm_tests_set",
+        "@boringssl//:boringssl",
+        "@perfetto//:libprotozero",
+        "@zlib//:zlib",
+    ],
+)
 
 cc_binary(
     name = "abstract_socket_test",
