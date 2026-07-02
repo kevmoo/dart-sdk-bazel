@@ -54,7 +54,7 @@ graph TD
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
-    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::pending
+    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::inProgress
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
@@ -250,7 +250,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Tags**: `bazel-migration`, `vm`
 - **Prerequisites**: None
 - **Owner**: `[none]`
