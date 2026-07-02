@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 94/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 95/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -54,7 +54,7 @@ graph TD
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
-    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::inProgress
+    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
@@ -114,7 +114,7 @@ graph TD
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
-    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::pending
+    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::inProgress
     sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
@@ -245,20 +245,6 @@ graph TD
   - None
 - **Description**:
   Upstream our missing OtherResources declarations across tests/standalone/io/*.dart so the entire SDK standalone IO test suite can execute reliably inside strict hermetic sandboxes (RBE/Bazel/Buildfarm).
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
-- **Status**: `[IN_PROGRESS]`
-- **Tags**: `bazel-migration`, `vm`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---
@@ -414,7 +400,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
