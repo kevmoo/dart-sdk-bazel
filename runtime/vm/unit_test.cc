@@ -289,7 +289,7 @@ static void LoadIsolateReloadTestLibIfNeeded(const char* script) {
     Dart_Handle result = TestCase::LoadTestLibrary(
         IsolateReloadTestLibUri(), kIsolateReloadTestLibSource,
         IsolateReloadTestNativeResolver);
-    EXPECT_VALID(result);
+    EXPECT_VALID_OR_RETURN(result);
   }
 #endif  // ifndef PRODUCT
 }
@@ -489,6 +489,7 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
       sourcefiles_count, sourcefiles, &kernel_buffer, &kernel_buffer_size,
       incrementally, multiroot_filepaths, multiroot_scheme);
   if (error != nullptr) {
+    OS::PrintErr("CompileTestScriptWithDFE ERROR: %s\n", error);
     return Dart_NewApiError(error);
   }
 

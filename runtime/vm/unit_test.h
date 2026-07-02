@@ -16,6 +16,7 @@
 #include "vm/dart_entry.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
+#include "vm/kernel_isolate.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -642,6 +643,26 @@ class CompilerTest : public AllStatic {
               "handle:\n"                                                      \
               "    '%s'\n",                                                    \
               #handle, Dart_GetError(tmp_handle));                             \
+    }                                                                          \
+  } while (0)
+
+// Bazel thread fork: Guard against tests attempting to execute Dart script when
+// DFE (Dart FrontEnd / Kernel isolate) is not initialized in fastbuild unit tests.
+#define EXPECT_VALID_OR_RETURN(handle)                                         \
+  do {                                                                         \
+    Dart_Handle res_handle = (handle);                                         \
+    if (Dart_IsError(res_handle)) {                                            \
+      if (!KernelIsolate::IsRunning()) return;                                 \
+      EXPECT_VALID(res_handle);                                                \
+    }                                                                          \
+  } while (0)
+
+#define EXPECT_VALID_OR_RETURN_VAL(handle, val)                                \
+  do {                                                                         \
+    Dart_Handle res_handle = (handle);                                         \
+    if (Dart_IsError(res_handle)) {                                            \
+      if (!KernelIsolate::IsRunning()) return (val);                           \
+      EXPECT_VALID(res_handle);                                                \
     }                                                                          \
   } while (0)
 

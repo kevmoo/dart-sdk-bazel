@@ -308,6 +308,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-67o] Implement Bazel test matrix optimization and remediation recommendations
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-67o.1] [REC-FAST-4] Dynamic Test Timeout Tiers (timeout = "long") for heavy AOT/WASM suites
 - **Status**: `[COMPLETED]`
 - **Prerequisites**: `sdk-67o`

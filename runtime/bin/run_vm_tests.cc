@@ -56,7 +56,12 @@ void RawTestCase::Run() {
 }
 
 void TestCaseBase::RunTest() {
-  if (strcmp(run_filter, this->name()) == 0) {
+  if (strcmp(run_filter, "all") == 0 || strcmp(run_filter, "--all") == 0) {
+    if (strcmp(this->expectation(), "Pass") == 0) {
+      this->Run();
+      run_matches++;
+    }
+  } else if (strcmp(run_filter, this->name()) == 0) {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
@@ -385,6 +390,7 @@ static int Main(int argc, const char** argv) {
       return 1;
     }
     kernel_snapshot = Utils::StrDup(delim + 1);
+    bin::dfe.set_frontend_filename(kernel_snapshot);
     start_kernel_isolate = true;
     ShiftArgs(&argc, argv);
   }

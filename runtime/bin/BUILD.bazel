@@ -7,7 +7,7 @@
 # select() wiring. The translator NEVER overwrites this file, so a regen cannot
 # clobber these hand-fixes. See docs/todo_issues/m4_multiconfig_scoping.md §7.
 
-load("//tools/bazel:rules.bzl", "cc_binary", "cc_library")
+load("//tools/bazel:rules.bzl", "cc_binary", "cc_library", "cc_test")
 load(":gen_targets.bzl", "gen_targets")
 
 package(default_visibility = ["//visibility:public"])
@@ -130,6 +130,102 @@ exports_files(glob(
 
 # Machine-derived cc_* targets (dart, gen_snapshot*, … — see gen_targets.bzl).
 gen_targets()
+
+cc_test(
+    name = "run_vm_tests",
+    args = [
+        "--dfe=runtime/vm/vm_platform.dill",
+        "all",
+    ],
+    conlyopts = [
+        "-std=c17",
+    ],
+    copts = [
+        "-Iruntime/include",
+        "-Iruntime",
+        "-Ithird_party/boringssl/src/include",
+        "-Ithird_party/perfetto/src/include",
+        "-Ithird_party/zlib",
+        "-fPIE",
+        "-fcolor-diagnostics",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wendif-labels",
+        "-Wno-missing-field-initializers",
+        "-Wno-unused-parameter",
+        "-Wno-tautological-constant-compare",
+        "-Wno-unused-but-set-variable",
+        "-Wno-deprecated-non-prototype",
+        "-no-canonical-prefixes",
+        "-ffile-compilation-dir=.",
+        "-fvisibility=hidden",
+        "-D_FILE_OFFSET_BITS=64",
+        "-D_LARGEFILE_SOURCE",
+        "-D_LARGEFILE64_SOURCE",
+        "-Wheader-hygiene",
+        "-Wstring-conversion",
+        "-O2",
+        "-fdata-sections",
+        "-ffunction-sections",
+        "-g3",
+        "-ggdb3",
+        "-Wno-unused-private-field",
+        "-Wnon-virtual-dtor",
+        "-Wvla",
+        "-Woverloaded-virtual",
+        "-Wno-comments",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "-Wnewline-eof",
+        "-Wimplicit-fallthrough",
+        "-fno-strict-vtable-pointers",
+        "-fno-omit-frame-pointer",
+    ] + select({
+        "//build/config:debug": [],
+        "//conditions:default": ["-fno-ident"],
+    }),
+    cxxopts = [
+        "-fvisibility-inlines-hidden",
+        "-fno-omit-frame-pointer",
+        "-std=c++20",
+        "-fno-rtti",
+    ] + select({
+        "//build/config:debug": [
+            "-Wno-tautological-undefined-compare",
+            "-Wno-undefined-bool-conversion",
+        ],
+        "//conditions:default": [],
+    }),
+    data = [
+        "file_test.cc",
+        "//runtime:runtime_test_data",
+        "//runtime/vm:vm_platform.dill",
+    ],
+    linkopts = [
+        "-ldl",
+        "-lpthread",
+    ],
+    local_defines = [
+        "SUPPORT_PERFETTO",
+        "DART_PRECOMPILER",
+        "PERFETTO_DISABLE_LOG",
+    ],
+    deps = [
+        "//build/config:dart_mode",
+        "//build/config/sanitizers:deps",
+        "//runtime:libdart_precompiler_testing",
+        "//runtime/bin:common_embedder_dart_io",
+        "//runtime/bin:core_snapshot_cc",
+        "//runtime/bin:crashpad",
+        "//runtime/bin:dart_kernel_platform_cc",
+        "//runtime/bin:kernel_service_dill_linkable",
+        "//runtime/bin:run_vm_tests_set",
+        "@boringssl",
+        "@perfetto//:libprotozero",
+        "@zlib",
+    ],
+)
 
 cc_binary(
     name = "abstract_socket_test",
@@ -3533,7 +3629,7 @@ genrule(
                                       "  echo '.global _kKernelServiceDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo '_kKernelServiceDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_kernel_service.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_kernel_service.dill\\\"\"; " +
                                       "  echo '.global _kKernelServiceDillSize'; " +
                                       "  echo '_kKernelServiceDillSize:'; " +
                                       "  echo \".quad $$SIZE\"; ",
@@ -3542,7 +3638,7 @@ genrule(
                                       "  echo '.global kKernelServiceDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo 'kKernelServiceDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_kernel_service.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_kernel_service.dill\\\"\"; " +
                                       "  echo '.size kKernelServiceDill, .-kKernelServiceDill'; " +
                                       "  echo '.global kKernelServiceDillSize'; " +
                                       "  echo 'kKernelServiceDillSize:'; " +
@@ -3565,7 +3661,9 @@ cc_library(
     name = "kernel_service_dill_linkable",
     srcs = [":dart_kernel_service_dill_S_only"],
     additional_compiler_inputs = [":dart_kernel_service_dill_only"],
-    copts = select({
+    copts = [
+        "-I$(BINDIR)/runtime/bin",
+    ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),
@@ -4515,7 +4613,7 @@ genrule(
                                       "  echo '.global _kPlatformDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo '_kPlatformDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_vm_platform.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_vm_platform.dill\\\"\"; " +
                                       "  echo '.global _kPlatformDillSize'; " +
                                       "  echo '_kPlatformDillSize:'; " +
                                       "  echo \".quad $$SIZE\"; ",
@@ -4524,7 +4622,7 @@ genrule(
                                       "  echo '.global kPlatformDill'; " +
                                       "  echo '.balign 32'; " +
                                       "  echo 'kPlatformDill:'; " +
-                                      "  echo \".incbin \\\"$(RULEDIR)/dart_vm_platform.dill\\\"\"; " +
+                                      "  echo \".incbin \\\"dart_vm_platform.dill\\\"\"; " +
                                       "  echo '.size kPlatformDill, .-kPlatformDill'; " +
                                       "  echo '.global kPlatformDillSize'; " +
                                       "  echo 'kPlatformDillSize:'; " +
@@ -4547,7 +4645,9 @@ cc_library(
     name = "platform_dill_linkable",
     srcs = [":dart_platform_dill_S_only"],
     additional_compiler_inputs = [":dart_vm_platform_dill_only"],
-    copts = select({
+    copts = [
+        "-I$(BINDIR)/runtime/bin",
+    ] + select({
         "//build/config:debug": [],
         "//conditions:default": ["-fno-ident"],
     }),

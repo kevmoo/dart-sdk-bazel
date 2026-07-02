@@ -1,6 +1,6 @@
 # Dart SDK Bazel Test Completion Matrix & Gap Analysis
 
-* **Generated At:** `2026-07-01T09:06:21.540312Z`
+* **Generated At:** `2026-07-02T06:38:45.354522Z`
 * **Source of Truth:** [`test_matrix_results.json`](./test_matrix_results.json)
 * **Watchdog Watch Interval:** `300s` (5 minutes)
 
@@ -48,6 +48,7 @@
 | **`ffi`** | ✅ 53 / 53 | ❄️ | ✅ 3 / 3 | ✅ 53 / 53 | **109** |
 | **`language`** | ✅ 544 / 544 | ✅ 138 / 138 | ✅ 142 / 142 | ✅ 2197 / 2197 | **3021** |
 | **`pkg`** | ✅ 2293 / 2293 | ❄️ | ❄️ | ❄️ | **2293** |
+| **`runtime`** | ❄️ | ❄️ | ❄️ | ❄️ | **0** |
 | **`standalone`** | ✅ 36 / 36 | ❄️ | ✅ 7 / 7 | ✅ 50 / 50 | **93** |
 | **`tests`** | ❄️ | ✅ 5 / 5 | ❄️ | ✅ 37 / 37 | **42** |
 | **`web/wasm`** | ❄️ | ✅ 2 / 2 | ❄️ | ✅ 14 / 14 | **16** |
@@ -61,7 +62,6 @@ The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` &
 * 🔴 `tests/benchmarks` *(Tracked by [`sdk-245`](./BACKLOG.md#sdk-245))*
 * 🔴 `tests/hot_reload` *(Tracked by [`sdk-2w0`](./BACKLOG.md#sdk-2w0))*
 * 🔴 `tests/modular` *(Tracked by [`sdk-2w0`](./BACKLOG.md#sdk-2w0))*
-* 🔴 `tests/runtime (C++ unit/service)` *(Tracked by [`sdk-4z5`](./BACKLOG.md#sdk-4z5))*
 * 🔴 `tests/web (HTML)` *(Tracked by [`sdk-wax`](./BACKLOG.md#sdk-wax))*
 
 ---

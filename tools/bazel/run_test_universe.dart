@@ -16,6 +16,7 @@ const activeStarlarkSuites = {
   'web/wasm',
   'co19',
   'dartdevc',
+  'runtime',
 };
 
 /// All GN/Ninja/RCI suites known on disk mapped to their tracking Bead ID.
@@ -23,7 +24,6 @@ const unmigratedGnSuites = {
   'modular': 'sdk-2w0',
   'hot_reload': 'sdk-2w0',
   'web (HTML)': 'sdk-wax',
-  'runtime (C++ unit/service)': 'sdk-4z5',
   'benchmarks': 'sdk-245',
 };
 
@@ -188,11 +188,12 @@ void main(List<String> args) async {
     }
   }
 
-  print('🔍 Querying Bazel for all @dart_tests//... test targets...');
+  print(
+      '🔍 Querying Bazel for all @dart_tests//... and //runtime/... test targets...');
   final queryRes = await Process.run('bazel', [
     ...bazelStartupArgs,
     'query',
-    'tests(@dart_tests//...)',
+    'tests(@dart_tests//...) + tests(//runtime/...)',
   ]);
 
   if (queryRes.exitCode != 0) {
