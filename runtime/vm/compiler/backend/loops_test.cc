@@ -65,7 +65,6 @@ void TestString(BaseTextBuffer* f,
 static const char* ComputeInduction(Thread* thread, const char* script_chars) {
   // Load the script and exercise the code once.
   const auto& root_library = Library::Handle(LoadTestScript(script_chars));
-  if (root_library.IsNull()) return nullptr;
   Invoke(root_library, "main");
 
   std::initializer_list<CompilerPass::Id> passes = {
@@ -78,10 +77,8 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
       CompilerPass::kCanonicalize,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return nullptr;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses(passes);
-  if (flow_graph == nullptr) return nullptr;
 
   // Build loop hierarchy and find induction.
   const LoopHierarchy& hierarchy = flow_graph->GetLoopHierarchy();
@@ -93,15 +90,6 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
   BufferFormatter f(buffer, sizeof(buffer));
   TestString(&f, hierarchy.top(), flow_graph->preorder());
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
-}
-
-static void ExpectInduction(Thread* thread,
-                             const char* expected,
-                             const char* script_chars) {
-  const char* actual = ComputeInduction(thread, script_chars);
-  if (actual != nullptr) {
-    EXPECT_STREQ(expected, actual);
-  }
 }
 
 //
@@ -124,7 +112,7 @@ ISOLATE_UNIT_TEST_CASE(BasicInductionUp) {
       "  LIN(0 + 1 * i) 100\n"  // phi
       "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(BasicInductionDown) {
@@ -143,7 +131,7 @@ ISOLATE_UNIT_TEST_CASE(BasicInductionDown) {
       "  LIN(100 + -1 * i) 0\n"  // phi
       "  LIN(99 + -1 * i)\n"     // sub
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(BasicInductionStepUp) {
@@ -162,7 +150,7 @@ ISOLATE_UNIT_TEST_CASE(BasicInductionStepUp) {
       "  LIN(10 + 2 * i)\n"  // phi
       "  LIN(12 + 2 * i)\n"  // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(BasicInductionStepDown) {
@@ -181,7 +169,7 @@ ISOLATE_UNIT_TEST_CASE(BasicInductionStepDown) {
       "  LIN(100 + -7 * i)\n"  // phi
       "  LIN(93 + -7 * i)\n"   // sub
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(BasicInductionLoopNest) {
@@ -212,7 +200,7 @@ ISOLATE_UNIT_TEST_CASE(BasicInductionLoopNest) {
       "      ]\n"
       "    ]\n"
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(ChainInduction) {
@@ -237,7 +225,7 @@ ISOLATE_UNIT_TEST_CASE(ChainInduction) {
       "  LIN(13 + 12 * i)\n"    // j-add
       "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(TwoWayInduction) {
@@ -266,7 +254,7 @@ ISOLATE_UNIT_TEST_CASE(TwoWayInduction) {
       "  LIN(1 + 1 * i)\n"      // add
       "  LIN(126 + 3 * i)\n"    // phi (j)
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(DerivedInduction) {
@@ -293,7 +281,7 @@ ISOLATE_UNIT_TEST_CASE(DerivedInduction) {
       "  LIN(-1 + -1 * i)\n"    // d
       "  LIN(2 + 1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(WrapAroundAndDerived) {
@@ -323,7 +311,7 @@ ISOLATE_UNIT_TEST_CASE(WrapAroundAndDerived) {
       "  WRAP(-99, LIN(0 + -1 * i))\n"  // d
       "  LIN(1 + 1 * i)\n"              // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(PeriodicAndDerived) {
@@ -358,7 +346,7 @@ ISOLATE_UNIT_TEST_CASE(PeriodicAndDerived) {
       "  PERIOD(95, 5)\n"       // p2
       "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 //
@@ -381,7 +369,7 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUp) {
       "  LIN(0 + 1 * i) 101\n"  // phi
       "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
@@ -401,7 +389,7 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
       "  LIN(9223372036854775806 + 1 * i)\n"  // phi
       "  LIN(9223372036854775807 + 1 * i)\n"  // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionDown) {
@@ -420,7 +408,7 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDown) {
       "  LIN(100 + -1 * i) -1\n"  // phi
       "  LIN(99 + -1 * i)\n"      // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
@@ -440,7 +428,7 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
       "  LIN(-9223372036854775807 + -1 * i)\n"  // phi
       "  LIN(-9223372036854775808 + -1 * i)\n"  // sub
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(NotEqualConditionUp) {
@@ -459,7 +447,7 @@ ISOLATE_UNIT_TEST_CASE(NotEqualConditionUp) {
       "  LIN(10 + 1 * i) 20\n"  // phi
       "  LIN(11 + 1 * i)\n"     // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(NotEqualConditionDown) {
@@ -478,7 +466,7 @@ ISOLATE_UNIT_TEST_CASE(NotEqualConditionDown) {
       "  LIN(20 + -1 * i) 10\n"  // phi
       "  LIN(19 + -1 * i)\n"     // sub
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(SecondExitUp) {
@@ -498,7 +486,7 @@ ISOLATE_UNIT_TEST_CASE(SecondExitUp) {
       "  LIN(0 + 1 * i) 100 50\n"  // phi
       "  LIN(1 + 1 * i)\n"         // add
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(SecondExitDown) {
@@ -518,7 +506,7 @@ ISOLATE_UNIT_TEST_CASE(SecondExitDown) {
       "  LIN(100 + -1 * i) 0 10\n"  // phi
       "  LIN(99 + -1 * i)\n"        // sub
       "  ]\n";
-  ExpectInduction(thread, expected, script_chars);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 }  // namespace dart

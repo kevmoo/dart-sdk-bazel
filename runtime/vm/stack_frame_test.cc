@@ -246,7 +246,6 @@ TEST_CASE(ValidateStackFrameIteration) {
   // clang-format on
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
-  if (Dart_IsError(lib)) return;
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrameTest"));
   EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }
@@ -295,7 +294,6 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
       "}";
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
-  if (Dart_IsError(lib)) return;
   Dart_Handle cls = Dart_GetClass(lib, NewString("StackFrame2Test"));
   EXPECT_VALID(Dart_Invoke(cls, NewString("testMain"), 0, nullptr));
 }

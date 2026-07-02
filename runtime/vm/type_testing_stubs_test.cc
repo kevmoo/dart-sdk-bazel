@@ -906,7 +906,6 @@ const char* kSubtypeRangeCheckScript =
 ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   const auto& root_library =
       Library::Handle(LoadTestScript(kSubtypeRangeCheckScript));
-  if (root_library.IsNull()) return;
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   const auto& class_base = Class::Handle(GetClass(root_library, "Base"));
   const auto& class_i = Class::Handle(GetClass(root_library, "I"));
@@ -1069,7 +1068,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
 ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   const auto& root_library =
       Library::Handle(LoadTestScript(kSubtypeRangeCheckScript));
-  if (root_library.IsNull()) return;
   const auto& class_a1 = Class::Handle(GetClass(root_library, "A1"));
   const auto& class_a2 = Class::Handle(GetClass(root_library, "A2"));
   const auto& class_base = Class::Handle(GetClass(root_library, "Base"));
@@ -1275,7 +1273,6 @@ const char* kRecordSubtypeRangeCheckScript =
 ISOLATE_UNIT_TEST_CASE(TTS_RecordSubtypeRangeCheck) {
   const auto& root_library =
       Library::Handle(LoadTestScript(kRecordSubtypeRangeCheckScript));
-  if (root_library.IsNull()) return;
 
   const auto& type1 = AbstractType::Cast(
       Object::Handle(Invoke(root_library, "getRecordType1")));
@@ -1343,7 +1340,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Generic_Implements_Instantiated_Interface) {
 )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& class_i = Class::Handle(GetClass(root_library, "I"));
   const auto& obj_b_int = Object::Handle(Invoke(root_library, "createBInt"));
 
@@ -1383,7 +1379,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
       Class::Handle(IsolateGroup::Current()->object_store()->future_class());
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& class_closure =
       Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   const auto& obj_futureint =
@@ -1762,7 +1757,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
 
   const auto& acint = Object::Handle(Invoke(root_library, "createACint"));
@@ -1801,7 +1795,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   ClassFinalizer::FinalizeTypesInClass(class_a);
 
@@ -1944,7 +1937,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& obj_f = Object::Handle(Invoke(root_library, "createF"));
   const auto& obj_g = Object::Handle(Invoke(root_library, "createG"));
   const auto& obj_h = Object::Handle(Invoke(root_library, "createH"));
@@ -1992,7 +1984,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
 )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
   const auto& class_c = Class::Handle(GetClass(root_library, "C"));
   const auto& class_d = Class::Handle(GetClass(root_library, "D"));
@@ -2140,7 +2131,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   THR_Print("------------------------------------------------------\n");
   const auto& first_library = Library::Handle(
       LoadTestScript(kFirstScript, /*resolver=*/nullptr, kFirstUri));
-  if (first_library.IsNull()) return;
 
   const auto& class_b = Class::Handle(GetClass(first_library, "B"));
   const auto& obj_b = Object::Handle(Invoke(first_library, "createB"));
@@ -2179,7 +2169,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   THR_Print("------------------------------------------------------\n");
   const auto& second_library = Library::Handle(
       LoadTestScript(kSecondScript, /*resolver=*/nullptr, kSecondUri));
-  if (second_library.IsNull()) return;
   // Loading the new library shouldn't invalidate the old STC.
   EXPECT(state.last_stc().ptr() == state.current_stc());
   // Loading the new library should not reset the STCs, as no respecialization
@@ -2231,7 +2220,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   THR_Print("------------------------------------------------------\n");
   const auto& third_library = Library::Handle(
       LoadTestScript(kThirdScript, /*resolver=*/nullptr, kThirdUri));
-  if (third_library.IsNull()) return;
   // Loading the new library shouldn't invalidate the old STC.
   EXPECT(state.last_stc().ptr() == state.current_stc());
   // Loading the new library should not reset the STCs, as no respecialization
@@ -2328,7 +2316,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
   auto* const zone = thread->zone();
 
   auto& root_library = Library::Handle(LoadTestScript(kLoadedScript));
-  if (root_library.IsNull()) return;
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   ClassFinalizer::FinalizeTypesInClass(class_a);
 
@@ -2407,7 +2394,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
 
 ISOLATE_UNIT_TEST_CASE(TTS_Partial_Reload) {
   auto& root_library = Library::Handle(LoadTestScript(kLoadedScript));
-  if (root_library.IsNull()) return;
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   ClassFinalizer::FinalizeTypesInClass(class_a);
 
@@ -2533,7 +2519,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
 )");
 
   const auto& root_library = Library::Handle(LoadTestScript(buffer.buffer()));
-  if (root_library.IsNull()) return;
   const auto& class_b = Class::Handle(GetClass(root_library, "B"));
   const auto& class_g = Class::Handle(GetClass(root_library, "G"));
   const auto& class_c = Class::Handle(GetClass(root_library, "C"));
@@ -2569,7 +2554,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
 struct STCTestResults {
   bool became_hash_cache = false;
   bool cache_capped = false;
-  bool script_loaded = false;
 };
 
 static STCTestResults SubtypeTestCacheTest(Thread* thread,
@@ -2590,7 +2574,6 @@ static STCTestResults SubtypeTestCacheTest(Thread* thread,
   }
 
   Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
-  if (Dart_IsError(api_lib)) return {};
   EXPECT_VALID(api_lib);
 
   // D + C0...CN, where N = kNumClasses - 1
@@ -2626,7 +2609,6 @@ static STCTestResults SubtypeTestCacheTest(Thread* thread,
   auto& class_c = Class::Handle(zone);
   auto& object_c = Object::Handle(zone);
   STCTestResults results;
-  results.script_loaded = true;
   for (intptr_t i = 0; i < num_classes; ++i) {
     auto const class_name = OS::SCreate(zone, "C%" Pd "", i);
     class_c = GetClass(root_lib, class_name);
@@ -2675,7 +2657,6 @@ TEST_CASE(TTS_STC_LinearOnly) {
                      SubtypeTestCache::kMaxLinearCacheEntries);
   EXPECT(num_classes > 0);
   const auto& results = SubtypeTestCacheTest(thread, num_classes);
-  if (!results.script_loaded) return;
   EXPECT(!results.became_hash_cache);
   EXPECT(!results.cache_capped);
 }
@@ -2687,7 +2668,6 @@ TEST_CASE(TTS_STC_Hash) {
                      2 * SubtypeTestCache::kMaxLinearCacheEntries);
   EXPECT(num_classes > SubtypeTestCache::kMaxLinearCacheEntries);
   const auto& results = SubtypeTestCacheTest(thread, num_classes);
-  if (!results.script_loaded) return;
   EXPECT(results.became_hash_cache);
   EXPECT(!results.cache_capped);
 }
@@ -2698,7 +2678,6 @@ TEST_CASE(TTS_STC_Capped) {
   const intptr_t num_classes = 1.1 * FLAG_max_subtype_cache_entries;
   EXPECT(num_classes > 0);
   const auto& results = SubtypeTestCacheTest(thread, num_classes);
-  if (!results.script_loaded) return;
   EXPECT_EQ(SubtypeTestCache::kMaxLinearCacheEntries < num_classes,
             results.became_hash_cache);
   EXPECT(results.cache_capped);

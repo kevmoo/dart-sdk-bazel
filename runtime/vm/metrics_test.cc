@@ -83,7 +83,6 @@ ISOLATE_UNIT_TEST_CASE(Metric_EmbedderAPI) {
     const char* kScript = "void main() {}";
     Dart_Handle api_lib = TestCase::LoadTestScript(
         kScript, /*resolver=*/nullptr, RESOLVED_USER_TEST_URI);
-    if (Dart_IsError(api_lib)) return;
     EXPECT_VALID(api_lib);
   }
 

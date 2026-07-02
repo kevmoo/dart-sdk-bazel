@@ -38,15 +38,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Simple) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
 
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -104,15 +102,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_Loop) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
 
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -173,15 +169,13 @@ ISOLATE_UNIT_TEST_CASE(ReachabilityFence_NoCanonicalize) {
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
 
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);

@@ -38,7 +38,6 @@ static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars,
   // Load the script and exercise the code once
   // while exercising the given compiler passes.
   const auto& root_library = Library::Handle(LoadTestScript(script_chars));
-  if (root_library.IsNull()) return {-1, -1};
   Invoke(root_library, "main");
   std::initializer_list<CompilerPass::Id> passes = {
       CompilerPass::kComputeSSA,
@@ -54,10 +53,8 @@ static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars,
       CompilerPass::kLICM,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return {-1, -1};
   TestPipeline pipeline(function, mode);
   FlowGraph* flow_graph = pipeline.RunPasses(passes);
-  if (flow_graph == nullptr) return {-1, -1};
   // Count the number of before/after bounds checks.
   const intptr_t num_bc_before = CountBoundChecks(flow_graph);
   RangeAnalysis range_analysis(flow_graph);
@@ -70,7 +67,6 @@ static void TestScriptJIT(const char* script_chars,
                           intptr_t expected_before,
                           intptr_t expected_after) {
   auto jit_result = ApplyBCE(script_chars, CompilerPass::kJIT);
-  if (jit_result.first == -1) return;
   EXPECT_EQ(expected_before, jit_result.first);
   EXPECT_EQ(expected_after, jit_result.second);
 }

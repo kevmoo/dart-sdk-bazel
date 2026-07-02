@@ -30,14 +30,13 @@ TEST_CASE(ClassHierarchyAnalysis) {
       "  bar() { }"
       "}\n";
 
-  Dart_Handle handle = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(handle)) return;
+  TestCase::LoadTestScript(kScriptChars, nullptr);
 
   TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
-  if (lib.IsNull()) return;
+  EXPECT(!lib.IsNull());
 
   const Class& class_a =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));

@@ -66,13 +66,11 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
   SetupCoreLibrariesForUnitTest();
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   // Ensure the outer function was compiled once, ensuring we have a closure
   // function for the inner closure.
   Invoke(root_library, "foo");
 
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
 
   // Ensure we have 3 different return instructions with yield indices attached
   // to them.
@@ -80,7 +78,6 @@ void RunTestInMode(CompilerPass::PipelineMode mode) {
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
   });
-  if (flow_graph == nullptr) return;
 
   auto validate_indices = [](const YieldPoints& yield_points) {
     EXPECT_EQ(3, yield_points.length());

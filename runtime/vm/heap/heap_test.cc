@@ -36,7 +36,6 @@ TEST_CASE(OldGC) {
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
   EXPECT_VALID(result);
@@ -53,7 +52,6 @@ TEST_CASE(LargeSweep) {
       "}\n";
   NOT_IN_PRODUCT(FLAG_verbose_gc = true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
@@ -91,7 +89,6 @@ TEST_CASE(ClassHeapStats) {
       "  return new A();\n"
       "}\n";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(h_lib)) return;
   auto isolate_group = IsolateGroup::Current();
   ClassTable* class_table = isolate_group->class_table();
   {

@@ -58,8 +58,8 @@ class A {
     if (i != 30) throw '$i != 30';
   }
 })";
-  Dart_Handle res = TestCase::LoadTestScript(kScriptChars, native_resolver);
-  if (Dart_IsError(res)) return;
+  // First setup the script and compile the script.
+  TestCase::LoadTestScript(kScriptChars, native_resolver);
   TransitionNativeToVM transition(thread);
 
   EXPECT(ClassFinalizer::ProcessPendingClasses());

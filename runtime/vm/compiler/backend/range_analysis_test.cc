@@ -600,15 +600,12 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_ShiftUint32Op) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
 
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -650,14 +647,11 @@ ISOLATE_UNIT_TEST_CASE(RangeAnalysis_LoadClassId) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);

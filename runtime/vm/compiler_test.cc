@@ -30,10 +30,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
     TransitionVMToNative transition(thread);
     library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
-  if (Dart_IsError(library)) return;
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
-  if (lib.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -72,10 +70,8 @@ ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
     TransitionVMToNative transition(thread);
     library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
-  if (Dart_IsError(library)) return;
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
-  if (lib.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -116,10 +112,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
     TransitionVMToNative transition(thread);
     library = TestCase::LoadTestScript(kScriptChars, nullptr);
   }
-  if (Dart_IsError(library)) return;
   const Library& lib =
       Library::Handle(Library::RawCast(Api::UnwrapHandle(library)));
-  if (lib.IsNull()) return;
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
@@ -148,9 +142,8 @@ ISOLATE_UNIT_TEST_CASE(RegenerateAllocStubs) {
   TransitionVMToNative transition(thread);
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
-  if (Dart_IsError(result)) return;
+  EXPECT_VALID(result);
 
   {
     TransitionNativeToVM transition(thread);
@@ -196,10 +189,9 @@ TEST_CASE(EvalExpression) {
       )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
   Dart_Handle obj_handle =
       Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0, nullptr);
-  if (Dart_IsError(obj_handle)) return;
+  EXPECT_VALID(obj_handle);
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(Api::UnwrapHandle(obj_handle));
   EXPECT(!obj.IsNull());
@@ -211,7 +203,7 @@ TEST_CASE(EvalExpression) {
   const Class& receiver_cls = Class::Handle(obj.clazz());
 
   if (!KernelIsolate::IsRunning()) {
-    return;
+    UNREACHABLE();
   } else {
     LibraryPtr raw_library = Library::RawCast(Api::UnwrapHandle(lib));
     Library& lib_handle = Library::ZoneHandle(raw_library);
@@ -246,8 +238,7 @@ TEST_CASE(EvalExpression) {
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   {  // Initialize an incremental compiler in DFE mode.
     TransitionVMToNative transition(thread);
-    Dart_Handle res = TestCase::LoadTestScript("", nullptr);
-    if (Dart_IsError(res)) return;
+    TestCase::LoadTestScript("", nullptr);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
   const String& expression = String::Handle(
@@ -267,8 +258,7 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   {  // Initialize an incremental compiler in DFE mode.
     TransitionVMToNative transition(thread);
-    Dart_Handle res = TestCase::LoadTestScript("", nullptr);
-    if (Dart_IsError(res)) return;
+    TestCase::LoadTestScript("", nullptr);
   }
   Library& lib = Library::Handle(Library::CoreLibrary());
   const String& expression = String::Handle(String::New("3 + 4"));
@@ -320,7 +310,7 @@ TEST_CASE(ManyClasses) {
   buffer.Printf("}\n");
 
   Dart_Handle lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 

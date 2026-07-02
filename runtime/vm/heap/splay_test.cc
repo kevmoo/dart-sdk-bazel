@@ -327,8 +327,6 @@ static void SplayChild(uword parameter) {
 
 static void SplayTest(Dart_NativeEntryResolver resolver) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
-  if (Dart_IsError(lib)) return;
 
   Dart_Handle result = Dart_SetNativeResolver(lib, resolver, nullptr);
   EXPECT_VALID(result);

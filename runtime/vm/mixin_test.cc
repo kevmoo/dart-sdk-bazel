@@ -35,7 +35,6 @@ TEST_CASE(Mixin_PrivateSuperResolution) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       /* resolver= */ nullptr, /* finalize= */ true, /* incrementally= */ true);
-  if (Dart_IsError(lib)) return;
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
@@ -85,7 +84,6 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       /* resolver= */ nullptr, /* finalize= */ true, /* incrementally= */ true);
-  if (Dart_IsError(lib) && strstr(Dart_GetError(lib), "Error while initializing Kernel isolate")) return;
   EXPECT_ERROR(lib, "Error: Superclass has no method named '_bar'.");
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

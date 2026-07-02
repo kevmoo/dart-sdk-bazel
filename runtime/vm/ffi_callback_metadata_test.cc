@@ -38,7 +38,7 @@ FunctionPtr CreateTestFunction(FfiCallbackKind kind) {
   {
     TransitionVMToNative transition(thread);
     library = TestCase::LoadTestScript(kScriptChars, nullptr);
-    if (Dart_IsError(library)) return Function::null();
+    EXPECT_VALID(library);
   }
 
   const auto& lib =
@@ -92,7 +92,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
     const auto& func = Function::Handle(
         CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
-    if (func.IsNull()) return;
     const auto& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -176,7 +175,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
     const Function& func =
         Function::Handle(CreateTestFunction(FfiCallbackKind::kAsyncCallback));
-    if (func.IsNull()) return;
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -262,7 +260,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
 
     const Function& func = Function::Handle(
         CreateTestFunction(FfiCallbackKind::kIsolateLocalClosureCallback));
-    if (func.IsNull()) return;
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -347,7 +344,6 @@ ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
 
   const Function& func =
       Function::Handle(CreateTestFunction(FfiCallbackKind::kAsyncCallback));
-  if (func.IsNull()) return;
   const Code& code = Code::Handle(func.EnsureHasCode());
   EXPECT(!code.IsNull());
 
@@ -414,7 +410,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   const auto& sync_func = Function::Handle(
       CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
-  if (sync_func.IsNull()) return;
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 
@@ -495,12 +490,10 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
 
   const Function& async_func =
       Function::Handle(CreateTestFunction(FfiCallbackKind::kAsyncCallback));
-  if (async_func.IsNull()) return;
   const Code& async_code = Code::Handle(async_func.EnsureHasCode());
   EXPECT(!async_code.IsNull());
   const Function& sync_func = Function::Handle(
       CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
-  if (sync_func.IsNull()) return;
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 

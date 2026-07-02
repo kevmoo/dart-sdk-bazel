@@ -43,10 +43,8 @@ ISOLATE_UNIT_TEST_CASE(Inliner_PolyInliningRedefinition) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function =
       Function::Handle(GetFunction(root_library, "testInlining"));
-  if (function.IsNull()) return;
 
   Invoke(root_library, "main");
 
@@ -154,7 +152,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function =
       Function::Handle(GetFunction(root_library, "setValue"));
 
@@ -213,7 +210,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
@@ -293,7 +289,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_always_consider_inlining) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
@@ -338,7 +333,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_List_of_inlined) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
@@ -401,7 +395,6 @@ ISOLATE_UNIT_TEST_CASE(Inliner_InlineForceOptimized) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
 
   Invoke(root_library, "main");
@@ -651,8 +644,8 @@ void main() {
     )";
   DisableBackgroundCompilationScope scope;
 
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
+  Dart_Handle lib =
+      check_handle(TestCase::LoadTestScript(kScriptChars, nullptr));
   Dart_SetNativeResolver(lib, &PrintAndInspectResolver, nullptr);
 
   // We disable OSR to ensure we control when the function gets optimized,

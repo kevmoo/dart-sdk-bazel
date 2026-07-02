@@ -293,9 +293,7 @@ void StrictCompareSentinel(Thread* thread,
     late final int x = 4;
   )";
   Zone* const Z = Thread::Current()->zone();
-  const auto& lib_ptr = LoadTestScript(kScript);
-  if (lib_ptr == Library::null()) return;
-  const auto& root_library = Library::CheckedHandle(Z, lib_ptr);
+  const auto& root_library = Library::CheckedHandle(Z, LoadTestScript(kScript));
   const auto& toplevel = Class::Handle(Z, root_library.toplevel_class());
   const auto& field_x = Field::Handle(
       Z, toplevel.LookupStaticField(String::Handle(Z, String::New("x"))));

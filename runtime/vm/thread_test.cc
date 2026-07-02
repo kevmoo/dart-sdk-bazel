@@ -643,14 +643,6 @@ TEST_CASE(SafepointTestDart) {
                  "}\n",
                  kLoopCount);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, nullptr);
-  if (Dart_IsError(lib)) {
-    MonitorLocker ml(&monitor);
-    total_done = SafepointTestTask::kTaskCount;
-    while (exited != SafepointTestTask::kTaskCount) {
-      ml.Wait();
-    }
-    return;
-  }
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);

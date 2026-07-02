@@ -21,9 +21,7 @@ namespace dart {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 int64_t SimpleInvoke(Dart_Handle lib, const char* method) {
-  if (Dart_IsError(lib)) return 0;
   Dart_Handle result = Dart_Invoke(lib, NewString(method), 0, nullptr);
-  if (Dart_IsError(result)) return 0;
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t integer_result = 0;
@@ -33,9 +31,7 @@ int64_t SimpleInvoke(Dart_Handle lib, const char* method) {
 }
 
 const char* SimpleInvokeStr(Dart_Handle lib, const char* method) {
-  if (Dart_IsError(lib)) return nullptr;
   Dart_Handle result = Dart_Invoke(lib, NewString(method), 0, nullptr);
-  if (Dart_IsError(result)) return nullptr;
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
   const char* result_str = nullptr;
@@ -56,7 +52,7 @@ TEST_CASE(IsolateReload_FunctionReplacement) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
@@ -67,7 +63,7 @@ TEST_CASE(IsolateReload_FunctionReplacement) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(10, SimpleInvoke(lib, "main"));
 }
 
@@ -77,7 +73,7 @@ TEST_CASE(IsolateReload_IncrementalCompile) {
       "  return 42;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -90,7 +86,7 @@ TEST_CASE(IsolateReload_IncrementalCompile) {
       "}\n"
       "";
   lib = TestCase::ReloadTestScript(kUpdatedScriptChars);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
@@ -111,7 +107,6 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -136,12 +131,11 @@ TEST_CASE(IsolateReload_KernelIncrementalCompile) {
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
         true /* incrementally */);
-    if (error != nullptr || kernel_buffer == nullptr) return;
     EXPECT(error == nullptr);
     EXPECT_NOTNULL(kernel_buffer);
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   result = Dart_IntegerToInt64(result, &value);
@@ -170,7 +164,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -196,12 +190,11 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileAppAndLib) {
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
         true /* incrementally */);
-    if (error != nullptr || kernel_buffer == nullptr) return;
     EXPECT(error == nullptr);
     EXPECT_NOTNULL(kernel_buffer);
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   result = Dart_IntegerToInt64(result, &value);
@@ -239,7 +232,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -271,12 +264,11 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileGenerics) {
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
         true /* incrementally */);
-    if (error != nullptr || kernel_buffer == nullptr) return;
     EXPECT(error == nullptr);
     EXPECT_NOTNULL(kernel_buffer);
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   result = Dart_IntegerToInt64(result, &value);
@@ -323,7 +315,7 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -351,12 +343,11 @@ TEST_CASE(IsolateReload_KernelIncrementalCompileBaseClass) {
         sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
         updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
         true /* incrementally */);
-    if (error != nullptr || kernel_buffer == nullptr) return;
     EXPECT(error == nullptr);
     EXPECT_NOTNULL(kernel_buffer);
 
     lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
   }
   result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   result = Dart_IntegerToInt64(result, &value);
@@ -376,7 +367,7 @@ TEST_CASE(IsolateReload_BadClass) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -404,7 +395,7 @@ TEST_CASE(IsolateReload_StaticValuePreserved) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("init()=old value,value=old value",
                SimpleInvokeStr(lib, "main"));
 
@@ -417,7 +408,7 @@ TEST_CASE(IsolateReload_StaticValuePreserved) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("init()=new value,value=old value",
                SimpleInvokeStr(lib, "main"));
 }
@@ -436,7 +427,7 @@ TEST_CASE(IsolateReload_SavedClosure) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("antediluvian!", SimpleInvokeStr(lib, "main"));
 
   // Remove the original closure from the source code.  The closure is
@@ -452,7 +443,7 @@ TEST_CASE(IsolateReload_SavedClosure) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("postapocalyptic!", SimpleInvokeStr(lib, "main"));
 }
 
@@ -464,7 +455,7 @@ TEST_CASE(IsolateReload_TopLevelFieldAdded) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value1=10", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -475,7 +466,7 @@ TEST_CASE(IsolateReload_TopLevelFieldAdded) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value1=10,value2=20", SimpleInvokeStr(lib, "main"));
 }
 
@@ -490,7 +481,7 @@ TEST_CASE(IsolateReload_ClassFieldAdded) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -504,7 +495,7 @@ TEST_CASE(IsolateReload_ClassFieldAdded) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 }
 
@@ -520,7 +511,7 @@ TEST_CASE(IsolateReload_ClassFieldAdded2) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -535,7 +526,7 @@ TEST_CASE(IsolateReload_ClassFieldAdded2) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 }
 
@@ -551,7 +542,7 @@ TEST_CASE(IsolateReload_ClassFieldRemoved) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -564,7 +555,7 @@ TEST_CASE(IsolateReload_ClassFieldRemoved) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 }
 
@@ -575,7 +566,7 @@ TEST_CASE(IsolateReload_ClassAdded) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -588,7 +579,7 @@ TEST_CASE(IsolateReload_ClassAdded) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
 }
 
@@ -604,7 +595,7 @@ TEST_CASE(IsolateReload_ClassRemoved) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -614,7 +605,7 @@ TEST_CASE(IsolateReload_ClassRemoved) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
 }
 
@@ -634,7 +625,7 @@ TEST_CASE(IsolateReload_LibraryImportAdded) {
   EXPECT_ERROR(lib, "Compilation failed");
 
   lib = TestCase::LoadTestScript(kScript2, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 }
 
@@ -646,7 +637,7 @@ TEST_CASE(IsolateReload_LibraryImportRemoved) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -665,7 +656,7 @@ TEST_CASE(IsolateReload_LibraryDebuggable) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   // The library is by default debuggable.  Make it not debuggable.
   intptr_t lib_id = -1;
@@ -685,7 +676,7 @@ TEST_CASE(IsolateReload_LibraryDebuggable) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   EXPECT_EQ(2, SimpleInvoke(lib, "main"));
 
@@ -711,7 +702,7 @@ TEST_CASE(IsolateReload_ImplicitConstructorChanged) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("saved:20 new:20", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -725,7 +716,7 @@ TEST_CASE(IsolateReload_ImplicitConstructorChanged) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("saved:20 new:10", SimpleInvokeStr(lib, "main"));
 }
 
@@ -744,7 +735,7 @@ TEST_CASE(IsolateReload_ConstructorChanged) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("saved:20 new:20", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
@@ -762,7 +753,7 @@ TEST_CASE(IsolateReload_ConstructorChanged) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("saved:20 new:10", SimpleInvokeStr(lib, "main"));
 }
 
@@ -778,7 +769,7 @@ TEST_CASE(IsolateReload_SuperClassChanged) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("(true/false, true/true)", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -793,7 +784,7 @@ TEST_CASE(IsolateReload_SuperClassChanged) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("(true/true, false/true)", SimpleInvokeStr(lib, "main"));
 }
 
@@ -811,7 +802,7 @@ TEST_CASE(IsolateReload_Generics) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of 'B<A>'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -824,7 +815,7 @@ TEST_CASE(IsolateReload_Generics) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of 'B<A>'", SimpleInvokeStr(lib, "main"));
 }
 
@@ -841,7 +832,7 @@ TEST_CASE(IsolateReload_TypeIdentity) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -872,7 +863,7 @@ TEST_CASE(IsolateReload_TypeIdentityGeneric) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -904,7 +895,7 @@ TEST_CASE(IsolateReload_TypeIdentityParameter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'dart:mirrors';\n"
@@ -937,7 +928,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("saved:field=mixin1,func=mixin1", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -955,7 +946,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   // The saved instance of B retains its old field value from mixin1,
   // but it gets the new implementation of func from mixin2.
@@ -985,7 +976,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "(a is A(true)/ B(false)/ C(false),"
       " b is A(true)/ B(true)/ C(false),"
@@ -1012,7 +1003,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "(a is A(true)/ C(true)/ X(true),"
       " b is A(true)/ C(true)/ X(true),"  // still extends A...
@@ -1045,7 +1036,7 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript2);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "(a is A(true)/ B(false)/ C(false)/ X(true),"
       " b is A(false)/ B(true)/ C(false)/ X(true),"
@@ -1066,7 +1057,7 @@ TEST_CASE(IsolateReload_LiveStack) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1097,7 +1088,7 @@ TEST_CASE(IsolateReload_LibraryLookup) {
       "}\n";
   Dart_Handle result;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("b", SimpleInvokeStr(lib, "main"));
 
   // Fail to find 'test:lib1' in the isolate.
@@ -1112,7 +1103,7 @@ TEST_CASE(IsolateReload_LibraryLookup) {
 
   // Reload and add 'test:lib1' to isolate.
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
 
   // Find 'test:lib1' in the isolate.
@@ -1122,7 +1113,7 @@ TEST_CASE(IsolateReload_LibraryLookup) {
   // Reload, making 'test:lib1' unreachable along the import graph from the root
   // library.
   lib = TestCase::ReloadTestScript(kScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   // Continue to find 'test:lib1' in the isolate.
   result = Dart_LookupLibrary(NewString("test:lib1"));
@@ -1154,7 +1145,7 @@ TEST_CASE(IsolateReload_LibraryHide) {
       "}\n";
 
   lib = TestCase::LoadTestScript(kScript2, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("a", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1207,7 +1198,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
       "}\n";
 
   lib = TestCase::LoadTestScript(kScript3, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "mainInt"));
 }
 
@@ -1228,7 +1219,7 @@ TEST_CASE(IsolateReload_SmiFastPathStubs) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   // Identity reload.
   EXPECT_VALID(TestCase::SetReloadTestScript(kScript));
@@ -1255,7 +1246,7 @@ TEST_CASE(IsolateReload_ImportedMixinFunction) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   EXPECT_STREQ("mixin", SimpleInvokeStr(lib, "main"));
 
@@ -1269,7 +1260,7 @@ TEST_CASE(IsolateReload_ImportedMixinFunction) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("mixin", SimpleInvokeStr(lib, "main"));
 }
 
@@ -1280,7 +1271,7 @@ TEST_CASE(IsolateReload_TopLevelParseError) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -1310,7 +1301,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_StaticToInstance) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1356,7 +1347,7 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1405,7 +1396,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1461,7 +1452,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1504,7 +1495,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1556,7 +1547,7 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1610,7 +1601,7 @@ TEST_CASE(IsolateReload_PendingSuperCall) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1649,7 +1640,7 @@ TEST_CASE(IsolateReload_TearOff_Instance_Equality) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1685,7 +1676,7 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1724,7 +1715,7 @@ TEST_CASE(IsolateReload_TearOff_Remove) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1763,7 +1754,7 @@ TEST_CASE(IsolateReload_TearOff_Class_Identity) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1799,7 +1790,7 @@ TEST_CASE(IsolateReload_TearOff_Library_Identity) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1847,7 +1838,7 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1906,7 +1897,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -1962,7 +1953,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "import 'file:///test:isolate_reload_helper';\n"
@@ -2008,7 +1999,7 @@ TEST_CASE(IsolateReload_EnumEquality) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
@@ -2027,7 +2018,7 @@ TEST_CASE(IsolateReload_EnumEquality) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2044,7 +2035,7 @@ TEST_CASE(IsolateReload_EnumIdentical) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2062,7 +2053,7 @@ TEST_CASE(IsolateReload_EnumIdentical) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2079,7 +2070,7 @@ TEST_CASE(IsolateReload_EnumReorderIdentical) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2097,7 +2088,7 @@ TEST_CASE(IsolateReload_EnumReorderIdentical) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2113,7 +2104,7 @@ TEST_CASE(IsolateReload_EnumAddition) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2131,7 +2122,7 @@ TEST_CASE(IsolateReload_EnumAddition) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("0/Fruit.Apple 1/Fruit.Cantaloupe 2/Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
@@ -2146,7 +2137,7 @@ TEST_CASE(IsolateReload_EnumToNotEnum) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2171,7 +2162,7 @@ TEST_CASE(IsolateReload_NotEnumToEnum) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("0", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2200,7 +2191,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   // Delete 'Cantaloupe' but make sure that we can still invoke toString,
@@ -2218,7 +2209,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Deleted enum value from Fruit true -1",
                SimpleInvokeStr(lib, "main"));
 }
@@ -2245,7 +2236,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2276,7 +2267,7 @@ TEST_CASE(IsolateReload_EnumIdentityReload) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("true true true true true true true true true ",
                SimpleInvokeStr(lib, "main"));
 }
@@ -2294,7 +2285,7 @@ TEST_CASE(IsolateReload_EnumDeleteMultiple) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   // Both Banana and Cherry forwarded to the deleted-enum sentinel, and
@@ -2307,7 +2298,7 @@ TEST_CASE(IsolateReload_EnumDeleteMultiple) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript0);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   // When visiting Fruit's canonical table, we try to forward both entries of
@@ -2320,7 +2311,7 @@ TEST_CASE(IsolateReload_EnumDeleteMultiple) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript1);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2334,7 +2325,7 @@ TEST_CASE(IsolateReload_EnumShapeChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2351,7 +2342,7 @@ TEST_CASE(IsolateReload_EnumShapeChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("A", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2365,7 +2356,7 @@ TEST_CASE(IsolateReload_EnumShapeChangeAdd) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2383,7 +2374,7 @@ TEST_CASE(IsolateReload_EnumShapeChangeAdd) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("C", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2397,7 +2388,7 @@ TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Banana", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2413,7 +2404,7 @@ TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Deleted enum value from Fruit",
                SimpleInvokeStr(lib, "main"));
 }
@@ -2445,7 +2436,7 @@ TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2476,7 +2467,7 @@ TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2548,7 +2539,7 @@ main() {
 )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -2618,7 +2609,7 @@ main() {
 )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2636,7 +2627,7 @@ TEST_CASE(IsolateReload_ConstantIdentical) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Pear", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2655,7 +2646,7 @@ TEST_CASE(IsolateReload_ConstantIdentical) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2669,7 +2660,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunction) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2683,7 +2674,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunction) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2699,7 +2690,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionArityChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2714,7 +2705,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionArityChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2730,7 +2721,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelAddTypeArguments) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2745,7 +2736,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelAddTypeArguments) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 }
 
@@ -2759,7 +2750,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelRemoveTypeArguments) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2774,7 +2765,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelRemoveTypeArguments) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2790,7 +2781,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelMissingPassingTypeArguments) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2804,7 +2795,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelMissingPassingTypeArguments) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2821,7 +2812,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionEvaluationOrder) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2836,7 +2827,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionEvaluationOrder) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
 }
@@ -2865,7 +2856,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionLibraryDeleted) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       NULL /* resolver */, true /* finalize */, true /* incrementally */);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
@@ -2892,11 +2883,10 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelFunctionLibraryDeleted) {
       sizeof(updated_sourcefiles) / sizeof(Dart_SourceFile),
       updated_sourcefiles, &kernel_buffer, &kernel_buffer_size,
       true /* incrementally */);
-  if (error != NULL || kernel_buffer == NULL) return;
   EXPECT(error == NULL);
   EXPECT_NOTNULL(kernel_buffer);
   lib = TestCase::ReloadTestKernel(kernel_buffer, kernel_buffer_size);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   // What actually happens because we don't re-search imported libraries.
   EXPECT_STREQ(result, "hello");
@@ -2916,7 +2906,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelGetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2930,7 +2920,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelGetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2946,7 +2936,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelSetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2960,7 +2950,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelSetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -2977,7 +2967,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelSetterEvaluationOrder) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -2992,7 +2982,7 @@ TEST_CASE(IsolateReload_CallDeleted_TopLevelSetterEvaluationOrder) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
 }
@@ -3007,7 +2997,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunction) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3021,7 +3011,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunction) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3037,7 +3027,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunctionArityChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3052,7 +3042,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunctionArityChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3069,7 +3059,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunctionEvaluationOrder) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3085,7 +3075,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFunctionEvaluationOrder) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_STREQ("first!", result);  // Not NoSuchMethodError
 }
@@ -3100,7 +3090,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3114,7 +3104,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3130,7 +3120,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassSetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3144,7 +3134,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassSetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3161,7 +3151,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassSetterEvaluationOrder) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3176,7 +3166,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassSetterEvaluationOrder) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_STREQ("first!", result);
 }
@@ -3191,7 +3181,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructor) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3206,7 +3196,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructor) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3222,7 +3212,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorArityChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3237,7 +3227,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorArityChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3253,7 +3243,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorClassDeleted) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3267,7 +3257,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassGenerativeConstructorClassDeleted) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3283,7 +3273,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructor) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3298,7 +3288,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructor) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3314,7 +3304,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorArityChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3329,7 +3319,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorArityChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3345,7 +3335,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorClassDeleted) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of \'C\'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3359,7 +3349,7 @@ TEST_CASE(IsolateReload_CallDeleted_ClassFactoryConstructorClassDeleted) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3376,7 +3366,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFunction) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3392,7 +3382,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFunction) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3409,7 +3399,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFunctionArityChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3425,7 +3415,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFunctionArityChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3442,7 +3432,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperGetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3458,7 +3448,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperGetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3475,7 +3465,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperSetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3491,7 +3481,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperSetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3508,7 +3498,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFieldGetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3524,7 +3514,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFieldGetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3541,7 +3531,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFieldSetter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("hello", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -3557,7 +3547,7 @@ TEST_CASE(IsolateReload_CallDeleted_SuperFieldSetter) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_SUBSTRING("NoSuchMethodError", result);
   EXPECT_SUBSTRING("deleted", result);
@@ -3579,7 +3569,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple Fruit.Banana", SimpleInvokeStr(lib, "main"));
 
   // Insert 'Cantaloupe'.
@@ -3602,7 +3592,7 @@ TEST_CASE(IsolateReload_EnumValuesToString) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Fruit.Apple Fruit.Cantaloupe Fruit.Banana",
                SimpleInvokeStr(lib, "main"));
 }
@@ -3633,7 +3623,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
@@ -3660,7 +3650,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::ReloadTestScript(kReloadScript);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
     EXPECT_EQ(2, SimpleInvoke(lib, "main"));
   }
 
@@ -3700,7 +3690,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
@@ -3724,7 +3714,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::ReloadTestScript(kReloadScript);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
     EXPECT_EQ(2, SimpleInvoke(lib, "main"));
   }
 
@@ -3774,7 +3764,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   {
     TransitionVMToNative transition(thread);
     Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    EXPECT_VALID(lib);
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
@@ -3838,7 +3828,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat0) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(42, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -3851,7 +3841,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat0) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(42, SimpleInvoke(lib, "main"));
 }
 
@@ -3869,7 +3859,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat1) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(42, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -3882,7 +3872,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat1) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(42, SimpleInvoke(lib, "main"));
 }
 
@@ -3902,7 +3892,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat2) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(42, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -3918,7 +3908,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat2) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(24, SimpleInvoke(lib, "main"));
 }
 
@@ -3944,7 +3934,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat3) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(3, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -3958,7 +3948,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat3) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(3, SimpleInvoke(lib, "main"));
 }
 
@@ -3982,7 +3972,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat4) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -3995,7 +3985,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat4) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 }
 
@@ -4019,7 +4009,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat5) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -4034,7 +4024,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat5) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(44, SimpleInvoke(lib, "main"));
 }
 
@@ -4053,7 +4043,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat6) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(43, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -4076,14 +4066,14 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat7) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript =
       "class Foo<A> {\n"
       "  var a;\n"
       "}\n";
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 }
 
 // Regression for handle sharing bug: Change the shape of two classes and see
@@ -4104,7 +4094,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4120,7 +4110,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4140,7 +4130,7 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat9) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(43, SimpleInvoke(lib, "main"));
 
   const char* kReloadScript =
@@ -4175,7 +4165,7 @@ TEST_CASE(IsolateReload_ShapeChangeMutualReference) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4194,7 +4184,7 @@ TEST_CASE(IsolateReload_ShapeChangeMutualReference) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4211,7 +4201,7 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4225,7 +4215,7 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4243,7 +4233,7 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4258,7 +4248,7 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4285,7 +4275,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4303,7 +4293,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript2 = R"(
@@ -4321,7 +4311,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript2);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4341,7 +4331,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_RemoveSlot) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4398,7 +4388,7 @@ TEST_CASE(IsolateReload_DeeplyImmutableChange) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4431,7 +4421,7 @@ TEST_CASE(IsolateReload_DeeplyImmutableChange_2) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4486,7 +4476,7 @@ TEST_CASE(IsolateReload_DeeplyImmutableChange_MultiLib) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -4554,7 +4544,7 @@ TEST_CASE(IsolateReload_DeeplyImmutableChange_TypeBound) {
   Dart_Handle lib = TestCase::LoadTestScriptWithDFE(
       sizeof(sourcefiles) / sizeof(Dart_SourceFile), sourcefiles,
       nullptr /* resolver */, true /* finalize */, true /* incrementally */);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
@@ -4602,7 +4592,7 @@ TEST_CASE(IsolateReload_ConstToNonConstClass) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4635,7 +4625,7 @@ TEST_CASE(IsolateReload_ConstToNonConstClass_Empty) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -4665,7 +4655,7 @@ TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4677,7 +4667,7 @@ TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4696,7 +4686,7 @@ TEST_CASE(IsolateReload_NoLibsModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadImportScript = "importedFunc() => 'bossy';";
@@ -4710,7 +4700,7 @@ TEST_CASE(IsolateReload_NoLibsModified) {
 
   Dart_SetFileModifiedCallback(&NothingModifiedCallback);
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_SetFileModifiedCallback(nullptr);
 
   // No reload occurred because no files were "modified".
@@ -4736,7 +4726,7 @@ TEST_CASE(IsolateReload_MainLibModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadImportScript = "importedFunc() => 'bossy';";
@@ -4750,7 +4740,7 @@ TEST_CASE(IsolateReload_MainLibModified) {
 
   Dart_SetFileModifiedCallback(&MainModifiedCallback);
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_SetFileModifiedCallback(nullptr);
 
   // Imported library is not reloaded.
@@ -4775,7 +4765,7 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadImportScript = "importedFunc() => 'bossy';";
@@ -4789,7 +4779,7 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
 
   Dart_SetFileModifiedCallback(&ImportModifiedCallback);
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_SetFileModifiedCallback(nullptr);
 
   // Modification of an imported library propagates to the importing library.
@@ -4807,7 +4797,7 @@ TEST_CASE(IsolateReload_PrefixImportedLibModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadImportScript = "importedFunc() => 'bossy';";
@@ -4821,7 +4811,7 @@ TEST_CASE(IsolateReload_PrefixImportedLibModified) {
 
   Dart_SetFileModifiedCallback(&ImportModifiedCallback);
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_SetFileModifiedCallback(nullptr);
 
   // Modification of an prefix-imported library propagates to the
@@ -4850,7 +4840,7 @@ TEST_CASE(IsolateReload_ExportedLibModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadExportScript = "exportedFunc() => 'bossy';";
@@ -4864,7 +4854,7 @@ TEST_CASE(IsolateReload_ExportedLibModified) {
 
   Dart_SetFileModifiedCallback(&ExportModifiedCallback);
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_SetFileModifiedCallback(nullptr);
 
   // Modification of an exported library propagates.
@@ -4879,7 +4869,7 @@ TEST_CASE(IsolateReload_SimpleConstFieldUpdate) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value=a", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4889,7 +4879,7 @@ TEST_CASE(IsolateReload_SimpleConstFieldUpdate) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value=b", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4901,7 +4891,7 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value=0:00:01.000000", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -4911,7 +4901,7 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("value=0:00:02.000000", SimpleInvokeStr(lib, "main"));
 }
 
@@ -4929,7 +4919,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializers) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y.
@@ -4946,7 +4936,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializers) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances.
   EXPECT_EQ(7, SimpleInvoke(lib, "main"));
 }
@@ -4966,7 +4956,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y.
@@ -4984,7 +4974,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances.
   EXPECT_EQ(56, SimpleInvoke(lib, "main"));
 }
@@ -5006,7 +4996,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y.
@@ -5026,7 +5016,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazy) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that field initializers ran lazily.
   EXPECT_STREQ("56 56 57 58", SimpleInvokeStr(lib, "main"));
 }
@@ -5045,7 +5035,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y. Do not read it. Note field y does not get an initializer
@@ -5065,7 +5055,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(0, SimpleInvoke(lib, "main"));
 
   // Change y's initializer and check this new initializer is used.
@@ -5080,7 +5070,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyConst) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript2);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(6, SimpleInvoke(lib, "main"));
 }
 
@@ -5101,7 +5091,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y. Do not touch y.
@@ -5120,7 +5110,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("56", SimpleInvokeStr(lib, "main"));
 
   // Reload again. Field y's getter still needs to keep for initialization even
@@ -5141,7 +5131,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersLazyTransitive) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript2);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that field initializers ran lazily.
   EXPECT_STREQ("56 56 57 58", SimpleInvokeStr(lib, "main"));
 }
@@ -5160,7 +5150,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y.
@@ -5181,7 +5171,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances.
   EXPECT_STREQ("exception", SimpleInvokeStr(lib, "main"));
 }
@@ -5200,7 +5190,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y.
@@ -5220,7 +5210,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersCyclicInitialization) {
                                 "}\n";
   // clang-format on
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Stack Overflow", SimpleInvokeStr(lib, "main"));
 }
 
@@ -5240,7 +5230,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y with a syntax error in the initializing expression.
@@ -5279,7 +5269,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y with a syntax error in the initializing expression.
@@ -5319,7 +5309,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(4, SimpleInvoke(lib, "main"));
 
   // Add the field y with a syntax error in the initializing expression.
@@ -5361,7 +5351,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_EQ(0, SimpleInvoke(lib, "main"));
 
   // clang-format on
@@ -5380,7 +5370,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersSuperClass) {
   // clang-format off
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances in the
   // correct scope.
   const char* actual = SimpleInvokeStr(lib, "main");
@@ -5412,7 +5402,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
@@ -5438,7 +5428,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithConsts) {
           "}\n";
   // clang-format on
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances and the const
   // expressions were properly canonicalized.
   EXPECT_STREQ("true true true true", SimpleInvokeStr(lib, "main"));
@@ -5460,7 +5450,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
@@ -5479,7 +5469,7 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Verify that we ran field initializers on existing instances and
   // correct type arguments were used.
   EXPECT_STREQ("List<String> _Map<String, String> List<int> _Map<int, int>",
@@ -5495,7 +5485,7 @@ TEST_CASE(IsolateReload_AddNewStaticField) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -5507,7 +5497,7 @@ TEST_CASE(IsolateReload_AddNewStaticField) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
 }
 
@@ -5521,7 +5511,7 @@ TEST_CASE(IsolateReload_StaticFieldInitialValueDoesnotChange) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -5533,7 +5523,7 @@ TEST_CASE(IsolateReload_StaticFieldInitialValueDoesnotChange) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   // Newly loaded field maintained old static value
   EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
 }
@@ -5568,7 +5558,7 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   intptr_t cid = 1118;
   {
     Dart_EnterScope();
@@ -5591,7 +5581,7 @@ TEST_CASE(IsolateReload_DeleteStaticField) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
   {
@@ -5650,7 +5640,7 @@ static void TestReloadWithFieldChange(const char* prefix,
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript.get(), nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // clang-format off
@@ -5684,7 +5674,7 @@ static void TestReloadWithFieldChange(const char* prefix,
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript.get());
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       OS::SCreate(
           Thread::Current()->zone(),
@@ -5751,7 +5741,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -5767,7 +5757,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "type 'int' is not a subtype of type 'double' of 'function result'",
       SimpleInvokeStr(lib, "main"));
@@ -5791,7 +5781,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -5815,7 +5805,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirect) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
                SimpleInvokeStr(lib, "main"));
 }
@@ -5832,7 +5822,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirect) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Instance of 'B'", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -5851,7 +5841,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirect) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("type 'B' is not a subtype of type 'A' of 'function result'",
                SimpleInvokeStr(lib, "main"));
 }
@@ -5874,7 +5864,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -5898,7 +5888,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectGeneric) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
       SimpleInvokeStr(lib, "main"));
@@ -5916,7 +5906,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectGeneric) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("[]", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -5935,7 +5925,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectGeneric) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "type 'List<B>' is not a subtype of type 'List<A>' of 'function result'",
       SimpleInvokeStr(lib, "main"));
@@ -5960,7 +5950,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
   // clang-format on
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -5985,7 +5975,7 @@ TEST_CASE(IsolateReload_ExistingFieldChangesTypeIndirectFunction) {
   // clang-format on
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
       "result'",
@@ -6005,7 +5995,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Closure: (A) => bool", SimpleInvokeStr(lib, "main"));
 
   // B is no longer a subtype of A.
@@ -6025,7 +6015,7 @@ TEST_CASE(IsolateReload_ExistingStaticFieldChangesTypeIndirectFunction) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ(
       "type '(A) => bool' is not a subtype of type '(B) => bool' of 'function "
       "result'",
@@ -6043,7 +6033,7 @@ TEST_CASE(IsolateReload_TypedefToNotTypedef) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -6068,7 +6058,7 @@ TEST_CASE(IsolateReload_NotTypedefToTypedef) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("false", SimpleInvokeStr(lib, "main"));
 
   // The CFE lowers typedefs to function types and as such the VM will not see
@@ -6093,7 +6083,7 @@ TEST_CASE(IsolateReload_TypedefAddParameter) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -6117,7 +6107,7 @@ TEST_CASE(IsolateReload_PatchStaticInitializerWithClosure) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("ab", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -6129,7 +6119,7 @@ TEST_CASE(IsolateReload_PatchStaticInitializerWithClosure) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("ac", SimpleInvokeStr(lib, "main"));
 }
 
@@ -6150,7 +6140,7 @@ TEST_CASE(IsolateReload_StaticTargetArityChange) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript = R"(
@@ -6170,7 +6160,7 @@ TEST_CASE(IsolateReload_StaticTargetArityChange) {
   )";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_ERROR(SimpleInvokeError(lib, "main"),
                "Unhandled exception:\n"
                "NoSuchMethodError: No constructor 'A.' "
@@ -6200,7 +6190,7 @@ TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   const char* kReloadScript = R"(
     import 'file:///test:isolate_reload_helper';
@@ -6246,8 +6236,6 @@ static void CompileToKernel(Dart_SourceFile source,
       sources[0].uri, ARRAY_SIZE(sources), sources, kernel_buffer,
       kernel_buffer_size,
       /*incrementally=*/false);
-  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
-  if (error != nullptr && strstr(error, "Error while initializing Kernel isolate")) return;
   EXPECT(error == nullptr);
   EXPECT_NOTNULL(kernel_buffer);
 }
@@ -6339,7 +6327,6 @@ TEST_CASE(IsolateReload_RegressB179030011) {
   for (auto& component : components) {
     CompileToKernel(component.source, &component.kernel_buffer,
                     &component.kernel_buffer_size);
-    if (component.kernel_buffer == nullptr) return;
     TestCaseBase::AddToKernelBuffers(component.kernel_buffer);
   }
 
@@ -6361,7 +6348,7 @@ TEST_CASE(IsolateReload_RegressB179030011) {
   // root library).
   Dart_Handle lib = Dart_LoadLibraryFromKernel(
       components[0].kernel_buffer, components[0].kernel_buffer_size);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_VALID(Dart_SetRootLibrary(lib));
 
   {
@@ -6409,11 +6396,11 @@ TEST_CASE(IsolateReload_GenericConstructorTearOff) {
   )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::ReloadTestScript(kScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 }
 
@@ -6461,7 +6448,7 @@ TEST_CASE(IsolateReload_ImplicitGetterWithLoadGuard) {
 
   Dart_Handle lib1 =
       TestCase::LoadTestLibrary("test_lib1.dart", kLibScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib1); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib1);
 
   const char* kMainScript = R"(
     main() {}
@@ -6485,7 +6472,7 @@ TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_VALID(Dart_FinalizeAllClasses());
   EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
 
@@ -6497,7 +6484,7 @@ TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   // Modification of an imported library propagates to the importing library.
   EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
@@ -6518,7 +6505,7 @@ TEST_CASE(IsolateReload_KeepPragma1) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
 
   // New version of closure function bar() doesn't have a pragma.
   const char* kReloadScript =
@@ -6576,7 +6563,7 @@ TEST_CASE(IsolateReload_EnumWithSet) {
       "  return 'ok';\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("ok", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
@@ -6607,7 +6594,7 @@ TEST_CASE(IsolateReload_EnumWithSet) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   {
     // Reset the cache to make kernel constant reading happen again and perform
@@ -6645,7 +6632,7 @@ TEST_CASE(IsolateReload_KeepPragma2) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
 
   // New version of closure function bar() has a different pragma.
   const char* kReloadScript =
@@ -6701,7 +6688,7 @@ TEST_CASE(IsolateReload_KeepPragma3) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
 
   // New version of closure function bar() has a pragma.
   const char* kReloadScript =
@@ -6768,7 +6755,7 @@ abstract class A4 extends A3 {}
 abstract class A5 { }
 )");
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("ok", SimpleInvokeStr(lib, "main"));
 
   const auto check_implemented =
@@ -6840,7 +6827,7 @@ abstract class A5 { }
   });
 
   lib = TestCase::TriggerReload(nullptr, 0);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
 
   Dart_SetFileModifiedCallback(nullptr);
 
@@ -6880,7 +6867,7 @@ TEST_CASE(IsolateReload_ClosureHashStablity) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  if (Dart_IsError(lib)) return;
+  EXPECT_VALID(lib);
   EXPECT_VALID(Dart_FinalizeAllClasses());
   EXPECT_STREQ("Setup", SimpleInvokeStr(lib, "main"));
 
@@ -6911,7 +6898,7 @@ TEST_CASE(IsolateReload_ClosureHashStablity) {
       "}\n";
 
   lib = TestCase::ReloadTestScript(kReloadScript);
-  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  EXPECT_VALID(lib);
   EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
 }
 

@@ -70,7 +70,6 @@ static void TryCatchOptimizerTest(
   // Load the script and exercise the code once.
   const auto& root_library =
       Library::Handle(LoadTestScript(script_chars, &NoopNativeLookup));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 
   // Build the flow graph.
@@ -80,10 +79,8 @@ static void TryCatchOptimizerTest(
       CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* graph = pipeline.RunPasses(passes);
-  if (graph == nullptr) return;
 
   // Finally run TryCatchAnalyzer on the graph (in AOT mode).
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);
@@ -236,7 +233,6 @@ static void TestAliasingViaRedefinition(
   )";
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
-  if (lib.IsNull()) return;
 
   const Class& cls = Class::ZoneHandle(
       lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
@@ -402,7 +398,6 @@ static void TestAliasingViaStore(
   )";
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
-  if (lib.IsNull()) return;
 
   const Class& cls = Class::ZoneHandle(
       lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
@@ -793,7 +788,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_TypedArrayViewAliasing) {
   )";
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
-  if (lib.IsNull()) return;
 
   const Class& view_cls = Class::ZoneHandle(
       lib.LookupClass(String::Handle(Symbols::New(thread, "View"))));
@@ -901,10 +895,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({
       CompilerPass::kComputeSSA,
@@ -917,7 +909,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStoresAndLoads) {
       CompilerPass::kConstantPropagation,
   });
 
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   // Before CSE, we have 2 loads and 4 stores.
   intptr_t bef_loads = 0;
@@ -949,13 +941,11 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStaticFieldInitialization) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -996,13 +986,11 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -1053,13 +1041,11 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -1145,13 +1131,10 @@ Vec3Mut main() {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
   auto entry = flow_graph->graph_entry()->normal_entry();
 
   AllocateObjectInstr* allocate;
@@ -1196,13 +1179,10 @@ main() {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
   auto entry = flow_graph->graph_entry()->normal_entry();
 
   AllocateObjectInstr* allocate;
@@ -1289,13 +1269,11 @@ main() {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -1409,17 +1387,14 @@ main() {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& result1 = Object::Handle(Invoke(root_library, "main"));
-  if (result1.IsNull()) return;
   EXPECT(result1.IsString());
   EXPECT_STREQ(result1.ToCString(),
                "r1: (42, true), r2: (field1: 42, field2: hey), sum: 84");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
+  ASSERT(flow_graph != nullptr);
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -1513,9 +1488,7 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
-  if (function.IsNull()) return;
 
   // Get fields to kDynamicCid guard
   Invoke(root_library, "test");
@@ -1523,7 +1496,6 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
   auto entry = flow_graph->graph_entry()->normal_entry();
 
   StaticCallInstr* call1;
@@ -1568,13 +1540,10 @@ ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
-  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
   auto entry = flow_graph->graph_entry()->normal_entry();
 
   AllocateObjectInstr* allocate;
@@ -1613,13 +1582,10 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "test"));
-  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   auto flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
   for (auto block : flow_graph->postorder()) {
     for (auto instr : block->instructions()) {
       EXPECT_PROPERTY(instr, !it.IsCheckStackOverflow() ||
@@ -1641,7 +1607,6 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
   )";
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
-  if (lib.IsNull()) return;
 
   const Class& cls = Class::ZoneHandle(
       lib.LookupClass(String::Handle(Symbols::New(thread, "K"))));
@@ -1790,6 +1755,7 @@ ISOLATE_UNIT_TEST_CASE(AllocationSinking_NoViewDataMaterialization) {
 
   const auto& lib =
       Library::Handle(LoadTestScript(kScript.get(), NoopNativeLookup));
+  EXPECT(!lib.IsNull());
   if (lib.IsNull()) return;
 
   const auto& function = Function::ZoneHandle(GetFunction(lib, kFunctionName));
@@ -1980,9 +1946,9 @@ ISOLATE_UNIT_TEST_CASE(Ffi_StructSinking) {
       )";
 
   const auto& lib = Library::Handle(LoadTestScript(kScript, NoopNativeLookup));
-  if (lib.IsNull()) return;
+  EXPECT(!lib.IsNull());
   const auto& function = Function::ZoneHandle(GetFunction(lib, "test"));
-  if (function.IsNull()) return;
+  EXPECT(!function.IsNull());
 
   // Run the unoptimized code.
   uint8_t buffer[10] = {42};
@@ -2027,9 +1993,7 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress51220) {
                                        static_cast<int>(kSmiBits + 1 - 10)));
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
 
   // Run unoptimized code.
   Invoke(root_library, "main");
@@ -2090,9 +2054,7 @@ ISOLATE_UNIT_TEST_CASE(LICM_Deopt_Regress50245) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
 
   // Run unoptimized code.
   Invoke(root_library, "main");

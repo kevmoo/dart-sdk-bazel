@@ -448,7 +448,6 @@ class C<NoBound,
 )";
 
   const auto& lib = Library::Handle(LoadTestScript(script_chars));
-  if (lib.IsNull()) return;
 
   const auto& pragma_can_be_smi =
       String::Handle(Symbols::New(thread, "vm-test:can-be-smi"));
@@ -538,13 +537,10 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
 
   TestPipeline pipeline(function, CompilerPass::kAOT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
@@ -573,9 +569,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefineCanBeSentinelWithCannotBe) {
     late final int x;
   )";
   Zone* const Z = Thread::Current()->zone();
-  const auto& lib_ptr = LoadTestScript(kScript);
-  if (lib_ptr == Library::null()) return;
-  const auto& root_library = Library::CheckedHandle(Z, lib_ptr);
+  const auto& root_library = Library::CheckedHandle(Z, LoadTestScript(kScript));
   const auto& toplevel = Class::Handle(Z, root_library.toplevel_class());
   const auto& field_x = Field::Handle(
       Z, toplevel.LookupStaticField(String::Handle(Z, String::New("x"))));
@@ -708,14 +702,11 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RecordFieldAccess) {
   )";
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
-  if (root_library.IsNull()) return;
   Invoke(root_library, "main");
 
   const auto& function = Function::Handle(GetFunction(root_library, "main"));
-  if (function.IsNull()) return;
   TestPipeline pipeline(function, CompilerPass::kJIT);
   FlowGraph* flow_graph = pipeline.RunPasses({});
-  if (flow_graph == nullptr) return;
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,

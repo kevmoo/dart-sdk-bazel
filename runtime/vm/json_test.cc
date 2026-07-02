@@ -238,7 +238,6 @@ TEST_CASE(JSON_JSONStream_DartString) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  if (Dart_IsError(lib)) return;
   EXPECT_VALID(lib);
 
   Dart_Handle result;

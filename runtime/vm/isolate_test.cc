@@ -45,8 +45,8 @@ void IsolateSpawn(const char* platform_script_value) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle test_lib = TestCase::LoadTestScript(scriptChars, nullptr);
+
   free(scriptChars);
-  if (Dart_IsError(test_lib)) return;
 
   // Setup the internal library's 'internalPrint' function.
   // Necessary because asynchronous errors use "print" to print their
