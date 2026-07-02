@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 93/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 94/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -67,7 +67,7 @@ graph TD
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
-    sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
+    sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::completed
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::completed
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::completed
     sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
@@ -176,7 +176,6 @@ graph TD
     sdk_67o --> sdk_67o.2
     sdk_67o --> sdk_67o.3
     sdk_67o --> sdk_67o.4
-    sdk_67o --> sdk_67o.5
     sdk_67o --> sdk_67o.6
     sdk_67o --> sdk_67o.7
     sdk_oce --> sdk_90d
@@ -279,22 +278,9 @@ graph TD
 
 ---
 
-### 🎯 [sdk-67o] Implement Bazel test matrix optimization and remediation recommendations
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-67o.5] [REC-FAST-1] Enable Remote Build Execution (RBE) & Remote Caching
 - **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
