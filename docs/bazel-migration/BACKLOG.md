@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 93/115 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 86/113 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -51,6 +51,8 @@ graph TD
     sdk_3jc["sdk-3jc:<br>Migrate `packages.bzl` target generation to a dynamic Bzlmod extension"]:::completed
     sdk_3la["sdk-3la:<br>Investigate remote build and cache using Buildfarm or Buildbarn"]:::completed
     sdk_3ld["sdk-3ld:<br>{M3} Wire up Dart MCP Server Snapshots"]:::completed
+    sdk_3n8["sdk-3n8:<br>Decide rules_dart authoring scope and BCR-publish vs internal ownership"]:::pending
+    sdk_3x0["sdk-3x0:<br>Add a determinism / byte-identical regression guard to CI"]:::pending
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
@@ -58,12 +60,6 @@ graph TD
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
-    sdk_5m4["sdk-5m4:<br>Epic: 100% Zero-Prerequisite 'Test Everything' for Dart SDK"]:::completed
-    sdk_5m4.1["sdk-5m4.1:<br>Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules"]:::completed
-    sdk_5m4.2["sdk-5m4.2:<br>Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl"]:::completed
-    sdk_5m4.3["sdk-5m4.3:<br>Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters"]:::completed
-    sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::completed
-    sdk_5m4.5["sdk-5m4.5:<br>Workstream 5: CI Path Filtering & Remote Action Cache Setup"]:::completed
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
@@ -114,6 +110,7 @@ graph TD
     sdk_gmk["sdk-gmk:<br>Prune upstream Bazel files from vendored third_party"]:::completed
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
+    sdk_itv["sdk-itv:<br>Produce and publish distributable SDK artifacts {versioned archives + symbols + upload}"]:::pending
     sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::pending
     sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
@@ -127,6 +124,7 @@ graph TD
     sdk_njh["sdk-njh:<br>{bazel} tools/test.py: unmatched test selectors only warn — silent coverage loss"]:::completed
     sdk_o1h["sdk-o1h:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
+    sdk_oss["sdk-oss:<br>Eliminate the GN dependency: make Bazel the sole build system"]:::pending
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
     sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::completed
@@ -137,7 +135,7 @@ graph TD
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
     sdk_tjm["sdk-tjm:<br>Simulator Target Configurations"]:::completed
     sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
-    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::completed
+    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::pending
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_uft["sdk-uft:<br>VM AOT Test Suite Integration"]:::completed
@@ -166,11 +164,6 @@ graph TD
     sdk_5uz --> sdk_4rb
     sdk_fnn --> sdk_4z8
     sdk_zi3 --> sdk_4z8
-    sdk_5m4 --> sdk_5m4.1
-    sdk_5m4 --> sdk_5m4.2
-    sdk_5m4 --> sdk_5m4.3
-    sdk_5m4 --> sdk_5m4.4
-    sdk_5m4 --> sdk_5m4.5
     sdk_50x --> sdk_5uz
     sdk_67o --> sdk_67o.1
     sdk_67o --> sdk_67o.2
@@ -232,6 +225,34 @@ graph TD
   - None
 - **Description**:
   
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-3n8] Decide rules_dart authoring scope and BCR-publish vs internal ownership
+- **Status**: `[PENDING]`
+- **Tags**: `endgame`, `red-team-2026-07-02`, `rules_dart`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  DESIGN.md calls this 'the single largest unbudgeted item' (Open Question #2). rules_dart exists de-facto in-tree, but no bead owns the strategic decision: greenfield vs fork cbracken/rules_dart, and publish-to-BCR vs keep-internal. DESIGN §4.3 notes Flutter stalled 7+ years on exactly this precondition. Bzlmod-vs-WORKSPACE (Open Q #1) is de-facto resolved to Bzlmod but never formally closed either.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-3x0] Add a determinism / byte-identical regression guard to CI
+- **Status**: `[PENDING]`
+- **Tags**: `ci`, `endgame`, `red-team-2026-07-02`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  The migration's core value proposition is byte-identical (platform dills) / semantically-identical (AOT tool dills) output vs GN. Today this is verified only by whoever runs 'cmp' manually on shift. Presubmit is analysis-only (build --nobuild); the nightly is a smoke build. A grep across all beads for determinism/reproducible/byte/golden/hash returns ZERO hits. Without an automated gate, a determinism regression ships silently -- and 'silent success/failure' is documented as the project's most persistent bad habit (fable_thoughts.md §9).
 - **Success Criteria**:
 
 ---
@@ -427,6 +448,20 @@ graph TD
 
 ---
 
+### 🎯 [sdk-itv] Produce and publish distributable SDK artifacts (versioned archives + symbols + upload)
+- **Status**: `[PENDING]`
+- **Tags**: `endgame`, `red-team-2026-07-02`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  //sdk:create_sdk yields the dart-sdk/ DIRECTORY TREE only. Nothing tracks the release-pipeline endpoint: per-platform versioned zip/tar archives, dartaotruntime/.sym debug-symbol bundles, and GCS/CIPD upload. A grep across all ~109 beads for archive/zip/release/publish/upload/cipd returns ZERO hits. You cannot 'ship a Bazel-built Dart SDK' without this.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -456,6 +491,20 @@ graph TD
 
 ---
 
+### 🎯 [sdk-oss] Eliminate the GN dependency: make Bazel the sole build system
+- **Status**: `[PENDING]`
+- **Tags**: `endgame`, `red-team-2026-07-02`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  The C++ targets are still GENERATED from 'gn desc' JSON via tools/bazel/translate_gn_desc.py into gen_targets.bzl. Today GN is a permanent hard dependency: you cannot regenerate C++ targets without a working GN checkout. This directly contradicts DESIGN.md §4.3 ('no permanent dual-system'; atomic per-subtree GN-target deletion). No bead tracks the actual cutover. sdk-znx (P3) only cleans up the translator, which entrenches GN further. This is the migration's true definition-of-done and is currently unrepresented in the backlog.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-qoj] [process] Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes
 - **Status**: `[PENDING]`
 - **Prerequisites**: None
@@ -478,6 +527,20 @@ graph TD
   - None
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
+- **Status**: `[PENDING]`
+- **Tags**: `bazel-migration`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
 - **Success Criteria**:
 
 ---
