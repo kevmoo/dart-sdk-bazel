@@ -6,7 +6,7 @@ touches the HAND-AUTHORED BUILD.bazel that load()s + calls gen_targets() and
 owns the hand-fixed targets. Mirrors tools/bazel/dart/packages.bzl. DO NOT EDIT.
 """
 
-load("//tools/bazel:rules.bzl", "cc_binary", "cc_library")
+load("//tools/bazel:rules.bzl", "cc_binary", "cc_library", "cc_test")
 
 def gen_targets():
     """Declare this package's machine-derived cc_* targets (see header).
@@ -1265,94 +1265,4 @@ def gen_targets():
         ],
     )
 
-    cc_binary(
-        name = "run_vm_tests",
-        deps = [
-            "//build/config/sanitizers:deps",
-            "//runtime:libdart_precompiler_testing",
-            "//runtime/bin:common_embedder_dart_io",
-            "//runtime/bin:core_snapshot_cc",
-            "//runtime/bin:crashpad",
-            "//runtime/bin:dart_kernel_platform_cc",
-            "//runtime/bin:run_vm_tests_set",
-            "@boringssl//:boringssl",
-            "@perfetto//:libprotozero",
-            "@zlib//:zlib",
-            "//build/config:dart_mode",
-        ],
-        local_defines = [
-            "SUPPORT_PERFETTO",
-            "DART_PRECOMPILER",
-            "PERFETTO_DISABLE_LOG",
-        ],
-        copts = [
-            "-Iruntime/include",
-            "-Iruntime",
-            "-Ithird_party/boringssl/src/include",
-            "-Ithird_party/perfetto/src/include",
-            "-Ithird_party/zlib",
-            "-fPIE",
-            "-fcolor-diagnostics",
-            "-Wall",
-            "-Wextra",
-            "-Werror",
-            "-Wendif-labels",
-            "-Wno-missing-field-initializers",
-            "-Wno-unused-parameter",
-            "-Wno-tautological-constant-compare",
-            "-Wno-unused-but-set-variable",
-            "-Wno-deprecated-non-prototype",
-            "-no-canonical-prefixes",
-            "-ffile-compilation-dir=.",
-            "-fvisibility=hidden",
-            "-D_FILE_OFFSET_BITS=64",
-            "-D_LARGEFILE_SOURCE",
-            "-D_LARGEFILE64_SOURCE",
-            "-Wheader-hygiene",
-            "-Wstring-conversion",
-            "-O2",
-            "-fdata-sections",
-            "-ffunction-sections",
-            "-g3",
-            "-ggdb3",
-            "-fPIE",
-            "-Wno-unused-parameter",
-            "-Wno-unused-private-field",
-            "-Wnon-virtual-dtor",
-            "-Wvla",
-            "-Woverloaded-virtual",
-            "-Wno-comments",
-            "-g3",
-            "-ggdb3",
-            "-fno-rtti",
-            "-fno-exceptions",
-            "-Wnewline-eof",
-            "-Wimplicit-fallthrough",
-            "-fno-strict-vtable-pointers",
-            "-O2",
-            "-fno-omit-frame-pointer",
-        ] + select({
-            "//build/config:debug": [],
-            "//conditions:default": ["-fno-ident"],
-        }),
-        conlyopts = [
-            "-std=c17",
-        ],
-        cxxopts = [
-            "-fvisibility-inlines-hidden",
-            "-fno-omit-frame-pointer",
-            "-std=c++20",
-            "-std=c++20",
-            "-fno-rtti",
-        ] + select({
-            "//build/config:debug": [
-                "-Wno-tautological-undefined-compare",
-                "-Wno-undefined-bool-conversion",
-            ],
-            "//conditions:default": [],
-        }),
-        linkopts = [
-            "-ldl",
-            "-lpthread",
-        ],
-    )
+

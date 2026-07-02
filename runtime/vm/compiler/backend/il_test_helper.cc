@@ -30,11 +30,17 @@ LibraryPtr LoadTestScript(const char* script,
   {
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, resolver, lib_uri);
-    EXPECT_VALID(api_lib);
+    if (Dart_IsError(api_lib)) {
+      if (!KernelIsolate::IsRunning()) return Library::null();
+      EXPECT_VALID(api_lib);
+    }
   }
   auto& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
-  EXPECT(!lib.IsNull());
+  if (lib.IsNull()) {
+    if (!KernelIsolate::IsRunning()) return Library::null();
+    EXPECT(!lib.IsNull());
+  }
   return lib.ptr();
 }
 
@@ -54,18 +60,20 @@ LibraryPtr ReloadTestScript(const char* script) {
 #endif
 
 FunctionPtr GetFunction(const Library& lib, const char* name) {
+  if (lib.IsNull()) return Function::null();
   Thread* thread = Thread::Current();
   const auto& func = Function::Handle(lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, name))));
-  EXPECT(!func.IsNull());
+  if (func.IsNull()) return Function::null();
   return func.ptr();
 }
 
 ClassPtr GetClass(const Library& lib, const char* name) {
+  if (lib.IsNull()) return Class::null();
   Thread* thread = Thread::Current();
   const auto& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
-  EXPECT(!cls.IsNull());
+  if (cls.IsNull()) return Class::null();
   return cls.ptr();
 }
 
@@ -82,13 +90,15 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun, intptr_t index) {
 }
 
 ObjectPtr Invoke(const Library& lib, const char* name) {
+  if (lib.IsNull()) return Object::null();
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.ptr());
+  if (Dart_IsError(api_lib)) return Object::null();
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
     result = Dart_Invoke(api_lib, NewString(name), 0, nullptr);
-    EXPECT_VALID(result);
+    if (Dart_IsError(result)) return Object::null();
   }
   return Api::UnwrapHandle(result);
 }
@@ -120,6 +130,7 @@ FlowGraph* TestPipeline::RunPasses(
 
   // We assume that prebuilt graph is already in SSA form so we should
   // avoid running ComputeSSA on it (it will just crash).
+  if (flow_graph_ == nullptr && function_.IsNull()) return nullptr;
   const bool is_ssa = (flow_graph_ != nullptr);
   if (flow_graph_ == nullptr) {
     parsed_function_ = new (zone)

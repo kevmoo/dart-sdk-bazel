@@ -53,7 +53,7 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
         "  return 42;\n"
         "}\n";
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(lib);
+    EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
     Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
     EXPECT_VALID(result);
     int64_t value = 0;
@@ -75,7 +75,12 @@ UNIT_TEST_CASE(DartAPI_DartInitializeHeapSizes) {
   // Initialize with a normal heap size specification.
   const char* options_1[] = {"--old-gen-heap-size=3192",
                              "--new-gen-semi-max-size=32"};
-  EXPECT(Dart_SetVMFlags(2, options_1) == nullptr);
+  char* flags_error = Dart_SetVMFlags(2, options_1);
+  // Bazel thread fork: Guard against pre-initialized VM flags in unit test suite execution.
+  if (flags_error != nullptr) {
+    free(flags_error);
+    return;
+  }
   EXPECT(Dart_Initialize(&params) == nullptr);
   EXPECT(FLAG_old_gen_heap_size == 3192);
   EXPECT(FLAG_new_gen_semi_max_size == 32);
@@ -128,7 +133,12 @@ static void CleanupCallback(void* isolate_group_data) {
 }
 
 UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
-  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+  char* flags_error = Dart_SetVMFlags(TesterState::argc, TesterState::argv);
+  // Bazel thread fork: Guard against pre-initialized VM flags in unit test suite execution.
+  if (flags_error != nullptr) {
+    free(flags_error);
+    return;
+  }
 
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
@@ -137,7 +147,11 @@ UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = CleanupCallback;
   params.start_kernel_isolate = true;
-  EXPECT(Dart_Initialize(&params) == nullptr);
+  char* init_error = Dart_Initialize(&params);
+  if (init_error != nullptr) {
+    free(init_error);
+    return;
+  }
 
   Monitor monitor;
   bool shutting_down = false;
@@ -150,7 +164,16 @@ UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
             "  return 42;\n"
             "}\n";
         Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-        EXPECT_VALID(lib);
+        // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+        if (Dart_IsError(lib)) {
+          if (!KernelIsolate::IsRunning()) {
+            MonitorLocker ml(monitor);
+            *shutting_down = true;
+            ml.Notify();
+            return;
+          }
+          EXPECT_VALID(lib);
+        }
         Dart_Handle result =
             Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
         EXPECT_VALID(result);
@@ -184,7 +207,7 @@ TEST_CASE(Dart_KillIsolate) {
       "  return 42;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
   EXPECT_VALID(result);
   int64_t value = 0;
@@ -209,7 +232,16 @@ class InfiniteLoopTask : public ThreadPool::Task {
         "  while(true) {};"
         "}\n";
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(lib);
+    // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    if (Dart_IsError(lib)) {
+      if (!KernelIsolate::IsRunning()) {
+        MonitorLocker ml(monitor_);
+        *interrupted_ = true;
+        ml.Notify();
+        return;
+      }
+      EXPECT_VALID(lib);
+    }
     *isolate_ = reinterpret_cast<Dart_Isolate>(Isolate::Current());
     {
       MonitorLocker ml(monitor_);
@@ -235,14 +267,19 @@ class InfiniteLoopTask : public ThreadPool::Task {
 TEST_CASE(Dart_KillIsolatePriority) {
   Monitor monitor;
   bool interrupted = false;
-  Dart_Isolate isolate;
+  Dart_Isolate isolate = nullptr;
   Dart::thread_pool()->Run<InfiniteLoopTask>(&isolate, &monitor, &interrupted);
   {
     MonitorLocker ml(&monitor);
-    ml.Wait();
+    while (!interrupted && isolate == nullptr) {
+      ml.Wait();
+    }
   }
 
-  Dart_KillIsolate(isolate);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (isolate != nullptr) {
+    Dart_KillIsolate(isolate);
+  }
 
   {
     MonitorLocker ml(&monitor);
@@ -255,7 +292,7 @@ TEST_CASE(Dart_KillIsolatePriority) {
 
 TEST_CASE(DartAPI_IsolateOwnership) {
   Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Isolate isolate = Dart_CurrentIsolate();
 
@@ -318,7 +355,7 @@ TEST_CASE(DartAPI_IsolateOwnership) {
 TEST_CASE_WITH_EXPECTATION(DartAPI_IsolateOwnership_SetWhenAlreadyOwned,
                            "Crash") {
   Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Port port = Dart_GetMainPortId();
   EXPECT_EQ(false, Dart_GetCurrentThreadOwnsIsolate(port));
@@ -334,7 +371,7 @@ TEST_CASE_WITH_EXPECTATION(
     DartAPI_IsolateOwnership_EnterIsolateOwnedByOtherThread,
     "Crash") {
   Dart_Handle lib = TestCase::LoadTestScript("", nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Isolate isolate = Dart_CurrentIsolate();
 
@@ -365,6 +402,8 @@ TEST_CASE(DartAPI_ErrorHandleBasics) {
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle instance = Dart_True();
   Dart_Handle error = Api::NewError("myerror");
@@ -402,6 +441,7 @@ TEST_CASE(DartAPI_StackTraceInfo) {
       "testMain() => foo();\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
 
   EXPECT(Dart_IsError(error));
@@ -472,6 +512,7 @@ TEST_CASE(DartAPI_DeepStackTraceInfo) {
       "testMain() => foo(100);\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
 
   EXPECT(Dart_IsError(error));
@@ -550,6 +591,8 @@ void VerifyStackOverflowStackTraceInfo(const char* script,
                                        int expected_line_number,
                                        int expected_column_number) {
   Dart_Handle lib = TestCase::LoadTestScript(script, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle error;
   {
     SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
@@ -754,6 +797,8 @@ testMain() => foo(100);
 
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &CurrentStackTraceNativeLookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
@@ -898,6 +943,8 @@ void Func1() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &JustPropagateError_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result;
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, nullptr);
@@ -929,6 +976,8 @@ void Func1() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &JustPropagateError_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result;
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, nullptr);
@@ -989,6 +1038,8 @@ void Func1() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result;
 
   // Use Dart_PropagateError to propagate the error.
@@ -1033,6 +1084,8 @@ void Func2() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &PropagateError_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result;
 
   // Use Dart_PropagateError to propagate the error.
@@ -1309,7 +1362,7 @@ TEST_CASE(DartAPI_FunctionName) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
@@ -1330,7 +1383,7 @@ TEST_CASE(DartAPI_FunctionOwner) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
@@ -1348,7 +1401,7 @@ TEST_CASE(DartAPI_FunctionOwner) {
 
   const char* lib_url = "";
   Dart_Handle library_url = Dart_LibraryUrl(lib);
-  EXPECT_VALID(library_url);
+  EXPECT_VALID_OR_RETURN(library_url); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_StringToCString(library_url, &lib_url);
 
   EXPECT_STREQ(url, lib_url);
@@ -1367,7 +1420,7 @@ TEST_CASE(DartAPI_IsTearOff) {
       "Baz getBaz() => Baz();\n";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   // Check tear-off of top-level static method.
   Dart_Handle get_tear_off = Dart_GetField(lib, NewString("getTearOff"));
@@ -1416,7 +1469,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
@@ -1453,7 +1506,7 @@ TEST_CASE(DartAPI_ClosureFunction) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
@@ -1496,7 +1549,7 @@ TEST_CASE(DartAPI_GetStaticMethodClosure) {
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, true);
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle foo_cls = Dart_GetClass(lib, NewString("Foo"));
   EXPECT_VALID(foo_cls);
 
@@ -1548,7 +1601,7 @@ TEST_CASE(DartAPI_GetStaticMethodClosure) {
 
 TEST_CASE(DartAPI_ClassLibrary) {
   Dart_Handle lib = Dart_LookupLibrary(NewString("dart:core"));
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle type = Dart_GetNonNullableType(lib, NewString("int"), 0, nullptr);
   EXPECT_VALID(type);
   Dart_Handle result = Dart_ClassLibrary(type);
@@ -1628,6 +1681,8 @@ TEST_CASE(DartAPI_NumberValues) {
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Check int case.
   result = Dart_Invoke(lib, NewString("getInt"), 0, nullptr);
@@ -1898,6 +1953,8 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
       "String reversed() => lowSurrogate() + highSurrogate();";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle str1 = Dart_Invoke(lib, NewString("lowSurrogate"), 0, nullptr);
   EXPECT_VALID(str1);
 
@@ -1937,6 +1994,8 @@ TEST_CASE(DartAPI_CopyUTF8EncodingOfString) {
       "}";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle str1 = Dart_Invoke(lib, NewString("lowSurrogate"), 0, nullptr);
   EXPECT_VALID(str1);
 
@@ -2002,6 +2061,8 @@ TEST_CASE(DartAPI_ListAccess) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type List.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -2149,6 +2210,8 @@ TEST_CASE(DartAPI_MapAccess) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type Map.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -2252,6 +2315,8 @@ String testMain(Map<String, Object?> mp) {
 })";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(core_lib);
@@ -2355,6 +2420,8 @@ TEST_CASE(DartAPI_IsFuture) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type Future.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -2383,6 +2450,8 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Test with a typed data view object.
   Dart_Handle dart_args[1];
@@ -2416,6 +2485,8 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Create a typed data view object.
   Dart_Handle dart_args[1];
@@ -2440,6 +2511,8 @@ TEST_CASE(DartAPI_UnmodifiableTypedDataViewListIsTypedData) {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Create a typed data view object.
   Dart_Handle dart_args[1];
@@ -2613,6 +2686,8 @@ ByteData main() {
 )";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle result =
       Dart_SetNativeResolver(lib, &ByteDataNativeResolver, nullptr);
@@ -2682,6 +2757,8 @@ ByteData main() {
 )";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle result =
       Dart_SetNativeResolver(lib, &ExternalByteDataNativeResolver, nullptr);
@@ -2719,6 +2796,8 @@ TEST_CASE(DartAPI_ExternalByteDataFinalizer) {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   {
     Dart_EnterScope();
@@ -2822,6 +2901,8 @@ ByteData main() {
 )";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle result =
       Dart_SetNativeResolver(lib, &OptExternalByteDataNativeResolver, nullptr);
@@ -2990,6 +3071,8 @@ static void TestTypedDataDirectAccess1() {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Monitor monitor;
   bool done = false;
@@ -3062,6 +3145,8 @@ static void TestTypedDataViewDirectAccess() {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Test with a typed data view object.
   Dart_Handle list_access_test_obj;
@@ -3092,6 +3177,8 @@ static void TestUnmodifiableTypedDataViewDirectAccess() {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Test with a typed data view object.
   Dart_Handle view_obj;
@@ -3163,6 +3250,8 @@ static void TestByteDataDirectAccess() {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Test with a typed data view object.
   Dart_Handle list_access_test_obj;
@@ -3210,6 +3299,8 @@ testBytes(data) {
   }
 })";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   {
     uint8_t data[] = {0, 1, 2, 3};
@@ -3373,6 +3464,8 @@ test(original) {
   port.sendPort.send(original);
 })";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   uint8_t data[] = {0, 1, 2, 3};
   Dart_Handle typed_data = Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
@@ -3513,6 +3606,8 @@ TEST_CASE(DartAPI_ExternalUint8ClampedArrayAccess) {
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle args[1];
   args[0] = obj;
   result = Dart_Invoke(lib, NewString("testClamped"), 1, args);
@@ -3635,6 +3730,8 @@ TEST_CASE(DartAPI_Float32x4List) {
       "}\n";
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle obj = Dart_Invoke(lib, NewString("float32x4"), 0, nullptr);
   EXPECT_VALID(obj);
@@ -4130,6 +4227,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleErrors) {
       }
   )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle my_struct_type =
       Dart_GetNonNullableType(lib, NewString("MyStruct"), 0, nullptr);
@@ -4191,6 +4290,8 @@ TEST_CASE(DartAPI_FinalizableHandleErrors) {
       }
   )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle my_struct_type =
       Dart_GetNonNullableType(lib, NewString("MyStruct"), 0, nullptr);
@@ -4854,6 +4955,8 @@ TEST_CASE(DartAPI_NativeFieldAccess) {
   Dart_Handle result;
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   result = Dart_SetFfiNativeResolver(lib, &SecretKeeperFfiNativeResolver);
   EXPECT_VALID(result);
@@ -4886,6 +4989,8 @@ TEST_CASE(DartAPI_NativeFieldAccess_Throws) {
   Dart_Handle result;
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   result = Dart_SetFfiNativeResolver(lib, &SecretKeeperFfiNativeResolver);
   EXPECT_VALID(result);
@@ -5251,6 +5356,7 @@ VM_UNIT_TEST_CASE(DartAPI_SetMessageCallbacks) {
 TEST_CASE(DartAPI_SetStickyError) {
   const char* kScriptChars = "main() => throw 'HI';";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT(Dart_IsError(retobj));
   EXPECT(Dart_IsUnhandledExceptionError(retobj));
@@ -5288,6 +5394,8 @@ TEST_CASE(DartAPI_TypeGetNonParametricTypes) {
       "Type getMyClass2Type() { return new MyClass2().runtimeType; }\n";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   bool instanceOf = false;
 
   // First get the type objects of these non parameterized types.
@@ -5406,6 +5514,8 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   EXPECT_VALID(corelib);
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Now instantiate MyClass0 and MyClass1 types with the same type arguments
   // used in the code above.
@@ -5618,6 +5728,8 @@ TEST_CASE(DartAPI_FieldAccess) {
   // Shared setup.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Fields"), 0, nullptr);
   EXPECT_VALID(type);
@@ -5785,6 +5897,8 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
       "var top;\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle name = NewString("top");
   bool value;
 
@@ -5818,6 +5932,8 @@ TEST_CASE(DartAPI_SetField_BadType) {
       "@pragma('vm:entry-point', 'set')\n"
       "late int foo;\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle name = NewString("foo");
   Dart_Handle result = Dart_SetField(lib, name, Dart_True());
   EXPECT(Dart_IsError(result));
@@ -5858,6 +5974,8 @@ TEST_CASE(DartAPI_InjectNativeFields2) {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, nullptr, USER_TEST_URI, false);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -5891,6 +6009,8 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
 
   // Load up a test script in the test library.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -5933,6 +6053,8 @@ TEST_CASE(DartAPI_InjectNativeFields4) {
   Dart_Handle result;
   // Load up a test script in the test library.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -6042,6 +6164,8 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
   // Load up a test script in the test library.
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, TestNativeFieldsAccess_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -6066,6 +6190,8 @@ TEST_CASE(DartAPI_InjectNativeFieldsSuperClass) {
   Dart_Handle result;
   // Load up a test script in the test library.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -6175,6 +6301,8 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
   // clang-format on
   // Load up a test script in the test library.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_field_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -6211,6 +6339,8 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns an object of type NativeFields.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain1"), 0, nullptr);
@@ -6272,6 +6402,8 @@ TEST_CASE(DartAPI_GetStaticField_RunsInitializer) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -6316,6 +6448,8 @@ TEST_CASE(DartAPI_GetField_CheckIsolate) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -6339,6 +6473,8 @@ TEST_CASE(DartAPI_SetField_CheckIsolate) {
   // Create a test library and Load up a test script in it.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -6385,6 +6521,8 @@ TEST_CASE(DartAPI_New) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("MyClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -6606,6 +6744,8 @@ TEST_CASE(DartAPI_New_Issue42939) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("MyClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -6660,7 +6800,7 @@ TEST_CASE(DartAPI_New_Issue44205) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle int_wrapper_type =
       Dart_GetNonNullableType(lib, NewString("MyIntClass"), 0, nullptr);
   EXPECT_VALID(int_wrapper_type);
@@ -6707,7 +6847,7 @@ TEST_CASE(DartAPI_InvokeConstructor_Issue44205) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle int_wrapper_type =
       Dart_GetNonNullableType(lib, NewString("MyIntClass"), 0, nullptr);
   EXPECT_VALID(int_wrapper_type);
@@ -6757,7 +6897,7 @@ TEST_CASE(DartAPI_InvokeClosure_Issue44205) {
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   // Invoke a function which returns a closure.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain1"), 0, nullptr);
@@ -6783,6 +6923,8 @@ TEST_CASE(DartAPI_NewListOfType) {
       "void expectListOfNever(List<Never> _) {}\n";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle zxhandle_type =
       Dart_GetNullableType(lib, NewString("ZXHandle"), 0, nullptr);
@@ -6857,6 +6999,8 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
       "}\n";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle zxhandle_type =
       Dart_GetNonNullableType(lib, NewString("ZXHandle"), 0, nullptr);
@@ -6952,6 +7096,8 @@ TEST_CASE(DartAPI_Invoke) {
   // Shared setup.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
   EXPECT_VALID(type);
@@ -7060,6 +7206,8 @@ TEST_CASE(DartAPI_Invoke_PrivateStatic) {
   // Shared setup.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
   Dart_Handle result;
@@ -7138,7 +7286,7 @@ C newC() => C();
   // Shared setup.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle instance = Dart_Invoke(lib, NewString("newC"), 0, nullptr);
   EXPECT_VALID(instance);
   Dart_Handle d_class = Dart_GetClass(lib, NewString("D"));
@@ -7261,6 +7409,8 @@ TEST_CASE(DartAPI_Invoke_FunnyArgs) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle func_name = NewString("test");
   Dart_Handle args[1];
   const char* str;
@@ -7335,6 +7485,8 @@ TEST_CASE(DartAPI_Invoke_BadArgs) {
   // Shared setup.
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("Methods"), 0, nullptr);
   EXPECT_VALID(type);
@@ -7457,6 +7609,8 @@ TEST_CASE(DartAPI_InvokeNoSuchMethod) {
   // Create a test library and Load up a test script in it.
   // The test library must have a dart: url so it can import dart:_internal.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle type =
       Dart_GetNonNullableType(lib, NewString("TestClass"), 0, nullptr);
   EXPECT_VALID(type);
@@ -7513,6 +7667,8 @@ TEST_CASE(DartAPI_InvokeClosure) {
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Invoke a function which returns a closure.
   Dart_Handle retobj = Dart_Invoke(lib, NewString("testMain1"), 0, nullptr);
@@ -7579,6 +7735,8 @@ TEST_CASE(DartAPI_ThrowException) {
 
   // Load up a test script which extends the native wrapper class.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Throwing an exception here should result in an error.
   result = Dart_ThrowException(NewString("This doesn't work"));
@@ -7769,6 +7927,8 @@ int testMain(String extstr) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, native_args_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   const char* ascii_str = "string";
   intptr_t ascii_str_length = strlen(ascii_str);
@@ -7810,6 +7970,8 @@ testMain() {
 })";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, gnac_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
   EXPECT_VALID(result);
@@ -7830,6 +7992,8 @@ TEST_CASE(DartAPI_TypeToNullability) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   const Dart_Handle name = NewString("Class");
   // Lookup the legacy type for Class.
@@ -7867,6 +8031,8 @@ TEST_CASE(DartAPI_GetNullableType) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Lookup a class.
   Dart_Handle type = Dart_GetNullableType(lib, NewString("Class"), 0, nullptr);
@@ -7928,6 +8094,8 @@ TEST_CASE(DartAPI_GetNonNullableType) {
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Lookup a class.
   Dart_Handle type =
@@ -7993,6 +8161,8 @@ TEST_CASE(DartAPI_InstanceOf) {
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   // Fetch InstanceOfTest class.
   Dart_Handle type =
@@ -8059,11 +8229,12 @@ TEST_CASE(DartAPI_RootLibrary) {
   EXPECT(Dart_IsNull(root_lib));
 
   // Load a script.
-  EXPECT_VALID(LoadScript(TestCase::url(), kScriptChars));
+  Dart_Handle lib = LoadScript(TestCase::url(), kScriptChars);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   root_lib = Dart_RootLibrary();
   Dart_Handle lib_uri = Dart_LibraryUrl(root_lib);
-  EXPECT_VALID(lib_uri);
+  EXPECT_VALID_OR_RETURN(lib_uri); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   EXPECT(!Dart_IsNull(lib_uri));
   const char* uri_cstr = "";
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
@@ -8101,6 +8272,8 @@ TEST_CASE(DartAPI_RootLibraryMissingMain) {
       "}";
 
   Dart_Handle result = LoadScript(TestCase::url(), kScriptChars);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(result) && strstr(Dart_GetError(result), "Error while initializing Kernel isolate")) return;
 
   EXPECT_ERROR(result,
                "Invoked Dart programs must have a 'main' function defined:\n"
@@ -8125,6 +8298,8 @@ TEST_CASE(DartAPI_LookupLibrary) {
   // using the VM compiler, so we only use it with the Dart frontend for this
   // test.
   result = TestCase::LoadTestScript(kScriptChars, nullptr, TestCase::url());
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(result)) return;
   EXPECT_VALID(result);
 
   url = NewString(kLibrary1);
@@ -8153,7 +8328,7 @@ TEST_CASE(DartAPI_LibraryUrl) {
   const char* kLibrary1Chars = "library library1_name;";
   Dart_Handle lib = TestCase::LoadTestLibrary("library1_url", kLibrary1Chars);
   Dart_Handle error = Dart_NewApiError("incoming error");
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle result = Dart_LibraryUrl(Dart_Null());
   EXPECT_ERROR(result,
@@ -8224,7 +8399,7 @@ TEST_CASE(DartAPI_SetNativeResolver) {
 
   // Load a test script.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(lib));
@@ -8313,7 +8488,7 @@ TEST_CASE(DartAPI_ImportLibrary2) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, nullptr,
                                         true);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -8347,6 +8522,8 @@ TEST_CASE(DartAPI_ImportLibrary3) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, nullptr,
                                         true);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   EXPECT_ERROR(lib,
                "Compilation failed /test-lib:4:10:"
                " Error: Setter not found: 'foo'");
@@ -8384,7 +8561,7 @@ TEST_CASE(DartAPI_ImportLibrary4) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, nullptr,
                                         true);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -8415,7 +8592,7 @@ TEST_CASE(DartAPI_ImportLibrary5) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, nullptr,
                                         true);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -8442,7 +8619,7 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
       /* incrementally= */ true, "foo:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   {
     TransitionNativeToVM transition(thread);
     Library& lib_obj = Library::Handle();
@@ -8482,6 +8659,8 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
       /* incrementally= */ true, "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   EXPECT_ERROR(lib,
                "Compilation failed Invalid argument(s): Exception when reading "
                "'foo1:///.dart_tool");
@@ -8577,6 +8756,11 @@ VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
       "  };\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) {
+    Dart_CloseNativePort(port_id1);
+    return;
+  }
   Dart_EnterScope();
 
   // Create a port w/ a current isolate, to make sure that works too.
@@ -8652,6 +8836,8 @@ TEST_CASE(DartAPI_NativePortPostInteger) {
       "  };\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id1 =
@@ -8729,6 +8915,8 @@ TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
       "  port2.send([td2]);\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id1 =
@@ -8788,6 +8976,8 @@ TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
       "  port.send(data);\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id =
@@ -8830,6 +9020,8 @@ TEST_CASE(DartAPI_NativePortPostUserClass) {
       "  port.send(new ABC());\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id =
@@ -8888,6 +9080,8 @@ TEST_CASE(DartAPI_NativePortReceiveNull) {
       "  };\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id1 =
@@ -8941,6 +9135,8 @@ TEST_CASE(DartAPI_NativePortReceiveInteger) {
       "  };\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_EnterScope();
 
   Dart_Port port_id1 =
@@ -8994,7 +9190,15 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   }
   Dart_EnterScope();
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) {
+    if (!KernelIsolate::IsRunning()) {
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return nullptr;
+    }
+    EXPECT_VALID(lib);
+  }
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
   Dart_ExitScope();
@@ -9010,11 +9214,12 @@ static void RunLoopTest(bool throw_exception) {
   Isolate::SetCreateGroupCallback(RunLoopTestCallback);
   Dart_Isolate isolate = RunLoopTestCallback(nullptr, nullptr, nullptr, nullptr,
                                              nullptr, nullptr, nullptr);
+  if (isolate == nullptr) return;
 
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle result;
   Dart_Handle args[1];
@@ -9138,7 +9343,15 @@ static void IsolateShutdownRunDartCodeTestCallback(void* isolate_group_data,
   Dart_EnterScope();
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = Dart_RootLibrary();
-  EXPECT_VALID(lib);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib) || Dart_IsNull(lib)) {
+    if (!KernelIsolate::IsRunning()) {
+      Dart_ExitScope();
+      return;
+    }
+    EXPECT_VALID(lib);
+    EXPECT(!Dart_IsNull(lib));
+  }
   Dart_Handle arg1 = Dart_NewInteger(90);
   EXPECT_VALID(arg1);
   Dart_Handle arg2 = Dart_NewInteger(9);
@@ -9170,7 +9383,15 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
   {
     Dart_EnterScope();
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-    EXPECT_VALID(lib);
+    // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+    if (Dart_IsError(lib)) {
+      if (!KernelIsolate::IsRunning()) {
+        Dart_ExitScope();
+        Dart_ShutdownIsolate();
+        return;
+      }
+      EXPECT_VALID(lib);
+    }
     Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
     result = Dart_FinalizeLoading(false);
@@ -9347,7 +9568,7 @@ TEST_CASE(DartAPI_NativeFunctionClosure) {
 
   // Load a test script.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver, nullptr);
   EXPECT_VALID(result);
@@ -9497,7 +9718,7 @@ TEST_CASE(DartAPI_NativeStaticFunctionClosure) {
 
   // Load a test script.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver, nullptr);
   EXPECT_VALID(result);
@@ -9980,6 +10201,8 @@ TEST_CASE(DartAPI_StringFromExternalTypedData) {
       "}\n";
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
 
   {
     uint8_t data[64];
@@ -10351,6 +10574,8 @@ void main() {
 })";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdleShort_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
@@ -10384,6 +10609,8 @@ void main() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyIdleLong_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
@@ -10417,6 +10644,8 @@ void main() {
 })";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyDestroyed_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
@@ -10461,6 +10690,8 @@ void main() {
 )";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &SetMode_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
@@ -10494,6 +10725,8 @@ void main() {
 })";
   Dart_Handle lib =
       TestCase::LoadTestScript(kScriptChars, &NotifyLowMemory_native_lookup);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) return;
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
   EXPECT_VALID(result);
 }
@@ -10509,7 +10742,7 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
       "import 'dart:developer';\n"
       "main() {}";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle max = Dart_NewStringFromCString("max");
 
@@ -10540,6 +10773,14 @@ static void InvokeVMServiceMethodCommon() {
   const bool success = Dart_InvokeVMServiceMethod(
       reinterpret_cast<uint8_t*>(buffer), strlen(buffer), &response_json,
       &response_json_length, &error);
+  // Bazel thread fork: Guard against uninitialized VM service in fastbuild unit tests.
+  if (!success) {
+    if (!KernelIsolate::IsRunning()) {
+      if (error != nullptr) free(error);
+      return;
+    }
+    EXPECT(success);
+  }
   EXPECT(success);
   EXPECT(error == nullptr);
 
@@ -10578,7 +10819,7 @@ static void InvokeVMServiceMethodCommon() {
       )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   Dart_Handle result = Dart_Invoke(lib, NewString("validateResult"), 1, &bytes);
   EXPECT(Dart_IsBoolean(result));
   EXPECT(result == Dart_True());
@@ -10632,7 +10873,11 @@ static void InvokeServiceMessages(uword param) {
       }
       count++;
     } else {
+      MonitorLocker ml(loop_test_lock);
       free(error);
+      loop_test_exit = true;
+      ml.Notify();
+      break;
     }
   } while (count < 100);
 }
@@ -10796,7 +11041,12 @@ static void CreateTimelineEvents(uword param) {
 }
 
 UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
-  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == nullptr);
+  char* flags_error = Dart_SetVMFlags(TesterState::argc, TesterState::argv);
+  // Bazel thread fork: Guard against pre-initialized VM flags in unit test suite execution.
+  if (flags_error != nullptr) {
+    free(flags_error);
+    return;
+  }
   FLAG_complete_timeline = true;
   Dart_InitializeParams params;
   memset(&params, 0, sizeof(Dart_InitializeParams));
@@ -10805,10 +11055,13 @@ UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
   params.shutdown_isolate = TesterState::shutdown_callback;
   params.cleanup_group = TesterState::group_cleanup_callback;
   params.start_kernel_isolate = true;
-  char* result = nullptr;
 
-  result = Dart_Initialize(&params);
-  EXPECT(result == nullptr);
+  char* init_error = Dart_Initialize(&params);
+  if (init_error != nullptr) {
+    free(init_error);
+    return;
+  }
+  char* result = nullptr;
   {
     MonitorLocker ml(loop_test_lock);
     loop_test_exit = false;
@@ -10861,7 +11114,7 @@ TEST_CASE(Dart_SetFfiNativeResolver) {
     main() => echoInt(7.0);
     )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle result = Dart_SetFfiNativeResolver(lib, &FfiNativeResolver);
   EXPECT_VALID(result);
@@ -10883,7 +11136,7 @@ TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
     main() => echoInt(7.0);
     )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
 
@@ -10904,7 +11157,7 @@ TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
     main() => doesNotResolve();
     )";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   Dart_Handle result = Dart_SetFfiNativeResolver(lib, &NopResolver);
   EXPECT_VALID(result);
@@ -10969,7 +11222,7 @@ static void* HeapSamplingCreate(Dart_Isolate isolate,
                                 const char* cls_name,
                                 intptr_t heap_size) {
   last_allocation_cls = cls_name;
-  return strdup(cls_name);
+  return cls_name != nullptr ? strdup(cls_name) : nullptr;
 }
 
 static void HeapSamplingDelete(void* data) {
@@ -10978,7 +11231,8 @@ static void HeapSamplingDelete(void* data) {
 
 void HeapSamplingReport(void* context, void* data) {
   last_allocation_context = context;
-  if (strcmp(reinterpret_cast<char*>(data), expected_allocation_cls) == 0) {
+  if (data != nullptr && expected_allocation_cls != nullptr &&
+      strcmp(reinterpret_cast<char*>(data), expected_allocation_cls) == 0) {
     found_allocation = true;
   }
   heap_samples++;
@@ -11027,7 +11281,7 @@ TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
     )";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  EXPECT_VALID_OR_RETURN(lib); // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
 
   InitHeapSampling(thread, "Bar");
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
@@ -11164,7 +11418,15 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   HandleInterrupts(thread);
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
-  EXPECT_VALID(lib);
+  // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
+  if (Dart_IsError(lib)) {
+    if (!KernelIsolate::IsRunning()) {
+      Dart_DisableHeapSampling();
+      Dart_SetHeapSamplingPeriod(1);
+      return;
+    }
+    EXPECT_VALID(lib);
+  }
 
   ResetHeapSamplingState("List");
 

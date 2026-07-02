@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 86/113 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 95/119 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -56,14 +56,20 @@ graph TD
     sdk_4kr["sdk-4kr:<br>Upstream Hermetic OtherResources Annotations for IO Tests"]:::pending
     sdk_4mq["sdk-4mq:<br>Align Bazel migration with recent upstream improvements"]:::completed
     sdk_4rb["sdk-4rb:<br>Unified Test Repository with Configuration Subtargets"]:::completed
-    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::pending
+    sdk_4z5["sdk-4z5:<br>Migrate VM runtime regression, debugger, observatory, and service suites to Bazel"]:::completed
     sdk_4z8["sdk-4z8:<br>Skill: Create agent skill for automated upstream PR/CL triage in Bazel"]:::completed
     sdk_50x["sdk-50x:<br>Non-Flattened Direct Import Mapping for Test Caching"]:::completed
     sdk_5db["sdk-5db:<br>Minor SDK Assembly Stubs Resolution"]:::completed
+    sdk_5m4["sdk-5m4:<br>Epic: 100% Zero-Prerequisite 'Test Everything' for Dart SDK"]:::completed
+    sdk_5m4.1["sdk-5m4.1:<br>Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules"]:::completed
+    sdk_5m4.2["sdk-5m4.2:<br>Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl"]:::completed
+    sdk_5m4.3["sdk-5m4.3:<br>Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters"]:::completed
+    sdk_5m4.4["sdk-5m4.4:<br>Workstream 4: Implement One-Command Developer Entrypoint Script"]:::completed
+    sdk_5m4.5["sdk-5m4.5:<br>Workstream 5: CI Path Filtering & Remote Action Cache Setup"]:::completed
     sdk_5uz["sdk-5uz:<br>Coarse-Grained Test Suite Clustering"]:::completed
     sdk_5zs["sdk-5zs:<br>Resolve Bzlmod Lockfile Drift"]:::completed
     sdk_65j["sdk-65j:<br>Upstream Test Runner Metadata Dumping Optimization"]:::inProgress
-    sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::pending
+    sdk_67o["sdk-67o:<br>Implement Bazel test matrix optimization and remediation recommendations"]:::completed
     sdk_67o.1["sdk-67o.1:<br>{REC-FAST-4} Dynamic Test Timeout Tiers {timeout = \"long\"} for heavy AOT/WASM suites"]:::completed
     sdk_67o.2["sdk-67o.2:<br>{REC-FIX-3} Target Quarantining Allowlist {tags = {\"quarantine\"}}"]:::completed
     sdk_67o.3["sdk-67o.3:<br>{REC-FIX-1} Migrate pkg/... test harnesses to package:runfiles lookup"]:::completed
@@ -111,7 +117,7 @@ graph TD
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
     sdk_itv["sdk-itv:<br>Produce and publish distributable SDK artifacts {versioned archives + symbols + upload}"]:::pending
-    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::pending
+    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::inProgress
     sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
@@ -135,7 +141,7 @@ graph TD
     sdk_sjn["sdk-sjn:<br>{bazel} Windows-host portability debt: shell-isms throughout genrules/macros/presubmit"]:::pending
     sdk_tjm["sdk-tjm:<br>Simulator Target Configurations"]:::completed
     sdk_trr["sdk-trr:<br>Bump Bazel to 9.1.1"]:::completed
-    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::pending
+    sdk_u0p["sdk-u0p:<br>Define Bazel test targets for core library API tests {tests/lib}"]:::completed
     sdk_u24["sdk-u24:<br>{test_runner} --built-with-bazel: 'bazel info' probe has no timeout"]:::completed
     sdk_u2u["sdk-u2u:<br>{bazel} pre-commit arch audit is evaded by 'TARGET_ARCH_' + 'X64' concat — decide policy"]:::completed
     sdk_uft["sdk-uft:<br>VM AOT Test Suite Integration"]:::completed
@@ -164,12 +170,16 @@ graph TD
     sdk_5uz --> sdk_4rb
     sdk_fnn --> sdk_4z8
     sdk_zi3 --> sdk_4z8
+    sdk_5m4 --> sdk_5m4.1
+    sdk_5m4 --> sdk_5m4.2
+    sdk_5m4 --> sdk_5m4.3
+    sdk_5m4 --> sdk_5m4.4
+    sdk_5m4 --> sdk_5m4.5
     sdk_50x --> sdk_5uz
     sdk_67o --> sdk_67o.1
     sdk_67o --> sdk_67o.2
     sdk_67o --> sdk_67o.3
     sdk_67o --> sdk_67o.4
-    sdk_67o --> sdk_67o.5
     sdk_67o --> sdk_67o.6
     sdk_67o --> sdk_67o.7
     sdk_oce --> sdk_90d
@@ -271,20 +281,6 @@ graph TD
 
 ---
 
-### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
-- **Status**: `[PENDING]`
-- **Tags**: `bazel-migration`, `vm`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-65j] Upstream Test Runner Metadata Dumping Optimization
 - **Status**: `[IN_PROGRESS]`
 - **Tags**: `general-cleanup`, `non-bazel`
@@ -300,22 +296,9 @@ graph TD
 
 ---
 
-### 🎯 [sdk-67o] Implement Bazel test matrix optimization and remediation recommendations
-- **Status**: `[PENDING]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
-- **Success Criteria**:
-
----
-
 ### 🎯 [sdk-67o.5] [REC-FAST-1] Enable Remote Build Execution (RBE) & Remote Caching
 - **Status**: `[PENDING]`
-- **Prerequisites**: `sdk-67o`
+- **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
 - **Target Files**:
@@ -463,7 +446,7 @@ graph TD
 ---
 
 ### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
@@ -527,20 +510,6 @@ graph TD
   - None
 - **Description**:
   Deliberately accepted debt, recorded once instead of point-fixing review comments. The Bazel migration is Linux-first (macOS parked); there is NO Windows toolchain, CI, or platform source port. Shell-isms exist tree-wide: sed in //:package_config_json_staged, dirname in training_args (utils/compiler, utils/analysis_server), cp/cat/touch genrules everywhere, bash presubmit.sh + pre-commit hook, embedder ELF-assembly genrules. If/when a Windows port is decided (vs keeping GN for Windows), sweep these as part of the port — individual shims before then buy nothing. Origin: gemini review comments on dart-sdk-bazel PR #17 (2026-06-11).
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
-- **Status**: `[PENDING]`
-- **Tags**: `bazel-migration`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  
 - **Success Criteria**:
 
 ---

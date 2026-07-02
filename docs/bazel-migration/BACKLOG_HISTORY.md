@@ -143,6 +143,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-4z5] Migrate VM runtime regression, debugger, observatory, and service suites to Bazel
+- **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`, `vm`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-4z8] Skill: Create agent skill for automated upstream PR/CL triage in Bazel
 - **Status**: `[COMPLETED]`
 - **Tags**: `agent-skill`, `bazel-migration`, `tooling`
@@ -193,6 +207,84 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-5m4] Epic: 100% Zero-Prerequisite 'Test Everything' for Dart SDK
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Achieve 100% zero-prerequisite build, test execution, and pass rates across all 5,788 test targets on fresh checkouts using Bazel.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.1] Workstream 1: Declare Hermetic Toolchains & Sysroots in Bazel Repository Rules
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Ensure Bazel repository rules (@prebuilt_dart_sdk, @dart_clang, etc.) fetch/declare all host toolchains and C++ sysroots automatically so clean checkouts require zero pre-installed system compilers or pre-built GN artifacts. Once hermetic toolchains land, update .bazelrc to scope  so --config=ci and default builds can utilize remote C++ action caching.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.2] Workstream 2: Resolve 2,296 Target Build Errors in test_rules.bzl
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Remediate the 2,296 target build-step errors by fixing runfile lookups, header include quotes, C++ compilation dependencies, and package_config.json resolution.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.3] Workstream 3: Synchronize .status Expectations with Bazel Quarantine Filters
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Map Dart test runner .status file expectations (e.g. simarm64, simriscv64, analyzer skips/failures) into generate_test_targets.dart quarantine tags so platform-specific expected failures are not flagged as Bazel regressions.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.4] Workstream 4: Implement One-Command Developer Entrypoint Script
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Create a clean ./tools/bazel/test_everything.sh wrapper script that bootstraps prebuilt Dart SDK, checks disk/RAM bounds, sets optimal sandbox_base=/tmp flags, and invokes run_test_universe.dart.
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-5m4.5] Workstream 5: CI Path Filtering & Remote Action Cache Setup
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: `sdk-5m4`
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Configure paths-filter in bazel.yml to skip C++ builds on documentation/backlog PRs and enable Bazel remote action caching.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-5uz] Coarse-Grained Test Suite Clustering
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_012`
@@ -227,6 +319,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
   - [x] `test_rules.bzl` returns `reproducible = True` in its extension metadata.
   - [x] `third_party.bzl` returns `reproducible = True` in its extension metadata.
   - [x] `MODULE.bazel.lock` no longer contains entries for these two extensions, preventing platform-specific digest changes.
+
+---
+
+### 🎯 [sdk-67o] Implement Bazel test matrix optimization and remediation recommendations
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Execute prioritized speed & remediation recommendations from docs/bazel-migration/BAZEL_MATRIX_INSIGHTS_AND_RECOMMENDATIONS.md (REC-FAST-1..4 and REC-FIX-1..3).
+- **Success Criteria**:
 
 ---
 
@@ -1111,6 +1216,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 ### 🎯 [sdk-trr] Bump Bazel to 9.1.1
 - **Status**: `[COMPLETED]`
 - **PR/External Ref**: [PR #29](https://github.com/kevmoo/dart-sdk-bazel/pull/29)
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  
+- **Success Criteria**:
+
+---
+
+### 🎯 [sdk-u0p] Define Bazel test targets for core library API tests (tests/lib)
+- **Status**: `[COMPLETED]`
+- **Tags**: `bazel-migration`
 - **Prerequisites**: None
 - **Owner**: `[none]`
 - **Commit**: `[none]`
