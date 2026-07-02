@@ -289,9 +289,7 @@ static void LoadIsolateReloadTestLibIfNeeded(const char* script) {
     Dart_Handle result = TestCase::LoadTestLibrary(
         IsolateReloadTestLibUri(), kIsolateReloadTestLibSource,
         IsolateReloadTestNativeResolver);
-    if (!Dart_IsError(result)) {
-      EXPECT_VALID(result);
-    }
+    EXPECT_VALID_OR_RETURN(result);
   }
 #endif  // ifndef PRODUCT
 }

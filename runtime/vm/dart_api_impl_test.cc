@@ -166,10 +166,13 @@ UNIT_TEST_CASE(DartAPI_DartCleanupWaitsForGroupCleanupCallbacks) {
         Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
         // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
         if (Dart_IsError(lib)) {
-          MonitorLocker ml(monitor);
-          *shutting_down = true;
-          ml.Notify();
-          return;
+          if (!KernelIsolate::IsRunning()) {
+            MonitorLocker ml(monitor);
+            *shutting_down = true;
+            ml.Notify();
+            return;
+          }
+          EXPECT_VALID(lib);
         }
         Dart_Handle result =
             Dart_Invoke(lib, NewString("testMain"), 0, nullptr);
@@ -231,10 +234,13 @@ class InfiniteLoopTask : public ThreadPool::Task {
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
     // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
     if (Dart_IsError(lib)) {
-      MonitorLocker ml(monitor_);
-      *interrupted_ = true;
-      ml.Notify();
-      return;
+      if (!KernelIsolate::IsRunning()) {
+        MonitorLocker ml(monitor_);
+        *interrupted_ = true;
+        ml.Notify();
+        return;
+      }
+      EXPECT_VALID(lib);
     }
     *isolate_ = reinterpret_cast<Dart_Isolate>(Isolate::Current());
     {
@@ -9186,9 +9192,12 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   if (Dart_IsError(lib)) {
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    return nullptr;
+    if (!KernelIsolate::IsRunning()) {
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return nullptr;
+    }
+    EXPECT_VALID(lib);
   }
   Dart_Handle result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
@@ -9336,8 +9345,12 @@ static void IsolateShutdownRunDartCodeTestCallback(void* isolate_group_data,
   Dart_Handle lib = Dart_RootLibrary();
   // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   if (Dart_IsError(lib) || Dart_IsNull(lib)) {
-    Dart_ExitScope();
-    return;
+    if (!KernelIsolate::IsRunning()) {
+      Dart_ExitScope();
+      return;
+    }
+    EXPECT_VALID(lib);
+    EXPECT(!Dart_IsNull(lib));
   }
   Dart_Handle arg1 = Dart_NewInteger(90);
   EXPECT_VALID(arg1);
@@ -9372,9 +9385,12 @@ VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownRunDartCode) {
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
     // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
     if (Dart_IsError(lib)) {
-      Dart_ExitScope();
-      Dart_ShutdownIsolate();
-      return;
+      if (!KernelIsolate::IsRunning()) {
+        Dart_ExitScope();
+        Dart_ShutdownIsolate();
+        return;
+      }
+      EXPECT_VALID(lib);
     }
     Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
@@ -10759,8 +10775,11 @@ static void InvokeVMServiceMethodCommon() {
       &response_json_length, &error);
   // Bazel thread fork: Guard against uninitialized VM service in fastbuild unit tests.
   if (!success) {
-    if (error != nullptr) free(error);
-    return;
+    if (!KernelIsolate::IsRunning()) {
+      if (error != nullptr) free(error);
+      return;
+    }
+    EXPECT(success);
   }
   EXPECT(success);
   EXPECT(error == nullptr);
@@ -11401,9 +11420,12 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   // Bazel thread fork: Guard against uninitialized DFE in fastbuild unit tests.
   if (Dart_IsError(lib)) {
-    Dart_DisableHeapSampling();
-    Dart_SetHeapSamplingPeriod(1);
-    return;
+    if (!KernelIsolate::IsRunning()) {
+      Dart_DisableHeapSampling();
+      Dart_SetHeapSamplingPeriod(1);
+      return;
+    }
+    EXPECT_VALID(lib);
   }
 
   ResetHeapSamplingState("List");
