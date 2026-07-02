@@ -170,21 +170,16 @@ cc_test(
         "-ffunction-sections",
         "-g3",
         "-ggdb3",
-        "-fPIE",
-        "-Wno-unused-parameter",
         "-Wno-unused-private-field",
         "-Wnon-virtual-dtor",
         "-Wvla",
         "-Woverloaded-virtual",
         "-Wno-comments",
-        "-g3",
-        "-ggdb3",
         "-fno-rtti",
         "-fno-exceptions",
         "-Wnewline-eof",
         "-Wimplicit-fallthrough",
         "-fno-strict-vtable-pointers",
-        "-O2",
         "-fno-omit-frame-pointer",
     ] + select({
         "//build/config:debug": [],
@@ -193,7 +188,6 @@ cc_test(
     cxxopts = [
         "-fvisibility-inlines-hidden",
         "-fno-omit-frame-pointer",
-        "-std=c++20",
         "-std=c++20",
         "-fno-rtti",
     ] + select({
@@ -206,13 +200,7 @@ cc_test(
     data = [
         "//runtime:runtime_test_data",
         "//runtime/vm:vm_platform.dill",
-    ] + glob(
-        [
-            "**/*.cc",
-            "**/*.h",
-        ],
-        allow_empty = True,
-    ),
+    ],
     linkopts = [
         "-ldl",
         "-lpthread",
@@ -232,9 +220,9 @@ cc_test(
         "//runtime/bin:dart_kernel_platform_cc",
         "//runtime/bin:kernel_service_dill_linkable",
         "//runtime/bin:run_vm_tests_set",
-        "@boringssl//:boringssl",
+        "@boringssl",
         "@perfetto//:libprotozero",
-        "@zlib//:zlib",
+        "@zlib",
     ],
 )
 
