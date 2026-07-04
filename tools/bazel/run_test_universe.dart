@@ -78,6 +78,7 @@ Flags:
 }
 
 void purgeRunfilesSymlinks() {
+  if (Platform.isWindows) return;
   try {
     final binDir = Directory('bazel-out');
     if (!binDir.existsSync()) return;
@@ -360,11 +361,24 @@ void main(List<String> args) async {
         final s = determineSuite(t);
         suiteMap.putIfAbsent(s, () => []).add(t);
       }
+      var currentChunk = <String>[];
       for (final group in suiteMap.values) {
-        for (var i = 0; i < group.length; i += chunkSize) {
-          targetChunks.add(group.sublist(i,
-              (i + chunkSize < group.length) ? i + chunkSize : group.length));
+        if (currentChunk.isNotEmpty &&
+            currentChunk.length + group.length > chunkSize) {
+          targetChunks.add(currentChunk);
+          currentChunk = <String>[];
         }
+        if (group.length > chunkSize) {
+          for (var i = 0; i < group.length; i += chunkSize) {
+            targetChunks.add(group.sublist(i,
+                (i + chunkSize < group.length) ? i + chunkSize : group.length));
+          }
+        } else {
+          currentChunk.addAll(group);
+        }
+      }
+      if (currentChunk.isNotEmpty) {
+        targetChunks.add(currentChunk);
       }
     } else {
       for (var i = 0; i < filteredTargets.length; i += chunkSize) {
