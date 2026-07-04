@@ -78,17 +78,34 @@ Flags:
 
 void purgeRunfilesSymlinks() {
   try {
-    Process.runSync('chmod', ['-R', 'u+w', 'bazel-out']);
-    Process.runSync('rm', ['-rf', 'bazel-out/k8-fastbuild/testlogs']);
     final binDir = Directory('bazel-out');
     if (!binDir.existsSync()) return;
-    for (final entity in binDir.listSync(recursive: true, followLinks: false)) {
-      if (entity.path.endsWith('.runfiles')) {
-        try {
-          entity.deleteSync(recursive: true);
-        } catch (_) {}
-      }
+
+    final testlogs = Directory('bazel-out/k8-fastbuild/testlogs');
+    if (testlogs.existsSync()) {
+      Process.runSync('chmod', ['-R', 'u+w', testlogs.path]);
+      Process.runSync('rm', ['-rf', testlogs.path]);
     }
+
+    Process.runSync('find', [
+      'bazel-out',
+      '-type',
+      'd',
+      '-name',
+      '*.runfiles',
+      '-prune',
+      '-exec',
+      'chmod',
+      '-R',
+      'u+w',
+      '{}',
+      ';',
+      '-exec',
+      'rm',
+      '-rf',
+      '{}',
+      ';'
+    ]);
   } catch (_) {}
 }
 
@@ -417,16 +434,16 @@ void main(List<String> args) async {
         ];
 
         final outSink = logFile.openWrite(mode: FileMode.append);
-        final testProc = await Process.start('bazel', fullArgs);
-        final outSub = testProc.stdout.listen(outSink.add);
-        final errSub = testProc.stderr.listen(outSink.add);
-        await testProc.exitCode;
-        await outSub.cancel();
-        await errSub.cancel();
-        await outSink.flush();
-        await outSink.close();
-
-        var cumulativeTestCount = 0;
+        try {
+          final testProc = await Process.start('bazel', fullArgs);
+          final outDone = testProc.stdout.forEach(outSink.add);
+          final errDone = testProc.stderr.forEach(outSink.add);
+          await Future.wait([outDone, errDone]);
+          await testProc.exitCode;
+        } finally {
+          await outSink.flush();
+          await outSink.close();
+        }
 
         if (bepFile.existsSync()) {
           final lines = bepFile.readAsLinesSync();
@@ -436,7 +453,6 @@ void main(List<String> args) async {
               final evt = jsonDecode(line) as Map<String, dynamic>;
               if (evt.containsKey('testSummary')) {
                 cumulativeSummaryCount++;
-                cumulativeTestCount++;
                 final idMap = evt['id'] as Map<String, dynamic>?;
                 final label = idMap?['testSummary']?['label'] as String?;
                 final summary = evt['testSummary'] as Map<String, dynamic>;
@@ -451,24 +467,24 @@ void main(List<String> args) async {
                     }
                   }
                   cfg ??= 'vm_release';
-                  final suite = determineSuite(label);
-                  final bySuite = configResults[cfg]!['by_suite']
-                      as Map<String, Map<String, int>>;
-                  bySuite.putIfAbsent(
-                      suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+                  final config = configResults[cfg];
+                  if (config != null) {
+                    final suite = determineSuite(label);
+                    final bySuite =
+                        config['by_suite'] as Map<String, Map<String, int>>;
+                    bySuite.putIfAbsent(
+                        suite, () => {'total': 0, 'passed': 0, 'failed': 0});
 
-                  if (status == 'PASSED') {
-                    configResults[cfg]!['passed'] =
-                        (configResults[cfg]!['passed'] as int) + 1;
-                    bySuite[suite]!['passed'] =
-                        (bySuite[suite]!['passed'] ?? 0) + 1;
-                  } else {
-                    configResults[cfg]!['failed'] =
-                        (configResults[cfg]!['failed'] as int) + 1;
-                    (configResults[cfg]!['failed_targets'] as Set<String>)
-                        .add(label);
-                    bySuite[suite]!['failed'] =
-                        (bySuite[suite]!['failed'] ?? 0) + 1;
+                    if (status == 'PASSED') {
+                      config['passed'] = (config['passed'] as int) + 1;
+                      bySuite[suite]!['passed'] =
+                          (bySuite[suite]!['passed'] ?? 0) + 1;
+                    } else {
+                      config['failed'] = (config['failed'] as int) + 1;
+                      (config['failed_targets'] as Set<String>).add(label);
+                      bySuite[suite]!['failed'] =
+                          (bySuite[suite]!['failed'] ?? 0) + 1;
+                    }
                   }
                 }
               }
@@ -493,7 +509,7 @@ void main(List<String> args) async {
           'elapsed_minutes': chunkElapsedMins.toStringAsFixed(1),
           'current_chunk': chunkIdx + 1,
           'total_chunks': targetChunks.length,
-          'test_targets_completed': cumulativeTestCount,
+          'test_targets_completed': cumulativeSummaryCount,
           'process_rss_mb':
               (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
         });
