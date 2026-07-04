@@ -81,10 +81,14 @@ void purgeRunfilesSymlinks() {
     final binDir = Directory('bazel-out');
     if (!binDir.existsSync()) return;
 
-    final testlogs = Directory('bazel-out/k8-fastbuild/testlogs');
-    if (testlogs.existsSync()) {
-      Process.runSync('chmod', ['-R', 'u+w', testlogs.path]);
-      Process.runSync('rm', ['-rf', testlogs.path]);
+    for (final entity in binDir.listSync()) {
+      if (entity is Directory) {
+        final testlogs = Directory('${entity.path}/testlogs');
+        if (testlogs.existsSync()) {
+          Process.runSync('chmod', ['-R', 'u+w', testlogs.path]);
+          Process.runSync('rm', ['-rf', testlogs.path]);
+        }
+      }
     }
 
     Process.runSync('find', [
@@ -514,14 +518,12 @@ void main(List<String> args) async {
               (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
         });
 
-        final serializableConfigResults = <String, Map<String, dynamic>>{};
-        for (final entry in configResults.entries) {
-          serializableConfigResults[entry.key] = {
-            ...entry.value,
-            'failed_targets':
-                (entry.value['failed_targets'] as Set<String>).toList(),
-          };
-        }
+        final serializableConfigResults =
+            configResults.map((key, value) => MapEntry(key, {
+                  ...value,
+                  'failed_targets':
+                      (value['failed_targets'] as Set<String>).toList(),
+                }));
 
         final intermediateOutput = {
           'timestamp': DateTime.now().toUtc().toIso8601String(),
@@ -544,6 +546,12 @@ void main(List<String> args) async {
             JsonEncoder.withIndent('  ').convert(intermediateOutput));
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
+      } finally {
+        if (tempFile.existsSync()) {
+          try {
+            tempFile.deleteSync();
+          } catch (_) {}
+        }
       }
 
       purgeRunfilesSymlinks();
@@ -563,13 +571,10 @@ void main(List<String> args) async {
     });
   }
 
-  final finalConfigResults = <String, Map<String, dynamic>>{};
-  for (final entry in configResults.entries) {
-    finalConfigResults[entry.key] = {
-      ...entry.value,
-      'failed_targets': (entry.value['failed_targets'] as Set<String>).toList(),
-    };
-  }
+  final finalConfigResults = configResults.map((key, value) => MapEntry(key, {
+        ...value,
+        'failed_targets': (value['failed_targets'] as Set<String>).toList(),
+      }));
 
   final outputMap = {
     'timestamp': DateTime.now().toUtc().toIso8601String(),
