@@ -443,7 +443,11 @@ void main(List<String> args) async {
           final outDone = testProc.stdout.forEach(outSink.add);
           final errDone = testProc.stderr.forEach(outSink.add);
           await Future.wait([outDone, errDone]);
-          await testProc.exitCode;
+          final exitCode = await testProc.exitCode;
+          if (exitCode != 0) {
+            print(
+                '⚠️ Bazel exited with non-zero code $exitCode for chunk ${chunkIdx + 1}');
+          }
         } finally {
           await outSink.flush();
           await outSink.close();
@@ -476,18 +480,17 @@ void main(List<String> args) async {
                     final suite = determineSuite(label);
                     final bySuite =
                         config['by_suite'] as Map<String, Map<String, int>>;
-                    bySuite.putIfAbsent(
+                    final suiteData = bySuite.putIfAbsent(
                         suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+                    suiteData['total'] = (suiteData['total'] ?? 0) + 1;
 
                     if (status == 'PASSED') {
                       config['passed'] = (config['passed'] as int) + 1;
-                      bySuite[suite]!['passed'] =
-                          (bySuite[suite]!['passed'] ?? 0) + 1;
+                      suiteData['passed'] = (suiteData['passed'] ?? 0) + 1;
                     } else {
                       config['failed'] = (config['failed'] as int) + 1;
                       (config['failed_targets'] as Set<String>).add(label);
-                      bySuite[suite]!['failed'] =
-                          (bySuite[suite]!['failed'] ?? 0) + 1;
+                      suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
                     }
                   }
                 }
