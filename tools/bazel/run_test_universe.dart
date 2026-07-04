@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -428,6 +429,27 @@ void main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
       });
 
+      final heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+        final currentDt = DateTime.now().difference(startTime).inSeconds;
+        final currentElapsedMins = currentDt / 60.0;
+        final currentPercent = totalCount > 0
+            ? (cumulativeSummaryCount / totalCount * 100.0)
+            : 100.0;
+        writeHeartbeat(heartbeatPath, {
+          'status': 'RUNNING',
+          'timestamp': DateTime.now().toUtc().toIso8601String(),
+          'completed_targets': cumulativeSummaryCount,
+          'total_targets': totalCount,
+          'percent': currentPercent.toStringAsFixed(1),
+          'elapsed_minutes': currentElapsedMins.toStringAsFixed(1),
+          'current_chunk': chunkIdx + 1,
+          'total_chunks': targetChunks.length,
+          'test_targets_completed': cumulativeSummaryCount,
+          'process_rss_mb':
+              (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
+        });
+      });
+
       try {
         final fullArgs = [
           ...bazelStartupArgs,
@@ -546,6 +568,7 @@ void main(List<String> args) async {
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
       } finally {
+        heartbeatTimer.cancel();
         if (tempFile.existsSync()) {
           try {
             tempFile.deleteSync();
