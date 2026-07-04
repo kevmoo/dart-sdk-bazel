@@ -12,9 +12,13 @@ Orchestrates automated execution, health checks, and gap analysis of the Dart SD
 * **Renderer**: `docs/bazel-migration/render_test_matrix.dart`
 * **JSON Output**: `docs/bazel-migration/test_matrix_results.json`
 * **Markdown Report**: `docs/bazel-migration/TEST_COMPLETION_MATRIX.md`
+* **Pre-Flight Health Check**: `.agents/scripts/check_resource_health.sh --clean-tmp`
 
 ## 2. Non-Blocking Execution & Watchdog Protocol
-Do **NOT** run massive test suites synchronously in the terminal. Execute `run_test_universe.dart` as an asynchronous background task.
+Before launching any long-running test run:
+1. **Run Pre-Flight Health Check:** Always execute `.agents/scripts/check_resource_health.sh --clean-tmp` to purge `/tmp` and detect stale worktrees.
+2. **Mandate Remote Download Optimization:** Pass `--remote_download_outputs=toplevel` to ensure intermediate build files remain in GCS (`us-west1`) rather than saturating local disk space.
+3. Do **NOT** run massive test suites synchronously in the terminal. Execute `run_test_universe.dart` as an asynchronous background task.
 Jetski provides native reactive wakeup on natural task completion.
 
 ### The 5-Minute Safety Watchdog

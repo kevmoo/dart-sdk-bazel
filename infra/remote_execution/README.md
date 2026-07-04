@@ -45,7 +45,7 @@ All configuration files in this directory use placeholders:
 2.  Populate it with your real Google Cloud details:
     ```hcl
     project_id   = "your-actual-gcp-project-id"
-    region       = "us-central1"
+    region       = "us-west1"
     cluster_name = "your-gke-cluster"
     ```
 3.  Use Application Default Credentials (ADC) for authentication:
@@ -99,7 +99,7 @@ gcloud container clusters get-credentials <GKE_CLUSTER_NAME> \
   --project <GCP_PROJECT_ID>
 ```
 
-*(Note: For the sandbox environment, the active values are: cluster `bazel-hybrid-cluster`, region `us-central1`, project `dart-sdk-bazel-sandbox-265004`)*.
+*(Note: For the sandbox environment, the active values are: cluster `bazel-hybrid-cluster`, region `us-west1`, project `dart-sdk-bazel-sandbox-265004`)*.
 
 ### 2. Establish Port-Forwarding Tunnels
 Because the Buildfarm and Buildbuddy services inside GKE are deployed as private `ClusterIP` services, you must establish local port-forwarding tunnels. Keep these running in separate terminal windows during your build session:

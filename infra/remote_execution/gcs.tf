@@ -16,8 +16,8 @@ variable "project_id" {
 
 variable "region" {
   type        = string
-  description = "The GCP region for the buckets"
-  default     = "us-central1"
+  description = "The GCP region for the buckets (single region us-west1 / Oregon)"
+  default     = "us-west1"
 }
 
 variable "bucket_prefix" {

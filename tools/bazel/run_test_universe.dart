@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -66,6 +65,8 @@ Flags:
   --only-suites=<s1,s2>     Only run specified suites
   --skip-configs=<c1,c2>    Comma-separated configs to skip (e.g. wasm_firefox_release)
   --only-configs=<c1,c2>    Only run specified configs
+  --chunk-size=<N>          Number of targets per Bazel invocation chunk (default: 400)
+  --by-suite                Partition chunks strictly grouped by test suite name
   --dry-run                 Query and filter targets without executing bazel test
   --output=<path>           JSON output path (default: docs/bazel-migration/test_matrix_results.json)
   --heartbeat=<path>        Heartbeat status file (default: docs/bazel-migration/PATROL_HEARTBEAT.json)
@@ -73,6 +74,22 @@ Flags:
   --watchdog-interval=<s>   Recommended watchdog timer in seconds (default: 300)
   -h, --help                Show this help
 ''');
+}
+
+void purgeRunfilesSymlinks() {
+  try {
+    Process.runSync('chmod', ['-R', 'u+w', 'bazel-out']);
+    Process.runSync('rm', ['-rf', 'bazel-out/k8-fastbuild/testlogs']);
+    final binDir = Directory('bazel-out');
+    if (!binDir.existsSync()) return;
+    for (final entity in binDir.listSync(recursive: true, followLinks: false)) {
+      if (entity.path.endsWith('.runfiles')) {
+        try {
+          entity.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    }
+  } catch (_) {}
 }
 
 double getFreeDiskGb(String path) {
@@ -149,6 +166,8 @@ void main(List<String> args) async {
   final bazelArgs = <String>['--keep_going', '--test_output=errors'];
   var outputPath = 'docs/bazel-migration/test_matrix_results.json';
   var heartbeatPath = 'docs/bazel-migration/PATROL_HEARTBEAT.json';
+  var chunkSize = 400;
+  var bySuite = false;
   var dryRun = false;
   var watchdogInterval = 300;
 
@@ -158,6 +177,11 @@ void main(List<String> args) async {
       return;
     } else if (arg == '--dry-run') {
       dryRun = true;
+    } else if (arg.startsWith('--chunk-size=')) {
+      final val = int.tryParse(arg.substring('--chunk-size='.length));
+      if (val != null && val > 0) chunkSize = val;
+    } else if (arg == '--by-suite') {
+      bySuite = true;
     } else if (arg.startsWith('--skip-suites=')) {
       skipSuites.addAll(arg.substring('--skip-suites='.length).split(','));
     } else if (arg.startsWith('--only-suites=')) {
@@ -255,7 +279,7 @@ void main(List<String> args) async {
       'passed': 0,
       'failed': 0,
       'status': 'Active',
-      'failed_targets': <String>[],
+      'failed_targets': <String>{},
       'by_suite': suiteMap,
     };
   }
@@ -305,161 +329,208 @@ void main(List<String> args) async {
       'rate_targets_per_sec': '0.0',
     });
   } else {
-    print('\n🚀 Executing Bazel tests across universe...');
-    final tempFile = File('bazel_test_targets.tmp');
-    final normalizedTargets = filteredTargets.map((t) {
-      if (t.startsWith('@@//')) {
-        return t.substring(2);
-      } else if (t.startsWith('@//')) {
-        return t.substring(1);
-      }
-      return t;
-    }).toList();
-    await tempFile.writeAsString(normalizedTargets.join('\n'));
+    print('\n🚀 Executing Bazel tests across universe (chunked)...');
 
-    final bepFile = File('test_bep.json');
-    if (bepFile.existsSync()) {
-      bepFile.deleteSync();
+    final targetChunks = <List<String>>[];
+    if (bySuite) {
+      final suiteMap = <String, List<String>>{};
+      for (final t in filteredTargets) {
+        final s = determineSuite(t);
+        suiteMap.putIfAbsent(s, () => []).add(t);
+      }
+      for (final group in suiteMap.values) {
+        for (var i = 0; i < group.length; i += chunkSize) {
+          targetChunks.add(group.sublist(i,
+              (i + chunkSize < group.length) ? i + chunkSize : group.length));
+        }
+      }
+    } else {
+      for (var i = 0; i < filteredTargets.length; i += chunkSize) {
+        targetChunks.add(filteredTargets.sublist(
+            i,
+            (i + chunkSize < filteredTargets.length)
+                ? i + chunkSize
+                : filteredTargets.length));
+      }
     }
 
-    final startTime = DateTime.now();
-    writeHeartbeat(heartbeatPath, {
-      'status': 'STARTING',
-      'timestamp': startTime.toUtc().toIso8601String(),
-      'completed_targets': 0,
-      'total_targets': totalCount,
-      'percent': '0.0',
-      'elapsed_minutes': '0.0',
-      'eta_remaining_minutes': 'Calculating...',
-      'rate_targets_per_sec': '0.0',
-    });
+    print(
+        '🧩 Partitioned $totalCount targets into ${targetChunks.length} chunks (max $chunkSize targets/chunk)');
 
-    var summaryCount = 0;
-    var lastOffset = 0;
-    final timer = Timer.periodic(Duration(seconds: 15), (_) async {
-      if (!bepFile.existsSync()) {
-        return;
+    final startTime = DateTime.now();
+    var cumulativeSummaryCount = 0;
+
+    final logFile = File('bazel_test_run.log');
+    if (logFile.existsSync()) {
+      logFile.deleteSync();
+    }
+
+    for (var chunkIdx = 0; chunkIdx < targetChunks.length; chunkIdx++) {
+      final chunkTargets = targetChunks[chunkIdx];
+      final normalizedTargets = chunkTargets.map((t) {
+        if (t.startsWith('@@//')) {
+          return t.substring(2);
+        } else if (t.startsWith('@//')) {
+          return t.substring(1);
+        }
+        return t;
+      }).toList();
+
+      final tempFile = File('bazel_test_targets_chunk.tmp');
+      await tempFile.writeAsString(normalizedTargets.join('\n'));
+
+      final bepFile = File('test_bep.json');
+      if (bepFile.existsSync()) {
+        bepFile.deleteSync();
       }
+
+      final dt = DateTime.now().difference(startTime).inSeconds;
+      final elapsedMins = dt / 60.0;
+      final percent = totalCount > 0
+          ? (cumulativeSummaryCount / totalCount * 100.0)
+          : 100.0;
+
+      print(
+          '\n🚀 [Chunk ${chunkIdx + 1}/${targetChunks.length}] Running ${chunkTargets.length} targets | Total Progress: ${percent.toStringAsFixed(1)}% ($cumulativeSummaryCount/$totalCount targets)');
+
+      writeHeartbeat(heartbeatPath, {
+        'status': 'RUNNING',
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+        'completed_targets': cumulativeSummaryCount,
+        'total_targets': totalCount,
+        'percent': percent.toStringAsFixed(1),
+        'elapsed_minutes': elapsedMins.toStringAsFixed(1),
+        'current_chunk': chunkIdx + 1,
+        'total_chunks': targetChunks.length,
+        'test_targets_completed': cumulativeSummaryCount,
+        'process_rss_mb':
+            (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
+      });
+
       try {
-        final length = await bepFile.length();
-        if (length > lastOffset) {
-          final newCount = await bepFile
-              .openRead(lastOffset, length)
-              .transform(utf8.decoder)
-              .transform(const LineSplitter())
-              .where((line) => line.contains('testSummary'))
-              .length;
-          summaryCount += newCount;
-          lastOffset = length;
+        final fullArgs = [
+          ...bazelStartupArgs,
+          'test',
+          ...bazelArgs,
+          '--build_event_json_file=test_bep.json',
+          '--target_pattern_file=bazel_test_targets_chunk.tmp',
+        ];
+
+        final outSink = logFile.openWrite(mode: FileMode.append);
+        final testProc = await Process.start('bazel', fullArgs);
+        final outSub = testProc.stdout.listen(outSink.add);
+        final errSub = testProc.stderr.listen(outSink.add);
+        await testProc.exitCode;
+        await outSub.cancel();
+        await errSub.cancel();
+        await outSink.flush();
+        await outSink.close();
+
+        var cumulativeTestCount = 0;
+
+        if (bepFile.existsSync()) {
+          final lines = bepFile.readAsLinesSync();
+          for (final line in lines) {
+            if (line.trim().isEmpty) continue;
+            try {
+              final evt = jsonDecode(line) as Map<String, dynamic>;
+              if (evt.containsKey('testSummary')) {
+                cumulativeSummaryCount++;
+                cumulativeTestCount++;
+                final idMap = evt['id'] as Map<String, dynamic>?;
+                final label = idMap?['testSummary']?['label'] as String?;
+                final summary = evt['testSummary'] as Map<String, dynamic>;
+                final status = summary['overallStatus'] as String?;
+
+                if (label != null) {
+                  String? cfg;
+                  for (final c in sortedKnownConfigs) {
+                    if (label.endsWith('_$c') || label.contains('_${c}_')) {
+                      cfg = c;
+                      break;
+                    }
+                  }
+                  cfg ??= 'vm_release';
+                  final suite = determineSuite(label);
+                  final bySuite = configResults[cfg]!['by_suite']
+                      as Map<String, Map<String, int>>;
+                  bySuite.putIfAbsent(
+                      suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+
+                  if (status == 'PASSED') {
+                    configResults[cfg]!['passed'] =
+                        (configResults[cfg]!['passed'] as int) + 1;
+                    bySuite[suite]!['passed'] =
+                        (bySuite[suite]!['passed'] ?? 0) + 1;
+                  } else {
+                    configResults[cfg]!['failed'] =
+                        (configResults[cfg]!['failed'] as int) + 1;
+                    (configResults[cfg]!['failed_targets'] as Set<String>)
+                        .add(label);
+                    bySuite[suite]!['failed'] =
+                        (bySuite[suite]!['failed'] ?? 0) + 1;
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+          try {
+            bepFile.deleteSync();
+          } catch (_) {}
         }
-        final dt = DateTime.now().difference(startTime).inSeconds;
-        final elapsedMins = dt / 60.0;
-        final percent =
-            totalCount > 0 ? (summaryCount / totalCount * 100.0) : 100.0;
-        var etaStr = 'Calculating...';
-        var rate = 0.0;
-        if (summaryCount > 0 && dt > 0) {
-          rate = summaryCount / dt;
-          final remainingSec = (totalCount - summaryCount) / rate;
-          etaStr = (remainingSec / 60.0).toStringAsFixed(1);
-        }
+        final chunkDt = DateTime.now().difference(startTime).inSeconds;
+        final chunkElapsedMins = chunkDt / 60.0;
+        final chunkPercent = totalCount > 0
+            ? (cumulativeSummaryCount / totalCount * 100.0)
+            : 100.0;
+
         writeHeartbeat(heartbeatPath, {
           'status': 'RUNNING',
           'timestamp': DateTime.now().toUtc().toIso8601String(),
-          'completed_targets': summaryCount,
+          'completed_targets': cumulativeSummaryCount,
           'total_targets': totalCount,
-          'percent': percent.toStringAsFixed(1),
-          'elapsed_minutes': elapsedMins.toStringAsFixed(1),
-          'eta_remaining_minutes': etaStr,
-          'rate_targets_per_sec': rate.toStringAsFixed(2),
+          'percent': chunkPercent.toStringAsFixed(1),
+          'elapsed_minutes': chunkElapsedMins.toStringAsFixed(1),
+          'current_chunk': chunkIdx + 1,
+          'total_chunks': targetChunks.length,
+          'test_targets_completed': cumulativeTestCount,
+          'process_rss_mb':
+              (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
         });
-        print(
-            '⏳ [${elapsedMins.toStringAsFixed(1)}m] Progress: ${percent.toStringAsFixed(1)}% ($summaryCount/$totalCount targets) | ETA: ${etaStr}m remaining | Rate: ${rate.toStringAsFixed(2)}/s');
-      } catch (_) {}
-    });
 
-    try {
-      final fullArgs = [
-        ...bazelStartupArgs,
-        'test',
-        ...bazelArgs,
-        '--build_event_json_file=test_bep.json',
-        '--target_pattern_file=bazel_test_targets.tmp',
-      ];
-
-      final logFile = File('bazel_test_run.log');
-      final outSink = logFile.openWrite();
-      final testProc = await Process.start('bazel', fullArgs);
-      final outSub = testProc.stdout.listen(outSink.add);
-      final errSub = testProc.stderr.listen(outSink.add);
-      final exitCode = await testProc.exitCode;
-      await outSub.cancel();
-      await errSub.cancel();
-      await outSink.flush();
-      await outSink.close();
-
-      print('📊 Bazel test run completed with exit code: $exitCode');
-
-      if (bepFile.existsSync()) {
-        final lines = bepFile
-            .openRead()
-            .transform(utf8.decoder)
-            .transform(LineSplitter());
-        await for (final line in lines) {
-          if (line.trim().isEmpty) continue;
-          try {
-            final evt = jsonDecode(line) as Map<String, dynamic>;
-            if (evt.containsKey('testSummary')) {
-              final idMap = evt['id'] as Map<String, dynamic>?;
-              final label = idMap?['testSummary']?['label'] as String?;
-              final summary = evt['testSummary'] as Map<String, dynamic>;
-              final status = summary['overallStatus'] as String?;
-
-              if (label != null) {
-                String? cfg;
-                for (final c in sortedKnownConfigs) {
-                  if (label.endsWith('_$c') || label.contains('_${c}_')) {
-                    cfg = c;
-                    break;
-                  }
-                }
-                cfg ??= 'vm_release';
-                final suite = determineSuite(label);
-                final bySuite = configResults[cfg]!['by_suite']
-                    as Map<String, Map<String, int>>;
-                bySuite.putIfAbsent(
-                    suite, () => {'total': 0, 'passed': 0, 'failed': 0});
-
-                if (status == 'PASSED') {
-                  configResults[cfg]!['passed'] =
-                      (configResults[cfg]!['passed'] as int) + 1;
-                  bySuite[suite]!['passed'] =
-                      (bySuite[suite]!['passed'] ?? 0) + 1;
-                } else {
-                  configResults[cfg]!['failed'] =
-                      (configResults[cfg]!['failed'] as int) + 1;
-                  (configResults[cfg]!['failed_targets'] as List<String>)
-                      .add(label);
-                  bySuite[suite]!['failed'] =
-                      (bySuite[suite]!['failed'] ?? 0) + 1;
-                }
-              }
-            }
-          } catch (_) {}
+        final serializableConfigResults = <String, Map<String, dynamic>>{};
+        for (final entry in configResults.entries) {
+          serializableConfigResults[entry.key] = {
+            ...entry.value,
+            'failed_targets':
+                (entry.value['failed_targets'] as Set<String>).toList(),
+          };
         }
+
+        final intermediateOutput = {
+          'timestamp': DateTime.now().toUtc().toIso8601String(),
+          'watchdog_interval_seconds': watchdogInterval,
+          'quarantine': {
+            'skip_suites': skipSuites.toList(),
+            'only_suites': onlySuites.toList(),
+            'skip_configs': skipConfigs.toList(),
+            'only_configs': onlyConfigs.toList(),
+          },
+          'universe_gap_analysis': {
+            'active_starlark_suites': activeStarlarkSuites.toList(),
+            'unmigrated_gn_suites': unmigratedGnSuites,
+          },
+          'config_results': serializableConfigResults,
+        };
+        final intermediateFile = File(outputPath);
+        intermediateFile.parent.createSync(recursive: true);
+        await intermediateFile.writeAsString(
+            JsonEncoder.withIndent('  ').convert(intermediateOutput));
+      } catch (e) {
+        print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
       }
-    } finally {
-      timer.cancel();
-      if (tempFile.existsSync()) {
-        try {
-          tempFile.deleteSync();
-        } catch (_) {}
-      }
-      if (bepFile.existsSync()) {
-        try {
-          bepFile.deleteSync();
-        } catch (_) {}
-      }
+
+      purgeRunfilesSymlinks();
     }
 
     final totalDt = DateTime.now().difference(startTime).inSeconds;
@@ -467,13 +538,21 @@ void main(List<String> args) async {
     writeHeartbeat(heartbeatPath, {
       'status': 'COMPLETED',
       'timestamp': DateTime.now().toUtc().toIso8601String(),
-      'completed_targets': totalCount,
+      'completed_targets': cumulativeSummaryCount,
       'total_targets': totalCount,
       'percent': '100.0',
       'elapsed_minutes': (totalDt / 60.0).toStringAsFixed(1),
       'eta_remaining_minutes': '0.0',
       'rate_targets_per_sec': finalRate.toStringAsFixed(2),
     });
+  }
+
+  final finalConfigResults = <String, Map<String, dynamic>>{};
+  for (final entry in configResults.entries) {
+    finalConfigResults[entry.key] = {
+      ...entry.value,
+      'failed_targets': (entry.value['failed_targets'] as Set<String>).toList(),
+    };
   }
 
   final outputMap = {
@@ -489,7 +568,7 @@ void main(List<String> args) async {
       'active_starlark_suites': activeStarlarkSuites.toList(),
       'unmigrated_gn_suites': unmigratedGnSuites,
     },
-    'config_results': configResults,
+    'config_results': finalConfigResults,
   };
 
   final outFile = File(outputPath);
