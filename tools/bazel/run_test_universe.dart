@@ -103,12 +103,12 @@ void purgeRunfilesSymlinks() {
       '-R',
       'u+w',
       '{}',
-      ';',
+      '+',
       '-exec',
       'rm',
       '-rf',
       '{}',
-      ';'
+      '+'
     ]);
   } catch (_) {}
 }
