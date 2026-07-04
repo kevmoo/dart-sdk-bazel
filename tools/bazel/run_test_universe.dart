@@ -467,14 +467,10 @@ void main(List<String> args) async {
                 final status = summary['overallStatus'] as String?;
 
                 if (label != null) {
-                  String? cfg;
-                  for (final c in sortedKnownConfigs) {
-                    if (label.endsWith('_$c') || label.contains('_${c}_')) {
-                      cfg = c;
-                      break;
-                    }
-                  }
-                  cfg ??= 'vm_release';
+                  final cfg = sortedKnownConfigs.firstWhere(
+                    (c) => label.endsWith('_$c') || label.contains('_${c}_'),
+                    orElse: () => 'vm_release',
+                  );
                   final config = configResults[cfg];
                   if (config != null) {
                     final suite = determineSuite(label);
@@ -553,6 +549,11 @@ void main(List<String> args) async {
         if (tempFile.existsSync()) {
           try {
             tempFile.deleteSync();
+          } catch (_) {}
+        }
+        if (bepFile.existsSync()) {
+          try {
+            bepFile.deleteSync();
           } catch (_) {}
         }
       }
