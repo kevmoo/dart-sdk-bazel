@@ -186,7 +186,12 @@ void main(List<String> args) async {
   final skipConfigs = <String>{};
   final onlyConfigs = <String>{};
   final bazelStartupArgs = <String>[];
-  final bazelArgs = <String>['--keep_going', '--test_output=errors'];
+  final bazelArgs = <String>[
+    '--keep_going',
+    '--test_output=errors',
+    '--nobuild_runfile_links',
+    '--experimental_convenience_symlinks=ignore',
+  ];
   var outputPath = 'docs/bazel-migration/test_matrix_results.json';
   var heartbeatPath = 'docs/bazel-migration/PATROL_HEARTBEAT.json';
   var chunkSize = 400;
