@@ -1,8 +1,11 @@
 # Dart SDK Bazel Test Completion Matrix & Gap Analysis
 
-* **Generated At:** `2026-07-02T06:38:45.354522Z`
+* **Generated At:** `2026-07-05T22:06:27.311157Z`
 * **Source of Truth:** [`test_matrix_results.json`](./test_matrix_results.json)
 * **Watchdog Watch Interval:** `300s` (5 minutes)
+
+> [!WARNING]
+> **DRY RUN MODE**: Targets were discovered but **NOT EXECUTED**. Pass `--run` to `test_runner.sh` to execute tests and collect real pass/fail results.
 
 ---
 
@@ -10,31 +13,31 @@
 
 | Configuration | Status | Total Targets | Passed | Failed |
 |---|---|---|---|---|
-| `analyzer_release` | ✅ PASSED (Active) | 6 | 6 | 0 |
-| `cfe_release` | ✅ PASSED (Active) | 160 | 160 | 0 |
-| `dart2js_chrome_release` | ✅ PASSED (Active) | 155 | 155 | 0 |
-| `dart2js_firefox_release` | ✅ PASSED (Active) | 150 | 150 | 0 |
-| `ddc_chrome_release` | ✅ PASSED (Active) | 156 | 156 | 0 |
-| `vm_aot_release` | ✅ PASSED (Active) | 609 | 609 | 0 |
-| `vm_aot_release_simarm` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `vm_aot_release_simarm64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `vm_aot_release_simriscv64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `vm_debug` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `vm_product` | ✅ PASSED (Active) | 206 | 206 | 0 |
-| `vm_release` | ✅ PASSED (Active) | 2964 | 2964 | 0 |
-| `vm_release_simarm` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `vm_release_simarm64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `vm_release_simriscv64` | ❄️ Skipped (Skipped / Filtered Out) | 0 | 0 | 0 |
-| `wasm_asserts` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_chrome_asserts` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_chrome_optimized` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_chrome_release` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_firefox_asserts` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_firefox_release` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_optimized` | ✅ PASSED (Active) | 153 | 153 | 0 |
-| `wasm_release` | ✅ PASSED (Active) | 158 | 158 | 0 |
+| `analyzer_release` | 🔍 Dry Run (Unexecuted) | 6 | 0 | 0 |
+| `cfe_release` | 🔍 Dry Run (Unexecuted) | 160 | 0 | 0 |
+| `dart2js_chrome_release` | 🔍 Dry Run (Unexecuted) | 155 | 0 | 0 |
+| `dart2js_firefox_release` | 🔍 Dry Run (Unexecuted) | 150 | 0 | 0 |
+| `ddc_chrome_release` | 🔍 Dry Run (Unexecuted) | 156 | 0 | 0 |
+| `vm_aot_release` | 🔍 Dry Run (Unexecuted) | 156 | 0 | 0 |
+| `vm_aot_release_simarm` | 🔍 Dry Run (Unexecuted) | 151 | 0 | 0 |
+| `vm_aot_release_simarm64` | 🔍 Dry Run (Unexecuted) | 151 | 0 | 0 |
+| `vm_aot_release_simriscv64` | 🔍 Dry Run (Unexecuted) | 151 | 0 | 0 |
+| `vm_debug` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `vm_product` | 🔍 Dry Run (Unexecuted) | 206 | 0 | 0 |
+| `vm_release` | 🔍 Dry Run (Unexecuted) | 2507 | 0 | 0 |
+| `vm_release_simarm` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `vm_release_simarm64` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `vm_release_simriscv64` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_asserts` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_chrome_asserts` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_chrome_optimized` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_chrome_release` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_firefox_asserts` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_firefox_release` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_optimized` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
+| `wasm_release` | 🔍 Dry Run (Unexecuted) | 158 | 0 | 0 |
 
-**Universe Totals:** `5788` targets (`5788` passed, `0` failed)
+**Universe Totals:** `5790` targets discovered *(Unexecuted — Dry Run)*
 
 ---
 
@@ -42,16 +45,16 @@
 
 | Suite | `vm_release` | `wasm_release` | `cfe_release` | `Other Configs` | Total Targets |
 |---|---|---|---|---|---|
-| **`co19`** | ✅ 6 / 6 | ✅ 5 / 5 | ❄️ | ✅ 21 / 21 | **32** |
-| **`corelib`** | ✅ 32 / 32 | ✅ 8 / 8 | ✅ 8 / 8 | ✅ 130 / 130 | **178** |
-| **`dartdevc`** | ❄️ | ❄️ | ❄️ | ✅ 4 / 4 | **4** |
-| **`ffi`** | ✅ 53 / 53 | ❄️ | ✅ 3 / 3 | ✅ 53 / 53 | **109** |
-| **`language`** | ✅ 544 / 544 | ✅ 138 / 138 | ✅ 142 / 142 | ✅ 2197 / 2197 | **3021** |
-| **`pkg`** | ✅ 2293 / 2293 | ❄️ | ❄️ | ❄️ | **2293** |
+| **`co19`** | 🔍 6 | 🔍 5 | ❄️ | 🔍 21 | **32** |
+| **`corelib`** | 🔍 8 | 🔍 8 | 🔍 8 | 🔍 154 | **178** |
+| **`dartdevc`** | ❄️ | ❄️ | ❄️ | 🔍 4 | **4** |
+| **`ffi`** | 🔍 53 | ❄️ | 🔍 3 | 🔍 53 | **109** |
+| **`language`** | 🔍 136 | 🔍 138 | 🔍 142 | 🔍 2605 | **3021** |
+| **`pkg`** | 🔍 2295 | ❄️ | ❄️ | ❄️ | **2295** |
 | **`runtime`** | ❄️ | ❄️ | ❄️ | ❄️ | **0** |
-| **`standalone`** | ✅ 36 / 36 | ❄️ | ✅ 7 / 7 | ✅ 50 / 50 | **93** |
-| **`tests`** | ❄️ | ✅ 5 / 5 | ❄️ | ✅ 37 / 37 | **42** |
-| **`web/wasm`** | ❄️ | ✅ 2 / 2 | ❄️ | ✅ 14 / 14 | **16** |
+| **`standalone`** | 🔍 9 | ❄️ | 🔍 7 | 🔍 77 | **93** |
+| **`tests`** | ❄️ | 🔍 5 | ❄️ | 🔍 37 | **42** |
+| **`web/wasm`** | ❄️ | 🔍 2 | ❄️ | 🔍 14 | **16** |
 
 ---
 
@@ -68,4 +71,4 @@ The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` &
 
 ## 🩹 Failing Targets Punch List
 
-🎉 *Zero test failures recorded in active Starlark universe!*
+🔍 *Dry run executed — target discovery complete. Run with `--run` to execute tests and collect failure results.*

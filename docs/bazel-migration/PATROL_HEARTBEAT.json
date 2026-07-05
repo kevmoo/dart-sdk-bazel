@@ -1,14 +1,1 @@
-{
-  "status": "DRY_RUN",
-  "timestamp": "2026-07-05T04:27:30.630467Z",
-  "completed_targets": 5793,
-  "total_targets": 5793,
-  "percent": "100.0",
-  "elapsed_minutes": "0.0",
-  "eta_remaining_minutes": "0.0",
-  "rate_targets_per_sec": "0.0",
-  "disk_free_gb": {
-    "tmp": "54.7",
-    "workspace": "562.0"
-  }
-}
+{"status":"DRY_RUN","timestamp":"2026-07-05T22:06:27.268719Z","completed_targets":5790,"total_targets":5790,"percent":"100.0","elapsed_minutes":"0.0","eta_remaining_minutes":"0.0","rate_targets_per_sec":"0.0","disk_free_gb":{"tmp":"54.6","workspace":"551.4"}}
