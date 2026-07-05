@@ -191,6 +191,20 @@ String resolveConfigName(String label, List<String> sortedKnownConfigs) {
   return 'vm_release';
 }
 
+/// Normalizes Bazel labels by removing leading @@, @, and // prefixes.
+String normalizeLabel(String label) {
+  var l = label;
+  if (l.startsWith('@@')) {
+    l = l.substring(2);
+  } else if (l.startsWith('@')) {
+    l = l.substring(1);
+  }
+  if (l.startsWith('//')) {
+    l = l.substring(2);
+  }
+  return l;
+}
+
 void main(List<String> args) async {
   final skipSuites = <String>{};
   final onlySuites = <String>{};
@@ -536,27 +550,30 @@ void main(List<String> args) async {
                 final summary = evt['testSummary'] as Map<String, dynamic>;
                 final status = summary['overallStatus'] as String?;
 
-                if (label != null && !seenTargetsInChunk.contains(label)) {
-                  seenTargetsInChunk.add(label);
-                  cumulativeSummaryCount++;
+                if (label != null) {
+                  final normalized = normalizeLabel(label);
+                  if (!seenTargetsInChunk.contains(normalized)) {
+                    seenTargetsInChunk.add(normalized);
+                    cumulativeSummaryCount++;
 
-                  final cfg = resolveConfigName(label, sortedKnownConfigs);
-                  final config = configResults[cfg];
-                  if (config != null) {
-                    final suite = determineSuite(label);
-                    final bySuite =
-                        config['by_suite'] as Map<String, Map<String, int>>;
-                    final suiteData = bySuite.putIfAbsent(
-                        suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+                    final cfg = resolveConfigName(label, sortedKnownConfigs);
+                    final config = configResults[cfg];
+                    if (config != null) {
+                      final suite = determineSuite(label);
+                      final bySuite =
+                          config['by_suite'] as Map<String, Map<String, int>>;
+                      final suiteData = bySuite.putIfAbsent(
+                          suite, () => {'total': 0, 'passed': 0, 'failed': 0});
 
-                    if (status == 'PASSED') {
-                      config['passed'] = (config['passed'] as int) + 1;
-                      suiteData['passed'] = (suiteData['passed'] ?? 0) + 1;
-                    } else {
-                      config['failed'] = (config['failed'] as int) + 1;
-                      (config['failed_targets'] as Set<String>).add(label);
-                      suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
-                      print('  ❌ [TEST FAIL] $label ($status)');
+                      if (status == 'PASSED') {
+                        config['passed'] = (config['passed'] as int) + 1;
+                        suiteData['passed'] = (suiteData['passed'] ?? 0) + 1;
+                      } else {
+                        config['failed'] = (config['failed'] as int) + 1;
+                        (config['failed_targets'] as Set<String>).add(label);
+                        suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
+                        print('  ❌ [TEST FAIL] $label ($status)');
+                      }
                     }
                   }
                 }
@@ -571,25 +588,27 @@ void main(List<String> args) async {
                 final overallSuccess =
                     targetFinished?['overallBuildSuccess'] as bool? ?? true;
 
-                if (label != null &&
-                    !overallSuccess &&
-                    !seenTargetsInChunk.contains(label)) {
-                  seenTargetsInChunk.add(label);
-                  cumulativeSummaryCount++;
+                if (label != null && !overallSuccess) {
+                  final normalized = normalizeLabel(label);
+                  if (!seenTargetsInChunk.contains(normalized)) {
+                    seenTargetsInChunk.add(normalized);
+                    cumulativeSummaryCount++;
 
-                  final cfg = resolveConfigName(label, sortedKnownConfigs);
-                  final config = configResults[cfg];
-                  if (config != null) {
-                    final suite = determineSuite(label);
-                    final bySuite =
-                        config['by_suite'] as Map<String, Map<String, int>>;
-                    final suiteData = bySuite.putIfAbsent(
-                        suite, () => {'total': 0, 'passed': 0, 'failed': 0});
+                    final cfg = resolveConfigName(label, sortedKnownConfigs);
+                    final config = configResults[cfg];
+                    if (config != null) {
+                      final suite = determineSuite(label);
+                      final bySuite =
+                          config['by_suite'] as Map<String, Map<String, int>>;
+                      final suiteData = bySuite.putIfAbsent(
+                          suite, () => {'total': 0, 'passed': 0, 'failed': 0});
 
-                    config['failed'] = (config['failed'] as int) + 1;
-                    (config['failed_targets'] as Set<String>).add(label);
-                    suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
-                    print('  💥 [BUILD FAIL] $label (Compilation/Build Error)');
+                      config['failed'] = (config['failed'] as int) + 1;
+                      (config['failed_targets'] as Set<String>).add(label);
+                      suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
+                      print(
+                          '  💥 [BUILD FAIL] $label (Compilation/Build Error)');
+                    }
                   }
                 }
               }
@@ -602,31 +621,25 @@ void main(List<String> args) async {
 
         // 3. Target Reconciliation: Mark any uncollected targets in chunk as failed
         for (final origTarget in chunkTargets) {
-          var targetLabel = origTarget;
-          if (targetLabel.startsWith('@@')) {
-            targetLabel = targetLabel.substring(2);
-          } else if (targetLabel.startsWith('@')) {
-            targetLabel = targetLabel.substring(1);
-          }
+          final normalized = normalizeLabel(origTarget);
 
-          if (!seenTargetsInChunk.contains(targetLabel) &&
-              !seenTargetsInChunk.contains(origTarget)) {
-            seenTargetsInChunk.add(targetLabel);
+          if (!seenTargetsInChunk.contains(normalized)) {
+            seenTargetsInChunk.add(normalized);
             cumulativeSummaryCount++;
 
-            final cfg = resolveConfigName(targetLabel, sortedKnownConfigs);
+            final cfg = resolveConfigName(origTarget, sortedKnownConfigs);
             final config = configResults[cfg];
             if (config != null) {
-              final suite = determineSuite(targetLabel);
+              final suite = determineSuite(origTarget);
               final bySuite =
                   config['by_suite'] as Map<String, Map<String, int>>;
               final suiteData = bySuite.putIfAbsent(
                   suite, () => {'total': 0, 'passed': 0, 'failed': 0});
 
               config['failed'] = (config['failed'] as int) + 1;
-              (config['failed_targets'] as Set<String>).add(targetLabel);
+              (config['failed_targets'] as Set<String>).add(origTarget);
               suiteData['failed'] = (suiteData['failed'] ?? 0) + 1;
-              print('  ⚠️ [UNACCOUNTED/ABORTED] $targetLabel');
+              print('  ⚠️ [UNACCOUNTED/ABORTED] $origTarget');
             }
           }
         }

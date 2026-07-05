@@ -8,6 +8,12 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 until [ "$CURRENT_DIR" = "/" ] || [ -f "$CURRENT_DIR/MODULE.bazel" ] || [ -f "$CURRENT_DIR/WORKSPACE" ]; do
   CURRENT_DIR="$(dirname "$CURRENT_DIR")"
 done
+
+if [ "$CURRENT_DIR" = "/" ]; then
+  echo "❌ Error: Could not find Bazel workspace root (WORKSPACE or MODULE.bazel)." >&2
+  exit 1
+fi
+
 SCRIPT_DIR="$CURRENT_DIR"
 cd "$SCRIPT_DIR"
 
