@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 95/120 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 96/121 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -131,6 +131,7 @@ graph TD
     sdk_o1h["sdk-o1h:<br>Live-Parse DEPS in Bzlmod Extension for Dynamic Dependency Downloads"]:::completed
     sdk_oce["sdk-oce:<br>{M3} Wire up Kernel Worker Snapshot"]:::completed
     sdk_oss["sdk-oss:<br>Eliminate the GN dependency: make Bazel the sole build system"]:::pending
+    sdk_p5r["sdk-p5r:<br>{REC-FAST-5} Add default Bazel flags {--nobuild_runfile_links} to eliminate inode churn"]:::completed
     sdk_qoj["sdk-qoj:<br>{process} Replace gemini-code-assist before 2026-07-17 sunset; mechanize its recurring catch classes"]:::pending
     sdk_qtd["sdk-qtd:<br>Cleanup migration documentation and legacy instructions"]:::completed
     sdk_qzb["sdk-qzb:<br>Refactor sh_test generation to use explicit rlocationpath runfiles manifests instead of runtime find sweeps"]:::completed

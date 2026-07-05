@@ -1102,6 +1102,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-p5r] {REC-FAST-5} Add default Bazel flags (--nobuild_runfile_links) to eliminate inode churn
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Add --nobuild_runfile_links and --experimental_convenience_symlinks=ignore to the default Bazel arguments in run_test_universe.dart to prevent unnecessary runfile symlink creation and convenience symlink generation, reducing inode churn.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-qtd] Cleanup migration documentation and legacy instructions
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_037`
