@@ -468,6 +468,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     inferenceLogWriter?.setExpressionVisitCodePath(
       node,
@@ -478,6 +479,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       schema,
       continueNullShorting: continueNullShorting,
       isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
     );
   }
 
@@ -764,6 +766,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant ExpressionImpl expression,
     SharedTypeSchemaView context, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     // Note: the analyzer doesn't use the `isVoidAllowed` boolean; it detects
     // invalid use of void through more ad hoc mechanisms. See
@@ -808,13 +811,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
-    var flowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(expression);
+    var flowAnalysisInfo = flowAnalysis.getExpressionInfo(expression);
     assert(() {
       // When the AST is rewritten, the analyzer's convention is to associate
       // flow analysis expression info with the original expression, not the
       // replacement. (Note, however, that it's ok to associate the same info
       // with both expressions.)
-      var replacementFlowAnalysisInfo = flowAnalysis.flow?.getExpressionInfo(
+      var replacementFlowAnalysisInfo = flowAnalysis.getExpressionInfo(
         replacementExpression,
       );
       assert(
@@ -973,7 +976,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    flow.storeExpressionInfo(wholeExpression, null);
+    flowAnalysis.storeExpressionInfo(wholeExpression, null);
     return analysisResult;
   }
 
@@ -1051,7 +1054,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var condition = popRewrite()!;
 
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
@@ -1081,7 +1084,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var condition = popRewrite()!;
 
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
@@ -1496,7 +1499,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
       popRewrite();
       var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-        flowAnalysis.flow?.getExpressionInfo(node.index),
+        flowAnalysis.getExpressionInfo(node.index),
       );
       checkIndexExpressionIndex(
         node.index,
@@ -2005,9 +2008,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             flow.initialize(
               element,
               SharedTypeView(element.type),
-              target != null
-                  ? flowAnalysis.flow?.getExpressionInfo(target)
-                  : null,
+              target != null ? flowAnalysis.getExpressionInfo(target) : null,
               isFinal: false,
               isLate: false,
               isImplicitlyTyped: parameter.type == null,
@@ -2033,7 +2034,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       _thisType = parameterType;
       var target = node.target;
       var targetInfo = target != null
-          ? flowAnalysis.flow?.getExpressionInfo(target)
+          ? flowAnalysis.getExpressionInfo(target)
           : null;
       var body = node.body;
       flowAnalysis.flow?.thisBinding_begin(targetInfo);
@@ -2044,9 +2045,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _thisType = oldThisType;
       }
       if (body is AnonymousExpressionBodyImpl) {
-        flowAnalysis.flow?.storeExpressionInfo(
+        flowAnalysis.storeExpressionInfo(
           node,
-          flowAnalysis.flow?.getExpressionInfo(body.expression),
+          flowAnalysis.getExpressionInfo(body.expression),
         );
       }
     } else {
@@ -2136,11 +2137,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
-        flowAnalysis.flow?.getExpressionInfo(node.condition),
+        flowAnalysis.getExpressionInfo(node.condition),
       ),
     );
     flowAnalysis.flow?.assert_afterCondition(
-      flowAnalysis.flow?.getExpressionInfo(node.condition),
+      flowAnalysis.getExpressionInfo(node.condition),
     );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
@@ -2163,11 +2164,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.condition,
       locatableDiagnostic: diag.nonBoolExpression,
       whyNotPromoted: flowAnalysis.flow?.whyNotPromoted(
-        flowAnalysis.flow?.getExpressionInfo(node.condition),
+        flowAnalysis.getExpressionInfo(node.condition),
       ),
     );
     flowAnalysis.flow?.assert_afterCondition(
-      flowAnalysis.flow?.getExpressionInfo(node.condition),
+      flowAnalysis.getExpressionInfo(node.condition),
     );
     if (node.message case var message?) {
       analyzeExpression(message, operations.unknownType);
@@ -2281,7 +2282,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    flowAnalysis.flow?.storeExpressionInfo(
+    flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.booleanLiteral(node.value),
     );
@@ -2313,7 +2314,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow!.cascadeExpression_afterTarget(
-      flowAnalysis.flow!.getExpressionInfo(node.target),
+      flowAnalysis.getExpressionInfo(node.target),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
     );
@@ -2328,7 +2329,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (node.isNullAware) {
       flowAnalysis.flow!.nullAwareAccess_end();
     }
-    flowAnalysis.flow!.storeExpressionInfo(
+    flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow!.cascadeExpression_end(),
     );
@@ -2438,7 +2439,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
@@ -2446,7 +2447,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (flow != null) {
-      flow.conditional_thenBegin(flow.getExpressionInfo(condition), node);
+      flow.conditional_thenBegin(
+        flowAnalysis.getExpressionInfo(condition),
+        node,
+      );
       checkUnreachableNode(node.thenExpression);
     }
     analyzeExpression(node.thenExpression, SharedTypeSchemaView(contextType));
@@ -2457,7 +2461,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (flow != null) {
       flow.conditional_elseBegin(
-        flow.getExpressionInfo(node.thenExpression),
+        flowAnalysis.getExpressionInfo(node.thenExpression),
         SharedTypeView(node.thenExpression.typeOrThrow),
       );
       checkUnreachableNode(elseExpression);
@@ -2469,11 +2473,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitConditionalExpression(node, contextType: contextType);
     if (flow != null) {
-      flow.storeExpressionInfo(
+      flowAnalysis.storeExpressionInfo(
         node,
         flow.conditional_end(
           SharedTypeView(node.typeOrThrow),
-          flow.getExpressionInfo(elseExpression),
+          flowAnalysis.getExpressionInfo(elseExpression),
           SharedTypeView(elseExpression.typeOrThrow),
         ),
       );
@@ -2546,7 +2550,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(expression, SharedTypeSchemaView(fieldType));
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(expression),
+      flowAnalysis.getExpressionInfo(expression),
     );
     if (fieldElement != null && enclosingFunction != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
@@ -2613,7 +2617,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     boolExpressionVerifier.checkForNonBoolCondition(
       condition,
@@ -2621,7 +2625,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     flowAnalysis.flow?.doStatement_end(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     inferenceLogWriter?.exitStatement(node);
   }
@@ -3371,7 +3375,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
     popRewrite();
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(node.index),
+      flowAnalysis.getExpressionInfo(node.index),
     );
     checkIndexExpressionIndex(
       node.index,
@@ -3522,7 +3526,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite();
 
     flowAnalysis.flow?.nullAwareMapEntry_valueBegin(
-      flowAnalysis.flow?.getExpressionInfo(node.key),
+      flowAnalysis.getExpressionInfo(node.key),
       keyType,
       isKeyNullAware: node.keyQuestion != null,
     );
@@ -3745,7 +3749,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
-    flowAnalysis.flow?.storeExpressionInfo(
+    flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
     );
@@ -3763,10 +3767,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
     popRewrite();
     typeAnalyzer.visitParenthesizedExpression(node);
-    flowAnalysis.flow?.storeExpressionInfo(
+    flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.parenthesizedExpression(
-        flowAnalysis.flow?.getExpressionInfo(node.expression),
+        flowAnalysis.getExpressionInfo(node.expression),
       ),
     );
     inferenceLogWriter?.exitExpression(node);
@@ -4433,7 +4437,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flowAnalysis.flow?.initialize(
         node.declaredFragment?.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
-        flowAnalysis.flow?.getExpressionInfo(initializer),
+        flowAnalysis.getExpressionInfo(initializer),
         isFinal: parent.isFinal,
         isLate: parent.isLate,
         isImplicitlyTyped: declaredType == null,
@@ -4472,7 +4476,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
 
     boolExpressionVerifier.checkForNonBoolCondition(
@@ -4482,7 +4486,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     flowAnalysis.flow?.whileStatement_bodyBegin(
       node,
-      flowAnalysis.flow?.getExpressionInfo(condition),
+      flowAnalysis.getExpressionInfo(condition),
     );
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
@@ -4826,11 +4830,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           ),
         ):
         case var expression:
-          flow.storeExpressionInfo(
+          flowAnalysis.storeExpressionInfo(
             expression,
             startNullShorting(
               null,
-              flow.getExpressionInfo(expression),
+              flowAnalysis.getExpressionInfo(expression),
               SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
             ),
           );

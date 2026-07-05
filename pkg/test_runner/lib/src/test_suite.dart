@@ -81,11 +81,16 @@ abstract class TestSuite {
           'FIREFOX_PATH': Uri.base
               .resolve(configuration.firefoxPath!)
               .toFilePath(),
-        if (configuration.useQemu)
+        if (configuration.useQemu &&
+            QemuConfig.all[configuration.architecture] != null)
           'QEMU_LD_PREFIX':
+              Platform.environment['QEMU_LD_PREFIX'] ??
               QemuConfig.all[configuration.architecture]!.elfInterpreterPrefix,
-        if (configuration.useQemu)
-          'QEMU_CPU': QemuConfig.all[configuration.architecture]!.cpu,
+        if (configuration.useQemu &&
+            QemuConfig.all[configuration.architecture] != null)
+          'QEMU_CPU':
+              Platform.environment['QEMU_CPU'] ??
+              QemuConfig.all[configuration.architecture]!.cpu,
       };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;

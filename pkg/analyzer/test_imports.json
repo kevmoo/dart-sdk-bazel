@@ -6753,6 +6753,10 @@
   "test/src/diagnostics/initializer_for_static_field_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
+  "test/src/diagnostics/initializing_declaring_test.dart": [
+    "test/src/dart/resolution/context_collection_resolution.dart",
+    "test/src/dart/resolution/node_text_expectations.dart"
+  ],
   "test/src/diagnostics/initializing_formal_for_non_existent_field_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
@@ -8069,6 +8073,7 @@
     "test/src/diagnostics/inference_failure_on_untyped_parameter_test.dart",
     "test/src/diagnostics/initializer_for_non_existent_field_test.dart",
     "test/src/diagnostics/initializer_for_static_field_test.dart",
+    "test/src/diagnostics/initializing_declaring_test.dart",
     "test/src/diagnostics/initializing_formal_for_non_existent_field_test.dart",
     "test/src/diagnostics/instance_access_to_static_member_test.dart",
     "test/src/diagnostics/instance_member_access_from_factory_test.dart",

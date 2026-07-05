@@ -75,6 +75,7 @@ class TestConfiguration {
     required this.reproducingArguments,
     this.fastTestsOnly = false,
     this.printPassingStdout = false,
+    this.noSandbox = false,
     // ignore: prefer_initializing_formals
   }) : _buildDirectory = buildDirectory,
        packages =
@@ -111,6 +112,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool noSandbox;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -501,6 +503,16 @@ class TestConfiguration {
 
     if (compiler == Compiler.dartkp && genSnapshotFormat == null) {
       print("Error: gen_snapshot output format must be specified in AOT mode.");
+      isValid = false;
+    }
+
+    if (genSnapshotFormat == GenSnapshotFormat.coff &&
+        (system != System.win ||
+            !(architecture == Architecture.x64 ||
+                architecture == Architecture.x64c))) {
+      print(
+        "Error: COFF gen_snapshot output is only supported on Windows x64.",
+      );
       isValid = false;
     }
 

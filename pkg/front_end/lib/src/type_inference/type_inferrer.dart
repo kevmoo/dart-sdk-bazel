@@ -17,6 +17,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/stack_listener_impl.dart' show AsyncModifier;
+import '../util/expression_evaluation_helpers.dart';
 import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
@@ -41,7 +42,7 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
   get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
@@ -65,7 +66,7 @@ abstract class TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -78,7 +79,7 @@ abstract class TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -95,13 +96,13 @@ abstract class TypeInferrer {
     required List<int>? indices,
   });
 
-  /// Performs type inference on the given function parameter initializer
+  /// Performs type inference on the given function parameter default value
   /// expression.
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   });
 
   /// Infers the type arguments a redirecting factory target reference.
@@ -125,7 +126,12 @@ class TypeInferrerImpl implements TypeInferrer {
   TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
-  late final FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  late final FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    Expression,
+    InternalVariable
+  >
   flowAnalysis = new FlowAnalysis(
     operations,
     assignedVariables,
@@ -262,7 +268,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -312,8 +318,12 @@ class TypeInferrerImpl implements TypeInferrer {
     DartType? emittedValueType = bodyContext.emittedValueType;
     assert(asyncModifier.kind == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
+    Statement inferredBody = result.statement;
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(body, inferredBody);
     return new InferredFunctionBody(
-      result.hasChanged ? result.statement : body,
+      inferredBody,
       emittedValueType,
       scopeProviderInfo,
     );
@@ -335,19 +345,19 @@ class TypeInferrerImpl implements TypeInferrer {
     );
 
     List<InternalVariable> positionalParameters = [
-      for (Variable positionalParameter
+      for (PositionalParameter positionalParameter
           in redirectingFactoryFunction.positionalParameters)
         new InternalPositionalParameter(
-          astVariable: positionalParameter as PositionalParameter,
+          astVariable: positionalParameter,
           isImplicitlyTyped: false,
           fileOffset: positionalParameter.fileOffset,
         ),
     ];
     List<InternalVariable> namedParameters = [
-      for (Variable namedParameter
+      for (NamedParameter namedParameter
           in redirectingFactoryFunction.namedParameters)
         new InternalNamedParameter(
-          astVariable: namedParameter as NamedParameter,
+          astVariable: namedParameter,
           isImplicitlyTyped: false,
           fileOffset: namedParameter.fileOffset,
         ),
@@ -426,7 +436,7 @@ class TypeInferrerImpl implements TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -451,7 +461,7 @@ class TypeInferrerImpl implements TypeInferrer {
       );
     }
     List<InitializerInferenceResult> results = [];
-    for (Initializer initializer in initializers) {
+    for (InternalInitializer initializer in initializers) {
       results.add(visitor.inferInitializer(initializer));
     }
     if (scopeProviderInfo != null && isConstructorWithoutBody) {
@@ -477,11 +487,11 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -489,16 +499,18 @@ class TypeInferrerImpl implements TypeInferrer {
           InferenceVisitorBase.createContextAllocationStrategy(),
     );
     ExpressionInferenceResult result = visitor.inferExpression(
-      initializer,
+      defaultValue,
       declaredType,
     );
-    if (hasDeclaredInitializer) {
-      initializer = visitor
+    if (hasDeclaredDefaultValue) {
+      defaultValue = visitor
           .ensureAssignableResult(declaredType, result)
           .expression;
+    } else {
+      defaultValue = result.expression;
     }
     visitor.checkCleanState();
-    return initializer;
+    return defaultValue;
   }
 }
 
@@ -531,7 +543,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, Statement, Expression, InternalVariable>
+  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
   get flowAnalysis => impl.flowAnalysis;
 
   @override
@@ -563,7 +575,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required int fileOffset,
     required DartType returnType,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ScopeProviderInfo? scopeProviderInfo,
@@ -593,7 +605,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   InferredConstructorInitializers inferInitializers({
     required Uri fileUri,
     required ConstructorContext constructorContext,
-    required List<Initializer> initializers,
+    required List<InternalInitializer> initializers,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy<ScopeProviderInfo>
@@ -630,18 +642,18 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  Expression inferParameterInitializer({
+  Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression initializer,
+    required Expression defaultValue,
     required DartType declaredType,
-    required bool hasDeclaredInitializer,
+    required bool hasDeclaredDefaultValue,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferParameterInitializer);
-    Expression result = impl.inferParameterInitializer(
+    Expression result = impl.inferParameterDefaultValue(
       fileUri: fileUri,
-      initializer: initializer,
+      defaultValue: defaultValue,
       declaredType: declaredType,
-      hasDeclaredInitializer: hasDeclaredInitializer,
+      hasDeclaredDefaultValue: hasDeclaredDefaultValue,
     );
     benchmarker.endSubdivide();
     return result;

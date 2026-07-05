@@ -46,7 +46,7 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  Variable? getTearOffParameter(int index);
+  FunctionParameter? getTearOffParameter(int index);
 
   InternalVariable? get thisVariable;
 
@@ -355,7 +355,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -404,7 +404,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -507,7 +507,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
-  InternalVariable? _thisVariable;
+  InternalDeclaredVariable? _thisVariable;
 
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisTypeParameters] holds the type parameters copied
@@ -689,7 +689,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
             (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable.type = const UnknownType();
           needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
+        } else if (!formal.hasDeclaredDefaultValue &&
             formal.isSuperInitializingFormal) {
           needsInference = true;
         }
@@ -703,7 +703,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  InternalVariable? get thisVariable {
+  InternalDeclaredVariable? get thisVariable {
     assert(
       _thisVariable != null,
       "ProcedureBuilder.thisVariable has not been set.",
@@ -748,7 +748,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
       if (index < constructorTearOff.function.positionalParameters.length) {
@@ -771,7 +771,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       return;
     }
     if (!_isExternal) {
-      InternalVariable thisVariable = this.thisVariable!;
+      InternalDeclaredVariable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
         extern.createVariableDeclaration(thisVariable.astVariable),
       );
@@ -1256,7 +1256,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
@@ -1266,7 +1266,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         fileOffset: fileOffset,
         fileUri: fileUri,
         nameOffset: null,
-        hasImmediatelyDeclaredInitializer: false,
+        hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
     ];

@@ -337,7 +337,8 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
   diag.emptyContainerBodies: [RemoveEmptyContainerBody.new],
   diag.emptyStatements: [RemoveEmptyStatement.new, ReplaceWithBrackets.new],
-  diag.eolAtEndOfFile: [AddEolAtEndOfFile.new],
+  diag.eolAtEndOfFileMissing: [AddEolAtEndOfFile.new],
+  diag.eolAtEndOfFileTooMany: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
   diag.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
   diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
@@ -815,6 +816,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
     AddEnumConstant.new,
+    CreateField.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],

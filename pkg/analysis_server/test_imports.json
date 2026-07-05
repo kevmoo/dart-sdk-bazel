@@ -1093,8 +1093,7 @@
     "lib/src/services/completion/yaml/yaml_completion_generator.dart",
     "lib/src/services/snippets/dart_snippet_request.dart",
     "lib/src/services/snippets/snippet_manager.dart",
-    "lib/src/utilities/element_location2.dart",
-    "lib/src/utilities/extensions/object.dart"
+    "lib/src/utilities/element_location2.dart"
   ],
   "lib/src/lsp/handlers/handler_completion_resolve.dart": [
     "lib/lsp_protocol/protocol.dart",
@@ -4473,7 +4472,8 @@
   ],
   "test/lsp/change_verifier.dart": [
     "lib/lsp_protocol/protocol.dart",
-    "test/lsp/request_helpers_mixin.dart"
+    "test/lsp/request_helpers_mixin.dart",
+    "test/utils/lsp_protocol_extensions.dart"
   ],
   "test/lsp/change_workspace_folders_test.dart": [
     "test/lsp/initialization_test.dart",
@@ -4730,7 +4730,8 @@
     "lib/src/lsp/mapping.dart",
     "lib/src/lsp/source_edits.dart",
     "lib/src/protocol_server.dart",
-    "test/lsp/server_abstract.dart"
+    "test/lsp/server_abstract.dart",
+    "test/utils/lsp_protocol_extensions.dart"
   ],
   "test/lsp/migrate_test.dart": [
     "lib/lsp_protocol/protocol.dart",
@@ -4738,6 +4739,10 @@
     "lib/src/services/correction/fix_internal.dart",
     "test/lsp/server_abstract.dart",
     "test/tool/lsp_spec/matchers.dart"
+  ],
+  "test/lsp/migration_registry_test.dart": [
+    "lib/src/lsp/migration_registry.dart",
+    "lib/src/services/correction/fix_internal.dart"
   ],
   "test/lsp/open_uri_test.dart": [
     "test/lsp/server_abstract.dart"
@@ -4900,6 +4905,7 @@
     "test/lsp/inline_value_test.dart",
     "test/lsp/mapping_test.dart",
     "test/lsp/migrate_test.dart",
+    "test/lsp/migration_registry_test.dart",
     "test/lsp/open_uri_test.dart",
     "test/lsp/outline_test.dart",
     "test/lsp/priority_files_test.dart",
@@ -6031,6 +6037,7 @@
     "test/lsp/request_helpers_mixin.dart",
     "test/lsp/server_abstract.dart",
     "test/shared/shared_test_interface.dart",
+    "test/utils/lsp_protocol_extensions.dart",
     "test/utils/test_code_extensions.dart"
   ],
   "test/shared/shared_code_actions_fixes_tests.dart": [

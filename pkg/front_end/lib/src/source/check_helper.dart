@@ -744,7 +744,7 @@ extension CheckHelper on ProblemReporting {
         bool isOptional = isOptionalPositional || isOptionalNamed;
         if (isOptional &&
             formal.variable.type.isPotentiallyNonNullable &&
-            !formal.hasDeclaredInitializer) {
+            !formal.hasDeclaredDefaultValue) {
           addProblem(
             diag.optionalNonNullableWithoutInitializerError.withArguments(
               parameterName: formal.name,
@@ -754,7 +754,7 @@ extension CheckHelper on ProblemReporting {
             formal.name.length,
             formal.fileUri,
           );
-          formal.variable.isErroneouslyInitialized = true;
+          formal.variable.hasErroneousDefaultValue = true;
         }
       }
     }
@@ -866,7 +866,7 @@ extension CheckHelper on ProblemReporting {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  Expression wrapInLocatedProblem({
+  InvalidExpression wrapInLocatedProblem({
     required CompilerContext compilerContext,
     required Expression expression,
     required LocatedMessage message,

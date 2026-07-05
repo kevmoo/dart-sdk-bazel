@@ -92,6 +92,13 @@ AsExpression createAsExpression(
     ..isForDynamic = isForDynamic;
 }
 
+AssertInitializer createAssertInitializer(
+  AssertStatement statement, {
+  required int fileOffset,
+}) {
+  return new AssertInitializer(statement)..fileOffset = fileOffset;
+}
+
 AssertStatement createAssertStatement(
   Expression condition, {
   Expression? message,
@@ -123,6 +130,16 @@ AssignedVariablePattern createAssignedVariablePattern({
     ..fileOffset = fileOffset;
 }
 
+Expression createAwaitExpression(
+  Expression operand, {
+  required DartType? runtimeCheckType,
+  required int fileOffset,
+}) {
+  return new AwaitExpression(operand)
+    ..runtimeCheckType = runtimeCheckType
+    ..fileOffset = fileOffset;
+}
+
 /// Creates a block containing the [statements].
 Block createBlock(
   List<Statement> statements, {
@@ -139,9 +156,13 @@ Block createBlock(
 BlockExpression createBlockExpression(
   Block body,
   Expression value, {
+  // TODO(johnniwinther,cstefantsova): This should be required.
+  Scope? scope,
   required int fileOffset,
 }) {
-  return new BlockExpression(body, value)..fileOffset = fileOffset;
+  return new BlockExpression(body, value)
+    ..scope = scope
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a boolean literal of [value].
@@ -191,6 +212,13 @@ CatchVariable createCatchVariable({
     isWildcard: isWildcard,
     isFinal: isFinal,
   )..fileOffset = fileOffset;
+}
+
+Expression createCheckLibraryIsLoaded({
+  required LibraryDependency dependency,
+  required int fileOffset,
+}) {
+  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
 }
 
 /// Creates a conditional expression of the [condition] and the [then] and
@@ -263,7 +291,6 @@ ConstructorInvocation createConstructorInvocation(
     ..fileOffset = fileOffset;
 }
 
-// Coverage-ignore(suite): Not run.
 ConstructorTearOff createConstructorTearOff(
   Member target, {
   required int fileOffset,
@@ -275,6 +302,111 @@ ContinueSwitchStatement createContinueSwitchStatement({
   required int fileOffset,
 }) {
   return new ContinueSwitchStatement(dummySwitchCase)..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceGet(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Member interfaceTarget,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceGet(
+        kind,
+        receiver,
+        name,
+        interfaceTarget: interfaceTarget,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceInvocation(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name,
+  Arguments arguments, {
+  required Procedure interfaceTarget,
+  required FunctionType functionType,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceInvocation(
+        kind,
+        receiver,
+        name,
+        arguments,
+        interfaceTarget: interfaceTarget,
+        functionType: functionType,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedInstanceTearOff(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Procedure interfaceTarget,
+  required DartType checkType,
+  required DartType objectNullableType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new InstanceTearOff(
+        kind,
+        receiver,
+        name,
+        interfaceTarget: interfaceTarget,
+        resultType: objectNullableType,
+      )..fileOffset = fileOffset,
+      checkType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+AsExpression createCovarianceCheckedVariableGet(
+  Variable variable, {
+  required DartType operandStaticType,
+  required DartType checkedType,
+  required int fileOffset,
+}) {
+  return new AsExpression(
+      new VariableGet(variable)
+        ..fileOffset = fileOffset
+        ..promotedType = operandStaticType,
+      checkedType,
+    )
+    ..isTypeError = true
+    ..isCovarianceCheck = true
+    ..fileOffset = fileOffset;
+}
+
+Statement createDoStatement(
+  Statement body,
+  Expression condition, {
+  required int fileOffset,
+}) {
+  return new DoStatement(body, condition)..fileOffset = fileOffset;
+}
+
+DoubleLiteral createDoubleLiteral(double value, {required int fileOffset}) {
+  return new DoubleLiteral(value)..fileOffset = fileOffset;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -542,6 +674,31 @@ InstanceSet createInstanceSet(
   )..fileOffset = fileOffset;
 }
 
+InstanceTearOff createInstanceTearOff(
+  InstanceAccessKind kind,
+  Expression receiver,
+  Name name, {
+  required Procedure interfaceTarget,
+  required DartType resultType,
+  required int fileOffset,
+}) {
+  return new InstanceTearOff(
+    kind,
+    receiver,
+    name,
+    interfaceTarget: interfaceTarget,
+    resultType: resultType,
+  )..fileOffset = fileOffset;
+}
+
+Instantiation createInstantiation(
+  Expression expression,
+  List<DartType> typeArguments, {
+  required int fileOffset,
+}) {
+  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+}
+
 /// Creates an integer literal of [value].
 ///
 /// If [encodeForWeb] is `true`, negative values are encoded using unary-. This
@@ -588,15 +745,27 @@ InvalidInitializer createInvalidInitializer(
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
 
+InvalidInitializer createInvalidInitializerFromMessage(
+  String message, {
+  required int fileOffset,
+  required bool isSuperInitializer,
+  required bool isRedirectingInitializer,
+}) {
+  return new InvalidInitializer(message)
+    ..fileOffset = fileOffset
+    ..isSuperInitializer = isSuperInitializer
+    ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
 InvalidPattern createInvalidPattern({
   required Expression error,
-  required List<InternalVariable> declaredVariables,
+  required List<InternalDeclaredVariable> declaredVariables,
   int? fileOffset,
 }) {
   return new InvalidPattern(
     error,
     declaredVariables: declaredVariables
-        .map((InternalVariable variable) => variable.astVariable)
+        .map((InternalDeclaredVariable variable) => variable.astVariable)
         .toList(),
   )..fileOffset = fileOffset ?? error.fileOffset;
 }
@@ -625,7 +794,6 @@ LateVariable createLateVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -635,7 +803,6 @@ LateVariable createLateVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
@@ -644,7 +811,15 @@ LateVariable createLateVariable({
 
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
-Let createLet(SyntheticVariable variable, Expression body, {int? fileOffset}) {
+Let createLet({
+  required SyntheticVariable variable,
+  Expression? value,
+  required Expression body,
+  int? fileOffset,
+}) {
+  if (value != null) {
+    variable.initializer = value..parent = variable;
+  }
   return new Let(variable, body)
     ..fileOffset = fileOffset ?? variable.fileOffset;
 }
@@ -696,6 +871,13 @@ ListPattern createListPattern({
     ..fileOffset = fileOffset;
 }
 
+LoadLibrary createLoadLibrary(
+  LibraryDependency dependency, {
+  required int fileOffset,
+}) {
+  return new LoadLibrary(dependency)..fileOffset = fileOffset;
+}
+
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
@@ -719,7 +901,6 @@ LocalVariable createLocalVariable({
   bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
@@ -729,11 +910,19 @@ LocalVariable createLocalVariable({
       isFinal: isFinal,
       isConst: isConst,
       isWildcard: isWildcard,
-      initializer: initializer,
       hasDeclaredInitializer: hasDeclaredInitializer,
     )
     ..fileOffset = fileOffset
     ..fileEqualsOffset = fileEqualsOffset;
+}
+
+Expression createLogicalExpression({
+  required Expression left,
+  required LogicalExpressionOperator operator,
+  required Expression right,
+  required int fileOffset,
+}) {
+  return new LogicalExpression(left, operator, right)..fileOffset = fileOffset;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -875,8 +1064,8 @@ NamedPattern createNamedPattern({
 }
 
 /// Creates a [Not] of [operand].
-Not createNot(Expression operand) {
-  return new Not(operand)..fileOffset = operand.fileOffset;
+Not createNot(Expression operand, {int? fileOffset}) {
+  return new Not(operand)..fileOffset = fileOffset ?? operand.fileOffset;
 }
 
 NullAssertPattern createNullAssertPattern({
@@ -931,7 +1120,7 @@ LogicalExpression createOrExpression(
 OrPattern createOrPattern({
   required Pattern left,
   required Pattern right,
-  required List<Variable> orPatternJointVariables,
+  required List<DeclaredVariable> orPatternJointVariables,
   required int fileOffset,
 }) {
   return new OrPattern(
@@ -966,7 +1155,7 @@ PatternSwitchCase createPatternSwitchCase({
   required Statement body,
   required bool isDefault,
   required bool hasLabel,
-  required List<Variable> jointVariables,
+  required List<DeclaredVariable> jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
   required int fileOffset,
 }) {
@@ -1126,12 +1315,16 @@ RestPattern createRestPattern({
   return new RestPattern(subPattern)..fileOffset;
 }
 
+Expression createRethrow({required int fileOffset}) {
+  return new Rethrow()..fileOffset = fileOffset;
+}
+
 ReturnStatement createReturnStatement(
-  Expression expression, {
+  Expression? expression, {
   int? fileOffset,
 }) {
   return new ReturnStatement(expression)
-    ..fileOffset = fileOffset ?? expression.fileOffset;
+    ..fileOffset = fileOffset ?? expression!.fileOffset;
 }
 
 StaticGet createStaticGet(Member member, {required int fileOffset}) {
@@ -1279,7 +1472,7 @@ TypeParameter createTypeParameter(String? name, {required int fileOffset}) {
 }
 
 /// Creates an uninitialized [Variable] of the static [type].
-Variable createUninitializedVariable({
+SyntheticVariable createUninitializedVariable({
   required DartType type,
   String? name,
   required int fileOffset,
@@ -1355,10 +1548,15 @@ SyntheticVariable createVariableCache(
 }
 
 VariableDeclaration createVariableDeclaration(
-  Variable variable, {
+  DeclaredVariable variable, {
+  // TODO(johnniwinther): Make this required.
+  Expression? initializer,
   List<VariableContext>? capturedContexts,
   int? fileOffset,
 }) {
+  if (initializer != null) {
+    variable.initializer = initializer..parent = variable;
+  }
   return new VariableDeclaration(variable)
     ..capturedContexts = capturedContexts
     ..fileOffset = fileOffset ?? variable.fileOffset;
@@ -1378,7 +1576,7 @@ VariableGet createVariableGet(
 
 VariablePattern createVariablePattern({
   required DartType? type,
-  required Variable variable,
+  required DeclaredVariable variable,
   required DartType matchedValueType,
   required int fileOffset,
 }) {
@@ -1418,9 +1616,29 @@ VariableStatement createVariableStatement(
     ..fileOffset = fileOffset ?? declaration.fileOffset;
 }
 
+Statement createWhileStatement(
+  Expression condition,
+  Statement body, {
+  required Scope? scope,
+  required int fileOffset,
+}) {
+  return new WhileStatement(condition, body)
+    ..scope = scope
+    ..fileOffset = fileOffset;
+}
+
 WildcardPattern createWildcardPattern({
   required DartType? type,
   required int fileOffset,
 }) {
   return new WildcardPattern(type)..fileOffset = fileOffset;
+}
+
+YieldStatement createYieldStatement(
+  Expression expression, {
+  required bool isYieldStar,
+  required int fileOffset,
+}) {
+  return new YieldStatement(expression, isYieldStar: isYieldStar)
+    ..fileOffset = fileOffset;
 }

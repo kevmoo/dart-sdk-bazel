@@ -51,7 +51,6 @@ import '../source/check_helper.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
-import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 import 'load_library_builder.dart';
@@ -147,7 +146,7 @@ abstract class Generator {
   }) {
     return buildCompoundAssignment(
       binaryOperator,
-      intern.createIntLiteral(operatorOffset, 1),
+      intern.createIntLiteral(fileOffset: operatorOffset, value: 1),
       operatorOffset: operatorOffset,
       // TODO(johnniwinther): We are missing some void contexts here. For
       // instance `++a?.b;` is not providing a void context making it default
@@ -204,9 +203,11 @@ abstract class Generator {
 
   Expression buildForEffect() => buildSimpleRead();
 
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [
+      intern.createInvalidInitializer(
         _helper.buildProblem(
           message: diag.invalidInitializer,
           fileUri: _helper.uri,
@@ -754,6 +755,7 @@ class PropertyAccessGenerator extends Generator {
       receiver,
       name,
       isNullAware: false,
+      isImplicitThis: false,
     );
   }
 
@@ -766,6 +768,7 @@ class PropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: false,
+      isImplicitThis: false,
     );
   }
 
@@ -838,6 +841,7 @@ class PropertyAccessGenerator extends Generator {
       isNullAware: false,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: false,
     )..fileOffset = _nameOffset;
   }
 
@@ -994,6 +998,7 @@ class ThisPropertyAccessGenerator extends Generator {
       _thisExpression,
       name,
       isNullAware: false,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1015,6 +1020,7 @@ class ThisPropertyAccessGenerator extends Generator {
       value,
       forEffect: forEffect,
       isNullAware: false,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1088,6 +1094,7 @@ class ThisPropertyAccessGenerator extends Generator {
       isNullAware: false,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: !isThisExplicit,
     )..fileOffset = fileOffset;
   }
 
@@ -1134,6 +1141,7 @@ class ThisPropertyAccessGenerator extends Generator {
       typeArguments,
       arguments,
       offset,
+      isImplicitThis: !isThisExplicit,
     );
   }
 
@@ -1190,6 +1198,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       receiver,
       name,
       isNullAware: true,
+      isImplicitThis: false,
     );
   }
 
@@ -1202,6 +1211,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       value,
       forEffect: voidContext,
       isNullAware: true,
+      isImplicitThis: false,
     );
   }
 
@@ -1274,6 +1284,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       isNullAware: true,
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
+      isImplicitThis: false,
     )..fileOffset = fileOffset;
   }
 
@@ -1707,7 +1718,10 @@ class IndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -1904,7 +1918,10 @@ class ThisIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -2114,7 +2131,10 @@ class SuperIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -3624,7 +3644,10 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -4066,7 +4089,10 @@ class LoadLibraryGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -4091,7 +4117,11 @@ class LoadLibraryGenerator extends Generator {
         'loadLibrary'.length,
       );
     }
-    return builder.createLoadLibrary(offset, arguments);
+    return intern.createLoadLibrary(
+      import: builder.importDependency,
+      arguments: arguments,
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -5279,7 +5309,10 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    Expression value = intern.createIntLiteral(operatorOffset, 1);
+    Expression value = intern.createIntLiteral(
+      fileOffset: operatorOffset,
+      value: 1,
+    );
     return buildCompoundAssignment(
       binaryOperator,
       value,
@@ -5358,9 +5391,11 @@ abstract class ErroneousExpressionGenerator extends Generator {
   String get _plainNameForRead => name.text;
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [
+      intern.createInvalidInitializer(buildError(kind: UnresolvedKind.Setter)),
     ];
   }
 
@@ -5565,10 +5600,10 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[
-      extern.createInvalidInitializer(_createInvalidExpression()),
-    ];
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [intern.createInvalidInitializer(_createInvalidExpression())];
   }
 
   @override
@@ -6028,7 +6063,9 @@ class DelayedAssignment extends ContextAwareGenerator {
   }
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
     if (!identical("=", assignmentOperator) ||
         generator is! ThisPropertyAccessGenerator) {
       return generator.buildFieldInitializer(initializedFields);
@@ -6573,8 +6610,10 @@ class ParserErrorGenerator extends Generator {
       buildProblem();
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    return <Initializer>[extern.createInvalidInitializer(buildProblem())];
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
+    return [intern.createInvalidInitializer(buildProblem())];
   }
 
   @override
@@ -6778,9 +6817,11 @@ class ThisAccessGenerator extends Generator {
   }
 
   @override
-  List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
+  List<InternalInitializer> buildFieldInitializer(
+    Map<String, int>? initializedFields,
+  ) {
     InvalidExpression error = buildFieldInitializerError(initializedFields);
-    return <Initializer>[extern.createInvalidInitializer(error)];
+    return [intern.createInvalidInitializer(error)];
   }
 
   @override
@@ -6970,7 +7011,7 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return extern.createInvalidInitializer(
+          return intern.createInvalidInitializer(
             LookupResult.createDuplicateExpression(
               result,
               context: _helper.compilerContext,
@@ -6997,7 +7038,7 @@ class ThisAccessGenerator extends Generator {
       }
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
-        return extern.createInvalidInitializer(
+        return intern.createInvalidInitializer(
           _helper.buildProblem(
             message: diag.superclassHasNoConstructor.withArguments(
               constructorName: fullName,

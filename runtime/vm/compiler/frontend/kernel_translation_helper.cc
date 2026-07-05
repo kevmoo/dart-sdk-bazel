@@ -2709,6 +2709,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();                          // read name.
       SkipArguments();                     // read arguments.
       SkipDartType();                      // read function_type.
+      SkipDartType();                      // read result_type.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kDynamicInvocation:

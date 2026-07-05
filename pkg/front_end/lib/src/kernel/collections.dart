@@ -277,9 +277,10 @@ class ForElement extends ControlFlowElement
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -310,7 +311,7 @@ class ForInElement extends ControlFlowElement
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  late Variable variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 
@@ -522,9 +523,10 @@ class PatternForElement extends ControlFlowElementImpl
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -742,9 +744,10 @@ class ForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -801,9 +804,10 @@ class PatternForMapEntry extends TreeNode
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(
-        internalVariables[index].variable.astVariable,
+      internalVariables[index].variable.toTextInternal(
+        printer,
         includeModifiersAndType: index == 0,
+        initializer: internalVariables[index].initializer,
       );
     }
     printer.write('; ');
@@ -840,7 +844,7 @@ class ForInMapEntry extends TreeNode
   /// [ScopeProvider] nodes in the output.
   Scope? scope;
 
-  late Variable variable;
+  late DeclaredVariable variable;
 
   ForInEncoding? encoding;
 
