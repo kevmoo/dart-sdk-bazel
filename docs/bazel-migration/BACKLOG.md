@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 96/121 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 97/121 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -117,7 +117,7 @@ graph TD
     sdk_hw2["sdk-hw2:<br>Merge upstream origin/dev 3.13.0-201.0.dev"]:::completed
     sdk_i4n["sdk-i4n:<br>Migrate VM Platform and Kernel Service Dill Compilation to Starlark"]:::completed
     sdk_itv["sdk-itv:<br>Produce and publish distributable SDK artifacts {versioned archives + symbols + upload}"]:::pending
-    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::inProgress
+    sdk_izv["sdk-izv:<br>Migrate GCS remote cache bucket to single region us-west1 {Oregon}"]:::completed
     sdk_j1a["sdk-j1a:<br>Python Test Wrapper Unit Testing"]:::completed
     sdk_ji8["sdk-ji8:<br>Investigate Google3 Alignment"]:::pending
     sdk_jrr["sdk-jrr:<br>Repo-Local Upstream SDK Merge Flow Skill"]:::completed
@@ -443,19 +443,6 @@ graph TD
   - None
 - **Description**:
   //sdk:create_sdk yields the dart-sdk/ DIRECTORY TREE only. Nothing tracks the release-pipeline endpoint: per-platform versioned zip/tar archives, dartaotruntime/.sym debug-symbol bundles, and GCS/CIPD upload. A grep across all ~109 beads for archive/zip/release/publish/upload/cipd returns ZERO hits. You cannot 'ship a Bazel-built Dart SDK' without this.
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
-- **Status**: `[IN_PROGRESS]`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Recreate gs://dart-sdk-bazel-cache in single region us-west1 to reduce Class A PUT upload costs by 50% ($0.05 per 10k vs $0.10) and drop developer RTT latency in Seattle to ~5-10ms.
 - **Success Criteria**:
 
 ---

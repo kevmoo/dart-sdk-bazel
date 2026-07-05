@@ -931,6 +931,19 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-izv] Migrate GCS remote cache bucket to single region us-west1 (Oregon)
+- **Status**: `[COMPLETED]`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Recreate gs://dart-sdk-bazel-cache in single region us-west1 to reduce Class A PUT upload costs by 50% ($0.05 per 10k vs $0.10) and drop developer RTT latency in Seattle to ~5-10ms.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-j1a] Python Test Wrapper Unit Testing
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_014`
