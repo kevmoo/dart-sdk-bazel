@@ -2456,11 +2456,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void suspension(Node node) {
-    _wrap('suspension($node)', () => _wrapped.suspension(node));
-  }
-
-  @override
   bool switchStatement_afterCase() {
     return _wrap(
       'switchStatement_afterCase()',
@@ -6565,36 +6560,6 @@ class _FlowAnalysisImpl<
   SsaNode? ssaNodeForTesting(Variable variable) => _current.promotionInfo
       ?.get(this, promotionKeyStore.keyForVariable(variable))
       ?.ssaNode;
-
-  @override
-  void suspension(Node node) {
-    // During an async suspension or yield, other code may execute. If the
-    // current point in flow control is inside a local function, this means that
-    // enclosing functions may resume executing.
-    //
-    // Therefore, any variables that are read within the current local function,
-    // and written to anywhere, but not declared in the current local function,
-    // might potentially get written to, blowing away any promotions that are
-    // currently in effect.
-    if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
-      Set<int> variablesToDemote = info.read
-          .intersection(_assignedVariables.anywhere.written)
-          .difference(info.declared);
-      _current = _current.conservativeJoin(
-        this,
-        variablesToDemote,
-        const [],
-        getNonPromotionReason: (variableKey) {
-          Variable? variable = promotionKeyStore.variableForKey(variableKey);
-          // `variableKey` should be one of the keys in `variableToDemote`;
-          // those keys in turn should always correspond to actual variables
-          // declared by the user. So `variable` should never be `null`.
-          assert(variablesToDemote.contains(variableKey));
-          return new DemoteViaSuspension<Variable>(variable!, node);
-        },
-      );
-    }
-  }
 
   @override
   void suspension(Node node) {
