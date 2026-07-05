@@ -274,7 +274,7 @@ void main(List<String> args) async {
   final queryArgs = [
     ...bazelStartupArgs,
     'query',
-    'kind(".*_test rule", @dart_tests//...)',
+    'tests(@dart_tests//...) + tests(//runtime/...)',
   ];
 
   final queryRes = Process.runSync('bazel', queryArgs);
@@ -534,6 +534,7 @@ void main(List<String> args) async {
           await outSink.close();
         }
 
+        final chunkTargetsSet = chunkTargets.map(normalizeLabel).toSet();
         final seenTargetsInChunk = <String>{};
 
         if (bepFile.existsSync()) {
@@ -552,7 +553,8 @@ void main(List<String> args) async {
 
                 if (label != null) {
                   final normalized = normalizeLabel(label);
-                  if (!seenTargetsInChunk.contains(normalized)) {
+                  if (chunkTargetsSet.contains(normalized) &&
+                      !seenTargetsInChunk.contains(normalized)) {
                     seenTargetsInChunk.add(normalized);
                     cumulativeSummaryCount++;
 
@@ -590,7 +592,8 @@ void main(List<String> args) async {
 
                 if (label != null && !overallSuccess) {
                   final normalized = normalizeLabel(label);
-                  if (!seenTargetsInChunk.contains(normalized)) {
+                  if (chunkTargetsSet.contains(normalized) &&
+                      !seenTargetsInChunk.contains(normalized)) {
                     seenTargetsInChunk.add(normalized);
                     cumulativeSummaryCount++;
 

@@ -1,6 +1,6 @@
 # Dart SDK Bazel Test Completion Matrix & Gap Analysis
 
-* **Generated At:** `2026-07-05T22:06:27.311157Z`
+* **Generated At:** `2026-07-05T22:25:13.536839Z`
 * **Source of Truth:** [`test_matrix_results.json`](./test_matrix_results.json)
 * **Watchdog Watch Interval:** `300s` (5 minutes)
 
@@ -24,7 +24,7 @@
 | `vm_aot_release_simriscv64` | 🔍 Dry Run (Unexecuted) | 151 | 0 | 0 |
 | `vm_debug` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
 | `vm_product` | 🔍 Dry Run (Unexecuted) | 206 | 0 | 0 |
-| `vm_release` | 🔍 Dry Run (Unexecuted) | 2507 | 0 | 0 |
+| `vm_release` | 🔍 Dry Run (Unexecuted) | 2512 | 0 | 0 |
 | `vm_release_simarm` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
 | `vm_release_simarm64` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
 | `vm_release_simriscv64` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
@@ -37,7 +37,7 @@
 | `wasm_optimized` | 🔍 Dry Run (Unexecuted) | 153 | 0 | 0 |
 | `wasm_release` | 🔍 Dry Run (Unexecuted) | 158 | 0 | 0 |
 
-**Universe Totals:** `5790` targets discovered *(Unexecuted — Dry Run)*
+**Universe Totals:** `5795` targets discovered *(Unexecuted — Dry Run)*
 
 ---
 
@@ -51,7 +51,7 @@
 | **`ffi`** | 🔍 53 | ❄️ | 🔍 3 | 🔍 53 | **109** |
 | **`language`** | 🔍 136 | 🔍 138 | 🔍 142 | 🔍 2605 | **3021** |
 | **`pkg`** | 🔍 2295 | ❄️ | ❄️ | ❄️ | **2295** |
-| **`runtime`** | ❄️ | ❄️ | ❄️ | ❄️ | **0** |
+| **`runtime`** | 🔍 5 | ❄️ | ❄️ | ❄️ | **5** |
 | **`standalone`** | 🔍 9 | ❄️ | 🔍 7 | 🔍 77 | **93** |
 | **`tests`** | ❄️ | 🔍 5 | ❄️ | 🔍 37 | **42** |
 | **`web/wasm`** | ❄️ | 🔍 2 | ❄️ | 🔍 14 | **16** |
