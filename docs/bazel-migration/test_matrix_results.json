@@ -1,5 +1,6 @@
 {
-  "timestamp": "2026-07-05T04:27:30.685733Z",
+  "timestamp": "2026-07-05T22:25:13.536839Z",
+  "is_dry_run": true,
   "watchdog_interval_seconds": 300,
   "quarantine": {
     "skip_suites": [],
@@ -28,35 +29,35 @@
   },
   "config_results": {
     "vm_release": {
-      "total_targets": 2964,
-      "passed": 2964,
+      "total_targets": 2512,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 544,
-          "passed": 544,
+          "total": 136,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 32,
-          "passed": 32,
+          "total": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 36,
-          "passed": 36,
+          "total": 9,
+          "passed": 0,
           "failed": 0
         },
         "ffi": {
           "total": 53,
-          "passed": 53,
+          "passed": 0,
           "failed": 0
         },
         "pkg": {
-          "total": 2293,
-          "passed": 2293,
+          "total": 2295,
+          "passed": 0,
           "failed": 0
         },
         "web/wasm": {
@@ -66,7 +67,7 @@
         },
         "co19": {
           "total": 6,
-          "passed": 6,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
@@ -75,7 +76,7 @@
           "failed": 0
         },
         "runtime": {
-          "total": 0,
+          "total": 5,
           "passed": 0,
           "failed": 0
         }
@@ -83,24 +84,24 @@
     },
     "vm_debug": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 136,
-          "passed": 136,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
           "total": 9,
-          "passed": 9,
+          "passed": 0,
           "failed": 0
         },
         "ffi": {
@@ -137,29 +138,29 @@
     },
     "vm_product": {
       "total_targets": 206,
-      "passed": 206,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 136,
-          "passed": 136,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
           "total": 9,
-          "passed": 9,
+          "passed": 0,
           "failed": 0
         },
         "ffi": {
           "total": 53,
-          "passed": 53,
+          "passed": 0,
           "failed": 0
         },
         "pkg": {
@@ -191,19 +192,19 @@
     },
     "wasm_release": {
       "total_targets": 158,
-      "passed": 158,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -223,12 +224,12 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
@@ -243,26 +244,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_asserts": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -282,7 +283,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -302,26 +303,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_optimized": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -341,7 +342,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -361,26 +362,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_chrome_release": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -400,7 +401,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -420,26 +421,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_chrome_asserts": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -459,7 +460,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -479,26 +480,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_chrome_optimized": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -518,7 +519,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -538,26 +539,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_firefox_release": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -577,7 +578,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -597,26 +598,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "wasm_firefox_asserts": {
       "total_targets": 153,
-      "passed": 153,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 138,
-          "passed": 138,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -636,7 +637,7 @@
         },
         "web/wasm": {
           "total": 2,
-          "passed": 2,
+          "passed": 0,
           "failed": 0
         },
         "co19": {
@@ -656,26 +657,26 @@
         },
         "tests": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "dart2js_chrome_release": {
       "total_targets": 155,
-      "passed": 155,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 139,
-          "passed": 139,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 10,
-          "passed": 10,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -700,7 +701,7 @@
         },
         "co19": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
@@ -715,26 +716,26 @@
         },
         "tests": {
           "total": 1,
-          "passed": 1,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "ddc_chrome_release": {
       "total_targets": 156,
-      "passed": 156,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 137,
-          "passed": 137,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 10,
-          "passed": 10,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -759,12 +760,12 @@
         },
         "co19": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
           "total": 4,
-          "passed": 4,
+          "passed": 0,
           "failed": 0
         },
         "runtime": {
@@ -776,19 +777,19 @@
     },
     "dart2js_firefox_release": {
       "total_targets": 150,
-      "passed": 150,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 139,
-          "passed": 139,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 10,
-          "passed": 10,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
@@ -828,36 +829,36 @@
         },
         "tests": {
           "total": 1,
-          "passed": 1,
+          "passed": 0,
           "failed": 0
         }
       }
     },
     "cfe_release": {
       "total_targets": 160,
-      "passed": 160,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
           "total": 142,
-          "passed": 142,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
           "total": 8,
-          "passed": 8,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
           "total": 7,
-          "passed": 7,
+          "passed": 0,
           "failed": 0
         },
         "ffi": {
           "total": 3,
-          "passed": 3,
+          "passed": 0,
           "failed": 0
         },
         "pkg": {
@@ -888,25 +889,25 @@
       }
     },
     "vm_aot_release": {
-      "total_targets": 609,
-      "passed": 609,
+      "total_targets": 156,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 544,
-          "passed": 544,
+          "total": 136,
+          "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 28,
-          "passed": 28,
+          "total": 7,
+          "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 32,
-          "passed": 32,
+          "total": 8,
+          "passed": 0,
           "failed": 0
         },
         "ffi": {
@@ -926,7 +927,7 @@
         },
         "co19": {
           "total": 5,
-          "passed": 5,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
@@ -942,24 +943,24 @@
       }
     },
     "vm_release_simarm": {
-      "total_targets": 0,
+      "total_targets": 153,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 9,
           "passed": 0,
           "failed": 0
         },
@@ -996,24 +997,24 @@
       }
     },
     "vm_aot_release_simarm": {
-      "total_targets": 0,
+      "total_targets": 151,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 7,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
@@ -1050,24 +1051,24 @@
       }
     },
     "vm_release_simarm64": {
-      "total_targets": 0,
+      "total_targets": 153,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 9,
           "passed": 0,
           "failed": 0
         },
@@ -1104,24 +1105,24 @@
       }
     },
     "vm_aot_release_simarm64": {
-      "total_targets": 0,
+      "total_targets": 151,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 7,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
@@ -1158,24 +1159,24 @@
       }
     },
     "vm_release_simriscv64": {
-      "total_targets": 0,
+      "total_targets": 153,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 9,
           "passed": 0,
           "failed": 0
         },
@@ -1212,24 +1213,24 @@
       }
     },
     "vm_aot_release_simriscv64": {
-      "total_targets": 0,
+      "total_targets": 151,
       "passed": 0,
       "failed": 0,
-      "status": "Skipped / Filtered Out",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
-          "total": 0,
+          "total": 136,
           "passed": 0,
           "failed": 0
         },
         "corelib": {
-          "total": 0,
+          "total": 7,
           "passed": 0,
           "failed": 0
         },
         "standalone": {
-          "total": 0,
+          "total": 8,
           "passed": 0,
           "failed": 0
         },
@@ -1267,9 +1268,9 @@
     },
     "analyzer_release": {
       "total_targets": 6,
-      "passed": 6,
+      "passed": 0,
       "failed": 0,
-      "status": "Active",
+      "status": "Dry Run (Unexecuted)",
       "failed_targets": [],
       "by_suite": {
         "language": {
@@ -1304,7 +1305,7 @@
         },
         "co19": {
           "total": 6,
-          "passed": 6,
+          "passed": 0,
           "failed": 0
         },
         "dartdevc": {
