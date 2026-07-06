@@ -8,6 +8,8 @@ import "dart:io";
 import "dart:io" as io;
 import "dart:math";
 
+final String outDir = io.Platform.environment["TEST_TMPDIR"] ?? "out/dartfuzz";
+
 final buildDirs = [
   "out/ReleaseX64",
   "out/ReleaseX64C",
@@ -161,6 +163,19 @@ void taskEnd() {
   }
 }
 
+String resolvePath(String path) {
+  var runfiles = io.Platform.environment['TEST_SRCDIR'];
+  if (runfiles != null) {
+    var workspace = io.Platform.environment['TEST_WORKSPACE'] ?? '_main';
+    var workspacePath = "$runfiles/$workspace/$path";
+    if (io.FileSystemEntity.typeSync(workspacePath) !=
+        io.FileSystemEntityType.notFound) {
+      return workspacePath;
+    }
+  }
+  return path;
+}
+
 Future<void> test(
   List<String> Function(String) createDartCommand,
   int taskIndex,
@@ -168,59 +183,51 @@ Future<void> test(
 ) async {
   taskStart();
 
-  var dartCommand = createDartCommand("out/dartfuzz/$taskIndex.$extension");
+  var dartCommand = createDartCommand("$outDir/$taskIndex.$extension");
   var dartScript = dartCommand[0];
   var dartArguments = dartCommand.getRange(1, dartCommand.length).toList();
-
-  var buildDir = oneOf(buildDirs);
   List<List<String>> commands;
   if (random.nextBool()) {
     // JIT
     commands = [
       [
-        "$buildDir/dartvm",
+        io.Platform.resolvedExecutable,
+        ...pkgFlags,
         ...alwaysFlags,
         ...someJitRuntimeFlags(),
         dartScript,
         ...dartArguments,
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.$extension",
-        "out/dartfuzz/$taskIndex.$extension",
-      ],
+      ["diff", "$outDir/expected.$extension", "$outDir/$taskIndex.$extension"],
     ];
   } else {
     // AOT
     commands = [
       [
-        "out/ReleaseX64/dartvm",
+        io.Platform.resolvedExecutable,
+        ...pkgFlags,
         ...alwaysFlags,
-        "pkg/vm/bin/gen_kernel.dart",
-        "--platform=$buildDir/vm_platform.dill",
+        resolvePath("pkg/vm/bin/gen_kernel.dart"),
+        "--platform=${resolvePath('runtime/vm/vm_platform_stripped.dill')}",
         "--aot",
-        "--output=out/dartfuzz/$taskIndex.dill",
+        "--output=$outDir/$taskIndex.dill",
         dartScript,
       ],
       [
-        "$buildDir/gen_snapshot",
+        resolvePath("runtime/bin/gen_snapshot"),
         ...someGenSnapshotFlags(),
         "--snapshot_kind=app-aot-elf",
-        "--elf=out/dartfuzz/$taskIndex.elf",
-        "out/dartfuzz/$taskIndex.dill",
+        "--elf=$outDir/$taskIndex.elf",
+        "$outDir/$taskIndex.dill",
       ],
       [
-        "$buildDir/dartaotruntime",
+        resolvePath("runtime/bin/dartaotruntime"),
         ...alwaysFlags,
         ...someAotRuntimeFlags(),
-        "out/dartfuzz/$taskIndex.elf",
+        "$outDir/$taskIndex.elf",
         ...dartArguments,
       ],
-      [
-        "diff",
-        "out/dartfuzz/expected.$extension",
-        "out/dartfuzz/$taskIndex.$extension",
-      ],
+      ["diff", "$outDir/expected.$extension", "$outDir/$taskIndex.$extension"],
     ];
   }
 
@@ -281,18 +288,26 @@ Future<void> shard(
   }
 }
 
+var pkgConfig =
+    io.Platform.environment['DART_PACKAGE_CONFIG'] ??
+    resolvePath(".dart_tool/package_config.json");
+var pkgFlags = File(pkgConfig).existsSync()
+    ? ['--packages=$pkgConfig']
+    : <String>[];
+
 Future<void> flagFuzz(
   List<String> Function(String) createDartCommand,
   String extension,
 ) async {
   stopwatch.start();
 
-  await Directory("out/dartfuzz").create();
+  await Directory(outDir).create(recursive: true);
 
-  var executable = "out/ReleaseX64/dartvm";
+  var executable = io.Platform.resolvedExecutable;
   var arguments = [
+    ...pkgFlags,
     ...alwaysFlags,
-    ...createDartCommand("out/dartfuzz/expected.$extension"),
+    ...createDartCommand("$outDir/expected.$extension"),
   ];
   var processResult = await Process.run(executable, arguments);
   if (processResult.exitCode != 0) {

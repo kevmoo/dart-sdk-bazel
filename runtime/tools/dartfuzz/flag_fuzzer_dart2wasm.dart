@@ -9,10 +9,10 @@ import "flag_fuzzer.dart";
 
 Future<void> main() => flagFuzz(
   (String output) => [
-    "pkg/dart2wasm/bin/dart2wasm.dart",
-    "--platform=out/ReleaseX64/dart2wasm_platform.dill",
+    resolvePath("pkg/dart2wasm/bin/dart2wasm.dart"),
+    "--platform=${resolvePath('utils/dart2wasm/dart2wasm_platform.dill')}",
     "--no-source-maps", // Otherwise output includes path
-    "pkg/compiler/lib/src/util/memory_compiler.dart",
+    resolvePath("pkg/compiler/lib/src/util/memory_compiler.dart"),
     output,
   ],
   "wasm",

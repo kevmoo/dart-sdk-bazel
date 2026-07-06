@@ -9,12 +9,12 @@ import "flag_fuzzer.dart";
 
 Future<void> main() => flagFuzz(
   (String output) => [
-    "pkg/compiler/lib/src/dart2js.dart",
+    resolvePath("pkg/compiler/lib/src/dart2js.dart"),
     "--invoker=test",
-    "--platform-binaries=out/ReleaseX64",
+    "--platform-binaries=${resolvePath('out/ReleaseX64')}",
     "--out=$output",
     "--no-source-maps", // Otherwise output includes path
-    "pkg/compiler/lib/src/util/memory_compiler.dart",
+    resolvePath("pkg/compiler/lib/src/util/memory_compiler.dart"),
   ],
   "js",
 );

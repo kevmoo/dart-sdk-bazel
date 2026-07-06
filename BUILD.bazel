@@ -371,3 +371,15 @@ filegroup(
 )
 
 exports_files(["DEPS"])
+
+filegroup(
+    name = "dartfuzz_test_sources",
+    srcs = glob([
+        "pkg/**/*.dart",
+    ]),
+)
+
+filegroup(
+    name = "package_config_json_raw",
+    srcs = [".dart_tool/package_config.json"],
+)
