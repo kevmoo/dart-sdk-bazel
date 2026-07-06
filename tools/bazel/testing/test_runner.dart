@@ -493,6 +493,11 @@ void main(List<String> args) async {
           failCount += (cfg['failed'] as int? ?? 0);
         }
 
+        final rssMb =
+            (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1);
+        print(
+            '⏳ [Status] Chunk ${chunkIdx + 1}/${targetChunks.length} | Progress: ${currentPercent.toStringAsFixed(1)}% | Passed: $passCount | Failed: $failCount | Elapsed: ${currentElapsedMins.toStringAsFixed(1)}m | RAM: ${rssMb}MB');
+
         writeHeartbeat(heartbeatPath, {
           'status': 'RUNNING',
           'timestamp': DateTime.now().toUtc().toIso8601String(),
@@ -504,8 +509,7 @@ void main(List<String> args) async {
           'total_chunks': targetChunks.length,
           'passed_targets': passCount,
           'failed_targets': failCount,
-          'process_rss_mb':
-              (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
+          'process_rss_mb': rssMb,
         });
       });
 
