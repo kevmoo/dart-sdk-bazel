@@ -50,4 +50,15 @@ dart_binary(
 sh_test(
     name = "flag_fuzzer_dart2wasm",
     srcs = [":flag_fuzzer_dart2wasm_bin"],
+    data = [
+        "//:test_package_sources",
+        "//:dart2wasm_platform",
+        "//:pkg/dart2wasm/bin/dart2wasm.dart",
+        "//:pkg/vm/bin/gen_kernel.dart",
+        "//:dartfuzz_test_sources",
+        "//runtime/bin:gen_snapshot",
+        "//runtime/bin:dartaotruntime",
+        "//runtime/vm:vm_platform_stripped",
+        "//:package_config_json_raw",
+    ],
 )
