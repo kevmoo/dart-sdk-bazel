@@ -210,14 +210,14 @@ Future<void> test(
         resolvePath("pkg/vm/bin/gen_kernel.dart"),
         "--platform=${resolvePath('runtime/vm/vm_platform_stripped.dill')}",
         "--aot",
-        "--output=out/dartfuzz/$taskIndex.dill",
+        "--output=$outDir/$taskIndex.dill",
         dartScript,
       ],
       [
         resolvePath("runtime/bin/gen_snapshot"),
         ...someGenSnapshotFlags(),
         "--snapshot_kind=app-aot-elf",
-        "--elf=out/dartfuzz/$taskIndex.elf",
+        "--elf=$outDir/$taskIndex.elf",
         "$outDir/$taskIndex.dill",
       ],
       [
