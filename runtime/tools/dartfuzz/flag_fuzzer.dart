@@ -166,8 +166,10 @@ void taskEnd() {
 String resolvePath(String path) {
   var runfiles = io.Platform.environment['TEST_SRCDIR'];
   if (runfiles != null) {
-    var workspacePath = "$runfiles/_main/$path";
-    if (File(workspacePath).existsSync()) {
+    var workspace = io.Platform.environment['TEST_WORKSPACE'] ?? '_main';
+    var workspacePath = "$runfiles/$workspace/$path";
+    if (io.FileSystemEntity.typeSync(workspacePath) !=
+        io.FileSystemEntityType.notFound) {
       return workspacePath;
     }
   }
@@ -184,8 +186,6 @@ Future<void> test(
   var dartCommand = createDartCommand("$outDir/$taskIndex.$extension");
   var dartScript = dartCommand[0];
   var dartArguments = dartCommand.getRange(1, dartCommand.length).toList();
-
-  var buildDir = oneOf(buildDirs);
   List<List<String>> commands;
   if (random.nextBool()) {
     // JIT
@@ -208,7 +208,7 @@ Future<void> test(
         ...pkgFlags,
         ...alwaysFlags,
         resolvePath("pkg/vm/bin/gen_kernel.dart"),
-        "--platform=" + resolvePath("runtime/vm/vm_platform_stripped.dill"),
+        "--platform=${resolvePath('runtime/vm/vm_platform_stripped.dill')}",
         "--aot",
         "--output=out/dartfuzz/$taskIndex.dill",
         dartScript,
@@ -292,7 +292,7 @@ var pkgConfig =
     io.Platform.environment['DART_PACKAGE_CONFIG'] ??
     resolvePath(".dart_tool/package_config.json");
 var pkgFlags = File(pkgConfig).existsSync()
-    ? ['--packages=' + pkgConfig]
+    ? ['--packages=$pkgConfig']
     : <String>[];
 
 Future<void> flagFuzz(
@@ -301,7 +301,7 @@ Future<void> flagFuzz(
 ) async {
   stopwatch.start();
 
-  await Directory(outDir).create();
+  await Directory(outDir).create(recursive: true);
 
   var executable = io.Platform.resolvedExecutable;
   var arguments = [

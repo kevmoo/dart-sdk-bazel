@@ -11,7 +11,7 @@ Future<void> main() => flagFuzz(
   (String output) => [
     resolvePath("pkg/compiler/lib/src/dart2js.dart"),
     "--invoker=test",
-    "--platform-binaries=" + resolvePath("out/ReleaseX64"),
+    "--platform-binaries=${resolvePath('out/ReleaseX64')}",
     "--out=$output",
     "--no-source-maps", // Otherwise output includes path
     resolvePath("pkg/compiler/lib/src/util/memory_compiler.dart"),
