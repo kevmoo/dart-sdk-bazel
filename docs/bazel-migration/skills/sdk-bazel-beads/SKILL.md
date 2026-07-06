@@ -7,7 +7,7 @@ description: >-
 
 # Bazel Thread Task Tracking & Beads Lifecycle (`sdk-bazel-beads`)
 
-This skill defines the mandatory workflow for issue tracking, task lifecycle management, backlog board generation, and Dolt database synchronization on the **Bazel thread (`bazel`)**.
+This skill defines the mandatory workflow for issue tracking, task lifecycle management, and Dolt database synchronization on the **Bazel thread (`bazel`)**.
 
 ---
 
@@ -30,21 +30,13 @@ To keep the backlog board accurate and prevent desynchronization:
 
 ---
 
-## 📊 2. Board Generation & Dolt Sync Protocol
+## 📊 2. Dolt Sync Protocol
 
 Whenever task metadata or status changes in `beads` (`bd`), execute the following steps in order:
 
-1. **Regenerate Backlog Markdown Boards**:
-   ```bash
-   .agents/scripts/sync_backlog.sh
-   ```
-2. **Push Dolt Task Database**:
+1. **Push Dolt Task Database**:
    ```bash
    bd dolt push
-   ```
-3. **Stage & Commit Board Updates**:
-   ```bash
-   git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md
    ```
 
 ---

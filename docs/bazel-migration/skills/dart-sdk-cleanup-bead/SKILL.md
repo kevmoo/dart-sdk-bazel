@@ -1,19 +1,19 @@
 ---
 name: dart-sdk-cleanup-bead
 description: >-
-  Post-merge cleanup protocol for Dart SDK Bazel thread task worktrees, beads issue closing, backlog board regeneration, and remote sync.
+  Post-merge cleanup protocol for Dart SDK Bazel thread task worktrees, beads issue closing, and remote sync.
 ---
 
 # Dart SDK Post-Merge Cleanup & Bead Closing (`dart-sdk-cleanup-bead`)
 
-This skill defines the standard protocol for cleaning up task worktrees, closing beads issues, updating backlog markdown documentation, and syncing local `main` with remote after a PR has been merged on the **Bazel thread (`bazel`)**.
+This skill defines the standard protocol for cleaning up task worktrees, closing beads issues, and syncing local `main` with remote after a PR has been merged on the **Bazel thread (`bazel`)**.
 
 ---
 
 ## When to Use This Skill
 
-- Trigger when a PR has landed/merged on GitHub and you need to close out a task, clean up sandbox worktrees/branches, and update the backlog.
-- Use when requested to "clean up bead", "close bead <id>", "tear down worktree after merge", or "sync backlog after PR landed".
+- Trigger when a PR has landed/merged on GitHub and you need to close out a task, and clean up sandbox worktrees/branches.
+- Use when requested to "clean up bead", "close bead <id>", or "tear down worktree after merge".
 
 ---
 
@@ -24,7 +24,7 @@ flowchart TD
     A["PR Merged on Remote"] --> B["1. Go to Main Bazel Checkout<br/>cd bazel/main/sdk"]
     B --> C["2. Pull Latest & Verify PR Landed<br/>git pull origin main"]
     C --> D["3. Cleanup Worktree & Local Branch<br/>.agents/scripts/rmagenttree bazel task-name<br/>git branch -d branch-name"]
-    D --> E["4. Update Bead & Backlog Files<br/>bd close bead-id<br/>.agents/scripts/sync_backlog.sh<br/>git add BACKLOG.md BACKLOG_HISTORY.md<br/>git commit -m 'chore(migration): sync BACKLOG.md'"]
+    D --> E["4. Update Bead<br/>bd close bead-id"]
     E --> F["5. Interactive Authorization<br/>ask_question: Push main branch to origin?"]
     F -->|"Approved"| G["git push origin main"]
     F -->|"Declined"| H["Keep local commit unpushed"]
@@ -53,18 +53,11 @@ Reclaim disk space by deleting the task sandbox worktree and local branch:
 git branch -d <branch-name>
 ```
 
-### 4. Update Bead and Backlog Files
-Close the corresponding bead issue in the local database and regenerate the backlog markdown documentation:
+### 4. Update Bead
+Close the corresponding bead issue in the local database:
 ```bash
 # Close the bead
 bd close <bead-id>
-
-# Regenerate backlog markdown boards
-.agents/scripts/sync_backlog.sh
-
-# Stage and commit updated backlog files locally
-git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md
-git commit -m "chore(migration): sync BACKLOG.md after closing bead <bead-id>"
 ```
 
 ### 5. Offer to Push using `ask_question`
