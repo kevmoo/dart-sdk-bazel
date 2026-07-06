@@ -1,1 +1,1 @@
-{"status":"DRY_RUN","timestamp":"2026-07-05T22:25:13.494235Z","completed_targets":5795,"total_targets":5795,"percent":"100.0","elapsed_minutes":"0.0","eta_remaining_minutes":"0.0","rate_targets_per_sec":"0.0","disk_free_gb":{"tmp":"54.6","workspace":"551.4"}}
+{"status":"COMPLETED","timestamp":"2026-07-06T05:23:46.057102Z","completed_targets":5795,"total_targets":5795,"percent":"100.0","elapsed_minutes":"260.6","eta_remaining_minutes":"0.0","rate_targets_per_sec":"0.37","disk_free_gb":{"tmp":"54.7","workspace":"553.5"}}

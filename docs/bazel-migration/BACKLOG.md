@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 97/121 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 97/122 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -44,6 +44,7 @@ graph TD
     classDef pending fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,stroke-dasharray: 5 5,color:#6c757d;
     classDef blocked fill:#f8d7da,stroke:#dc3545,stroke-width:1px,stroke-dasharray: 5 5,color:#721c24;
     sdk_0dc["sdk-0dc:<br>Retire `restore.sh` entirely"]:::completed
+    sdk_10p["sdk-10p:<br>Print periodic progress updates to stdout in test_runner.dart"]:::inProgress
     sdk_245["sdk-245:<br>Track sandboxed execution of benchmarks suite under Bazel"]:::pending
     sdk_2f2["sdk-2f2:<br>Investigate Upstreaming Non-Bazel Fixes to Main"]:::completed
     sdk_2w0["sdk-2w0:<br>Add Starlark test discovery for modular compilation and hot reload test suites"]:::pending
@@ -212,6 +213,20 @@ graph TD
 ---
 
 ## 📋 Active Backlog
+
+### 🎯 [sdk-10p] Print periodic progress updates to stdout in test_runner.dart
+- **Status**: `[IN_PROGRESS]`
+- **Tags**: `tools`, `user-experience`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  To prevent long periods of silence in the test runner log (especially during the first chunk compilation), add a periodic timer in test_runner.dart to print status updates (elapsed time, current chunk, memory usage) to stdout.
+- **Success Criteria**:
+
+---
 
 ### 🎯 [sdk-245] Track sandboxed execution of benchmarks suite under Bazel
 - **Status**: `[PENDING]`
