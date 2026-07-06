@@ -25,6 +25,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-10p] Print periodic progress updates to stdout in test_runner.dart
+- **Status**: `[COMPLETED]`
+- **Tags**: `tools`, `user-experience`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  To prevent long periods of silence in the test runner log (especially during the first chunk compilation), add a periodic timer in test_runner.dart to print status updates (elapsed time, current chunk, memory usage) to stdout.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-2f2] Investigate Upstreaming Non-Bazel Fixes to Main
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_027`
