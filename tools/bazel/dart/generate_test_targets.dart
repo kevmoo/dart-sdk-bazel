@@ -393,7 +393,7 @@ void main(List<String> args) async {
 
     if (!useIndividualTargets && pkgRoot != 'co19') {
       final granularSourceDir =
-          getSuiteSourceDir(workspaceDir, pkgDir, co19Dir);
+          getSuiteSourceDir(workspaceDir, pkgRoot, co19Dir);
       final dir = Directory(granularSourceDir);
       if (dir.existsSync()) {
         final files = dir.listSync(recursive: true);
@@ -418,8 +418,8 @@ void main(List<String> args) async {
     final filegroups = <String, Set<String>>{};
 
     // Package-wide resources (config-independent)
-    if (hasFineGrained) {
-      final resources = _findPackageResources(workspaceDir, pkgDir, co19Dir);
+    if (pkgRoot != 'co19') {
+      final resources = _findPackageResources(workspaceDir, pkgRoot, co19Dir);
       if (resources.isNotEmpty) {
         final fgName = 'fg_package_resources';
         for (final res in resources) {
@@ -457,6 +457,7 @@ void main(List<String> args) async {
         ':tests_metadata_$configName.json',
         '@//:test_package_sources',
         '@//:package_config_json',
+        '@//:package_config_json_raw',
         '@dart_packages//:package_config_json',
         config.compiler == 'ddc'
             ? '@//pkg/test_runner/bin:run_ddc_test.dart'
@@ -793,18 +794,18 @@ void main(List<String> args) async {
                     }
                   }
                 }
-                // And also depend on the whole package from virtual repo (all files)
-                // for runtime reads via packageRoot.
-                if (pkgRoot.startsWith('pkg/') && pkgName != null) {
-                  targetDeps.add(
-                    '@dart_packages//pkg/$pkgName:sdk_package_sources',
-                  );
-                }
               }
             }
 
             if (pkgName != null) {
               targetDeps.add('@dart_packages//pkg/$pkgName');
+              if (pkgRoot.startsWith('pkg/')) {
+                // And also depend on the whole package from virtual repo (all files)
+                // for runtime reads via packageRoot.
+                targetDeps.add(
+                  '@dart_packages//pkg/$pkgName:sdk_package_sources',
+                );
+              }
             }
 
             final targetDepsStr =
@@ -989,6 +990,7 @@ $envAttr
         if (!useIndividualTargets) {
           if (pkgRoot.startsWith('pkg/') && pkgName != null) {
             otherDeps.add('@dart_packages//pkg/$pkgName');
+            otherDeps.add('@dart_packages//pkg/$pkgName:sdk_package_sources');
           }
 
           final baselineDepsSet = baselineDeps
@@ -1041,7 +1043,7 @@ $envRule
     final pkgBuild = File('$outputDir/$pkgDir/BUILD.bazel');
 
     final filegroupsStr = StringBuffer();
-    if (hasFineGrained) {
+    if (filegroups.isNotEmpty) {
       final sortedFgNames = filegroups.keys.toList()..sort();
       for (final fgName in sortedFgNames) {
         final srcs = filegroups[fgName]!.toList()..sort();
@@ -1100,7 +1102,7 @@ $workspaceFilesStr
         pkgBuild.writeAsStringSync(
           '''load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
-$workspaceFilesRule
+$filegroupsStr$workspaceFilesRule
 
 $targetsStr
 ''',
@@ -1408,6 +1410,33 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir,
     '.options',
     '.packages',
     '.isolate_kit',
+    '.html',
+    '.css',
+    '.arb',
+    '.lock',
+    '.md',
+    '.source',
+    '.expect',
+    '.out',
+    '.golden',
+    '.cfg',
+    '.ini',
+    '.plist',
+    '.cc',
+    '.c',
+    '.h',
+    '.sh',
+    '.bat',
+    '.pem',
+    '.crt',
+    '.key',
+    '.log',
+    '.pub',
+    '.template',
+    '.tmpl',
+    '.pro',
+    '.diff',
+    '.patch',
   };
 
   for (final entity in dir.listSync(recursive: true)) {
@@ -1429,7 +1458,15 @@ List<String> _findPackageResources(String workspaceDir, String pkgDir,
       if (dotIndex != -1) {
         final ext = filename.substring(dotIndex).toLowerCase();
         final isAllowedExt = allowedExtensions.contains(ext);
-        final isHelperDart = ext == '.dart' && !filename.endsWith('_test.dart');
+        final isFixtureDir = path.contains('/data/') ||
+            path.contains('/id_tests/') ||
+            path.contains('/cases/') ||
+            path.contains('/fixtures/') ||
+            path.contains('/test_data/') ||
+            path.contains('/rules/') ||
+            path.contains('/src/diagnostics/');
+        final isHelperDart = ext == '.dart' &&
+            (!filename.endsWith('_test.dart') || isFixtureDir);
         if (isAllowedExt || isHelperDart) {
           if (pkgDir == 'co19') {
             final relPath = path.substring(sourceDir.length + 1);

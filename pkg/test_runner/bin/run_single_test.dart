@@ -162,6 +162,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   String? analyzerPackagesRoot;
   if (runfilesDir != null && runfilesDir.isNotEmpty) {
     for (final prefix in [
+      _getCanonicalRepoName('dart_packages'),
       '+dart_packages_extension+dart_packages',
       'dart_packages',
       '_main',
@@ -715,7 +716,7 @@ String _getCanonicalRepoName(String apparentName) {
       }
     }
   }
-  return '+dart_packages_extension+dart_packages';
+  return '+${apparentName}_extension+$apparentName';
 }
 
 String _rewritePackageConfig() {
@@ -723,6 +724,9 @@ String _rewritePackageConfig() {
   var originalPath = _Runfiles.resolve(
     '$dartPackagesRepo/.dart_tool/package_config.json',
   );
+  if (!File(originalPath).existsSync()) {
+    originalPath = _Runfiles.resolve('$dartPackagesRepo/package_config.json');
+  }
   if (!File(originalPath).existsSync()) {
     originalPath = _Runfiles.resolve('_main/.dart_tool/package_config.json');
   }
@@ -793,6 +797,7 @@ abstract final class _Runfiles {
     if (runfilesDir != null && runfilesDir.isNotEmpty) {
       if (pkgName != null && pkgName.isNotEmpty) {
         for (final prefix in [
+          _getCanonicalRepoName('dart_packages'),
           '+dart_packages_extension+dart_packages',
           'dart_packages',
           '_main',
@@ -811,6 +816,8 @@ abstract final class _Runfiles {
       if (normalizedPath.startsWith('_main/')) {
         final subPath = normalizedPath.substring('_main/'.length);
         for (final prefix in [
+          _getCanonicalRepoName('dart_packages'),
+          _getCanonicalRepoName('third_party'),
           '+dart_packages_extension+dart_packages',
           '+third_party_extension+third_party',
           'dart_packages',
@@ -1068,6 +1075,7 @@ String _resolvePlaceholders(String path, String runfilesDir) {
   if (result.contains(r'$CO19_ROOT')) {
     String? co19Root;
     for (final prefix in [
+      _getCanonicalRepoName('dart_co19_tests'),
       '+third_party_extension+dart_co19_tests',
       'dart_co19_tests',
     ]) {
