@@ -88,6 +88,10 @@ if [ -n "$PACKAGE_CONFIG_RLOCATION" ] && [ -f "$TEST_SRCDIR/$PACKAGE_CONFIG_RLOC
 fi
 if [ -z "$PKG_CONFIG" ]; then
   for CANDIDATE in \
+    "$TEST_SRCDIR/+dart_packages_extension+dart_packages/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/+dart_packages_extension+dart_packages/package_config.json" \
+    "$TEST_SRCDIR/dart_packages/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/dart_packages/package_config.json" \
     "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
     "$TEST_SRCDIR/.dart_tool/package_config.json" \
     "$TEST_SRCDIR/_main/package_config.json" \
@@ -185,6 +189,10 @@ if [ -n "$PACKAGE_CONFIG_RLOCATION" ] && [ -f "$TEST_SRCDIR/$PACKAGE_CONFIG_RLOC
 fi
 if [ -z "$PKG_CONFIG" ]; then
   for CANDIDATE in \
+    "$TEST_SRCDIR/+dart_packages_extension+dart_packages/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/+dart_packages_extension+dart_packages/package_config.json" \
+    "$TEST_SRCDIR/dart_packages/.dart_tool/package_config.json" \
+    "$TEST_SRCDIR/dart_packages/package_config.json" \
     "$TEST_SRCDIR/_main/.dart_tool/package_config.json" \
     "$TEST_SRCDIR/.dart_tool/package_config.json" \
     "$TEST_SRCDIR/_main/package_config.json" \
@@ -279,4 +287,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 49
+# Force refetch trigger: 55

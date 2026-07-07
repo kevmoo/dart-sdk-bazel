@@ -29,12 +29,14 @@ The full Starlark test universe (`tools/bazel/run_test_universe.dart`) was execu
 
 Analyzing the structured lifecycle events in `test_bep.json` and execution logs reveals three distinct failure categories:
 
-```mermaid
-pie title Failure Root Cause Taxonomy (2,294 Failed Targets)
-    "Category A: Runfiles & Inode Exhaustion (--nobuild_runfile_links)" : 1490
-    "Category B: Heavy Suite 300s Shard Timeouts (co19, WASM/AOT)" : 575
-    "Category C: Missing Hermetic Dependencies (data=[...])" : 229
-```
+**Failure Root Cause Taxonomy (2,294 Failed Targets)**
+
+| Category | Root Cause | Failed Targets | % of Failures |
+|---|---|:---:|:---:|
+| **Category A** | Runfiles & Inode Exhaustion (`--nobuild_runfile_links`) | 1,490 | ~65% |
+| **Category B** | Heavy Suite 300s Shard Timeouts (`co19`, WASM/AOT) | 575 | ~25% |
+| **Category C** | Missing Hermetic Dependencies (`data=[...]`) | 229 | ~10% |
+| **Total** | | **2,294** | **100%** |
 
 ### Category A: Runfiles & Symlink Inode Exhaustion (~65% of failures)
 * **Symptom:** Unit tests in `pkg/analyzer`, `pkg/analysis_server`, `pkg/front_end`, and `pkg/test_api` fail with `CompileTimeError`, `Type not found`, or `FileNotFoundException`.
@@ -48,6 +50,8 @@ pie title Failure Root Cause Taxonomy (2,294 Failed Targets)
 ### Category C: Missing Hermetic Asset Declarations (~10% of failures)
 * **Symptom:** Tests fail at runtime attempting to load dynamic assets (`libout.so`, platform `.dill` files, or JSON manifests) that are missing from the sandbox.
 * **Root Cause:** The `@dart_tests//...` Starlark generator does not always bundle runtime-compiled artifacts or supporting test data files in the target's `data = [...]` attribute.
+* **Resolved Milestones:**
+  * ✅ **PR #72 (`6ed8579`) — Dartfuzz Sandbox & Data Resolution:** Resolved `//runtime/tools/dartfuzz:...` failures (`flag_fuzzer_dart2wasm`, `flag_fuzzer_dart2js`, `dartfuzz_test`) by replacing hardcoded `out/ReleaseX64` paths with `TEST_SRCDIR`/`TEST_TMPDIR` resolution and exposing `.dart_tool/package_config.json` and package sources in root `BUILD.bazel` filegroups.
 
 ---
 
@@ -78,6 +82,7 @@ pie title Failure Root Cause Taxonomy (2,294 Failed Targets)
 
 ### 🛠️ REC-FIX-2: Automated Hermetic Asset Scanning in Starlark Macros *(Bead: `sdk-67o.6`)*
 * **Action:** Enhance the Starlark test generation macros (`run_test_universe.dart` / `.bzl` rules) to automatically detect and append required `.dill`, `.snapshot`, and helper `.dart` files to the target's `data` attribute.
+* **Reference Implementation:** PR #72 (`6ed8579`) demonstrates the canonical pattern for resolving Category C hermetic asset failures by exposing root filegroups (`.dart_tool/package_config.json`, `pkg/**/*.dart`) and passing `--packages=` flags to nested compiler invocations.
 
 ### 🛠️ REC-FIX-3: Quarantine Flaky/Broken Targets via Tags *(Bead: `sdk-67o.2`)*
 * **Action:** Apply `tags = ["manual", "quarantine"]` to currently unmigrated or flaky test targets.
