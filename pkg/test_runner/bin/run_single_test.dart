@@ -605,6 +605,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         final runfilesScriptPath =
             (normalizedScript.startsWith('_main/') ||
                 normalizedScript.startsWith('@') ||
+                normalizedScript.startsWith('external/') ||
                 p.isAbsolute(scriptPath))
             ? scriptPath
             : '_main/$scriptPath';
