@@ -634,6 +634,7 @@ String _getCanonicalRepoName(String apparentName) {
 
 abstract final class _Runfiles {
   static Map<String, String>? _manifest;
+  static final Map<String, String?> _pkgCache = {};
 
   static String resolve(String relativePath, {String? pkgName}) {
     final normalizedPath = relativePath.replaceAll('\\', '/');
@@ -711,6 +712,9 @@ abstract final class _Runfiles {
 
   static String? _resolvePkgFromManifest(String pkgName) {
     if (_manifest == null) return null;
+    if (_pkgCache.containsKey(pkgName)) {
+      return _pkgCache[pkgName];
+    }
     for (final entry in _manifest!.entries) {
       final logicalPath = entry.key;
       final physicalPath = entry.value;
@@ -720,14 +724,17 @@ abstract final class _Runfiles {
           final logicalPkgRoot = parts.sublist(0, i + 1).join('/');
           final suffix = logicalPath.substring(logicalPkgRoot.length);
           if (physicalPath.endsWith(suffix)) {
-            return physicalPath.substring(
+            final result = physicalPath.substring(
               0,
               physicalPath.length - suffix.length,
             );
+            _pkgCache[pkgName] = result;
+            return result;
           }
         }
       }
     }
+    _pkgCache[pkgName] = null;
     return null;
   }
 

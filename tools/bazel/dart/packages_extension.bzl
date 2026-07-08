@@ -44,7 +44,7 @@ def _copy_path(ctx, src, dst):
         if parent:
             ctx.execute(["mkdir", "-p", parent])
         ctx.execute(["rm", "-rf", dst])
-        res = ctx.execute(["cp", "-r", str(src), dst])
+        res = ctx.execute(["cp", "-RL", str(src), dst])
         if res.return_code != 0:
             fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
         return
