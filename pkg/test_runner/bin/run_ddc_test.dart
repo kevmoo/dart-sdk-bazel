@@ -71,14 +71,17 @@ void main(List<String> args) async {
     'dev_compiler',
     'smith',
   ];
-  final packages = pkgs.map((p) {
-    final pDir = _Runfiles.resolve('', pkgName: p);
-    return {
-      'name': p,
-      'rootUri': Uri.directory(pDir).toString(),
-      'packageUri': 'lib/',
-    };
-  }).toList();
+  final packages = <Map<String, String>>[];
+  for (final p in pkgs) {
+    final pDir = _Runfiles.resolvePackage(p);
+    if (pDir != null) {
+      packages.add({
+        'name': p,
+        'rootUri': Uri.directory(pDir).toString(),
+        'packageUri': 'lib/',
+      });
+    }
+  }
   final cleanPkgCfg = '$buildDir/hermetic_package_config.json';
   await File(cleanPkgCfg).parent.create(recursive: true);
   await File(
@@ -181,9 +184,9 @@ void main(List<String> args) async {
       for (var a = 0; a < compileArgs.length; a++) {
         var arg = compileArgs[a];
         if (arg.contains(r'$SDK_ROOT')) {
-          var sdkRoot = '$testSrcdir/_main';
+          var sdkRoot = p.join(testSrcdir, '_main');
           if (!Directory(sdkRoot).existsSync()) {
-            sdkRoot = '$testSrcdir/dart_sdk';
+            sdkRoot = p.join(testSrcdir, 'dart_sdk');
           }
           arg = arg.replaceAll(r'$SDK_ROOT', sdkRoot);
         }
@@ -193,11 +196,24 @@ void main(List<String> args) async {
           var summaryPath = compileArgs[++a];
           for (final candidate in [
             summaryPath,
-            '$testSrcdir/dart-sdk/lib/_internal/ddc_outline.dill',
-            '$testSrcdir/_main/dart-sdk/lib/_internal/ddc_outline.dill',
-            '$testSrcdir/utils/ddc/ddc_outline.dill',
-            '$testSrcdir/_main/utils/ddc/ddc_outline.dill',
-            '$testSrcdir/bazel-bin/utils/ddc/ddc_outline.dill',
+            p.join(
+              testSrcdir,
+              'dart-sdk',
+              'lib',
+              '_internal',
+              'ddc_outline.dill',
+            ),
+            p.join(
+              testSrcdir,
+              '_main',
+              'dart-sdk',
+              'lib',
+              '_internal',
+              'ddc_outline.dill',
+            ),
+            p.join(testSrcdir, 'utils', 'ddc', 'ddc_outline.dill'),
+            p.join(testSrcdir, '_main', 'utils', 'ddc', 'ddc_outline.dill'),
+            p.join(testSrcdir, 'bazel-bin', 'utils', 'ddc', 'ddc_outline.dill'),
           ]) {
             if (File(candidate).existsSync()) {
               summaryPath = candidate;
@@ -275,10 +291,10 @@ void main(List<String> args) async {
       var targetFile = File(filePath);
       if (!p.isAbsolute(filePath)) {
         if (!await targetFile.exists()) {
-          targetFile = File('$testSrcdir/_main/$filePath');
+          targetFile = File(p.join(testSrcdir, '_main', filePath));
         }
         if (!await targetFile.exists()) {
-          targetFile = File('$testSrcdir/$filePath');
+          targetFile = File(p.join(testSrcdir, filePath));
         }
       }
       final fileContent = await targetFile.exists()
@@ -636,22 +652,15 @@ abstract final class _Runfiles {
   static Map<String, String>? _manifest;
   static final Map<String, String?> _pkgCache = {};
 
-  static String resolve(String relativePath, {String? pkgName}) {
+  static String resolve(String relativePath) {
     final normalizedPath = relativePath.replaceAll('\\', '/');
 
     final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
     if (manifestFile != null && manifestFile.isNotEmpty) {
       _manifest ??= _loadManifest(manifestFile);
-      if (pkgName != null && pkgName.isNotEmpty) {
-        final resolvedPkg = _resolvePkgFromManifest(pkgName);
-        if (resolvedPkg != null) {
-          return resolvedPkg;
-        }
-      } else {
-        final resolved = _manifest![normalizedPath];
-        if (resolved != null) {
-          return resolved;
-        }
+      final resolved = _manifest![normalizedPath];
+      if (resolved != null) {
+        return resolved;
       }
     }
 
@@ -659,12 +668,6 @@ abstract final class _Runfiles {
         Platform.environment['RUNFILES_DIR'] ??
         Platform.environment['TEST_SRCDIR'];
     if (runfilesDir != null && runfilesDir.isNotEmpty) {
-      if (pkgName != null && pkgName.isNotEmpty) {
-        final resolvedPkg = _findPackageInRunfiles(runfilesDir, pkgName);
-        if (resolvedPkg != null) {
-          return resolvedPkg;
-        }
-      }
       if (normalizedPath.startsWith('_main/')) {
         final subPath = normalizedPath.substring('_main/'.length);
         for (final prefix in [
@@ -690,6 +693,31 @@ abstract final class _Runfiles {
     }
 
     return relativePath;
+  }
+
+  static String? resolvePackage(String pkgName) {
+    if (pkgName.isEmpty) return null;
+
+    final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
+    if (manifestFile != null && manifestFile.isNotEmpty) {
+      _manifest ??= _loadManifest(manifestFile);
+      final resolvedPkg = _resolvePkgFromManifest(pkgName);
+      if (resolvedPkg != null) {
+        return resolvedPkg;
+      }
+    }
+
+    final runfilesDir =
+        Platform.environment['RUNFILES_DIR'] ??
+        Platform.environment['TEST_SRCDIR'];
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      final resolvedPkg = _findPackageInRunfiles(runfilesDir, pkgName);
+      if (resolvedPkg != null) {
+        return resolvedPkg;
+      }
+    }
+
+    return null;
   }
 
   static Map<String, String> _loadManifest(String path) {
@@ -718,12 +746,13 @@ abstract final class _Runfiles {
     for (final entry in _manifest!.entries) {
       final logicalPath = entry.key;
       final physicalPath = entry.value;
+      final physicalPathNormalized = physicalPath.replaceAll('\\', '/');
       final parts = logicalPath.split('/');
       for (var i = 0; i < parts.length - 1; i++) {
         if (parts[i] == pkgName && parts[i + 1] == 'lib') {
           final logicalPkgRoot = parts.sublist(0, i + 1).join('/');
           final suffix = logicalPath.substring(logicalPkgRoot.length);
-          if (physicalPath.endsWith(suffix)) {
+          if (physicalPathNormalized.endsWith(suffix)) {
             final result = physicalPath.substring(
               0,
               physicalPath.length - suffix.length,
