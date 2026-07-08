@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+final String exeExt = Platform.isWindows ? '.exe' : '';
+
 /// A standalone zero-dependency runner that executes a list of test configurations,
 /// handles sharding, and maps process exit codes to expectations.
 void main(List<String> args) async {
@@ -299,7 +301,6 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       }
     }
     final testSrcdir = Platform.environment['TEST_SRCDIR'];
-    final exeExt = Platform.isWindows ? '.exe' : '';
 
     if (executable == 'pkg/dart2wasm/tool/compile_benchmark' &&
         testSrcdir != null) {
@@ -464,15 +465,15 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         executable = dartBinEnv;
       } else if (executable.endsWith('/dartaotruntime')) {
         final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/dartaotruntime';
+        executable = '$sdkBinDir/dartaotruntime$exeExt';
       } else if (executable.endsWith('/gen_snapshot')) {
         final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/utils/gen_snapshot';
+        executable = '$sdkBinDir/utils/gen_snapshot$exeExt';
       } else if (executable.endsWith('pkg/vm/tool/gen_kernel')) {
         final sdkBinDir = File(dartBinEnv).parent.path;
         final snapshot = '$sdkBinDir/snapshots/gen_kernel_aot.dart.snapshot';
         if (File(snapshot).existsSync()) {
-          executable = '$sdkBinDir/dartaotruntime';
+          executable = '$sdkBinDir/dartaotruntime$exeExt';
           arguments = [snapshot, ...arguments];
         } else {
           final genKernelDart = _Runfiles.resolve(
@@ -595,9 +596,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       }
       if (scriptIndex != -1) {
         final scriptPath = arguments[scriptIndex];
+        final normalizedScript = scriptPath.replaceAll('\\', '/');
         final runfilesScriptPath =
-            (scriptPath.startsWith('_main/') ||
-                scriptPath.startsWith('@') ||
+            (normalizedScript.startsWith('_main/') ||
+                normalizedScript.startsWith('@') ||
                 p.isAbsolute(scriptPath))
             ? scriptPath
             : '_main/$scriptPath';

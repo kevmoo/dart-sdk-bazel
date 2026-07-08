@@ -797,13 +797,13 @@ abstract final class _Runfiles {
 
 String _resolveCo19Root(String path, String testSrcdir) {
   if (!path.contains(r'$CO19_ROOT')) return path;
-  var co19Root = '$testSrcdir/dart_co19_tests';
+  var co19Root = p.join(testSrcdir, 'dart_co19_tests');
   for (final prefix in [
     '+third_party_extension+dart_co19_tests',
     'dart_co19_tests',
     '_main/external/+third_party_extension+dart_co19_tests',
   ]) {
-    final pathToCheck = '$testSrcdir/$prefix';
+    final pathToCheck = p.join(testSrcdir, prefix);
     if (Directory(pathToCheck).existsSync()) {
       co19Root = pathToCheck;
       break;
