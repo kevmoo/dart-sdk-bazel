@@ -273,11 +273,13 @@ void main(List<String> args) async {
       var filePath = tc['file_path'] as String;
       filePath = _resolveCo19Root(filePath, testSrcdir);
       var targetFile = File(filePath);
-      if (!await targetFile.exists()) {
-        targetFile = File('$testSrcdir/_main/$filePath');
-      }
-      if (!await targetFile.exists()) {
-        targetFile = File('$testSrcdir/$filePath');
+      if (!p.isAbsolute(filePath)) {
+        if (!await targetFile.exists()) {
+          targetFile = File('$testSrcdir/_main/$filePath');
+        }
+        if (!await targetFile.exists()) {
+          targetFile = File('$testSrcdir/$filePath');
+        }
       }
       final fileContent = await targetFile.exists()
           ? await targetFile.readAsString()
