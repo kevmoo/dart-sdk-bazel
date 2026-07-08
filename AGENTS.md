@@ -13,6 +13,10 @@ This project uses **bd** (beads) for issue tracking. Run `bd prime` for full wor
 > source of truth; don't `bd import` during normal operation; don't
 > reach for third-party Dolt hosting before trying the default).
 
+## Pre-Flight PR Checklist
+
+Before submitting a pull request or requesting code reviews, you **MUST** read and verify your changes against the guidelines in [docs/bazel-migration/CHECK_BEFORE_YOU_SUBMIT.md](docs/bazel-migration/CHECK_BEFORE_YOU_SUBMIT.md). This covers Windows compatibility, Bazel sandbox issues, and Dart VM options ordering.
+
 ## Quick Reference
 
 ```bash
