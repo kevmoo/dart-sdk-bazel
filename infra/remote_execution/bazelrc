@@ -28,6 +28,7 @@ build:remote-cache --remote_upload_local_results=true
 build:remote-cache --remote_local_fallback=true
 
 # Trip circuit breaker and stop remote cache calls if over 5% of requests fail within a 10s window (e.g. auth failures or rate limits)
+build:remote-cache --experimental_circuit_breaker_strategy=failure
 build:remote-cache --experimental_remote_failure_rate_threshold=5
 build:remote-cache --experimental_remote_failure_window_interval=10s
 # Do not waste time retrying unauthenticated or failing requests when falling back to local execution
@@ -58,6 +59,7 @@ build:remote --remote_timeout=3600
 build:remote --remote_local_fallback=true
 
 # Trip circuit breaker and stop remote calls if over 5% of requests fail within a 10s window
+build:remote --experimental_circuit_breaker_strategy=failure
 build:remote --experimental_remote_failure_rate_threshold=5
 build:remote --experimental_remote_failure_window_interval=10s
 build:remote --remote_retries=1
