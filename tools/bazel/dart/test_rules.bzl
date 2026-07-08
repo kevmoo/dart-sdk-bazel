@@ -107,18 +107,21 @@ if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
-  if [[ "$PKG_CONFIG" == *dart_packages* ]]; then
-    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-  else
-    STAGING_DIR=$(dirname "$PKG_CONFIG")
-    mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
-    cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
-    if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
-      DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
-    else
+  case "$PKG_CONFIG" in
+    *dart_packages*)
       DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-    fi
-  fi
+      ;;
+    *)
+      STAGING_DIR=$(dirname "$PKG_CONFIG")
+      mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
+      cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
+      if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
+        DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
+      else
+        DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+      fi
+      ;;
+  esac
 fi
 
 CHROMEDRIVER_BIN=""
@@ -212,18 +215,21 @@ if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
-  if [[ "$PKG_CONFIG" == *dart_packages* ]]; then
-    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-  else
-    STAGING_DIR=$(dirname "$PKG_CONFIG")
-    mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
-    cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
-    if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
-      DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
-    else
+  case "$PKG_CONFIG" in
+    *dart_packages*)
       DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-    fi
-  fi
+      ;;
+    *)
+      STAGING_DIR=$(dirname "$PKG_CONFIG")
+      mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
+      cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
+      if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
+        DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
+      else
+        DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
+      fi
+      ;;
+  esac
 fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then

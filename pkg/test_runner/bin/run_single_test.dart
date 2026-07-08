@@ -605,7 +605,14 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         arguments[scriptIndex] = resolvedScript;
 
         final resolvedPkg = _getRewrittenPackageConfig();
-        arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+        final packagesIndex = arguments.indexWhere(
+          (arg) => arg.startsWith('--packages='),
+        );
+        if (packagesIndex != -1) {
+          arguments[packagesIndex] = '--packages=$resolvedPkg';
+        } else {
+          arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+        }
       }
     }
 
