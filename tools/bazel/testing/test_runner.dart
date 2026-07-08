@@ -199,6 +199,20 @@ String normalizeLabel(String label) {
   } else if (l.startsWith('@')) {
     l = l.substring(1);
   }
+
+  final parts = l.split('//');
+  if (parts.length == 2) {
+    var repo = parts[0];
+    final path = parts[1];
+    if (repo.isEmpty) {
+      return path;
+    }
+    if (repo.endsWith('dart_tests') || repo.contains('dart_tests_extension')) {
+      repo = 'dart_tests';
+    }
+    return '$repo//$path';
+  }
+
   if (l.startsWith('//')) {
     l = l.substring(2);
   }
@@ -479,7 +493,7 @@ void main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
       });
 
-      final heartbeatTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      final heartbeatTimer = Timer.periodic(const Duration(seconds: 60), (_) {
         final currentDt = DateTime.now().difference(startTime).inSeconds;
         final currentElapsedMins = currentDt / 60.0;
         final currentPercent = totalCount > 0
@@ -497,6 +511,22 @@ void main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1);
         print(
             '⏳ [Status] Chunk ${chunkIdx + 1}/${targetChunks.length} | Progress: ${currentPercent.toStringAsFixed(1)}% | Passed: $passCount | Failed: $failCount | Elapsed: ${currentElapsedMins.toStringAsFixed(1)}m | RAM: ${rssMb}MB');
+
+        if (logFile.existsSync()) {
+          try {
+            final tailRes = Process.runSync('tail', ['-n', '3', logFile.path]);
+            if (tailRes.exitCode == 0) {
+              final lines = tailRes.stdout.toString().trim().split('\n');
+              for (final line in lines) {
+                if (line.trim().isNotEmpty) {
+                  print('  | $line');
+                }
+              }
+            }
+          } catch (_) {
+            // Ignore tail execution errors.
+          }
+        }
 
         writeHeartbeat(heartbeatPath, {
           'status': 'RUNNING',

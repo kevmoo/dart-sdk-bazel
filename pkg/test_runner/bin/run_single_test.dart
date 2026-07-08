@@ -269,20 +269,36 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       return arg;
     }).toList();
 
+    final dartBinEnv = Platform.environment['DART_BIN'];
     for (var j = 0; j < arguments.length; j++) {
       if (arguments[j] == '--platform' && j + 1 < arguments.length) {
-        final resolvedPlatform = _Runfiles.resolve(
-          '_main/runtime/vm/vm_platform.dill',
-        );
+        String resolvedPlatform;
+        if (compiler == 'dartkp' &&
+            dartBinEnv != null &&
+            dartBinEnv.contains('prebuilt_dart_sdk')) {
+          final sdkDir = File(dartBinEnv).parent.parent.path;
+          resolvedPlatform = '$sdkDir/lib/_internal/vm_platform.dill';
+        } else {
+          resolvedPlatform = _Runfiles.resolve(
+            '_main/runtime/vm/vm_platform.dill',
+          );
+        }
         arguments[j + 1] = resolvedPlatform;
       } else if (arguments[j].startsWith('--platform=')) {
-        final resolvedPlatform = _Runfiles.resolve(
-          '_main/runtime/vm/vm_platform.dill',
-        );
+        String resolvedPlatform;
+        if (compiler == 'dartkp' &&
+            dartBinEnv != null &&
+            dartBinEnv.contains('prebuilt_dart_sdk')) {
+          final sdkDir = File(dartBinEnv).parent.parent.path;
+          resolvedPlatform = '$sdkDir/lib/_internal/vm_platform.dill';
+        } else {
+          resolvedPlatform = _Runfiles.resolve(
+            '_main/runtime/vm/vm_platform.dill',
+          );
+        }
         arguments[j] = '--platform=$resolvedPlatform';
       }
     }
-    final dartBinEnv = Platform.environment['DART_BIN'];
     final testSrcdir = Platform.environment['TEST_SRCDIR'];
     final exeExt = Platform.isWindows ? '.exe' : '';
 
@@ -453,6 +469,19 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       } else if (executable.endsWith('/gen_snapshot')) {
         final sdkBinDir = File(dartBinEnv).parent.path;
         executable = '$sdkBinDir/utils/gen_snapshot';
+      } else if (executable.endsWith('pkg/vm/tool/gen_kernel')) {
+        final sdkBinDir = File(dartBinEnv).parent.path;
+        final snapshot = '$sdkBinDir/snapshots/gen_kernel_aot.dart.snapshot';
+        if (File(snapshot).existsSync()) {
+          executable = '$sdkBinDir/dartaotruntime';
+          arguments = [snapshot, ...arguments];
+        } else {
+          final genKernelDart = _Runfiles.resolve(
+            '_main/pkg/vm/bin/gen_kernel.dart',
+          );
+          executable = dartBinEnv;
+          arguments = [genKernelDart, ...arguments];
+        }
       }
     } else if (testSrcdir != null &&
         (executable == 'third_party/d8/linux/x64/d8' ||
@@ -551,6 +580,30 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
           newEnv[entry.key] = _rewriteSandboxPath(entry.value, testTmpdir);
         }
         environment = newEnv;
+      }
+    }
+
+    final exeName = p.basename(executable);
+    if (exeName == 'dart' || exeName == 'dart.exe' || exeName == 'dartvm') {
+      var scriptIndex = -1;
+      for (var j = 0; j < arguments.length; j++) {
+        final arg = arguments[j];
+        if (!arg.startsWith('-') && arg.endsWith('.dart')) {
+          scriptIndex = j;
+          break;
+        }
+      }
+      if (scriptIndex != -1) {
+        final scriptPath = arguments[scriptIndex];
+        final runfilesScriptPath =
+            (scriptPath.startsWith('_main/') || scriptPath.startsWith('@'))
+            ? scriptPath
+            : '_main/$scriptPath';
+        final resolvedScript = _Runfiles.resolve(runfilesScriptPath);
+        arguments[scriptIndex] = resolvedScript;
+
+        final resolvedPkg = _getRewrittenPackageConfig();
+        arguments.insert(scriptIndex, '--packages=$resolvedPkg');
       }
     }
 
@@ -761,7 +814,7 @@ String _rewritePackageConfig() {
         runfilesPath = '_main/$relativePath';
       }
       final physicalPath = _Runfiles.resolve(runfilesPath, pkgName: pkgName);
-      final uri = Uri.directory(physicalPath);
+      final uri = Uri.directory(p.absolute(physicalPath));
       map['rootUri'] = uri.toString();
     }
     newPackages.add(map);

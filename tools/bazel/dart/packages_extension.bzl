@@ -35,6 +35,13 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
                         deps.append(dep_name)
     return deps
 
+def _copy_path(ctx, src, dst):
+    parent = "/".join(dst.split("/")[:-1])
+    ctx.execute(["mkdir", "-p", parent])
+    res = ctx.execute(["cp", "-r", str(src), dst])
+    if res.return_code != 0:
+        fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
+
 def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
     """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
 
@@ -156,11 +163,11 @@ def _packages_repo_impl(ctx):
         )
         known.append(name)
 
-    # Symlink root analysis options and pubspec.yaml so that they are available in the virtual repo root
+    # Copy root analysis options and pubspec.yaml so that they are available in the virtual repo root
     for file_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml", "pubspec.yaml"]:
         root_file = workspace_dir.get_child(file_name)
         if root_file.exists:
-            ctx.symlink(root_file, file_name)
+            _copy_path(ctx, root_file, file_name)
 
     packages_json = []
     all_cloned_files = []
@@ -216,21 +223,21 @@ def _packages_repo_impl(ctx):
         # In CI Mode for third-party packages, we map them directly to their cloned paths
         # in package_config.json, eliminating the need for symlinks entirely!
         if not is_cloned:
-            # 1. Symlink 'lib' (mandatory for dart_library)
+            # 1. Copy 'lib' (mandatory for dart_library)
             if physical_lib.exists:
-                ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
+                _copy_path(ctx, physical_lib, virtual_pkg_dir + "/" + pkg.lib)
 
-            # 2. Symlink common files in package root (pubspec, analysis options, messages)
+            # 2. Copy common files in package root (pubspec, analysis options, messages)
             for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml", "api.txt"]:
                 physical_file = physical_path.get_child(file_name)
                 if physical_file.exists:
-                    ctx.symlink(physical_file, virtual_pkg_dir + "/" + file_name)
+                    _copy_path(ctx, physical_file, virtual_pkg_dir + "/" + file_name)
 
-            # 4. Symlink other common directories if they exist (bin, test, tool, web)
+            # 4. Copy other common directories if they exist (bin, test, tool, web)
             for dir_name in ["bin", "test", "tool", "web"]:
                 physical_dir = physical_path.get_child(dir_name)
                 if physical_dir.exists:
-                    ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
+                    _copy_path(ctx, physical_dir, virtual_pkg_dir + "/" + dir_name)
 
         # Generate BUILD.bazel content for this package
         build_lines = [
@@ -413,4 +420,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 7
+# Force invalidation trigger: 8
