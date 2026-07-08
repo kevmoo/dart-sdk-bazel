@@ -56,13 +56,13 @@ parent = os.path.dirname(dst)
 if parent:
     os.makedirs(parent, exist_ok=True)
 if os.path.lexists(dst):
-    if os.path.isdir(dst):
-        if os.path.islink(dst):
+    try:
+        os.unlink(dst)
+    except OSError:
+        try:
             os.rmdir(dst)
-        else:
+        except OSError:
             shutil.rmtree(dst)
-    else:
-        os.remove(dst)
 if os.path.isdir(src):
     shutil.copytree(src, dst, symlinks=False)
 else:
