@@ -38,42 +38,6 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
 def _copy_file(ctx, src, dst):
     ctx.file(dst, ctx.read(src))
 
-def _copy_path(ctx, src, dst):
-    if "windows" not in ctx.os.name.lower():
-        parent = "/".join(dst.split("/")[:-1])
-        if parent:
-            ctx.execute(["mkdir", "-p", parent])
-        ctx.execute(["rm", "-rf", dst])
-        res = ctx.execute(["cp", "-RL", str(src), dst])
-        if res.return_code != 0:
-            fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
-        return
-
-    python_code = """
-import os, shutil, sys
-src, dst = sys.argv[1], sys.argv[2]
-parent = os.path.dirname(dst)
-if parent:
-    os.makedirs(parent, exist_ok=True)
-if os.path.lexists(dst):
-    try:
-        os.unlink(dst)
-    except OSError:
-        try:
-            os.rmdir(dst)
-        except OSError:
-            shutil.rmtree(dst)
-if os.path.isdir(src):
-    shutil.copytree(src, dst, symlinks=False)
-else:
-    shutil.copy2(src, dst)
-"""
-    res = ctx.execute(["python3", "-c", python_code, str(src), str(dst)])
-    if res.return_code != 0:
-        res = ctx.execute(["python", "-c", python_code, str(src), str(dst)])
-    if res.return_code != 0:
-        fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
-
 def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
     """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
 
