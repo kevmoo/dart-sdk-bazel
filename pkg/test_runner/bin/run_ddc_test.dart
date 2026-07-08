@@ -748,23 +748,25 @@ abstract final class _Runfiles {
     if (_pkgCache.containsKey(pkgName)) {
       return _pkgCache[pkgName];
     }
+    final targetSuffix = '/$pkgName/lib/';
     for (final entry in _manifest!.entries) {
       final logicalPath = entry.key;
-      final physicalPath = entry.value;
-      final physicalPathNormalized = physicalPath.replaceAll('\\', '/');
-      final parts = logicalPath.split('/');
-      for (var i = 0; i < parts.length - 1; i++) {
-        if (parts[i] == pkgName && parts[i + 1] == 'lib') {
-          final logicalPkgRoot = parts.sublist(0, i + 1).join('/');
-          final suffix = logicalPath.substring(logicalPkgRoot.length);
-          if (physicalPathNormalized.endsWith(suffix)) {
-            final result = physicalPath.substring(
-              0,
-              physicalPath.length - suffix.length,
-            );
-            _pkgCache[pkgName] = result;
-            return result;
-          }
+      final index = logicalPath.indexOf(targetSuffix);
+      if (index != -1) {
+        final logicalPkgRoot = logicalPath.substring(
+          0,
+          index + pkgName.length + 1,
+        );
+        final physicalPath = entry.value;
+        final physicalPathNormalized = physicalPath.replaceAll('\\', '/');
+        final suffix = logicalPath.substring(logicalPkgRoot.length);
+        if (physicalPathNormalized.endsWith(suffix)) {
+          final result = physicalPath.substring(
+            0,
+            physicalPath.length - suffix.length,
+          );
+          _pkgCache[pkgName] = result;
+          return result;
         }
       }
     }

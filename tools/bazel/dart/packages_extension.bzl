@@ -55,8 +55,8 @@ src, dst = sys.argv[1], sys.argv[2]
 parent = os.path.dirname(dst)
 if parent:
     os.makedirs(parent, exist_ok=True)
-if os.path.exists(dst):
-    if os.path.isdir(dst):
+if os.path.lexists(dst):
+    if os.path.isdir(dst) and not os.path.islink(dst):
         shutil.rmtree(dst)
     else:
         os.remove(dst)

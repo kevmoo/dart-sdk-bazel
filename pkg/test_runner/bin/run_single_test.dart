@@ -584,7 +584,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     }
 
     final exeName = p.basename(executable);
-    if (exeName == 'dart' || exeName == 'dart.exe' || exeName == 'dartvm') {
+    if (exeName == 'dart' ||
+        exeName == 'dart.exe' ||
+        exeName == 'dartvm' ||
+        exeName == 'dartvm.exe') {
       var scriptIndex = -1;
       for (var j = 0; j < arguments.length; j++) {
         final arg = arguments[j];
