@@ -187,21 +187,7 @@ void main(List<String> args) async {
           }
           arg = arg.replaceAll(r'$SDK_ROOT', sdkRoot);
         }
-        if (arg.contains(r'$CO19_ROOT')) {
-          var co19Root = '$testSrcdir/dart_co19_tests';
-          for (final prefix in [
-            '+third_party_extension+dart_co19_tests',
-            'dart_co19_tests',
-            '_main/external/+third_party_extension+dart_co19_tests',
-          ]) {
-            final pathToCheck = '$testSrcdir/$prefix';
-            if (Directory(pathToCheck).existsSync()) {
-              co19Root = pathToCheck;
-              break;
-            }
-          }
-          arg = arg.replaceAll(r'$CO19_ROOT', co19Root);
-        }
+        arg = _resolveCo19Root(arg, testSrcdir);
         if (arg == '--dart-sdk-summary' && a + 1 < compileArgs.length) {
           cleanArgs.add(arg);
           var summaryPath = compileArgs[++a];
@@ -285,21 +271,7 @@ void main(List<String> args) async {
       final res = await Process.run(actualExe, actualArgs);
       final success = res.exitCode == 0;
       var filePath = tc['file_path'] as String;
-      if (filePath.contains(r'$CO19_ROOT')) {
-        var co19Root = '$testSrcdir/dart_co19_tests';
-        for (final prefix in [
-          '+third_party_extension+dart_co19_tests',
-          'dart_co19_tests',
-          '_main/external/+third_party_extension+dart_co19_tests',
-        ]) {
-          final pathToCheck = '$testSrcdir/$prefix';
-          if (Directory(pathToCheck).existsSync()) {
-            co19Root = pathToCheck;
-            break;
-          }
-        }
-        filePath = filePath.replaceAll(r'$CO19_ROOT', co19Root);
-      }
+      filePath = _resolveCo19Root(filePath, testSrcdir);
       var targetFile = File(filePath);
       if (!await targetFile.exists()) {
         targetFile = File('$testSrcdir/_main/$filePath');
@@ -628,26 +600,34 @@ $testModEntries
   );
 }
 
+Map<String, String>? _repoMappingCache;
+
 String _getCanonicalRepoName(String apparentName) {
+  if (_repoMappingCache != null) {
+    return _repoMappingCache![apparentName] ??
+        '+${apparentName}_extension+$apparentName';
+  }
+  final cache = <String, String>{};
   final runfilesDir =
       Platform.environment['RUNFILES_DIR'] ??
       Platform.environment['TEST_SRCDIR'];
   if (runfilesDir != null && runfilesDir.isNotEmpty) {
     final mappingFile = File(p.join(runfilesDir, '_repo_mapping'));
     if (mappingFile.existsSync()) {
-      for (final line in mappingFile.readAsLinesSync()) {
-        final parts = line.trim().split(',');
-        if (parts.length >= 3) {
-          final apparent = parts[1];
-          final canonical = parts[2];
-          if (apparent == apparentName) {
-            return canonical;
+      try {
+        for (final line in mappingFile.readAsLinesSync()) {
+          final parts = line.trim().split(',');
+          if (parts.length >= 3) {
+            final apparent = parts[1];
+            final canonical = parts[2];
+            cache[apparent] = canonical;
           }
         }
-      }
+      } catch (_) {}
     }
   }
-  return '+${apparentName}_extension+$apparentName';
+  _repoMappingCache = cache;
+  return cache[apparentName] ?? '+${apparentName}_extension+$apparentName';
 }
 
 abstract final class _Runfiles {
@@ -790,9 +770,17 @@ abstract final class _Runfiles {
     Directory dir,
     String pkgName,
     int depth,
-    int maxDepth,
-  ) {
+    int maxDepth, [
+    Set<String>? visited,
+  ]) {
     if (depth > maxDepth) return null;
+    final visitedSet = visited ?? <String>{};
+    try {
+      final canonical = dir.resolveSymbolicLinksSync();
+      if (!visitedSet.add(canonical)) return null;
+    } catch (_) {
+      if (!visitedSet.add(dir.absolute.path)) return null;
+    }
     try {
       for (final entity in dir.listSync(followLinks: true)) {
         if (entity is Directory) {
@@ -809,11 +797,34 @@ abstract final class _Runfiles {
               name == '.dart_tool') {
             continue;
           }
-          final res = _findPkgDir(entity, pkgName, depth + 1, maxDepth);
+          final res = _findPkgDir(
+            entity,
+            pkgName,
+            depth + 1,
+            maxDepth,
+            visitedSet,
+          );
           if (res != null) return res;
         }
       }
     } catch (_) {}
     return null;
   }
+}
+
+String _resolveCo19Root(String path, String testSrcdir) {
+  if (!path.contains(r'$CO19_ROOT')) return path;
+  var co19Root = '$testSrcdir/dart_co19_tests';
+  for (final prefix in [
+    '+third_party_extension+dart_co19_tests',
+    'dart_co19_tests',
+    '_main/external/+third_party_extension+dart_co19_tests',
+  ]) {
+    final pathToCheck = '$testSrcdir/$prefix';
+    if (Directory(pathToCheck).existsSync()) {
+      co19Root = pathToCheck;
+      break;
+    }
+  }
+  return path.replaceAll(r'$CO19_ROOT', co19Root);
 }

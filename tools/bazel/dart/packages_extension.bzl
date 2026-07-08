@@ -36,9 +36,33 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
     return deps
 
 def _copy_path(ctx, src, dst):
-    parent = "/".join(dst.split("/")[:-1])
-    ctx.execute(["mkdir", "-p", parent])
-    res = ctx.execute(["cp", "-r", str(src), dst])
+    if "windows" not in ctx.os.name.lower():
+        parent = "/".join(dst.split("/")[:-1])
+        ctx.execute(["mkdir", "-p", parent])
+        res = ctx.execute(["cp", "-r", str(src), dst])
+        if res.return_code != 0:
+            fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
+        return
+
+    python_code = """
+import os, shutil, sys
+src, dst = sys.argv[1], sys.argv[2]
+parent = os.path.dirname(dst)
+if parent:
+    os.makedirs(parent, exist_ok=True)
+if os.path.exists(dst):
+    if os.path.isdir(dst):
+        shutil.rmtree(dst)
+    else:
+        os.remove(dst)
+if os.path.isdir(src):
+    shutil.copytree(src, dst, symlinks=True)
+else:
+    shutil.copy2(src, dst)
+"""
+    res = ctx.execute(["python3", "-c", python_code, str(src), str(dst)])
+    if res.return_code != 0:
+        res = ctx.execute(["python", "-c", python_code, str(src), str(dst)])
     if res.return_code != 0:
         fail("Failed to copy %s to %s: %s" % (src, dst, res.stderr))
 
