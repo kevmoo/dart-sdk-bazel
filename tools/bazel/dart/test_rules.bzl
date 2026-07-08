@@ -39,6 +39,7 @@ if [ -z "$TEST_SRCDIR" ]; then
   exit 2
 fi
 
+
 DART_BIN=""
 if [ -n "$DART_BIN_RLOCATION" ] && [ -f "$TEST_SRCDIR/$DART_BIN_RLOCATION" ]; then
   DART_BIN="$TEST_SRCDIR/$DART_BIN_RLOCATION"
@@ -106,14 +107,7 @@ if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
-  STAGING_DIR=$(dirname "$PKG_CONFIG")
-  mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
-  cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
-  if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
-    DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
-  else
-    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-  fi
+  export DART_PACKAGE_CONFIG="$PKG_CONFIG"
 fi
 
 CHROMEDRIVER_BIN=""
@@ -136,7 +130,7 @@ if [ -n "$CHROMEDRIVER_BIN" ]; then
 fi
 
 export DART_BIN="$DART_BIN"
-exec "$DART_BIN" $DART_PACKAGES_FLAG "$RUNNER_DART" "$@"
+exec "$DART_BIN" "$RUNNER_DART" "$@"
 """, executable = True)
 
     repository_ctx.file("run_ddc_test.sh", content = """#!/bin/bash
@@ -207,14 +201,7 @@ if [ -z "$PKG_CONFIG" ]; then
   PKG_CONFIG=$(find -L "$TEST_SRCDIR" -name package_config.json -type f | head -n 1)
 fi
 if [ -n "$PKG_CONFIG" ]; then
-  STAGING_DIR=$(dirname "$PKG_CONFIG")
-  mkdir -p "$STAGING_DIR/tools/bazel/dart" 2>/dev/null || true
-  cp "$PKG_CONFIG" "$STAGING_DIR/tools/bazel/dart/package_config.json" 2>/dev/null || true
-  if [ -f "$STAGING_DIR/tools/bazel/dart/package_config.json" ]; then
-    DART_PACKAGES_FLAG="--packages=$STAGING_DIR/tools/bazel/dart/package_config.json"
-  else
-    DART_PACKAGES_FLAG="--packages=$PKG_CONFIG"
-  fi
+  export DART_PACKAGE_CONFIG="$PKG_CONFIG"
 fi
 
 if [ -z "$DART_BIN" ] || [ -z "$RUNNER_DART" ]; then
@@ -224,7 +211,7 @@ fi
 
 export DART_BIN="$DART_BIN"
 export DART_PACKAGE_CONFIG_JSON="$PKG_CONFIG"
-exec "$DART_BIN" $DART_PACKAGES_FLAG "$RUNNER_DART" "$@"
+exec "$DART_BIN" "$RUNNER_DART" "$@"
 """, executable = True)
 
     # Run the dynamic generator natively
@@ -287,4 +274,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 55
+# Force refetch trigger: 59

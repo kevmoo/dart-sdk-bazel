@@ -35,6 +35,9 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
                         deps.append(dep_name)
     return deps
 
+def _copy_file(ctx, src, dst):
+    ctx.file(dst, ctx.read(src))
+
 def _list_files(ctx, physical_dir, workspace_root_str, extensions = [".dart", ".yaml"]):
     """Recursively list all files in physical_dir on the host, returning their paths relative to workspace or virtual root."""
 
@@ -156,11 +159,11 @@ def _packages_repo_impl(ctx):
         )
         known.append(name)
 
-    # Symlink root analysis options and pubspec.yaml so that they are available in the virtual repo root
+    # Copy root analysis options and pubspec.yaml so that they are available in the virtual repo root
     for file_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml", "pubspec.yaml"]:
         root_file = workspace_dir.get_child(file_name)
         if root_file.exists:
-            ctx.symlink(root_file, file_name)
+            _copy_file(ctx, root_file, file_name)
 
     packages_json = []
     all_cloned_files = []
@@ -220,11 +223,11 @@ def _packages_repo_impl(ctx):
             if physical_lib.exists:
                 ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
 
-            # 2. Symlink common files in package root (pubspec, analysis options, messages)
+            # 2. Copy common files in package root (pubspec, analysis options, messages)
             for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml", "api.txt"]:
                 physical_file = physical_path.get_child(file_name)
                 if physical_file.exists:
-                    ctx.symlink(physical_file, virtual_pkg_dir + "/" + file_name)
+                    _copy_file(ctx, physical_file, virtual_pkg_dir + "/" + file_name)
 
             # 4. Symlink other common directories if they exist (bin, test, tool, web)
             for dir_name in ["bin", "test", "tool", "web"]:
@@ -413,4 +416,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 7
+# Force invalidation trigger: 8

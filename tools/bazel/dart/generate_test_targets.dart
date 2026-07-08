@@ -328,28 +328,22 @@ void main(List<String> args) async {
           );
           final parts = relativeToGenerated.split('/');
 
-          final String flatName;
           final String relativePath;
+          final String normalizedName;
 
           if (parts[0].startsWith('custom-') && parts.length >= 2) {
-            flatName = parts[1];
             relativePath = parts.length > 2 ? parts.sublist(2).join('/') : '';
+            normalizedName = parts.sublist(1).join('/');
           } else {
-            flatName = parts[0];
             relativePath = parts.length > 1 ? parts.sublist(1).join('/') : '';
+            normalizedName = relativeToGenerated;
           }
 
-          var pkgDir = subDirToPkgDir[flatName];
-          if (pkgDir == null) {
-            var strippedName = flatName;
-            if (flatName.startsWith('tests_')) {
-              strippedName = flatName.substring('tests_'.length);
-            } else if (flatName.startsWith('multitest_')) {
-              strippedName = flatName.substring('multitest_'.length);
-            }
-            pkgDir = subDirToPkgDir[strippedName];
-          }
-          pkgDir ??= _getPkgDirFromFlatName(flatName);
+          final pkgDir = getPkgRootAndDir(
+            normalizedName,
+            entity.path,
+            workspaceDir,
+          ).pkgDir;
 
           final destPath =
               '$outputDir/$pkgDir/gen_tests/$configName/$relativePath';
@@ -445,7 +439,7 @@ void main(List<String> args) async {
       final cases = configEntry.value;
       final config = _configs.firstWhere((c) => c.name == configName);
 
-      final dartBinLabel = config.compiler == 'ddc'
+      final dartBinLabel = (config.compiler == 'ddc' || config.runtime == 'vm')
           ? '@//runtime/bin:dartvm'
           : '@prebuilt_dart_sdk//:bin/dart';
       final runnerScriptLabel = config.compiler == 'ddc'
@@ -459,6 +453,7 @@ void main(List<String> args) async {
         '@//:package_config_json',
         '@//:package_config_json_raw',
         '@dart_packages//:package_config_json',
+        '@dart_packages//pkg/path',
         config.compiler == 'ddc'
             ? '@//pkg/test_runner/bin:run_ddc_test.dart'
             : '@//pkg/test_runner/bin:run_single_test.dart',
@@ -466,13 +461,27 @@ void main(List<String> args) async {
 
       if (config.runtime == 'vm' ||
           config.compiler == 'dart2analyzer' ||
-          config.compiler == 'fasta') {
+          config.compiler == 'fasta' ||
+          config.compiler == 'dartk' ||
+          config.compiler == 'dartkp') {
         baselineDeps.addAll([
-          '@prebuilt_dart_sdk//:bin/dart',
-          '@prebuilt_dart_sdk//:sdk_files',
+          dartBinLabel,
+          if (dartBinLabel == '@prebuilt_dart_sdk//:bin/dart')
+            '@prebuilt_dart_sdk//:sdk_files',
         ]);
+        if (config.compiler == 'dart2analyzer') {
+          baselineDeps.addAll([
+            '@dart_packages//pkg/analyzer_cli',
+            '@dart_packages//pkg/analyzer_cli:sdk_package_sources',
+            '@//sdk:sdk_library_sources',
+            '@//sdk:version',
+          ]);
+        }
         if (config.runtime == 'vm') {
-          baselineDeps.add('@//runtime/vm:vm_platform');
+          baselineDeps.addAll([
+            '@//runtime/vm:vm_platform',
+            '@//:pkg/vm/bin/gen_kernel.dart',
+          ]);
         }
       } else if (config.compiler == 'ddc') {
         baselineDeps.addAll([
@@ -543,10 +552,13 @@ void main(List<String> args) async {
 
       if (config.compiler == 'fasta' ||
           config.compiler == 'dartkp' ||
+          config.compiler == 'dartk' ||
+          config.compiler == 'dart2analyzer' ||
           config.name.contains('sim')) {
         baselineDeps.addAll({
           '@//:front_end_tool_files',
           '@//:compile_platform_tool',
+          '@//:vm_bin_files',
           '@//runtime/vm:vm_platform',
         });
       }
@@ -923,7 +935,7 @@ void main(List<String> args) async {
     env = {
         "DART_BIN_RLOCATION": "\$(rlocationpath $dartBinLabel)",
         "RUNNER_DART_RLOCATION": "\$(rlocationpath $runnerScriptLabel)",
-        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @//:package_config_json)",$co19EnvStr
+        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @dart_packages//:package_config_json)",$co19EnvStr
     },''';
 
             individualTargets.add('''sh_test(
@@ -1026,7 +1038,7 @@ $envAttr
     env = {
         "DART_BIN_RLOCATION": "\$(rlocationpath $dartBinLabel)",
         "RUNNER_DART_RLOCATION": "\$(rlocationpath $runnerScriptLabel)",
-        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @//:package_config_json)",$co19EnvStr
+        "PACKAGE_CONFIG_RLOCATION": "\$(rlocationpath @dart_packages//:package_config_json)",$co19EnvStr
     },''';
           shardedTargets.add('''sh_test(
     name = "tests_$configName",
@@ -1566,22 +1578,6 @@ const _coarseSuites = {
   'co19',
   'dartdevc'
 };
-
-String _getPkgDirFromFlatName(String flatName) {
-  var name = flatName;
-  if (name.startsWith('tests_')) {
-    name = name.substring('tests_'.length);
-  } else if (name.startsWith('multitest_')) {
-    name = name.substring('multitest_'.length);
-  }
-
-  return switch (name.split('_')) {
-    [final suite, ...] when _coarseSuites.contains(suite) => suite,
-    [final p1, final p2, ...] => '$p1/$p2',
-    [final p1] => '$p1/misc',
-    [] => 'misc',
-  };
-}
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
   String toPosix(String relPath) {

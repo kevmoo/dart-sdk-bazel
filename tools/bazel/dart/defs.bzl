@@ -786,7 +786,7 @@ dart_binary = rule(
         "sources": attr.label(mandatory = True, providers = [DartLibraryInfo]),
         "vm_args": attr.string_list(default = []),
         "_package_config": attr.label(
-            default = "//tools/bazel/dart:runfiles_package_config",
+            default = "@dart_packages//:package_config_json",
             allow_single_file = True,
         ),
     },

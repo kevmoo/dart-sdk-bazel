@@ -411,7 +411,7 @@ Future<void> _dumpConfigurationsMetadata(
           if (cmd is ProcessCommand) {
             return {
               "executable": cmd.executable,
-              "arguments": cmd.arguments,
+              "arguments": [...cmd.nonBatchArguments, ...cmd.arguments],
               if (cmd.workingDirectory != null)
                 "working_directory": cmd.workingDirectory,
               if (cmd.environmentOverrides.isNotEmpty)

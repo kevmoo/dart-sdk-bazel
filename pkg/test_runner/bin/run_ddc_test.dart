@@ -13,6 +13,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 String toPosix(String path) => path.replaceAll('\\', '/');
 
 String toJsPath(String path) {
@@ -69,17 +71,18 @@ void main(List<String> args) async {
     'dev_compiler',
     'smith',
   ];
-  final packages = pkgs.map((p) {
-    var pDir = '$testSrcdir/_main/pkg/$p';
-    if (!Directory(pDir).existsSync()) {
-      pDir = '$testSrcdir/pkg/$p';
-    }
-    return {
-      'name': p,
-      'rootUri': Uri.directory(pDir).toString(),
-      'packageUri': 'lib/',
-    };
-  }).toList();
+  final packages = pkgs
+      .map((pkg) {
+        final pDir = _Runfiles.resolvePackage(pkg);
+        if (pDir == null) return null;
+        return <String, String>{
+          'name': pkg,
+          'rootUri': Uri.directory(p.absolute(pDir)).toString(),
+          'packageUri': 'lib/',
+        };
+      })
+      .whereType<Map<String, String>>()
+      .toList();
   final cleanPkgCfg = '$buildDir/hermetic_package_config.json';
   await File(cleanPkgCfg).parent.create(recursive: true);
   await File(
@@ -129,18 +132,24 @@ void main(List<String> args) async {
   final poolSize = Platform.numberOfProcessors.clamp(2, 8);
   var currentIndex = 0;
 
-  var ddcPath = '$testSrcdir/_main/utils/ddc/dartdevc.dart.snapshot';
+  var ddcPath = p.join(testSrcdir, '_main/utils/ddc/dartdevc.dart.snapshot');
   var ddcFound = false;
-  for (final candidate in [
-    ddcPath,
-    '$testSrcdir/utils/ddc/dartdevc.dart.snapshot',
-    '$testSrcdir/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
-    '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc.dart.snapshot',
-    '$testSrcdir/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
-    '$testSrcdir/_main/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
-    '$testSrcdir/pkg/dev_compiler/bin/dartdevc.dart',
-    '$testSrcdir/_main/pkg/dev_compiler/bin/dartdevc.dart',
-  ]) {
+  final candidates = [
+    _Runfiles.resolve('_main/utils/ddc/dartdevc.dart.snapshot'),
+    _Runfiles.resolve('_main/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'),
+    _Runfiles.resolve(
+      '_main/dart-sdk/bin/snapshots/dartdevc_aot.dart.snapshot',
+    ),
+    _Runfiles.resolve('_main/pkg/dev_compiler/bin/dartdevc.dart'),
+    p.join(testSrcdir, '_main/utils/ddc/dartdevc.dart.snapshot'),
+    p.join(testSrcdir, 'dart_sdk/utils/ddc/dartdevc.dart.snapshot'),
+    p.join(testSrcdir, 'utils/ddc/dartdevc.dart.snapshot'),
+    p.join(testSrcdir, 'dart-sdk/bin/snapshots/dartdevc.dart.snapshot'),
+    p.join(testSrcdir, '_main/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'),
+    p.join(testSrcdir, 'pkg/dev_compiler/bin/dartdevc.dart'),
+    p.join(testSrcdir, '_main/pkg/dev_compiler/bin/dartdevc.dart'),
+  ];
+  for (final candidate in candidates) {
     if (await File(candidate).exists()) {
       ddcPath = candidate;
       ddcFound = true;
@@ -175,16 +184,37 @@ void main(List<String> args) async {
       final cleanArgs = <String>[];
       for (var a = 0; a < compileArgs.length; a++) {
         var arg = compileArgs[a];
+        if (arg.contains(r'$SDK_ROOT')) {
+          var sdkRoot = p.join(testSrcdir, '_main');
+          if (!Directory(sdkRoot).existsSync()) {
+            sdkRoot = p.join(testSrcdir, 'dart_sdk');
+          }
+          arg = arg.replaceAll(r'$SDK_ROOT', sdkRoot);
+        }
+        arg = _resolveCo19Root(arg, testSrcdir);
         if (arg == '--dart-sdk-summary' && a + 1 < compileArgs.length) {
           cleanArgs.add(arg);
           var summaryPath = compileArgs[++a];
           for (final candidate in [
             summaryPath,
-            '$testSrcdir/dart-sdk/lib/_internal/ddc_outline.dill',
-            '$testSrcdir/_main/dart-sdk/lib/_internal/ddc_outline.dill',
-            '$testSrcdir/utils/ddc/ddc_outline.dill',
-            '$testSrcdir/_main/utils/ddc/ddc_outline.dill',
-            '$testSrcdir/bazel-bin/utils/ddc/ddc_outline.dill',
+            p.join(
+              testSrcdir,
+              'dart-sdk',
+              'lib',
+              '_internal',
+              'ddc_outline.dill',
+            ),
+            p.join(
+              testSrcdir,
+              '_main',
+              'dart-sdk',
+              'lib',
+              '_internal',
+              'ddc_outline.dill',
+            ),
+            p.join(testSrcdir, 'utils', 'ddc', 'ddc_outline.dill'),
+            p.join(testSrcdir, '_main', 'utils', 'ddc', 'ddc_outline.dill'),
+            p.join(testSrcdir, 'bazel-bin', 'utils', 'ddc', 'ddc_outline.dill'),
           ]) {
             if (File(candidate).existsSync()) {
               summaryPath = candidate;
@@ -238,16 +268,43 @@ void main(List<String> args) async {
           !cleanArgs.any((a) => a.startsWith('--packages='))) {
         finalCleanArgs = ['--packages=$cleanPkgCfg', ...cleanArgs];
       }
-      final actualArgs = isDdc ? [ddcPath, ...finalCleanArgs] : finalCleanArgs;
+      var actualArgs = finalCleanArgs;
+      if (isDdc) {
+        var found = false;
+        actualArgs = List<String>.from(finalCleanArgs);
+        for (var i = 0; i < actualArgs.length; i++) {
+          final arg = actualArgs[i];
+          if (!arg.startsWith('-') &&
+              (arg.endsWith('dartdevc.dart') || arg.endsWith('dartdevc'))) {
+            actualArgs[i] = ddcPath;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          final insertIndex = actualArgs.indexWhere(
+            (arg) => !arg.startsWith('-'),
+          );
+          if (insertIndex != -1) {
+            actualArgs.insert(insertIndex, ddcPath);
+          } else {
+            actualArgs.add(ddcPath);
+          }
+        }
+      }
 
       final res = await Process.run(actualExe, actualArgs);
       final success = res.exitCode == 0;
-      var targetFile = File(tc['file_path'] as String);
-      if (!await targetFile.exists()) {
-        targetFile = File('$testSrcdir/_main/${tc['file_path']}');
-      }
-      if (!await targetFile.exists()) {
-        targetFile = File('$testSrcdir/${tc['file_path']}');
+      var filePath = tc['file_path'] as String;
+      filePath = _resolveCo19Root(filePath, testSrcdir);
+      var targetFile = File(filePath);
+      if (!p.isAbsolute(filePath)) {
+        if (!await targetFile.exists()) {
+          targetFile = File(p.join(testSrcdir, '_main', filePath));
+        }
+        if (!await targetFile.exists()) {
+          targetFile = File(p.join(testSrcdir, filePath));
+        }
       }
       final fileContent = await targetFile.exists()
           ? await targetFile.readAsString()
@@ -568,4 +625,208 @@ $testModEntries
   print(
     'All ${validTestCases.length} real RequireJS browser tests in shard $shardIndex executed and passed successfully!',
   );
+}
+
+Map<String, String>? _repoMappingCache;
+
+String _getCanonicalRepoName(String apparentName) {
+  if (_repoMappingCache != null) {
+    return _repoMappingCache![apparentName] ??
+        '+${apparentName}_extension+$apparentName';
+  }
+  final cache = <String, String>{};
+  final runfilesDir =
+      Platform.environment['RUNFILES_DIR'] ??
+      Platform.environment['TEST_SRCDIR'];
+  if (runfilesDir != null && runfilesDir.isNotEmpty) {
+    final mappingFile = File(p.join(runfilesDir, '_repo_mapping'));
+    if (mappingFile.existsSync()) {
+      try {
+        for (final line in mappingFile.readAsLinesSync()) {
+          final parts = line.trim().split(',');
+          if (parts.length >= 3) {
+            final source = parts[0];
+            final apparent = parts[1];
+            final canonical = parts[2];
+            if (source.isEmpty || source == '_main') {
+              cache[apparent] = canonical;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+  }
+  _repoMappingCache = cache;
+  return cache[apparentName] ?? '+${apparentName}_extension+$apparentName';
+}
+
+abstract final class _Runfiles {
+  static Map<String, String>? _manifest;
+  static final Map<String, String?> _pkgCache = {};
+
+  static String resolve(String relativePath) {
+    final normalizedPath = relativePath.replaceAll('\\', '/');
+
+    final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
+    if (manifestFile != null && manifestFile.isNotEmpty) {
+      _manifest ??= _loadManifest(manifestFile);
+      final resolved = _manifest![normalizedPath];
+      if (resolved != null) {
+        return resolved;
+      }
+    }
+
+    final runfilesDir =
+        Platform.environment['RUNFILES_DIR'] ??
+        Platform.environment['TEST_SRCDIR'];
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      if (normalizedPath.startsWith('_main/')) {
+        final subPath = normalizedPath.substring('_main/'.length);
+        for (final prefix in [
+          _getCanonicalRepoName('dart_packages'),
+          _getCanonicalRepoName('third_party'),
+          '+dart_packages_extension+dart_packages',
+          '+third_party_extension+third_party',
+          'dart_packages',
+          'third_party',
+        ]) {
+          final altPath = p.join(runfilesDir, prefix, subPath);
+          final libType = FileSystemEntity.typeSync(p.join(altPath, 'lib'));
+          if (libType != FileSystemEntityType.notFound) {
+            return altPath;
+          }
+          final altType = FileSystemEntity.typeSync(altPath);
+          if (altType != FileSystemEntityType.notFound) {
+            return altPath;
+          }
+        }
+      }
+      return p.join(runfilesDir, normalizedPath);
+    }
+
+    return relativePath;
+  }
+
+  static String? resolvePackage(String pkgName) {
+    if (pkgName.isEmpty) return null;
+
+    final manifestFile = Platform.environment['RUNFILES_MANIFEST_FILE'];
+    if (manifestFile != null && manifestFile.isNotEmpty) {
+      _manifest ??= _loadManifest(manifestFile);
+      final resolvedPkg = _resolvePkgFromManifest(pkgName);
+      if (resolvedPkg != null) {
+        return resolvedPkg;
+      }
+    }
+
+    final runfilesDir =
+        Platform.environment['RUNFILES_DIR'] ??
+        Platform.environment['TEST_SRCDIR'];
+    if (runfilesDir != null && runfilesDir.isNotEmpty) {
+      final resolvedPkg = _findPackageInRunfiles(runfilesDir, pkgName);
+      if (resolvedPkg != null) {
+        return resolvedPkg;
+      }
+    }
+
+    return null;
+  }
+
+  static Map<String, String> _loadManifest(String path) {
+    final map = <String, String>{};
+    final file = File(path);
+    if (file.existsSync()) {
+      for (final line in file.readAsLinesSync()) {
+        final trimmed = line.trim();
+        if (trimmed.isEmpty) continue;
+        final spaceIndex = trimmed.indexOf(' ');
+        if (spaceIndex != -1) {
+          final manifestPath = trimmed.substring(0, spaceIndex);
+          final physicalPath = trimmed.substring(spaceIndex + 1);
+          map[manifestPath] = physicalPath;
+        }
+      }
+    }
+    return map;
+  }
+
+  static String? _resolvePkgFromManifest(String pkgName) {
+    if (_manifest == null) return null;
+    if (_pkgCache.containsKey(pkgName)) {
+      return _pkgCache[pkgName];
+    }
+    final targetSuffix = '/$pkgName/lib/';
+    final targetPrefix = '$pkgName/lib/';
+    for (final entry in _manifest!.entries) {
+      final logicalPath = entry.key;
+      var index = -1;
+      var rootLength = 0;
+      if (logicalPath.startsWith(targetPrefix)) {
+        index = 0;
+        rootLength = pkgName.length;
+      } else {
+        final idx = logicalPath.indexOf(targetSuffix);
+        if (idx != -1) {
+          index = idx;
+          rootLength = idx + pkgName.length + 1;
+        }
+      }
+      if (index != -1) {
+        final logicalPkgRoot = logicalPath.substring(0, rootLength);
+        final physicalPath = entry.value;
+        final physicalPathNormalized = physicalPath.replaceAll('\\', '/');
+        final suffix = logicalPath.substring(logicalPkgRoot.length);
+        if (physicalPathNormalized.endsWith(suffix)) {
+          final result = physicalPath.substring(
+            0,
+            physicalPath.length - suffix.length,
+          );
+          _pkgCache[pkgName] = result;
+          return result;
+        }
+      }
+    }
+    _pkgCache[pkgName] = null;
+    return null;
+  }
+
+  static String? _findPackageInRunfiles(String runfilesDir, String pkgName) {
+    for (final prefix in [
+      _getCanonicalRepoName('dart_packages'),
+      '+dart_packages_extension+dart_packages',
+      'dart_packages',
+      '_main',
+    ]) {
+      // 1. Check standard SDK pkg/
+      final sdkPkgPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
+      if (Directory(p.join(sdkPkgPath, 'lib')).existsSync()) {
+        return sdkPkgPath;
+      }
+
+      // 2. Check third_party/pkg/
+      final tpPkgPath = p.join(runfilesDir, prefix, 'third_party/pkg', pkgName);
+      if (Directory(p.join(tpPkgPath, 'lib')).existsSync()) {
+        return tpPkgPath;
+      }
+    }
+
+    return null;
+  }
+}
+
+String _resolveCo19Root(String path, String testSrcdir) {
+  if (!path.contains(r'$CO19_ROOT')) return path;
+  var co19Root = p.join(testSrcdir, 'dart_co19_tests');
+  for (final prefix in [
+    '+third_party_extension+dart_co19_tests',
+    'dart_co19_tests',
+    '_main/external/+third_party_extension+dart_co19_tests',
+  ]) {
+    final pathToCheck = p.join(testSrcdir, prefix);
+    if (Directory(pathToCheck).existsSync()) {
+      co19Root = pathToCheck;
+      break;
+    }
+  }
+  return path.replaceAll(r'$CO19_ROOT', co19Root);
 }

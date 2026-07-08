@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+final String exeExt = Platform.isWindows ? '.exe' : '';
+
 /// A standalone zero-dependency runner that executes a list of test configurations,
 /// handles sharding, and maps process exit codes to expectations.
 void main(List<String> args) async {
@@ -233,6 +235,26 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     '======================================================================',
   );
 
+  final dartBinEnv = Platform.environment['DART_BIN'] ?? Platform.executable;
+  String? resolvedPlatformCache;
+  String getResolvedPlatform() {
+    if (resolvedPlatformCache != null) return resolvedPlatformCache!;
+    if (compiler == 'dartkp' && dartBinEnv.contains('prebuilt_dart_sdk')) {
+      final sdkDir = p.dirname(p.dirname(p.absolute(dartBinEnv)));
+      resolvedPlatformCache = p.join(
+        sdkDir,
+        'lib',
+        '_internal',
+        'vm_platform.dill',
+      );
+    } else {
+      resolvedPlatformCache = _Runfiles.resolve(
+        '_main/runtime/vm/vm_platform.dill',
+      );
+    }
+    return resolvedPlatformCache!;
+  }
+
   var actualOutcome = 'Pass';
 
   for (var i = 0; i < commands.length; i++) {
@@ -254,6 +276,8 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
           .toList();
     }
 
+    final normalizedExe = executable.replaceAll('\\', '/');
+
     if (compiler == 'fasta') {
       final compileScript = _Runfiles.resolve(
         '_main/pkg/front_end/tool/compile.dart',
@@ -271,22 +295,14 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
 
     for (var j = 0; j < arguments.length; j++) {
       if (arguments[j] == '--platform' && j + 1 < arguments.length) {
-        final resolvedPlatform = _Runfiles.resolve(
-          '_main/runtime/vm/vm_platform.dill',
-        );
-        arguments[j + 1] = resolvedPlatform;
+        arguments[j + 1] = getResolvedPlatform();
       } else if (arguments[j].startsWith('--platform=')) {
-        final resolvedPlatform = _Runfiles.resolve(
-          '_main/runtime/vm/vm_platform.dill',
-        );
-        arguments[j] = '--platform=$resolvedPlatform';
+        arguments[j] = '--platform=${getResolvedPlatform()}';
       }
     }
-    final dartBinEnv = Platform.environment['DART_BIN'];
     final testSrcdir = Platform.environment['TEST_SRCDIR'];
-    final exeExt = Platform.isWindows ? '.exe' : '';
 
-    if (executable == 'pkg/dart2wasm/tool/compile_benchmark' &&
+    if (normalizedExe == 'pkg/dart2wasm/tool/compile_benchmark' &&
         testSrcdir != null) {
       var resolvedRuntime = _Runfiles.resolve(
         '_main/sdk/dart-sdk/bin/dartaotruntime$exeExt',
@@ -380,7 +396,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         }
       }
       arguments = newArgs;
-    } else if (executable == 'pkg/dart2wasm/tool/run_benchmark' &&
+    } else if (normalizedExe == 'pkg/dart2wasm/tool/run_benchmark' &&
         testSrcdir != null) {
       String osDir;
       if (Platform.isLinux) {
@@ -444,20 +460,43 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         ];
         arguments = newArgs;
       }
-    } else if (dartBinEnv != null) {
-      if (executable == 'out/ReleaseX64/dart' || executable.endsWith('/dart')) {
+    } else if (normalizedExe == 'out/ReleaseX64/dart' ||
+        normalizedExe.endsWith('/dart') ||
+        normalizedExe.endsWith('/dartaotruntime') ||
+        normalizedExe.endsWith('/gen_snapshot') ||
+        normalizedExe.endsWith('pkg/vm/tool/gen_kernel')) {
+      if (normalizedExe == 'out/ReleaseX64/dart' ||
+          normalizedExe.endsWith('/dart')) {
         executable = dartBinEnv;
-      } else if (executable.endsWith('/dartaotruntime')) {
-        final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/dartaotruntime';
-      } else if (executable.endsWith('/gen_snapshot')) {
-        final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/utils/gen_snapshot';
+      } else if (normalizedExe.endsWith('/dartaotruntime')) {
+        final sdkBinDir = p.dirname(dartBinEnv);
+        executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
+      } else if (normalizedExe.endsWith('/gen_snapshot')) {
+        final sdkBinDir = p.dirname(dartBinEnv);
+        executable = p.join(sdkBinDir, 'utils', 'gen_snapshot$exeExt');
+      } else {
+        // Must be pkg/vm/tool/gen_kernel
+        final sdkBinDir = p.dirname(dartBinEnv);
+        final snapshot = p.join(
+          sdkBinDir,
+          'snapshots',
+          'gen_kernel_aot.dart.snapshot',
+        );
+        if (File(snapshot).existsSync()) {
+          executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
+          arguments = [snapshot, ...arguments];
+        } else {
+          final genKernelDart = _Runfiles.resolve(
+            '_main/pkg/vm/bin/gen_kernel.dart',
+          );
+          executable = dartBinEnv;
+          arguments = [genKernelDart, ...arguments];
+        }
       }
     } else if (testSrcdir != null &&
-        (executable == 'third_party/d8/linux/x64/d8' ||
-            executable.endsWith('/d8') ||
-            executable.endsWith('/d8.exe'))) {
+        (normalizedExe == 'third_party/d8/linux/x64/d8' ||
+            normalizedExe.endsWith('/d8') ||
+            normalizedExe.endsWith('/d8.exe'))) {
       String osDir;
       if (Platform.isLinux) {
         osDir = 'linux/x64';
@@ -480,10 +519,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       }
       executable = _Runfiles.resolve('_main/third_party/d8/$osDir/d8$exeExt');
     } else if (testSrcdir != null &&
-        (executable == '/usr/bin/google-chrome' ||
-            executable.endsWith('/google-chrome') ||
-            executable.endsWith('/chrome.exe') ||
-            executable.contains('/Google Chrome.app/'))) {
+        (normalizedExe == '/usr/bin/google-chrome' ||
+            normalizedExe.endsWith('/google-chrome') ||
+            normalizedExe.endsWith('/chrome.exe') ||
+            normalizedExe.contains('/Google Chrome.app/'))) {
       var resolvedChrome = _Runfiles.resolve('chrome/chrome$exeExt');
       if (!File(resolvedChrome).existsSync()) {
         if (Platform.isMacOS) {
@@ -501,10 +540,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         executable = resolvedChrome;
       }
     } else if (testSrcdir != null &&
-        (executable == '/usr/bin/firefox' ||
-            executable.endsWith('/firefox') ||
-            executable.endsWith('/firefox.exe') ||
-            executable.contains('/Firefox.app/'))) {
+        (normalizedExe == '/usr/bin/firefox' ||
+            normalizedExe.endsWith('/firefox') ||
+            normalizedExe.endsWith('/firefox.exe') ||
+            normalizedExe.contains('/Firefox.app/'))) {
       var resolvedFirefox = _Runfiles.resolve('firefox/firefox$exeExt');
       if (!File(resolvedFirefox).existsSync()) {
         resolvedFirefox = _Runfiles.resolve(
@@ -551,6 +590,54 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
           newEnv[entry.key] = _rewriteSandboxPath(entry.value, testTmpdir);
         }
         environment = newEnv;
+      }
+    }
+
+    final exeName = p.basename(executable);
+    if (exeName == 'dart' ||
+        exeName == 'dart.exe' ||
+        exeName == 'dartvm' ||
+        exeName == 'dartvm.exe') {
+      var scriptIndex = -1;
+      for (var j = 0; j < arguments.length; j++) {
+        final arg = arguments[j];
+        if (!arg.startsWith('-') &&
+            (arg.endsWith('.dart') ||
+                arg.endsWith('.dill') ||
+                arg.endsWith('.snapshot'))) {
+          scriptIndex = j;
+          break;
+        }
+      }
+      if (scriptIndex != -1) {
+        final scriptPath = arguments[scriptIndex];
+        final normalizedScript = scriptPath.replaceAll('\\', '/');
+        final runfilesScriptPath =
+            (normalizedScript.startsWith('_main/') ||
+                normalizedScript.startsWith('@') ||
+                normalizedScript.startsWith('external/') ||
+                p.isAbsolute(scriptPath))
+            ? scriptPath
+            : '_main/$scriptPath';
+        final resolvedScript = p.isAbsolute(scriptPath)
+            ? scriptPath
+            : _Runfiles.resolve(runfilesScriptPath);
+        arguments[scriptIndex] = resolvedScript;
+
+        final resolvedPkg = _getRewrittenPackageConfig();
+        final packagesIndex = arguments.indexWhere(
+          (arg) => arg.startsWith('--packages='),
+        );
+        if (packagesIndex != -1) {
+          arguments[packagesIndex] = '--packages=$resolvedPkg';
+        } else {
+          final pkgIndex = arguments.indexOf('--packages');
+          if (pkgIndex != -1 && pkgIndex + 1 < arguments.length) {
+            arguments[pkgIndex + 1] = resolvedPkg;
+          } else {
+            arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+          }
+        }
       }
     }
 
@@ -697,26 +784,37 @@ String _getRewrittenPackageConfig() {
   return _rewrittenPackageConfig ??= _rewritePackageConfig();
 }
 
+Map<String, String>? _repoMappingCache;
+
 String _getCanonicalRepoName(String apparentName) {
+  if (_repoMappingCache != null) {
+    return _repoMappingCache![apparentName] ??
+        '+${apparentName}_extension+$apparentName';
+  }
+  final cache = <String, String>{};
   final runfilesDir =
       Platform.environment['RUNFILES_DIR'] ??
       Platform.environment['TEST_SRCDIR'];
   if (runfilesDir != null && runfilesDir.isNotEmpty) {
     final mappingFile = File(p.join(runfilesDir, '_repo_mapping'));
     if (mappingFile.existsSync()) {
-      for (final line in mappingFile.readAsLinesSync()) {
-        final parts = line.trim().split(',');
-        if (parts.length >= 3) {
-          final apparent = parts[1];
-          final canonical = parts[2];
-          if (apparent == apparentName) {
-            return canonical;
+      try {
+        for (final line in mappingFile.readAsLinesSync()) {
+          final parts = line.trim().split(',');
+          if (parts.length >= 3) {
+            final source = parts[0];
+            final apparent = parts[1];
+            final canonical = parts[2];
+            if (source.isEmpty || source == '_main') {
+              cache[apparent] = canonical;
+            }
           }
         }
-      }
+      } catch (_) {}
     }
   }
-  return '+${apparentName}_extension+$apparentName';
+  _repoMappingCache = cache;
+  return cache[apparentName] ?? '+${apparentName}_extension+$apparentName';
 }
 
 String _rewritePackageConfig() {
@@ -761,7 +859,7 @@ String _rewritePackageConfig() {
         runfilesPath = '_main/$relativePath';
       }
       final physicalPath = _Runfiles.resolve(runfilesPath, pkgName: pkgName);
-      final uri = Uri.directory(physicalPath);
+      final uri = Uri.directory(p.absolute(physicalPath));
       map['rootUri'] = uri.toString();
     }
     newPackages.add(map);
