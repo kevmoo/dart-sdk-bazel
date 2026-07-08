@@ -514,17 +514,16 @@ void main(List<String> args) async {
 
         if (logFile.existsSync()) {
           try {
-            final tailRes = Process.runSync('tail', ['-n', '3', logFile.path]);
-            if (tailRes.exitCode == 0) {
-              final lines = tailRes.stdout.toString().trim().split('\n');
-              for (final line in lines) {
-                if (line.trim().isNotEmpty) {
-                  print('  | $line');
-                }
+            final lines = logFile.readAsLinesSync();
+            final start = lines.length > 3 ? lines.length - 3 : 0;
+            for (var i = start; i < lines.length; i++) {
+              final line = lines[i];
+              if (line.trim().isNotEmpty) {
+                print('  | $line');
               }
             }
           } catch (_) {
-            // Ignore tail execution errors.
+            // Ignore read errors.
           }
         }
 

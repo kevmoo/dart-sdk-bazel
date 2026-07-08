@@ -596,7 +596,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       if (scriptIndex != -1) {
         final scriptPath = arguments[scriptIndex];
         final runfilesScriptPath =
-            (scriptPath.startsWith('_main/') || scriptPath.startsWith('@'))
+            (scriptPath.startsWith('_main/') ||
+                scriptPath.startsWith('@') ||
+                p.isAbsolute(scriptPath))
             ? scriptPath
             : '_main/$scriptPath';
         final resolvedScript = _Runfiles.resolve(runfilesScriptPath);

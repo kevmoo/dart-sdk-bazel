@@ -145,11 +145,8 @@ void main(List<String> args) async {
     p.join(testSrcdir, 'pkg/dev_compiler/bin/dartdevc.dart'),
     p.join(testSrcdir, '_main/pkg/dev_compiler/bin/dartdevc.dart'),
   ];
-  print('DEBUG: Checking dartdevc candidates:');
   for (final candidate in candidates) {
-    final exists = await File(candidate).exists();
-    print('DEBUG:   $candidate exists: $exists');
-    if (exists) {
+    if (await File(candidate).exists()) {
       ddcPath = candidate;
       ddcFound = true;
       break;

@@ -328,16 +328,13 @@ void main(List<String> args) async {
           );
           final parts = relativeToGenerated.split('/');
 
-          final String flatName;
           final String relativePath;
           final String normalizedName;
 
           if (parts[0].startsWith('custom-') && parts.length >= 2) {
-            flatName = parts[1];
             relativePath = parts.length > 2 ? parts.sublist(2).join('/') : '';
             normalizedName = parts.sublist(1).join('/');
           } else {
-            flatName = parts[0];
             relativePath = parts.length > 1 ? parts.sublist(1).join('/') : '';
             normalizedName = relativeToGenerated;
           }
@@ -1580,22 +1577,6 @@ const _coarseSuites = {
   'co19',
   'dartdevc'
 };
-
-String _getPkgDirFromFlatName(String flatName) {
-  var name = flatName;
-  if (name.startsWith('tests_')) {
-    name = name.substring('tests_'.length);
-  } else if (name.startsWith('multitest_')) {
-    name = name.substring('multitest_'.length);
-  }
-
-  return switch (name.split('_')) {
-    [final suite, ...] when _coarseSuites.contains(suite) => suite,
-    [final p1, final p2, ...] => '$p1/$p2',
-    [final p1] => '$p1/misc',
-    [] => 'misc',
-  };
-}
 
 String _sanitizePath(String path, String workspaceDir, String? co19Dir) {
   String toPosix(String relPath) {
