@@ -609,7 +609,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
                 p.isAbsolute(scriptPath))
             ? scriptPath
             : '_main/$scriptPath';
-        final resolvedScript = _Runfiles.resolve(runfilesScriptPath);
+        final resolvedScript = p.isAbsolute(scriptPath)
+            ? scriptPath
+            : _Runfiles.resolve(runfilesScriptPath);
         arguments[scriptIndex] = resolvedScript;
 
         final resolvedPkg = _getRewrittenPackageConfig();

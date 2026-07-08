@@ -462,6 +462,7 @@ void main(List<String> args) async {
       if (config.runtime == 'vm' ||
           config.compiler == 'dart2analyzer' ||
           config.compiler == 'fasta' ||
+          config.compiler == 'dartk' ||
           config.compiler == 'dartkp') {
         baselineDeps.addAll([
           dartBinLabel,
