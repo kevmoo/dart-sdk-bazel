@@ -255,9 +255,9 @@ def _packages_repo_impl(ctx):
         # In CI Mode for third-party packages, we map them directly to their cloned paths
         # in package_config.json, eliminating the need for symlinks entirely!
         if not is_cloned:
-            # 1. Copy 'lib' (mandatory for dart_library)
+            # 1. Symlink 'lib' (mandatory for dart_library)
             if physical_lib.exists:
-                _copy_path(ctx, physical_lib, virtual_pkg_dir + "/" + pkg.lib)
+                ctx.symlink(physical_lib, virtual_pkg_dir + "/" + pkg.lib)
 
             # 2. Copy common files in package root (pubspec, analysis options, messages)
             for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml", "api.txt"]:
@@ -265,11 +265,11 @@ def _packages_repo_impl(ctx):
                 if physical_file.exists:
                     _copy_file(ctx, physical_file, virtual_pkg_dir + "/" + file_name)
 
-            # 4. Copy other common directories if they exist (bin, test, tool, web)
+            # 4. Symlink other common directories if they exist (bin, test, tool, web)
             for dir_name in ["bin", "test", "tool", "web"]:
                 physical_dir = physical_path.get_child(dir_name)
                 if physical_dir.exists:
-                    _copy_path(ctx, physical_dir, virtual_pkg_dir + "/" + dir_name)
+                    ctx.symlink(physical_dir, virtual_pkg_dir + "/" + dir_name)
 
         # Generate BUILD.bazel content for this package
         build_lines = [
