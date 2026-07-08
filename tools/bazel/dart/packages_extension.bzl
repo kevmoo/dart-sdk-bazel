@@ -35,6 +35,9 @@ def _parse_dependencies(ctx, pubspec_path, sections = ["dependencies"]):
                         deps.append(dep_name)
     return deps
 
+def _copy_file(ctx, src, dst):
+    ctx.file(dst, ctx.read(src))
+
 def _copy_path(ctx, src, dst):
     if "windows" not in ctx.os.name.lower():
         parent = "/".join(dst.split("/")[:-1])
@@ -58,7 +61,7 @@ if os.path.exists(dst):
     else:
         os.remove(dst)
 if os.path.isdir(src):
-    shutil.copytree(src, dst, symlinks=True)
+    shutil.copytree(src, dst, symlinks=False)
 else:
     shutil.copy2(src, dst)
 """
@@ -193,7 +196,7 @@ def _packages_repo_impl(ctx):
     for file_name in ["analysis_options.yaml", "analysis_options_no_lints.yaml", "pubspec.yaml"]:
         root_file = workspace_dir.get_child(file_name)
         if root_file.exists:
-            _copy_path(ctx, root_file, file_name)
+            _copy_file(ctx, root_file, file_name)
 
     packages_json = []
     all_cloned_files = []
@@ -257,7 +260,7 @@ def _packages_repo_impl(ctx):
             for file_name in ["pubspec.yaml", "analysis_options.yaml", "analysis_options_no_lints.yaml", "messages.yaml", "api.txt"]:
                 physical_file = physical_path.get_child(file_name)
                 if physical_file.exists:
-                    _copy_path(ctx, physical_file, virtual_pkg_dir + "/" + file_name)
+                    _copy_file(ctx, physical_file, virtual_pkg_dir + "/" + file_name)
 
             # 4. Copy other common directories if they exist (bin, test, tool, web)
             for dir_name in ["bin", "test", "tool", "web"]:

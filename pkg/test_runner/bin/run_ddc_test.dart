@@ -685,11 +685,7 @@ abstract final class _Runfiles {
           }
         }
       }
-      final primary = File(p.join(runfilesDir, normalizedPath));
-      if (primary.existsSync() || Directory(primary.path).existsSync()) {
-        return primary.path;
-      }
-      return primary.path;
+      return p.join(runfilesDir, normalizedPath);
     }
 
     return relativePath;
