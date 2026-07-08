@@ -29,6 +29,8 @@ def _dynamic_test_repo_impl(repository_ctx):
     # Bazel 7+; the explicit watch() registers the invalidation dependency.
     generator_path = repository_ctx.path(Label("@//tools/bazel/dart:generate_test_targets.dart"))
     repository_ctx.watch(generator_path)
+    config_path = repository_ctx.path(Label("@//tools/bazel/dart:suite_config.json"))
+    repository_ctx.watch(config_path)
 
     # The embedded script's "/external/" is runfiles-path string matching, not
     # a fragile external-repo dependency (newer buildifiers flag string contents).
