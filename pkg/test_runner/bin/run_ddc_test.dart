@@ -282,7 +282,14 @@ void main(List<String> args) async {
           }
         }
         if (!found) {
-          actualArgs.insert(0, ddcPath);
+          final insertIndex = actualArgs.indexWhere(
+            (arg) => !arg.startsWith('-'),
+          );
+          if (insertIndex != -1) {
+            actualArgs.insert(insertIndex, ddcPath);
+          } else {
+            actualArgs.add(ddcPath);
+          }
         }
       }
 
