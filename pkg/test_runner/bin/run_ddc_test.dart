@@ -749,14 +749,23 @@ abstract final class _Runfiles {
       return _pkgCache[pkgName];
     }
     final targetSuffix = '/$pkgName/lib/';
+    final targetPrefix = '$pkgName/lib/';
     for (final entry in _manifest!.entries) {
       final logicalPath = entry.key;
-      final index = logicalPath.indexOf(targetSuffix);
+      var index = -1;
+      var rootLength = 0;
+      if (logicalPath.startsWith(targetPrefix)) {
+        index = 0;
+        rootLength = pkgName.length;
+      } else {
+        final idx = logicalPath.indexOf(targetSuffix);
+        if (idx != -1) {
+          index = idx;
+          rootLength = idx + pkgName.length + 1;
+        }
+      }
       if (index != -1) {
-        final logicalPkgRoot = logicalPath.substring(
-          0,
-          index + pkgName.length + 1,
-        );
+        final logicalPkgRoot = logicalPath.substring(0, rootLength);
         final physicalPath = entry.value;
         final physicalPathNormalized = physicalPath.replaceAll('\\', '/');
         final suffix = logicalPath.substring(logicalPkgRoot.length);
