@@ -589,7 +589,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       for (var j = 0; j < arguments.length; j++) {
         final arg = arguments[j];
         if (!arg.startsWith('-') &&
-            (arg.endsWith('.dart') || arg.endsWith('.dill'))) {
+            (arg.endsWith('.dart') ||
+                arg.endsWith('.dill') ||
+                arg.endsWith('.snapshot'))) {
           scriptIndex = j;
           break;
         }

@@ -75,7 +75,7 @@ void main(List<String> args) async {
       .map((pkg) {
         final pDir = _Runfiles.resolvePackage(pkg);
         if (pDir == null) return null;
-        return {
+        return <String, String>{
           'name': pkg,
           'rootUri': Uri.directory(pDir).toString(),
           'packageUri': 'lib/',
@@ -274,7 +274,8 @@ void main(List<String> args) async {
         actualArgs = List<String>.from(finalCleanArgs);
         for (var i = 0; i < actualArgs.length; i++) {
           final arg = actualArgs[i];
-          if (arg.endsWith('dartdevc.dart') || arg.endsWith('dartdevc')) {
+          if (!arg.startsWith('-') &&
+              (arg.endsWith('dartdevc.dart') || arg.endsWith('dartdevc'))) {
             actualArgs[i] = ddcPath;
             found = true;
             break;
