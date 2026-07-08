@@ -619,7 +619,12 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         if (packagesIndex != -1) {
           arguments[packagesIndex] = '--packages=$resolvedPkg';
         } else {
-          arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+          final pkgIndex = arguments.indexOf('--packages');
+          if (pkgIndex != -1 && pkgIndex + 1 < arguments.length) {
+            arguments[pkgIndex + 1] = resolvedPkg;
+          } else {
+            arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+          }
         }
       }
     }
