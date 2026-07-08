@@ -71,17 +71,18 @@ void main(List<String> args) async {
     'dev_compiler',
     'smith',
   ];
-  final packages = <Map<String, String>>[];
-  for (final p in pkgs) {
-    final pDir = _Runfiles.resolvePackage(p);
-    if (pDir != null) {
-      packages.add({
-        'name': p,
-        'rootUri': Uri.directory(pDir).toString(),
-        'packageUri': 'lib/',
-      });
-    }
-  }
+  final packages = pkgs
+      .map((pkg) {
+        final pDir = _Runfiles.resolvePackage(pkg);
+        if (pDir == null) return null;
+        return {
+          'name': pkg,
+          'rootUri': Uri.directory(pDir).toString(),
+          'packageUri': 'lib/',
+        };
+      })
+      .whereType<Map<String, String>>()
+      .toList();
   final cleanPkgCfg = '$buildDir/hermetic_package_config.json';
   await File(cleanPkgCfg).parent.create(recursive: true);
   await File(
@@ -636,9 +637,12 @@ String _getCanonicalRepoName(String apparentName) {
         for (final line in mappingFile.readAsLinesSync()) {
           final parts = line.trim().split(',');
           if (parts.length >= 3) {
+            final source = parts[0];
             final apparent = parts[1];
             final canonical = parts[2];
-            cache[apparent] = canonical;
+            if (source.isEmpty || source == '_main') {
+              cache[apparent] = canonical;
+            }
           }
         }
       } catch (_) {}

@@ -233,6 +233,28 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     '======================================================================',
   );
 
+  final dartBinEnv = Platform.environment['DART_BIN'];
+  String? resolvedPlatformCache;
+  String getResolvedPlatform() {
+    if (resolvedPlatformCache != null) return resolvedPlatformCache!;
+    if (compiler == 'dartkp' &&
+        dartBinEnv != null &&
+        dartBinEnv.contains('prebuilt_dart_sdk')) {
+      final sdkDir = p.dirname(p.dirname(p.absolute(dartBinEnv)));
+      resolvedPlatformCache = p.join(
+        sdkDir,
+        'lib',
+        '_internal',
+        'vm_platform.dill',
+      );
+    } else {
+      resolvedPlatformCache = _Runfiles.resolve(
+        '_main/runtime/vm/vm_platform.dill',
+      );
+    }
+    return resolvedPlatformCache!;
+  }
+
   var actualOutcome = 'Pass';
 
   for (var i = 0; i < commands.length; i++) {
@@ -268,28 +290,6 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       }
       return arg;
     }).toList();
-
-    final dartBinEnv = Platform.environment['DART_BIN'];
-    String? resolvedPlatformCache;
-    String getResolvedPlatform() {
-      if (resolvedPlatformCache != null) return resolvedPlatformCache!;
-      if (compiler == 'dartkp' &&
-          dartBinEnv != null &&
-          dartBinEnv.contains('prebuilt_dart_sdk')) {
-        final sdkDir = p.dirname(p.dirname(p.absolute(dartBinEnv)));
-        resolvedPlatformCache = p.join(
-          sdkDir,
-          'lib',
-          '_internal',
-          'vm_platform.dill',
-        );
-      } else {
-        resolvedPlatformCache = _Runfiles.resolve(
-          '_main/runtime/vm/vm_platform.dill',
-        );
-      }
-      return resolvedPlatformCache!;
-    }
 
     for (var j = 0; j < arguments.length; j++) {
       if (arguments[j] == '--platform' && j + 1 < arguments.length) {
@@ -777,9 +777,12 @@ String _getCanonicalRepoName(String apparentName) {
         for (final line in mappingFile.readAsLinesSync()) {
           final parts = line.trim().split(',');
           if (parts.length >= 3) {
+            final source = parts[0];
             final apparent = parts[1];
             final canonical = parts[2];
-            cache[apparent] = canonical;
+            if (source.isEmpty || source == '_main') {
+              cache[apparent] = canonical;
+            }
           }
         }
       } catch (_) {}
