@@ -235,13 +235,11 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     '======================================================================',
   );
 
-  final dartBinEnv = Platform.environment['DART_BIN'];
+  final dartBinEnv = Platform.environment['DART_BIN'] ?? Platform.executable;
   String? resolvedPlatformCache;
   String getResolvedPlatform() {
     if (resolvedPlatformCache != null) return resolvedPlatformCache!;
-    if (compiler == 'dartkp' &&
-        dartBinEnv != null &&
-        dartBinEnv.contains('prebuilt_dart_sdk')) {
+    if (compiler == 'dartkp' && dartBinEnv.contains('prebuilt_dart_sdk')) {
       final sdkDir = p.dirname(p.dirname(p.absolute(dartBinEnv)));
       resolvedPlatformCache = p.join(
         sdkDir,
@@ -460,7 +458,11 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         ];
         arguments = newArgs;
       }
-    } else if (dartBinEnv != null) {
+    } else if (executable == 'out/ReleaseX64/dart' ||
+        executable.endsWith('/dart') ||
+        executable.endsWith('/dartaotruntime') ||
+        executable.endsWith('/gen_snapshot') ||
+        executable.endsWith('pkg/vm/tool/gen_kernel')) {
       if (executable == 'out/ReleaseX64/dart' || executable.endsWith('/dart')) {
         executable = dartBinEnv;
       } else if (executable.endsWith('/dartaotruntime')) {
@@ -469,7 +471,8 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       } else if (executable.endsWith('/gen_snapshot')) {
         final sdkBinDir = File(dartBinEnv).parent.path;
         executable = '$sdkBinDir/utils/gen_snapshot$exeExt';
-      } else if (executable.endsWith('pkg/vm/tool/gen_kernel')) {
+      } else {
+        // Must be pkg/vm/tool/gen_kernel
         final sdkBinDir = File(dartBinEnv).parent.path;
         final snapshot = '$sdkBinDir/snapshots/gen_kernel_aot.dart.snapshot';
         if (File(snapshot).existsSync()) {
