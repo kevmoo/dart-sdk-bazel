@@ -77,7 +77,7 @@ void main(List<String> args) async {
         if (pDir == null) return null;
         return <String, String>{
           'name': pkg,
-          'rootUri': Uri.directory(pDir).toString(),
+          'rootUri': Uri.directory(p.absolute(pDir)).toString(),
           'packageUri': 'lib/',
         };
       })
@@ -132,7 +132,7 @@ void main(List<String> args) async {
   final poolSize = Platform.numberOfProcessors.clamp(2, 8);
   var currentIndex = 0;
 
-  var ddcPath = '';
+  var ddcPath = p.join(testSrcdir, '_main/utils/ddc/dartdevc.dart.snapshot');
   var ddcFound = false;
   final candidates = [
     _Runfiles.resolve('_main/utils/ddc/dartdevc.dart.snapshot'),
