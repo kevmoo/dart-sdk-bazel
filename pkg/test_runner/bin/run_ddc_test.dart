@@ -753,61 +753,6 @@ abstract final class _Runfiles {
       }
     }
 
-    // Fall back to recursive walk of runfilesDir.
-    try {
-      final dir = Directory(runfilesDir);
-      if (dir.existsSync()) {
-        final result = _findPkgDir(dir, pkgName, 0, 7);
-        if (result != null) {
-          return result.path;
-        }
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  static Directory? _findPkgDir(
-    Directory dir,
-    String pkgName,
-    int depth,
-    int maxDepth, [
-    Set<String>? visited,
-  ]) {
-    if (depth > maxDepth) return null;
-    final visitedSet = visited ?? <String>{};
-    try {
-      final canonical = dir.resolveSymbolicLinksSync();
-      if (!visitedSet.add(canonical)) return null;
-    } catch (_) {
-      if (!visitedSet.add(dir.absolute.path)) return null;
-    }
-    try {
-      for (final entity in dir.listSync(followLinks: true)) {
-        if (entity is Directory) {
-          final name = p.basename(entity.path);
-          if (name == pkgName) {
-            if (Directory(p.join(entity.path, 'lib')).existsSync()) {
-              return entity;
-            }
-          }
-          if (name == 'lib' ||
-              name == 'bin' ||
-              name == 'test' ||
-              name == 'web' ||
-              name == '.dart_tool') {
-            continue;
-          }
-          final res = _findPkgDir(
-            entity,
-            pkgName,
-            depth + 1,
-            maxDepth,
-            visitedSet,
-          );
-          if (res != null) return res;
-        }
-      }
-    } catch (_) {}
     return null;
   }
 }
