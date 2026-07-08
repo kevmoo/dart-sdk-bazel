@@ -276,6 +276,8 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
           .toList();
     }
 
+    final normalizedExe = executable.replaceAll('\\', '/');
+
     if (compiler == 'fasta') {
       final compileScript = _Runfiles.resolve(
         '_main/pkg/front_end/tool/compile.dart',
@@ -300,7 +302,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
     }
     final testSrcdir = Platform.environment['TEST_SRCDIR'];
 
-    if (executable == 'pkg/dart2wasm/tool/compile_benchmark' &&
+    if (normalizedExe == 'pkg/dart2wasm/tool/compile_benchmark' &&
         testSrcdir != null) {
       var resolvedRuntime = _Runfiles.resolve(
         '_main/sdk/dart-sdk/bin/dartaotruntime$exeExt',
@@ -394,7 +396,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         }
       }
       arguments = newArgs;
-    } else if (executable == 'pkg/dart2wasm/tool/run_benchmark' &&
+    } else if (normalizedExe == 'pkg/dart2wasm/tool/run_benchmark' &&
         testSrcdir != null) {
       String osDir;
       if (Platform.isLinux) {
@@ -458,25 +460,30 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         ];
         arguments = newArgs;
       }
-    } else if (executable == 'out/ReleaseX64/dart' ||
-        executable.endsWith('/dart') ||
-        executable.endsWith('/dartaotruntime') ||
-        executable.endsWith('/gen_snapshot') ||
-        executable.endsWith('pkg/vm/tool/gen_kernel')) {
-      if (executable == 'out/ReleaseX64/dart' || executable.endsWith('/dart')) {
+    } else if (normalizedExe == 'out/ReleaseX64/dart' ||
+        normalizedExe.endsWith('/dart') ||
+        normalizedExe.endsWith('/dartaotruntime') ||
+        normalizedExe.endsWith('/gen_snapshot') ||
+        normalizedExe.endsWith('pkg/vm/tool/gen_kernel')) {
+      if (normalizedExe == 'out/ReleaseX64/dart' ||
+          normalizedExe.endsWith('/dart')) {
         executable = dartBinEnv;
-      } else if (executable.endsWith('/dartaotruntime')) {
-        final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/dartaotruntime$exeExt';
-      } else if (executable.endsWith('/gen_snapshot')) {
-        final sdkBinDir = File(dartBinEnv).parent.path;
-        executable = '$sdkBinDir/utils/gen_snapshot$exeExt';
+      } else if (normalizedExe.endsWith('/dartaotruntime')) {
+        final sdkBinDir = p.dirname(dartBinEnv);
+        executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
+      } else if (normalizedExe.endsWith('/gen_snapshot')) {
+        final sdkBinDir = p.dirname(dartBinEnv);
+        executable = p.join(sdkBinDir, 'utils', 'gen_snapshot$exeExt');
       } else {
         // Must be pkg/vm/tool/gen_kernel
-        final sdkBinDir = File(dartBinEnv).parent.path;
-        final snapshot = '$sdkBinDir/snapshots/gen_kernel_aot.dart.snapshot';
+        final sdkBinDir = p.dirname(dartBinEnv);
+        final snapshot = p.join(
+          sdkBinDir,
+          'snapshots',
+          'gen_kernel_aot.dart.snapshot',
+        );
         if (File(snapshot).existsSync()) {
-          executable = '$sdkBinDir/dartaotruntime$exeExt';
+          executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
           arguments = [snapshot, ...arguments];
         } else {
           final genKernelDart = _Runfiles.resolve(
@@ -487,9 +494,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         }
       }
     } else if (testSrcdir != null &&
-        (executable == 'third_party/d8/linux/x64/d8' ||
-            executable.endsWith('/d8') ||
-            executable.endsWith('/d8.exe'))) {
+        (normalizedExe == 'third_party/d8/linux/x64/d8' ||
+            normalizedExe.endsWith('/d8') ||
+            normalizedExe.endsWith('/d8.exe'))) {
       String osDir;
       if (Platform.isLinux) {
         osDir = 'linux/x64';
@@ -512,10 +519,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
       }
       executable = _Runfiles.resolve('_main/third_party/d8/$osDir/d8$exeExt');
     } else if (testSrcdir != null &&
-        (executable == '/usr/bin/google-chrome' ||
-            executable.endsWith('/google-chrome') ||
-            executable.endsWith('/chrome.exe') ||
-            executable.contains('/Google Chrome.app/'))) {
+        (normalizedExe == '/usr/bin/google-chrome' ||
+            normalizedExe.endsWith('/google-chrome') ||
+            normalizedExe.endsWith('/chrome.exe') ||
+            normalizedExe.contains('/Google Chrome.app/'))) {
       var resolvedChrome = _Runfiles.resolve('chrome/chrome$exeExt');
       if (!File(resolvedChrome).existsSync()) {
         if (Platform.isMacOS) {
@@ -533,10 +540,10 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         executable = resolvedChrome;
       }
     } else if (testSrcdir != null &&
-        (executable == '/usr/bin/firefox' ||
-            executable.endsWith('/firefox') ||
-            executable.endsWith('/firefox.exe') ||
-            executable.contains('/Firefox.app/'))) {
+        (normalizedExe == '/usr/bin/firefox' ||
+            normalizedExe.endsWith('/firefox') ||
+            normalizedExe.endsWith('/firefox.exe') ||
+            normalizedExe.contains('/Firefox.app/'))) {
       var resolvedFirefox = _Runfiles.resolve('firefox/firefox$exeExt');
       if (!File(resolvedFirefox).existsSync()) {
         resolvedFirefox = _Runfiles.resolve(
