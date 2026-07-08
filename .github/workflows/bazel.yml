@@ -27,10 +27,6 @@ jobs:
             - '!docs/**'
             - '!**/*.md'
 
-    - name: Configure Bazel Remote Cache Upload
-      if: steps.filter.outputs.needs-build == 'true'
-      run: |
-        echo "build:remote-cache --remote_upload_local_results=${{ github.event_name != 'pull_request' }}" >> .bazelrc
 
     # clone_dependencies.py (run by the module extensions) shallow-clones 18
     # DEPS repos into the workspace — invisible to every bazel-level cache.
@@ -58,11 +54,25 @@ jobs:
     # 10 GB repo budget, and PR runs restore but never write (saves only
     # happen on main), which stops per-branch near-duplicate entries.
     - name: Authenticate to Google Cloud
+      id: gcloud_auth
       if: steps.filter.outputs.needs-build == 'true'
+      continue-on-error: true
       uses: google-github-actions/auth@v3
       with:
         workload_identity_provider: 'projects/605394026323/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider'
         service_account: 'github-actions-cache@bluefin-remote.iam.gserviceaccount.com'
+
+    - name: Configure Bazel Remote Cache
+      if: steps.filter.outputs.needs-build == 'true'
+      run: |
+        if [ "${{ steps.gcloud_auth.outcome }}" != "success" ]; then
+          echo "No valid GCP credentials; disabling GCS remote cache to silence auth errors."
+          echo "build:remote-cache --remote_cache=" >> .bazelrc
+          echo "build:remote-cache --remote_accept_cached=false" >> .bazelrc
+          echo "build:remote-cache --remote_upload_local_results=false" >> .bazelrc
+        else
+          echo "build:remote-cache --remote_upload_local_results=${{ github.event_name != 'pull_request' }}" >> .bazelrc
+        fi
 
     - name: Set up Bazel
       if: steps.filter.outputs.needs-build == 'true'

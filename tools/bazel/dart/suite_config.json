@@ -26,6 +26,11 @@
       "extra_deps_by_pattern": {
         "test/id_tests/**": [
           "@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources"
+        ],
+        "test/verify_*_test.dart": [
+          "@dart_packages//pkg/analysis_server:sdk_package_sources",
+          "@dart_packages//pkg/front_end:sdk_package_sources",
+          "@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources"
         ]
       }
     },
