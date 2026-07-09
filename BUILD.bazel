@@ -104,10 +104,14 @@ exports_files([
 
 filegroup(
     name = "test_package_sources",
-    srcs = glob(
+    srcs = [
+        "pkg/front_end/test/vm_service_helper.dart",
+        "tests/ffi/dylib_utils.dart",
+    ] + glob(
         [
             "pkg/async_helper/**",
             "pkg/expect/**",
+            "pkg/vm_service/**",
             "pkg/js/**",
             "pkg/meta/**",
             "pkg/smith/**",

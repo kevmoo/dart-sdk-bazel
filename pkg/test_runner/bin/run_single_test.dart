@@ -895,10 +895,10 @@ abstract final class _Runfiles {
     if (runfilesDir != null && runfilesDir.isNotEmpty) {
       if (pkgName != null && pkgName.isNotEmpty) {
         for (final prefix in [
+          '_main',
           _getCanonicalRepoName('dart_packages'),
           '+dart_packages_extension+dart_packages',
           'dart_packages',
-          '_main',
         ]) {
           final pkgAltPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
           final libType = FileSystemEntity.typeSync(p.join(pkgAltPath, 'lib'));
