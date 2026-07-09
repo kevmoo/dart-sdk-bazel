@@ -61,8 +61,8 @@ void main(List<String> args) {
   buf.writeln();
   buf.writeln('## 🌌 Active Starlark Test Universe (By Configuration)');
   buf.writeln();
-  buf.writeln('| Configuration | Status | Total Targets | Failed |');
-  buf.writeln('|---|---|---:|---:|');
+  buf.writeln('| Configuration | Total Targets | Failed | Status |');
+  buf.writeln('|---|---:|---:|---:|');
 
   final sortedCfgNames = configs.keys.toList()..sort();
   var totalUniverseTargets = 0;
@@ -81,7 +81,7 @@ void main(List<String> args) {
           ? '**❄️ Skipped**'
           : '**${getHealthBadge(totalPassed, totalUniverseTargets)} ${(totalPassed / totalUniverseTargets * 100.0).toStringAsFixed(1)}%**');
   buf.writeln(
-    '| **Universe Totals** | $universeStatusStr | **$totalUniverseTargets** | **$totalFailed** |',
+    '| **Universe Totals** | **$totalUniverseTargets** | **$totalFailed** | $universeStatusStr |',
   );
 
   for (final cfgName in sortedCfgNames) {
@@ -98,7 +98,7 @@ void main(List<String> args) {
             ? '❄️ Skipped$statusSuffix'
             : '${getHealthBadge(passed, total)} ${(passed / total * 100.0).toStringAsFixed(1)}%$statusSuffix');
     buf.writeln(
-      '| `$cfgName` | $statusStr | $total | $failed |',
+      '| `$cfgName` | $total | $failed | $statusStr |',
     );
   }
   buf.writeln();

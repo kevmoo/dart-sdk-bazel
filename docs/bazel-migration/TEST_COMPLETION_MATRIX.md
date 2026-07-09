@@ -8,32 +8,32 @@
 
 ## 🌌 Active Starlark Test Universe (By Configuration)
 
-| Configuration | Status | Total Targets | Failed |
-|---|---|---:|---:|
-| **Universe Totals** | **🟠 69.4%** | **5795** | **1776** |
-| `analyzer_release` | 🔴 16.7% | 6 | 5 |
-| `cfe_release` | ⚫ 0.0% | 160 | 160 |
-| `dart2js_chrome_release` | ⚫ 0.0% | 155 | 155 |
-| `dart2js_firefox_release` | ⚫ 0.0% | 150 | 150 |
-| `ddc_chrome_release` | 🟠 77.6% | 156 | 35 |
-| `vm_aot_release` | 🟡 81.4% | 156 | 29 |
-| `vm_aot_release_simarm` | 🟡 83.4% | 151 | 25 |
-| `vm_aot_release_simarm64` | 🟡 83.4% | 151 | 25 |
-| `vm_aot_release_simriscv64` | 🟡 83.4% | 151 | 25 |
-| `vm_debug` | 🟡 85.6% | 153 | 22 |
-| `vm_product` | 🟡 86.9% | 206 | 27 |
-| `vm_release` | 🟡 82.4% | 2512 | 441 |
-| `vm_release_simarm` | ⚫ 0.0% | 153 | 153 |
-| `vm_release_simarm64` | ⚫ 0.0% | 153 | 153 |
-| `vm_release_simriscv64` | ⚫ 0.0% | 153 | 153 |
-| `wasm_asserts` | 🟡 84.3% | 153 | 24 |
-| `wasm_chrome_asserts` | 🟡 82.4% | 153 | 27 |
-| `wasm_chrome_optimized` | 🟡 82.4% | 153 | 27 |
-| `wasm_chrome_release` | 🟡 82.4% | 153 | 27 |
-| `wasm_firefox_asserts` | 🟡 82.4% | 153 | 27 |
-| `wasm_firefox_release` | 🟡 82.4% | 153 | 27 |
-| `wasm_optimized` | 🟡 81.7% | 153 | 28 |
-| `wasm_release` | 🟡 80.4% | 158 | 31 |
+| Configuration | Total Targets | Failed | Status |
+|---|---:|---:|---:|
+| **Universe Totals** | **5795** | **1776** | **🟠 69.4%** |
+| `analyzer_release` | 6 | 5 | 🔴 16.7% |
+| `cfe_release` | 160 | 160 | ⚫ 0.0% |
+| `dart2js_chrome_release` | 155 | 155 | ⚫ 0.0% |
+| `dart2js_firefox_release` | 150 | 150 | ⚫ 0.0% |
+| `ddc_chrome_release` | 156 | 35 | 🟠 77.6% |
+| `vm_aot_release` | 156 | 29 | 🟡 81.4% |
+| `vm_aot_release_simarm` | 151 | 25 | 🟡 83.4% |
+| `vm_aot_release_simarm64` | 151 | 25 | 🟡 83.4% |
+| `vm_aot_release_simriscv64` | 151 | 25 | 🟡 83.4% |
+| `vm_debug` | 153 | 22 | 🟡 85.6% |
+| `vm_product` | 206 | 27 | 🟡 86.9% |
+| `vm_release` | 2512 | 441 | 🟡 82.4% |
+| `vm_release_simarm` | 153 | 153 | ⚫ 0.0% |
+| `vm_release_simarm64` | 153 | 153 | ⚫ 0.0% |
+| `vm_release_simriscv64` | 153 | 153 | ⚫ 0.0% |
+| `wasm_asserts` | 153 | 24 | 🟡 84.3% |
+| `wasm_chrome_asserts` | 153 | 27 | 🟡 82.4% |
+| `wasm_chrome_optimized` | 153 | 27 | 🟡 82.4% |
+| `wasm_chrome_release` | 153 | 27 | 🟡 82.4% |
+| `wasm_firefox_asserts` | 153 | 27 | 🟡 82.4% |
+| `wasm_firefox_release` | 153 | 27 | 🟡 82.4% |
+| `wasm_optimized` | 153 | 28 | 🟡 81.7% |
+| `wasm_release` | 158 | 31 | 🟡 80.4% |
 
 ---
 
