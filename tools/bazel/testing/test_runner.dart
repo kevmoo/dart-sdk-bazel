@@ -154,6 +154,46 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
   } catch (_) {}
 }
 
+class Phase1Progress {
+  final int completedActions;
+  final int totalActions;
+  final double percent;
+  Phase1Progress(this.completedActions, this.totalActions, this.percent);
+}
+
+Phase1Progress? parsePhase1Progress(File bepFile) {
+  if (!bepFile.existsSync()) return null;
+  try {
+    final lines = bepFile.readAsLinesSync();
+    int? lastCompleted;
+    int? lastTotal;
+    final regex = RegExp(r'\[\s*([0-9,]+)\s*/\s*([0-9,]+)\s*\]');
+    for (final line in lines) {
+      if (line.contains('"progress"')) {
+        final matches = regex.allMatches(line);
+        for (final m in matches) {
+          final cStr = m.group(1)?.replaceAll(',', '');
+          final tStr = m.group(2)?.replaceAll(',', '');
+          if (cStr != null && tStr != null) {
+            final c = int.tryParse(cStr);
+            final t = int.tryParse(tStr);
+            if (c != null && t != null && t > 0) {
+              lastCompleted = c;
+              lastTotal = t;
+            }
+          }
+        }
+      }
+    }
+    if (lastCompleted != null && lastTotal != null && lastTotal > 0) {
+      final pct = (lastCompleted / lastTotal) * 100.0;
+      return Phase1Progress(
+          lastCompleted, lastTotal, pct > 100.0 ? 100.0 : pct);
+    }
+  } catch (_) {}
+  return null;
+}
+
 String determineSuite(String rawTarget) {
   var target = rawTarget;
   if (target.startsWith('@@')) {
@@ -480,6 +520,7 @@ void main(List<String> args) async {
 
       writeHeartbeat(heartbeatPath, {
         'status': 'RUNNING',
+        'phase': cumulativeSummaryCount > 0 ? 'TEST' : 'STARTING',
         'timestamp': DateTime.now().toUtc().toIso8601String(),
         'completed_targets': cumulativeSummaryCount,
         'total_targets': totalCount,
@@ -509,8 +550,19 @@ void main(List<String> args) async {
 
         final rssMb =
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1);
+        final phase1 =
+            (cumulativeSummaryCount == 0) ? parsePhase1Progress(bepFile) : null;
+        final isPhase1 =
+            phase1 != null && phase1.completedActions < phase1.totalActions;
+        final phaseLabel = isPhase1
+            ? 'Phase 1 [Build]'
+            : (cumulativeSummaryCount > 0 ? 'Phase 2 [Test]' : 'Starting');
+        final progressStr = isPhase1
+            ? '${phase1.percent.toStringAsFixed(1)}% (${phase1.completedActions}/${phase1.totalActions} actions)'
+            : '${currentPercent.toStringAsFixed(1)}% ($cumulativeSummaryCount/$totalCount targets)';
+
         print(
-            '⏳ [Status] Chunk ${chunkIdx + 1}/${targetChunks.length} | Progress: ${currentPercent.toStringAsFixed(1)}% | Passed: $passCount | Failed: $failCount | Elapsed: ${currentElapsedMins.toStringAsFixed(1)}m | RAM: ${rssMb}MB');
+            '⏳ [$phaseLabel] Chunk ${chunkIdx + 1}/${targetChunks.length} | Progress: $progressStr | Passed: $passCount | Failed: $failCount | Elapsed: ${currentElapsedMins.toStringAsFixed(1)}m | RAM: ${rssMb}MB');
 
         if (logFile.existsSync()) {
           try {
@@ -529,10 +581,17 @@ void main(List<String> args) async {
 
         writeHeartbeat(heartbeatPath, {
           'status': 'RUNNING',
+          'phase': isPhase1
+              ? 'BUILD'
+              : (cumulativeSummaryCount > 0 ? 'TEST' : 'STARTING'),
           'timestamp': DateTime.now().toUtc().toIso8601String(),
           'completed_targets': cumulativeSummaryCount,
           'total_targets': totalCount,
-          'percent': currentPercent.toStringAsFixed(1),
+          'percent': isPhase1
+              ? phase1.percent.toStringAsFixed(1)
+              : currentPercent.toStringAsFixed(1),
+          if (isPhase1) 'build_completed_actions': phase1.completedActions,
+          if (isPhase1) 'build_total_actions': phase1.totalActions,
           'elapsed_minutes': currentElapsedMins.toStringAsFixed(1),
           'current_chunk': chunkIdx + 1,
           'total_chunks': targetChunks.length,
@@ -688,6 +747,7 @@ void main(List<String> args) async {
 
         writeHeartbeat(heartbeatPath, {
           'status': 'RUNNING',
+          'phase': 'TEST',
           'timestamp': DateTime.now().toUtc().toIso8601String(),
           'completed_targets': cumulativeSummaryCount,
           'total_targets': totalCount,
@@ -748,6 +808,7 @@ void main(List<String> args) async {
     final finalRate = totalDt > 0 ? (totalCount / totalDt) : 0.0;
     writeHeartbeat(heartbeatPath, {
       'status': 'COMPLETED',
+      'phase': 'COMPLETED',
       'timestamp': DateTime.now().toUtc().toIso8601String(),
       'completed_targets': cumulativeSummaryCount,
       'total_targets': totalCount,

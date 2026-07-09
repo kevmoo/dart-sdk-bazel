@@ -17,7 +17,7 @@ New machine, or `bd` not set up? See [BEADS.md](BEADS.md) for install + bootstra
 
 - **Active Agent**: `[none]`
 - **Global Lock**: `[unlocked]`
-- **Overall Progress**: 99/123 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
+- **Overall Progress**: 100/123 Tasks (Completed details in [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md))
 
 ### 🏷️ Tag Distribution Metrics
 
@@ -159,7 +159,7 @@ graph TD
     sdk_wxe["sdk-wxe:<br>Define VM stress execution matrix flags {--stress-gc, --stress-reload} in Bazel test configs"]:::pending
     sdk_xfm["sdk-xfm:<br>Migrate Dart VM C++ test runner {run_vm_tests} to cc_test"]:::completed
     sdk_xn9["sdk-xn9:<br>Audit, integrate, and delete legacy Bazel branches"]:::completed
-    sdk_xnx["sdk-xnx:<br>{tools} Add Phase 1 {Build} vs Phase 2 {Test Execution} BEP progress reporting to run_test_universe.dart"]:::pending
+    sdk_xnx["sdk-xnx:<br>{tools} Add Phase 1 {Build} vs Phase 2 {Test Execution} BEP progress reporting to run_test_universe.dart"]:::completed
     sdk_xql["sdk-xql:<br>Fix package config generator for workspace packages and dynamic language versions"]:::completed
     sdk_xw2["sdk-xw2:<br>{bazel} CI: scheduled nightly full //sdk:create_sdk build + packaged-SDK smoke"]:::completed
     sdk_y6l["sdk-y6l:<br>Android & Fuchsia Target Platform Registration"]:::blocked
@@ -546,20 +546,6 @@ graph TD
   - None
 - **Description**:
   
-- **Success Criteria**:
-
----
-
-### 🎯 [sdk-xnx] [tools] Add Phase 1 (Build) vs Phase 2 (Test Execution) BEP progress reporting to run_test_universe.dart
-- **Status**: `[PENDING]`
-- **Tags**: `tools`, `user-experience`
-- **Prerequisites**: None
-- **Owner**: `[none]`
-- **Commit**: `[none]`
-- **Target Files**:
-  - None
-- **Description**:
-  Update tools/bazel/run_test_universe.dart to parse BEP actionCompleted / targetComplete events during Phase 1 (Build & Dependency Compilation) before switching to testSummary events during Phase 2 (Test Target Execution). Currently the runner outputs 0/5788 during Phase 1, which obscures early compilation progress.
 - **Success Criteria**:
 
 ---
