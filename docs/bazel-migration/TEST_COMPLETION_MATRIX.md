@@ -8,31 +8,31 @@
 
 ## 🌌 Active Starlark Test Universe (By Configuration)
 
-| Configuration | Status | Total Targets | Passed | Failed |
-|---|---|---|---|---|
-| `analyzer_release` | ❌ FAILED (Active) | 6 | 1 | 5 |
-| `cfe_release` | ❌ FAILED (Active) | 160 | 0 | 160 |
-| `dart2js_chrome_release` | ❌ FAILED (Active) | 155 | 0 | 155 |
-| `dart2js_firefox_release` | ❌ FAILED (Active) | 150 | 0 | 150 |
-| `ddc_chrome_release` | ❌ FAILED (Active) | 156 | 121 | 35 |
-| `vm_aot_release` | ❌ FAILED (Active) | 156 | 127 | 29 |
-| `vm_aot_release_simarm` | ❌ FAILED (Active) | 151 | 126 | 25 |
-| `vm_aot_release_simarm64` | ❌ FAILED (Active) | 151 | 126 | 25 |
-| `vm_aot_release_simriscv64` | ❌ FAILED (Active) | 151 | 126 | 25 |
-| `vm_debug` | ❌ FAILED (Active) | 153 | 131 | 22 |
-| `vm_product` | ❌ FAILED (Active) | 206 | 179 | 27 |
-| `vm_release` | ❌ FAILED (Active) | 2512 | 2071 | 441 |
-| `vm_release_simarm` | ❌ FAILED (Active) | 153 | 0 | 153 |
-| `vm_release_simarm64` | ❌ FAILED (Active) | 153 | 0 | 153 |
-| `vm_release_simriscv64` | ❌ FAILED (Active) | 153 | 0 | 153 |
-| `wasm_asserts` | ❌ FAILED (Active) | 153 | 129 | 24 |
-| `wasm_chrome_asserts` | ❌ FAILED (Active) | 153 | 126 | 27 |
-| `wasm_chrome_optimized` | ❌ FAILED (Active) | 153 | 126 | 27 |
-| `wasm_chrome_release` | ❌ FAILED (Active) | 153 | 126 | 27 |
-| `wasm_firefox_asserts` | ❌ FAILED (Active) | 153 | 126 | 27 |
-| `wasm_firefox_release` | ❌ FAILED (Active) | 153 | 126 | 27 |
-| `wasm_optimized` | ❌ FAILED (Active) | 153 | 125 | 28 |
-| `wasm_release` | ❌ FAILED (Active) | 158 | 127 | 31 |
+| Configuration | Status | Total Targets | Failed |
+|---|---|---:|---:|
+| `analyzer_release` | 🔴 16.7% | 6 | 5 |
+| `cfe_release` | ⚫ 0.0% | 160 | 160 |
+| `dart2js_chrome_release` | ⚫ 0.0% | 155 | 155 |
+| `dart2js_firefox_release` | ⚫ 0.0% | 150 | 150 |
+| `ddc_chrome_release` | 🟠 77.6% | 156 | 35 |
+| `vm_aot_release` | 🟡 81.4% | 156 | 29 |
+| `vm_aot_release_simarm` | 🟡 83.4% | 151 | 25 |
+| `vm_aot_release_simarm64` | 🟡 83.4% | 151 | 25 |
+| `vm_aot_release_simriscv64` | 🟡 83.4% | 151 | 25 |
+| `vm_debug` | 🟡 85.6% | 153 | 22 |
+| `vm_product` | 🟡 86.9% | 206 | 27 |
+| `vm_release` | 🟡 82.4% | 2512 | 441 |
+| `vm_release_simarm` | ⚫ 0.0% | 153 | 153 |
+| `vm_release_simarm64` | ⚫ 0.0% | 153 | 153 |
+| `vm_release_simriscv64` | ⚫ 0.0% | 153 | 153 |
+| `wasm_asserts` | 🟡 84.3% | 153 | 24 |
+| `wasm_chrome_asserts` | 🟡 82.4% | 153 | 27 |
+| `wasm_chrome_optimized` | 🟡 82.4% | 153 | 27 |
+| `wasm_chrome_release` | 🟡 82.4% | 153 | 27 |
+| `wasm_firefox_asserts` | 🟡 82.4% | 153 | 27 |
+| `wasm_firefox_release` | 🟡 82.4% | 153 | 27 |
+| `wasm_optimized` | 🟡 81.7% | 153 | 28 |
+| `wasm_release` | 🟡 80.4% | 158 | 31 |
 
 **Universe Totals:** `5795` targets (`4019` passed, `1776` failed)
 
@@ -41,17 +41,17 @@
 ## 📦 Starlark Test Completion Matrix (Suite × Configuration)
 
 | Suite | `vm_release` | `wasm_release` | `cfe_release` | `Other Configs` | Total Targets |
-|---|---|---|---|---|---|
-| **`co19`** | ❌ 1 / 6 | ❌ 1 / 5 | ❄️ | ❌ 3 / 21 | **32** |
-| **`corelib`** | ❌ 6 / 8 | ❌ 5 / 8 | ❌ 0 / 8 | ❌ 86 / 154 | **178** |
-| **`dartdevc`** | ❄️ | ❄️ | ❄️ | ❌ 3 / 4 | **4** |
-| **`ffi`** | ❌ 48 / 53 | ❄️ | ❌ 0 / 3 | ❌ 48 / 53 | **109** |
-| **`language`** | ❌ 125 / 136 | ❌ 121 / 138 | ❌ 0 / 142 | ❌ 1680 / 2605 | **3021** |
-| **`pkg`** | ❌ 1889 / 2295 | ❄️ | ❄️ | ❄️ | **2295** |
-| **`runtime`** | ❌ 2 / 5 | ❄️ | ❄️ | ❄️ | **5** |
-| **`standalone`** | ❌ 0 / 9 | ❄️ | ❌ 0 / 7 | ❌ 0 / 77 | **93** |
-| **`tests`** | ❄️ | ❌ 0 / 5 | ❄️ | ❌ 0 / 37 | **42** |
-| **`web/wasm`** | ❄️ | ❌ 0 / 2 | ❄️ | ❌ 1 / 14 | **16** |
+|---|---|---|---|---|---:|
+| **`co19`** | 🔴 1 / 6 | 🔴 1 / 5 | ❄️ | 🔴 3 / 21 | **32** |
+| **`corelib`** | 🟠 6 / 8 | 🟠 5 / 8 | ⚫ 0 / 8 | 🟠 86 / 154 | **178** |
+| **`dartdevc`** | ❄️ | ❄️ | ❄️ | 🟠 3 / 4 | **4** |
+| **`ffi`** | 🟡 48 / 53 | ❄️ | ⚫ 0 / 3 | 🟡 48 / 53 | **109** |
+| **`language`** | 🟡 125 / 136 | 🟡 121 / 138 | ⚫ 0 / 142 | 🟠 1680 / 2605 | **3021** |
+| **`pkg`** | 🟡 1889 / 2295 | ❄️ | ❄️ | ❄️ | **2295** |
+| **`runtime`** | 🔴 2 / 5 | ❄️ | ❄️ | ❄️ | **5** |
+| **`standalone`** | ⚫ 0 / 9 | ❄️ | ⚫ 0 / 7 | ⚫ 0 / 77 | **93** |
+| **`tests`** | ❄️ | ⚫ 0 / 5 | ❄️ | ⚫ 0 / 37 | **42** |
+| **`web/wasm`** | ❄️ | ⚫ 0 / 2 | ❄️ | ⚫ 1 / 14 | **16** |
 
 ---
 

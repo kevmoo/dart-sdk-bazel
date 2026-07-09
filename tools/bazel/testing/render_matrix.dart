@@ -5,6 +5,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+String getHealthBadge(int passed, int total) {
+  if (total == 0) return '❄️';
+  final pct = (passed / total) * 100.0;
+  if (pct <= 10.0) return '⚫';
+  if (pct <= 50.0) return '🔴';
+  if (pct <= 80.0) return '🟠';
+  if (pct < 100.0) return '🟡';
+  return '🟢';
+}
+
 void main(List<String> args) {
   final inputPath = args.isNotEmpty
       ? args[0]
@@ -51,8 +61,8 @@ void main(List<String> args) {
   buf.writeln();
   buf.writeln('## 🌌 Active Starlark Test Universe (By Configuration)');
   buf.writeln();
-  buf.writeln('| Configuration | Status | Total Targets | Passed | Failed |');
-  buf.writeln('|---|---|---|---|---|');
+  buf.writeln('| Configuration | Status | Total Targets | Failed |');
+  buf.writeln('|---|---|---:|---:|');
 
   final sortedCfgNames = configs.keys.toList()..sort();
   var totalUniverseTargets = 0;
@@ -70,13 +80,14 @@ void main(List<String> args) {
     totalPassed += passed;
     totalFailed += failed;
 
+    final statusSuffix = status == 'Active' ? '' : ' ($status)';
     final statusStr = isDryRun
         ? '🔍 Dry Run (Unexecuted)'
-        : (failed > 0
-            ? '❌ FAILED ($status)'
-            : (total == 0 ? '❄️ Skipped ($status)' : '✅ PASSED ($status)'));
+        : (total == 0
+            ? '❄️ Skipped$statusSuffix'
+            : '${getHealthBadge(passed, total)} ${(passed / total * 100.0).toStringAsFixed(1)}%$statusSuffix');
     buf.writeln(
-      '| `$cfgName` | $statusStr | $total | $passed | $failed |',
+      '| `$cfgName` | $statusStr | $total | $failed |',
     );
   }
 
@@ -100,7 +111,7 @@ void main(List<String> args) {
   buf.writeln(
     '| Suite | `vm_release` | `wasm_release` | `cfe_release` | `Other Configs` | Total Targets |',
   );
-  buf.writeln('|---|---|---|---|---|---|');
+  buf.writeln('|---|---|---|---|---|---:|');
 
   final allSuitesDiscovered = <String>{};
   for (final cfgName in sortedCfgNames) {
@@ -113,12 +124,10 @@ void main(List<String> args) {
   for (final sName in sortedSuiteNames) {
     var suiteTotal = 0;
     var suitePassed = 0;
-    var suiteFailed = 0;
     final rowCells = <String>[];
 
     var primaryTotalSum = 0;
     var primaryPassedSum = 0;
-    var primaryFailedSum = 0;
 
     for (final cfgName in primaryConfigs) {
       final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
@@ -126,20 +135,16 @@ void main(List<String> args) {
       final sMap = bySuite[sName] as Map<String, dynamic>? ?? {};
       final total = sMap['total'] as int? ?? 0;
       final passed = sMap['passed'] as int? ?? 0;
-      final failed = sMap['failed'] as int? ?? 0;
 
       primaryTotalSum += total;
       primaryPassedSum += passed;
-      primaryFailedSum += failed;
 
       if (total == 0) {
         rowCells.add('❄️');
       } else if (isDryRun) {
         rowCells.add('🔍 $total');
-      } else if (failed > 0) {
-        rowCells.add('❌ $passed / $total');
       } else {
-        rowCells.add('✅ $passed / $total');
+        rowCells.add('${getHealthBadge(passed, total)} $passed / $total');
       }
     }
 
@@ -149,21 +154,18 @@ void main(List<String> args) {
       final sMap = bySuite[sName] as Map<String, dynamic>? ?? {};
       suiteTotal += (sMap['total'] as int? ?? 0);
       suitePassed += (sMap['passed'] as int? ?? 0);
-      suiteFailed += (sMap['failed'] as int? ?? 0);
     }
 
     final restTotal = (suiteTotal - primaryTotalSum).clamp(0, suiteTotal);
     final restPassed = (suitePassed - primaryPassedSum).clamp(0, suitePassed);
-    final restFailed = (suiteFailed - primaryFailedSum).clamp(0, suiteFailed);
 
     if (restTotal == 0) {
       rowCells.add('❄️');
     } else if (isDryRun) {
       rowCells.add('🔍 $restTotal');
-    } else if (restFailed > 0) {
-      rowCells.add('❌ $restPassed / $restTotal');
     } else {
-      rowCells.add('✅ $restPassed / $restTotal');
+      rowCells.add(
+          '${getHealthBadge(restPassed, restTotal)} $restPassed / $restTotal');
     }
 
     buf.writeln('| **`$sName`** | ${rowCells.join(' | ')} | **$suiteTotal** |');
