@@ -165,30 +165,23 @@ Phase1Progress? parsePhase1Progress(File bepFile) {
   if (!bepFile.existsSync()) return null;
   try {
     final lines = bepFile.readAsLinesSync();
-    int? lastCompleted;
-    int? lastTotal;
     final regex = RegExp(r'\[\s*([0-9,]+)\s*/\s*([0-9,]+)\s*\]');
-    for (final line in lines) {
+    for (final line in lines.reversed) {
       if (line.contains('"progress"')) {
-        final matches = regex.allMatches(line);
-        for (final m in matches) {
+        final matches = regex.allMatches(line).toList();
+        for (final m in matches.reversed) {
           final cStr = m.group(1)?.replaceAll(',', '');
           final tStr = m.group(2)?.replaceAll(',', '');
           if (cStr != null && tStr != null) {
             final c = int.tryParse(cStr);
             final t = int.tryParse(tStr);
             if (c != null && t != null && t > 0) {
-              lastCompleted = c;
-              lastTotal = t;
+              final pct = (c / t) * 100.0;
+              return Phase1Progress(c, t, pct > 100.0 ? 100.0 : pct);
             }
           }
         }
       }
-    }
-    if (lastCompleted != null && lastTotal != null && lastTotal > 0) {
-      final pct = (lastCompleted / lastTotal) * 100.0;
-      return Phase1Progress(
-          lastCompleted, lastTotal, pct > 100.0 ? 100.0 : pct);
     }
   } catch (_) {}
   return null;
@@ -552,8 +545,7 @@ void main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1);
         final phase1 =
             (cumulativeSummaryCount == 0) ? parsePhase1Progress(bepFile) : null;
-        final isPhase1 =
-            phase1 != null && phase1.completedActions < phase1.totalActions;
+        final isPhase1 = phase1 != null;
         final phaseLabel = isPhase1
             ? 'Phase 1 [Build]'
             : (cumulativeSummaryCount > 0 ? 'Phase 2 [Test]' : 'Starting');
