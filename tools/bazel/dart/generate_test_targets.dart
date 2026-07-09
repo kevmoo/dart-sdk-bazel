@@ -481,6 +481,10 @@ void main(List<String> args) async {
           baselineDeps.addAll([
             '@//runtime/vm:vm_platform',
             '@//:pkg/vm/bin/gen_kernel.dart',
+            '@//runtime/bin:process_test',
+            '@//runtime/bin:ffi_test_functions',
+            '@//runtime/bin:ffi_test_dynamic_library',
+            '@//runtime/bin:abstract_socket_test',
           ]);
         }
       } else if (config.compiler == 'ddc') {
