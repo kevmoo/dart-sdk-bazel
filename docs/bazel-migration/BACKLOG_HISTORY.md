@@ -1464,6 +1464,20 @@ This file lists all completed tasks in the Bazel migration. It is generated from
 
 ---
 
+### 🎯 [sdk-xnx] [tools] Add Phase 1 (Build) vs Phase 2 (Test Execution) BEP progress reporting to run_test_universe.dart
+- **Status**: `[COMPLETED]`
+- **Tags**: `tools`, `user-experience`
+- **Prerequisites**: None
+- **Owner**: `[none]`
+- **Commit**: `[none]`
+- **Target Files**:
+  - None
+- **Description**:
+  Update tools/bazel/run_test_universe.dart to parse BEP actionCompleted / targetComplete events during Phase 1 (Build & Dependency Compilation) before switching to testSummary events during Phase 2 (Test Target Execution). Currently the runner outputs 0/5788 during Phase 1, which obscures early compilation progress.
+- **Success Criteria**:
+
+---
+
 ### 🎯 [sdk-xql] Fix package config generator for workspace packages and dynamic language versions
 - **Status**: `[COMPLETED]`
 - **Tags**: `bazel-migration`, `status:completed`, `task:TASK_032`
