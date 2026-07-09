@@ -10,6 +10,7 @@
 
 | Configuration | Status | Total Targets | Failed |
 |---|---|---:|---:|
+| **Universe Totals** | **🟠 69.4%** | **5795** | **1776** |
 | `analyzer_release` | 🔴 16.7% | 6 | 5 |
 | `cfe_release` | ⚫ 0.0% | 160 | 160 |
 | `dart2js_chrome_release` | ⚫ 0.0% | 155 | 155 |
@@ -33,8 +34,6 @@
 | `wasm_firefox_release` | 🟡 82.4% | 153 | 27 |
 | `wasm_optimized` | 🟡 81.7% | 153 | 28 |
 | `wasm_release` | 🟡 80.4% | 158 | 31 |
-
-**Universe Totals:** `5795` targets (`4019` passed, `1776` failed)
 
 ---
 

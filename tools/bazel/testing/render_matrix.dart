@@ -69,16 +69,27 @@ void main(List<String> args) {
   var totalPassed = 0;
   var totalFailed = 0;
 
+  for (final cfg in configs.values) {
+    totalUniverseTargets += (cfg['total_targets'] as int? ?? 0);
+    totalPassed += (cfg['passed'] as int? ?? 0);
+    totalFailed += (cfg['failed'] as int? ?? 0);
+  }
+
+  final universeStatusStr = isDryRun
+      ? '**🔍 Dry Run (Unexecuted)**'
+      : (totalUniverseTargets == 0
+          ? '**❄️ Skipped**'
+          : '**${getHealthBadge(totalPassed, totalUniverseTargets)} ${(totalPassed / totalUniverseTargets * 100.0).toStringAsFixed(1)}%**');
+  buf.writeln(
+    '| **Universe Totals** | $universeStatusStr | **$totalUniverseTargets** | **$totalFailed** |',
+  );
+
   for (final cfgName in sortedCfgNames) {
     final cfg = configs[cfgName] as Map<String, dynamic>? ?? {};
     final total = cfg['total_targets'] as int? ?? 0;
     final passed = cfg['passed'] as int? ?? 0;
     final failed = cfg['failed'] as int? ?? 0;
     final status = cfg['status'] as String? ?? 'Unknown';
-
-    totalUniverseTargets += total;
-    totalPassed += passed;
-    totalFailed += failed;
 
     final statusSuffix = status == 'Active' ? '' : ' ($status)';
     final statusStr = isDryRun
@@ -88,17 +99,6 @@ void main(List<String> args) {
             : '${getHealthBadge(passed, total)} ${(passed / total * 100.0).toStringAsFixed(1)}%$statusSuffix');
     buf.writeln(
       '| `$cfgName` | $statusStr | $total | $failed |',
-    );
-  }
-
-  buf.writeln();
-  if (isDryRun) {
-    buf.writeln(
-      '**Universe Totals:** `$totalUniverseTargets` targets discovered *(Unexecuted — Dry Run)*',
-    );
-  } else {
-    buf.writeln(
-      '**Universe Totals:** `$totalUniverseTargets` targets (`$totalPassed` passed, `$totalFailed` failed)',
     );
   }
   buf.writeln();
