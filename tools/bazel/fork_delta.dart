@@ -37,7 +37,7 @@ void main(List<String> args) async {
   }
 
   final isJson = args.contains('--json');
-  String upstreamRef = 'official/main';
+  String? upstreamRef;
   for (int i = 0; i < args.length; i++) {
     if (args[i] == '--base' && i + 1 < args.length) {
       upstreamRef = args[i + 1];
@@ -58,6 +58,24 @@ void main(List<String> args) async {
     return;
   }
 
+  // Auto-detect upstream reference if not explicitly overridden via --base
+  if (upstreamRef == null) {
+    final candidates = [
+      'upstream-sdk/main',
+      'upstream/main',
+      'official/main',
+      'dart-googlesource/main'
+    ];
+    for (final cand in candidates) {
+      final check = await _runGit(['merge-base', cand, 'HEAD']);
+      if (check != null && check.isNotEmpty) {
+        upstreamRef = cand;
+        break;
+      }
+    }
+    upstreamRef ??= 'official/main';
+  }
+
   // Find the merge base with upstream Ref
   final mergeBase = await _runGit(['merge-base', upstreamRef, 'HEAD']);
   if (mergeBase == null) {
@@ -67,42 +85,65 @@ void main(List<String> args) async {
     return;
   }
 
-  // Retrieve the full name-status delta
-  final diffOutput =
+  // Retrieve both name-status and numstat deltas
+  final diffStatus =
       await _runGit(['diff', '--name-status', mergeBase, 'HEAD']);
-  if (diffOutput == null) {
+  final diffNumstat = await _runGit(['diff', '--numstat', mergeBase, 'HEAD']);
+  if (diffStatus == null || diffNumstat == null) {
     _error('Fatal: Failed to run git diff against $mergeBase.', isJson);
     return;
   }
 
-  final lines = diffOutput.trim().split('\n');
+  // Parse numstat map: path -> (insertions, deletions)
+  final numstatMap = <String, ({int added, int deleted})>{};
+  for (final line in diffNumstat.trim().split('\n')) {
+    if (line.trim().isEmpty) continue;
+    final parts = line.split(RegExp(r'\s+'));
+    if (parts.length >= 3) {
+      final added = int.tryParse(parts[0]) ?? 0;
+      final deleted = int.tryParse(parts[1]) ?? 0;
+      final path = parts.sublist(2).join(' ');
+      numstatMap[path] = (added: added, deleted: deleted);
+    }
+  }
+
+  final lines = diffStatus.trim().split('\n');
   final delta = Delta(mergeBase: mergeBase, head: 'HEAD');
 
   for (final line in lines) {
     if (line.trim().isEmpty) continue;
     final parts = line.split(RegExp(r'\s+'));
     final status = parts[0];
-    final path = parts[1];
+    final path = parts.length > 2 && status.startsWith('R')
+        ? parts[2]
+        : parts.sublist(1).join(' ');
+
+    final stats = numstatMap[path] ?? (added: 0, deleted: 0);
+    final fileEntry = FileStat(path, stats.added, stats.deleted);
 
     if (status.startsWith('D')) {
-      delta.deleted.add(path);
+      if (_isSafeDeleted(path)) {
+        delta.safeDeleted.add(fileEntry);
+      } else {
+        delta.actionableDeleted.add(fileEntry);
+      }
     } else if (status.startsWith('A')) {
       if (_isBazelInfra(path)) {
-        delta.bazelInfra.add(path);
+        delta.bazelInfra.add(fileEntry);
       } else if (_isAgentMeta(path)) {
-        delta.agentMeta.add(path);
+        delta.agentMeta.add(fileEntry);
       } else {
-        delta.addedOther.add(path);
+        delta.addedOther.add(fileEntry);
       }
-    } else if (status.startsWith('M')) {
+    } else if (status.startsWith('M') || status.startsWith('R')) {
       if (_isCppOrGn(path)) {
-        delta.modifiedCppGn.add(path);
+        delta.modifiedCppGn.add(fileEntry);
       } else if (_isDartCode(path)) {
-        delta.modifiedDart.add(path);
+        delta.modifiedDart.add(fileEntry);
       } else if (_isToolScript(path)) {
-        delta.modifiedTools.add(path);
+        delta.modifiedTools.add(fileEntry);
       } else {
-        delta.modifiedOther.add(path);
+        delta.modifiedOther.add(fileEntry);
       }
     }
   }
@@ -118,12 +159,16 @@ void main(List<String> args) async {
         'merge_base': mergeBase,
         'upstream_cl_candidates': {
           'modified': [
-            ...delta.modifiedCppGn,
-            ...delta.modifiedDart,
-            ...delta.modifiedTools,
-            ...delta.modifiedOther
+            ...delta.modifiedCppGn.map((e) => e.toJson()),
+            ...delta.modifiedDart.map((e) => e.toJson()),
+            ...delta.modifiedTools.map((e) => e.toJson()),
+            ...delta.modifiedOther.map((e) => e.toJson())
           ],
-          'deleted': delta.deleted,
+          'deleted': delta.actionableDeleted.map((e) => e.toJson()).toList(),
+          'total_lines': {
+            'added': delta.upstreamModifiedInsertions,
+            'deleted': delta.upstreamModifiedDeletions,
+          }
         }
       }));
     } else {
@@ -139,45 +184,114 @@ void main(List<String> args) async {
   }
 }
 
+class FileStat {
+  final String path;
+  final int added;
+  final int deleted;
+
+  FileStat(this.path, this.added, this.deleted);
+
+  Map<String, dynamic> toJson() => {
+        'path': path,
+        'added': added,
+        'deleted': deleted,
+      };
+
+  @override
+  String toString() =>
+      added == 0 && deleted == 0 ? path : '$path (+${added}, -${deleted})';
+}
+
 class Delta {
   final String mergeBase;
   final String head;
 
-  final List<String> bazelInfra = [];
-  final List<String> agentMeta = [];
-  final List<String> addedOther = [];
-  final List<String> modifiedCppGn = [];
-  final List<String> modifiedDart = [];
-  final List<String> modifiedTools = [];
-  final List<String> modifiedOther = [];
-  final List<String> deleted = [];
+  final List<FileStat> bazelInfra = [];
+  final List<FileStat> agentMeta = [];
+  final List<FileStat> addedOther = [];
+  final List<FileStat> modifiedCppGn = [];
+  final List<FileStat> modifiedDart = [];
+  final List<FileStat> modifiedTools = [];
+  final List<FileStat> modifiedOther = [];
+  final List<FileStat> safeDeleted = [];
+  final List<FileStat> actionableDeleted = [];
 
   Delta({required this.mergeBase, required this.head});
+
+  int get totalAddedFiles =>
+      bazelInfra.length + agentMeta.length + addedOther.length;
+  int get totalModifiedFiles =>
+      modifiedCppGn.length +
+      modifiedDart.length +
+      modifiedTools.length +
+      modifiedOther.length;
+  int get totalDeletedFiles => safeDeleted.length + actionableDeleted.length;
+
+  int _sumAdded(List<FileStat> list) =>
+      list.fold(0, (sum, item) => sum + item.added);
+  int _sumDeleted(List<FileStat> list) =>
+      list.fold(0, (sum, item) => sum + item.deleted);
+
+  int get totalInsertions =>
+      _sumAdded(bazelInfra) +
+      _sumAdded(agentMeta) +
+      _sumAdded(addedOther) +
+      _sumAdded(modifiedCppGn) +
+      _sumAdded(modifiedDart) +
+      _sumAdded(modifiedTools) +
+      _sumAdded(modifiedOther);
+
+  int get totalDeletions =>
+      _sumDeleted(bazelInfra) +
+      _sumDeleted(agentMeta) +
+      _sumDeleted(addedOther) +
+      _sumDeleted(modifiedCppGn) +
+      _sumDeleted(modifiedDart) +
+      _sumDeleted(modifiedTools) +
+      _sumDeleted(modifiedOther) +
+      _sumDeleted(safeDeleted) +
+      _sumDeleted(actionableDeleted);
+
+  int get upstreamModifiedInsertions =>
+      _sumAdded(modifiedCppGn) +
+      _sumAdded(modifiedDart) +
+      _sumAdded(modifiedTools) +
+      _sumAdded(modifiedOther);
+
+  int get upstreamModifiedDeletions =>
+      _sumDeleted(modifiedCppGn) +
+      _sumDeleted(modifiedDart) +
+      _sumDeleted(modifiedTools) +
+      _sumDeleted(modifiedOther) +
+      _sumDeleted(actionableDeleted);
 
   Map<String, dynamic> toJson() => {
         'merge_base': mergeBase,
         'head': head,
         'counts': {
-          'total_added':
-              bazelInfra.length + agentMeta.length + addedOther.length,
-          'total_modified': modifiedCppGn.length +
-              modifiedDart.length +
-              modifiedTools.length +
-              modifiedOther.length,
-          'total_deleted': deleted.length,
+          'total_added_files': totalAddedFiles,
+          'total_modified_files': totalModifiedFiles,
+          'total_deleted_files': totalDeletedFiles,
+          'safe_deleted_files': safeDeleted.length,
+          'actionable_deleted_files': actionableDeleted.length,
+          'total_insertions': totalInsertions,
+          'total_deletions': totalDeletions,
         },
         'added': {
-          'bazel_infra': bazelInfra,
-          'agent_meta': agentMeta,
-          'other': addedOther,
+          'bazel_infra': bazelInfra.map((e) => e.toJson()).toList(),
+          'agent_meta': agentMeta.map((e) => e.toJson()).toList(),
+          'other': addedOther.map((e) => e.toJson()).toList(),
         },
         'modified': {
-          'cpp_gn': modifiedCppGn,
-          'dart': modifiedDart,
-          'tools': modifiedTools,
-          'other': modifiedOther,
+          'cpp_gn': modifiedCppGn.map((e) => e.toJson()).toList(),
+          'dart': modifiedDart.map((e) => e.toJson()).toList(),
+          'tools': modifiedTools.map((e) => e.toJson()).toList(),
+          'other': modifiedOther.map((e) => e.toJson()).toList(),
         },
-        'deleted': deleted,
+        'deleted': {
+          'safe': safeDeleted.map((e) => e.toJson()).toList(),
+          'actionable': actionableDeleted.map((e) => e.toJson()).toList(),
+        },
       };
 }
 
@@ -200,6 +314,10 @@ bool _isAgentMeta(String path) {
       path.startsWith('.claude/') ||
       path.startsWith('docs/bazel-migration/') ||
       path.startsWith('todo_issues/');
+}
+
+bool _isSafeDeleted(String path) {
+  return path.startsWith('.github/');
 }
 
 bool _isCppOrGn(String path) {
@@ -231,9 +349,11 @@ void _printHumanSummary(Delta delta, String upstreamRef) {
       '================================================================================');
   print(' Merge Base : ${delta.mergeBase}');
   print(
-      ' Total Files: ${delta.bazelInfra.length + delta.agentMeta.length + delta.addedOther.length} Added | '
-      '${delta.modifiedCppGn.length + delta.modifiedDart.length + delta.modifiedTools.length + delta.modifiedOther.length} Modified | '
-      '${delta.deleted.length} Deleted');
+      ' Total Files: ${delta.totalAddedFiles} Added (${delta.bazelInfra.length + delta.agentMeta.length} safe infra/meta, ${delta.addedOther.length} other) | '
+      '${delta.totalModifiedFiles} Modified | '
+      '${delta.totalDeletedFiles} Deleted (${delta.safeDeleted.length} safe masked CI, ${delta.actionableDeleted.length} actionable)');
+  print(
+      ' Total Lines: +${delta.totalInsertions} insertions, -${delta.totalDeletions} deletions');
   print(
       '================================================================================');
 
@@ -245,14 +365,20 @@ void _printHumanSummary(Delta delta, String upstreamRef) {
     SectionBag('Other Upstream Files', delta.modifiedOther),
   ]);
 
-  _printSection('DELETED OR MASKED UPSTREAM FILES', [
-    SectionBag('Deleted Files', delta.deleted),
+  _printSection('ACTIONABLE DELETED UPSTREAM FILES (Requires Review)', [
+    SectionBag('Actionable Deleted Files', delta.actionableDeleted),
   ]);
 
-  _printSection('ADDED BAZEL & AGENT INFRASTRUCTURE (Fork-Only Files)', [
+  _printSection(
+      'SAFE DELETED UPSTREAM FILES (By Design - Masked Upstream CI / Workflows)',
+      [
+        SectionBag('Safe Deletes (.github/)', delta.safeDeleted),
+      ]);
+
+  _printSection('ADDED BAZEL & AGENT INFRASTRUCTURE (Safe Fork-Only Files)', [
+    SectionBag('Other Added Files (Requires Review)', delta.addedOther),
     SectionBag('Bazel Build Infrastructure', delta.bazelInfra),
     SectionBag('AI Agent Skills, Backlog & Memory', delta.agentMeta),
-    SectionBag('Other Added Files', delta.addedOther),
   ]);
 
   print(
@@ -265,7 +391,7 @@ void _printHumanSummary(Delta delta, String upstreamRef) {
 
 class SectionBag {
   final String title;
-  final List<String> files;
+  final List<FileStat> files;
   SectionBag(this.title, this.files);
 }
 
@@ -275,7 +401,10 @@ void _printSection(String mainTitle, List<SectionBag> bags) {
   print('\n🔷 $mainTitle');
   for (final bag in bags) {
     if (bag.files.isEmpty) continue;
-    print('\n   🔸 ${bag.title} (${bag.files.length}):');
+    final bagInsertions = bag.files.fold(0, (sum, item) => sum + item.added);
+    final bagDeletions = bag.files.fold(0, (sum, item) => sum + item.deleted);
+    print(
+        '\n   🔸 ${bag.title} (${bag.files.length} files, +$bagInsertions, -$bagDeletions lines):');
     for (final f in bag.files) {
       print('      - $f');
     }
@@ -290,11 +419,12 @@ void _printUpstreamCl(Delta delta, String upstreamRef) {
   print(
       '================================================================================');
   print(' Merge Base : ${delta.mergeBase}');
+  print(' Total Files: ${delta.totalModifiedFiles} Modified | '
+      '${delta.actionableDeleted.length} Actionable Deleted (${delta.safeDeleted.length} safe .github/ deletes filtered out)');
   print(
-      ' Total Files: ${delta.modifiedCppGn.length + delta.modifiedDart.length + delta.modifiedTools.length + delta.modifiedOther.length} Modified | '
-      '${delta.deleted.length} Deleted');
+      ' Total Lines: +${delta.upstreamModifiedInsertions} insertions, -${delta.upstreamModifiedDeletions} deletions across candidate files');
   print(
-      ' (Completely filters out all Bazel build files, AI Agent tracking, and helper additions)');
+      ' (Completely filters out all Bazel build files, AI Agent tracking, and safe .github deletions)');
   print(
       '================================================================================');
 
@@ -305,8 +435,8 @@ void _printUpstreamCl(Delta delta, String upstreamRef) {
     SectionBag('Other Upstream Files', delta.modifiedOther),
   ]);
 
-  _printSection('DELETED OR MASKED UPSTREAM FILES', [
-    SectionBag('Deleted Files', delta.deleted),
+  _printSection('ACTIONABLE DELETED UPSTREAM FILES (Requires Review)', [
+    SectionBag('Actionable Deleted Files', delta.actionableDeleted),
   ]);
   print(
       '================================================================================');
@@ -317,28 +447,31 @@ Future<int?> _printDiff(
   List<String> filesToDiff = [];
   switch (target) {
     case 'bazel-infra':
-      filesToDiff = delta.bazelInfra;
+      filesToDiff = delta.bazelInfra.map((e) => e.path).toList();
       break;
     case 'agent-meta':
-      filesToDiff = delta.agentMeta;
+      filesToDiff = delta.agentMeta.map((e) => e.path).toList();
       break;
     case 'added-other':
-      filesToDiff = delta.addedOther;
+      filesToDiff = delta.addedOther.map((e) => e.path).toList();
       break;
     case 'modified-cpp-gn':
-      filesToDiff = delta.modifiedCppGn;
+      filesToDiff = delta.modifiedCppGn.map((e) => e.path).toList();
       break;
     case 'modified-dart':
-      filesToDiff = delta.modifiedDart;
+      filesToDiff = delta.modifiedDart.map((e) => e.path).toList();
       break;
     case 'modified-tools':
-      filesToDiff = delta.modifiedTools;
+      filesToDiff = delta.modifiedTools.map((e) => e.path).toList();
       break;
     case 'modified-other':
-      filesToDiff = delta.modifiedOther;
+      filesToDiff = delta.modifiedOther.map((e) => e.path).toList();
       break;
     case 'deleted':
-      filesToDiff = delta.deleted;
+      filesToDiff = [
+        ...delta.safeDeleted.map((e) => e.path),
+        ...delta.actionableDeleted.map((e) => e.path)
+      ];
       break;
     default:
       filesToDiff = [target]; // Assume exact file path
