@@ -4,6 +4,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:path/path.dart' as path;
 import 'package:smith/smith.dart';
 
 import 'package:test_runner/src/configuration.dart';
@@ -103,7 +104,7 @@ void testOptions() {
     Expect.isTrue(configurations.first.useSdk);
     Expect.isFalse(configurations.first.build);
     Expect.equals(
-      '${Platform.environment['BAZEL_BIN']}/sdk',
+      path.join(Platform.environment['BAZEL_BIN']!, 'sdk'),
       configurations.first.buildDirectory,
     );
   }

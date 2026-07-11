@@ -217,7 +217,7 @@ if [ -z "$DART" ] || [ ! -x "$DART" ]; then
 fi
 
 if [ -z "${BAZEL_BIN:-}" ]; then
-  BAZEL_BIN=$(bazel "$USER_ROOT_FLAG" info bazel-bin 2>/dev/null || true)
+  BAZEL_BIN=$(bazel ${USER_ROOT_FLAG:+"$USER_ROOT_FLAG"} info bazel-bin 2>/dev/null || true)
   if [ -n "$BAZEL_BIN" ]; then
     export BAZEL_BIN
   fi
