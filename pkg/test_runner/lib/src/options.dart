@@ -159,26 +159,16 @@ class OptionsParser {
     if (options['built-with-bazel'] == true) {
       options['use-sdk'] = true;
       options['build'] = false;
-      try {
-        // Process.runSync has no wall-clock timeout, so guard against the
-        // documented bazel hang modes (.agents/rules/bazel_hang_detection.md)
-        // with bazel's own startup options: --noblock_for_lock fails
-        // immediately when another command holds the server lock instead of
-        // waiting forever, and --local_startup_timeout_secs bounds a wedged
-        // server startup.
-        var result = Process.runSync('bazel', [
-          '--noblock_for_lock',
-          '--local_startup_timeout_secs=120',
-          'info',
-          'bazel-bin',
-        ]);
-        if (result.exitCode != 0) {
-          _fail('Bazel command failed: ${result.stderr.toString().trim()}');
+      if (options['build-directory'] == null) {
+        var bazelBin = Platform.environment['BAZEL_BIN'];
+        if (bazelBin != null && bazelBin.isNotEmpty) {
+          options['build-directory'] = path.join(bazelBin, 'sdk');
+        } else {
+          _fail(
+            'When using --built-with-bazel, either the BAZEL_BIN environment '
+            'variable must be set or --build-directory must be provided.',
+          );
         }
-        var bazelBin = result.stdout.toString().trim();
-        options['build-directory'] = path.join(bazelBin, 'sdk');
-      } on ProcessException catch (e) {
-        _fail('Failed to execute bazel: $e');
       }
     }
 

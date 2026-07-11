@@ -156,6 +156,13 @@ if [ ! -x "$DART" ]; then
   fi
 fi
 
+if [ -z "${BAZEL_BIN:-}" ]; then
+  BAZEL_BIN=$(bazel "${BAZEL_STARTUP_ARGS[@]}" info bazel-bin 2>/dev/null || true)
+  if [ -n "$BAZEL_BIN" ]; then
+    export BAZEL_BIN
+  fi
+fi
+
 step "dart analyze (bazel tooling scripts)"
 if [ -n "$DART" ] && [ -x "$DART" ]; then
   if ! git ls-files 'tools/bazel/**/*.dart' 'tools/bazel/*.dart' 'docs/bazel-migration/*.dart' \

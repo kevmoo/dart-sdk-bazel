@@ -216,6 +216,13 @@ if [ -z "$DART" ] || [ ! -x "$DART" ]; then
   exit 1
 fi
 
+if [ -z "${BAZEL_BIN:-}" ]; then
+  BAZEL_BIN=$(bazel ${USER_ROOT_FLAG:+"$USER_ROOT_FLAG"} --noblock_for_lock --local_startup_timeout_secs=120 info bazel-bin 2>/dev/null || true)
+  if [ -n "$BAZEL_BIN" ]; then
+    export BAZEL_BIN
+  fi
+fi
+
 # 4. Print Resource Bounds Summary
 echo "============================================================"
 echo "🛡️  Resource Bounds & Environment Report"
