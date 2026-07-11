@@ -7,23 +7,19 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import '../cli_utils.dart';
-
 late final String packageName;
 late final String packageDir;
 
 // Direct dependencies: file -> set of local files it imports/exports/parts
 final Map<String, Set<String>> directDeps = {};
 
-void main(List<String> args) => runCli(() => _main(args));
-
-void _main(List<String> args) {
+void main(List<String> args) {
   if (args.isEmpty) {
     print('Usage: dart gen_test_imports.dart <package-dir>');
     exit(1);
   }
 
-  packageDir = toPosixPath(args[0]);
+  packageDir = args[0].replaceAll('\\', '/');
   final dir = Directory(packageDir);
   if (!dir.existsSync()) {
     print('Error: Package directory does not exist: $packageDir');
@@ -54,7 +50,8 @@ void _main(List<String> args) {
   }
 
   // 1. Find all test files
-  final testFiles = findDartFiles(testDir).map((f) => f.path).toList();
+  final testFiles = <String>[];
+  _findDartFiles(testDir, testFiles);
 
   // 2. Build direct dependency graph starting from test files
   for (final testFile in testFiles) {
@@ -75,9 +72,18 @@ void _main(List<String> args) {
   }
 
   // 4. Write JSON output
-  final outputPath = '${dir.path}/test_imports.json';
-  writeJsonFile(outputPath, sortedMapping);
-  print('Wrote ${sortedMapping.length} test mappings to $outputPath');
+  final outputFile = File('${dir.path}/test_imports.json');
+  final jsonString = JsonEncoder.withIndent('  ').convert(sortedMapping);
+  outputFile.writeAsStringSync('$jsonString\n');
+  print('Wrote ${sortedMapping.length} test mappings to ${outputFile.path}');
+}
+
+void _findDartFiles(Directory dir, List<String> results) {
+  for (final entity in dir.listSync(recursive: true)) {
+    if (entity is File && entity.path.endsWith('.dart')) {
+      results.add(entity.path);
+    }
+  }
 }
 
 String _toRelative(String absolutePath) {

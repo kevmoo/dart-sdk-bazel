@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../tools/bazel/cli_utils.dart';
-
 String getHealthBadge(int passed, int total) {
   if (total == 0) return '❄️';
   final pct = (passed / total) * 100.0;
@@ -17,9 +15,7 @@ String getHealthBadge(int passed, int total) {
   return '🟢';
 }
 
-void main(List<String> args) => runCli(() => _main(args));
-
-void _main(List<String> args) {
+void main(List<String> args) {
   final inputPath = args.isNotEmpty
       ? args[0]
       : 'docs/bazel-migration/test_matrix_results.json';

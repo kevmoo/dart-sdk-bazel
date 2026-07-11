@@ -6,8 +6,6 @@
 import 'dart:io';
 import 'package:args/args.dart';
 
-import '../cli_utils.dart';
-
 /// Exports Core Dart SDK changes from a Bazel development branch back to a clean,
 /// upstream-ready branch tracking the main SDK branch.
 ///
@@ -43,9 +41,7 @@ import '../cli_utils.dart';
 /// ```bash
 /// dart tools/bazel/bridge/export.dart [options]
 /// ```
-void main(List<String> args) => runCli(() => _main(args));
-
-void _main(List<String> args) async {
+void main(List<String> args) async {
   final parser = ArgParser()
     ..addOption(
       'base',
@@ -91,7 +87,19 @@ void _main(List<String> args) async {
       negatable: false,
     );
 
-  final results = parseArgsOrExit(parser, args);
+  late final ArgResults results;
+  try {
+    results = parser.parse(args);
+  } catch (e) {
+    print('Error parsing arguments: $e');
+    _printUsage(parser);
+    exit(1);
+  }
+
+  if (results['help'] as bool) {
+    _printUsage(parser);
+    return;
+  }
 
   final base = results['base'] as String;
   final commit = results['commit'] as String?;
@@ -116,7 +124,7 @@ void _main(List<String> args) async {
   }
 
   // 1. Verify Git is clean
-  if (!await isGitClean()) {
+  if (!await _isGitClean()) {
     print(
         '❌ Error: Git working tree is not clean. Please commit or stash your changes before exporting.');
     exit(1);
@@ -240,12 +248,22 @@ void _main(List<String> args) async {
   }
 }
 
+void _printUsage(ArgParser parser) {
+  print('Usage: dart export.dart [options]');
+  print(parser.usage);
+}
+
 void _cleanup(File file) {
   if (file.existsSync()) {
     try {
       file.deleteSync();
     } catch (_) {}
   }
+}
+
+Future<bool> _isGitClean() async {
+  final result = await Process.run('git', ['status', '--porcelain', '-uno']);
+  return result.exitCode == 0 && (result.stdout as String).trim().isEmpty;
 }
 
 Future<String> _getCurrentBranch() async {
