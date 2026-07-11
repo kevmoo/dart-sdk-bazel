@@ -209,8 +209,8 @@ extension DartTypeExtension on DartType? {
   /// Whether this is the Flutter type `BuildContext`.
   bool get isBuildContext {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.nullabilitySuffix == NullabilitySuffix.none &&
+    return self is InterfaceType &&
+        self.nullabilitySuffix == NullabilitySuffix.none &&
         self.element._isExactly(_nameBuildContext, _uriFramework);
   }
 
@@ -243,85 +243,86 @@ extension DartTypeExtension on DartType? {
   /// Whether this is the Flutter type `EdgeInsetsGeometry`.
   bool get isExactEdgeInsetsGeometryType {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
+    return self is InterfaceType &&
+        self.element._isExactly('EdgeInsetsGeometry', _uriEdgeInsets);
   }
 
   /// Whether this is the Flutter class `StatefulWidget`.
   bool get isExactlyStatefulWidgetType {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameStatefulWidget, _uriFramework);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameStatefulWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `StatelessWidget`.
   bool get isExactlyStatelessWidgetType {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameStatelessWidget, _uriFramework);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameStatelessWidget, _uriFramework);
   }
 
   /// Whether this is the Flutter class `Align`.
   bool get isExactWidgetTypeAlign {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameAlign, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameAlign, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Builder`.
   bool get isExactWidgetTypeBuilder {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameBuilder, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameBuilder, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Center`.
   bool get isExactWidgetTypeCenter {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameCenter, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameCenter, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Container`.
   bool get isExactWidgetTypeContainer {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameContainer, _uriContainer);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameContainer, _uriContainer);
   }
 
   /// Whether this is the Flutter class `Expanded`.
   bool get isExactWidgetTypeExpanded {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameExpanded, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameExpanded, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Flexible`.
   bool get isExactWidgetTypeFlexible {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameFlexible, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameFlexible, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Padding`.
   bool get isExactWidgetTypePadding {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_namePadding, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_namePadding, _uriBasic);
   }
 
   /// Whether this is the Flutter class `SizedBox`.
   bool get isExactWidgetTypeSizedBox {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element._isExactly(_nameSizedBox, _uriBasic);
+    return self is InterfaceType &&
+        self.element._isExactly(_nameSizedBox, _uriBasic);
   }
 
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isListOfWidgetsType {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.isDartCoreList && self.typeArguments[0].isWidgetType;
+    return self is InterfaceType &&
+        self.isDartCoreList &&
+        self.typeArguments[0].isWidgetType;
   }
 
   /// Whether this is the vector_math_64 class `Matrix4`, or its
@@ -352,8 +353,7 @@ extension DartTypeExtension on DartType? {
   /// Whether this is the Flutter class `Widget`, or its subtype.
   bool get isWidgetType {
     var self = this;
-    if (self is! InterfaceType) return false;
-    return self.element.isWidget;
+    return self is InterfaceType && self.element.isWidget;
   }
 }
 
