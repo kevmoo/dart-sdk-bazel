@@ -313,73 +313,9 @@ def Build(configs, env, options):
     return 0
 
 
-BAZEL_TARGET_MAPPING = {
-    'create_sdk': ['//sdk:create_sdk'],
-    'dart2wasm': [
-        '//utils/dart2wasm:compile_dart2wasm_platform',
-        '//utils/dart2wasm:dart2wasm_product_snapshot',
-        '//utils/dart2wasm:dart2wasm_asserts_snapshot',
-        '//utils/dart2wasm:dart2wasm_snapshot'
-    ],
-    'dart2wasm_benchmark': [
-        '//utils/dart2wasm:compile_dart2wasm_platform',
-        '//utils/dart2wasm:dart2wasm_product_snapshot'
-    ],
-    'dartvm': ['//runtime/bin:dartvm'],
-    'runtime': ['//runtime/bin:dartvm'],
-    'most': ['//sdk:create_sdk'],
-}
-
-
 def BuildWithBazel(options, targets, env):
-    # Run the pruning script to remove conflicting upstream Bazel files
-    prune_script = os.path.join(
-        os.path.dirname(__file__), 'prune_third_party_bazel_files.py')
-    subprocess.check_call([sys.executable, prune_script])
-
-    bazel_targets = []
-    for t in targets:
-        if t in BAZEL_TARGET_MAPPING:
-            bazel_targets.extend(BAZEL_TARGET_MAPPING[t])
-        elif t.startswith('//') or t.startswith('@'):
-            bazel_targets.append(t)
-        else:
-            print(
-                "Warning: Unknown GN-to-Bazel target mapping for '%s'. Passing it as raw target."
-                % t)
-            bazel_targets.append(t)
-
-    if not bazel_targets:
-        bazel_targets.append('//sdk:create_sdk')
-
-    for target_os in options.os:
-        for mode in options.mode:
-            for arch in options.arch:
-                for sanitizer in options.sanitizer:
-                    bazel_command = [utils.ResolveBazelPath(), 'build']
-
-                    if mode == 'debug':
-                        bazel_command.append('--//build/config:dart_debug=true')
-                    elif mode == 'product':
-                        bazel_command.append(
-                            '--//build/config:dart_product=true')
-
-                    if target_os == 'linux' and arch == 'arm64':
-                        bazel_command.append(
-                            '--platforms=//build/platforms:linux_arm64')
-                    elif arch != utils.GuessArchitecture():
-                        print(
-                            "Warning: Cross-compilation to arch '%s' on OS '%s' is not fully mapped in Bazel yet."
-                            % (arch, target_os))
-
-                    bazel_command.extend(bazel_targets)
-
-                    print('Running: ' + ' '.join(bazel_command))
-                    process = subprocess.Popen(bazel_command, env=env)
-                    process.wait()
-                    if process.returncode != 0:
-                        return process.returncode
-    return 0
+    from bazel import build_wrapper
+    return build_wrapper.BuildWithBazel(options, targets, env)
 
 
 def Main():
