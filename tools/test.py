@@ -336,8 +336,9 @@ def Main():
         if not any(arg == '--build-directory' or arg.startswith('--build-directory=')
                    for arg in args) and 'BAZEL_BIN' not in os.environ:
             try:
+                bazel_path = utils.ResolveBazelPath() or 'bazel'
                 bazel_bin = subprocess.check_output(
-                    [utils.ResolveBazelPath(), 'info', 'bazel-bin'],
+                    [bazel_path, 'info', 'bazel-bin'],
                     text=True).strip()
                 os.environ['BAZEL_BIN'] = bazel_bin
             except Exception as e:
