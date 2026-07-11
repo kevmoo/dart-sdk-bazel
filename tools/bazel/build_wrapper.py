@@ -75,8 +75,7 @@ def BuildWithBazel(options, targets, env):
                     bazel_command.extend(bazel_targets)
 
                     print('Running: ' + ' '.join(bazel_command))
-                    process = subprocess.Popen(bazel_command, env=env)
-                    process.wait()
-                    if process.returncode != 0:
-                        return process.returncode
+                    returncode = subprocess.call(bazel_command, env=env)
+                    if returncode != 0:
+                        return returncode
     return 0
