@@ -11,11 +11,21 @@
       }
     },
     "pkg/analysis_server": {
+      "extra_baseline_deps": [
+        "@//sdk:sdk_library_sources",
+        "@//sdk:version",
+        "@prebuilt_dart_sdk//:bin/dart"
+      ],
       "quarantine_patterns": [
         "test/**"
       ]
     },
     "pkg/analyzer": {
+      "extra_baseline_deps": [
+        "@//sdk:sdk_library_sources",
+        "@//sdk:version",
+        "@prebuilt_dart_sdk//:bin/dart"
+      ],
       "manual_patterns": [
         "tool/**",
         "test/verify_*_test.dart"

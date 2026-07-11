@@ -256,6 +256,8 @@ dynamic_test_repository = repository_rule(
 
 # Bzlmod module extension wrapper to instantiate the test repository
 def _test_ext_impl(ctx):
+    ctx.watch(ctx.path(Label("@//tools/bazel/dart:suite_config.json")))
+    ctx.watch(ctx.path(Label("@//tools/bazel/dart:generate_test_targets.dart")))
     dynamic_test_repository(
         name = "dart_tests",
         max_shards = 50,
@@ -276,4 +278,4 @@ dart_tests_extension = module_extension(implementation = _test_ext_impl)
 # Edits to generate_test_targets.dart auto-invalidate via the Label resolution
 # above. This manual trigger remains ONLY for changes the extension does not
 # watch — e.g. adding/removing test files in the suites: bump it to re-scan.
-# Force refetch trigger: 59
+# Force refetch trigger: 61
