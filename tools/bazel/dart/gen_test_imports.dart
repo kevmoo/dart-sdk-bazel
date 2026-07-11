@@ -53,7 +53,8 @@ void _main(List<String> args) {
   }
 
   // 1. Find all test files
-  final testFiles = findDartFiles(testDir).map((f) => f.path).toList();
+  final testFiles =
+      findDartFiles(testDir).map((f) => toPosixPath(f.path)).toList();
 
   // 2. Build direct dependency graph starting from test files
   for (final testFile in testFiles) {
@@ -75,7 +76,7 @@ void _main(List<String> args) {
 
   // 4. Write JSON output
   final outputPath = '${dir.path}/test_imports.json';
-  writeJsonFile(outputPath, sortedMapping);
+  writeJsonFileSync(outputPath, sortedMapping);
   print('Wrote ${sortedMapping.length} test mappings to $outputPath');
 }
 

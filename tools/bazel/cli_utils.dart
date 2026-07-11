@@ -53,10 +53,22 @@ String toPosixPath(String path) => path.replaceAll('\\', '/');
 String formatJson(Object? data, {String indent = '  '}) =>
     JsonEncoder.withIndent(indent).convert(data);
 
-/// Formats and writes [data] as indented JSON to [path], creating parent directories automatically.
-void writeJsonFile(String path, Object? data, {String indent = '  '}) {
+/// Formats and writes [data] as indented JSON to [path] asynchronously, creating parent directories automatically.
+Future<void> writeJsonFile(String path, Object? data,
+    {String indent = '  '}) async {
   final file = File(path);
-  file.parent.createSync(recursive: true);
+  if (file.parent.path.isNotEmpty) {
+    await file.parent.create(recursive: true);
+  }
+  await file.writeAsString('${formatJson(data, indent: indent)}\n');
+}
+
+/// Formats and writes [data] as indented JSON to [path] synchronously, creating parent directories automatically.
+void writeJsonFileSync(String path, Object? data, {String indent = '  '}) {
+  final file = File(path);
+  if (file.parent.path.isNotEmpty) {
+    file.parent.createSync(recursive: true);
+  }
   file.writeAsStringSync('${formatJson(data, indent: indent)}\n');
 }
 
@@ -75,7 +87,8 @@ List<File> findDartFiles(Directory dir) {
 ArgResults parseArgsOrExit(ArgParser parser, List<String> args) {
   try {
     final results = parser.parse(args);
-    if (results['help'] as bool? ?? false) {
+    if (parser.options.containsKey('help') &&
+        (results['help'] as bool? ?? false)) {
       print(parser.usage);
       exit(0);
     }

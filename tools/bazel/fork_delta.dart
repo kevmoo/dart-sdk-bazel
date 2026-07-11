@@ -490,9 +490,11 @@ Future<int?> _printDiff(
   }
 
   return Process.start('git', ['diff', mergeBase, 'HEAD', '--', ...filesToDiff])
-      .then((process) {
-    stdout.addStream(process.stdout).catchError((_) {});
-    stderr.addStream(process.stderr).catchError((_) {});
+      .then((process) async {
+    await Future.wait([
+      stdout.addStream(process.stdout).catchError((_) {}),
+      stderr.addStream(process.stderr).catchError((_) {}),
+    ]);
     return process.exitCode;
   });
 }

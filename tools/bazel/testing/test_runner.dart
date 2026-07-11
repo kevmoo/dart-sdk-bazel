@@ -777,7 +777,7 @@ void _main(List<String> args) async {
           },
           'config_results': serializableConfigResults,
         };
-        writeJsonFile(outputPath, intermediateOutput);
+        await writeJsonFile(outputPath, intermediateOutput);
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
       } finally {
@@ -834,6 +834,6 @@ void _main(List<String> args) async {
     'config_results': finalConfigResults,
   };
 
-  writeJsonFile(outputPath, outputMap);
+  await writeJsonFile(outputPath, outputMap);
   print('✅ Exported canonical test completion results to: $outputPath');
 }
