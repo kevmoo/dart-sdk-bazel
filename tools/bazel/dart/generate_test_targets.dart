@@ -719,32 +719,34 @@ void main(List<String> args) async {
           }
         }
 
-        if (useIndividualTargets) {
-          String relPathInPkgRoot;
-          if (const {
-            'corelib',
-            'standalone',
-            'ffi',
-            'language',
-            'co19',
-          }.contains(pkgRoot)) {
-            if (relativePath.startsWith('tests/')) {
+        String relPathInPkgRoot;
+        if (const {
+          'corelib',
+          'standalone',
+          'ffi',
+          'language',
+          'co19',
+        }.contains(pkgRoot)) {
+          if (relativePath.startsWith('tests/')) {
+            relPathInPkgRoot = relativePath.substring(
+              'tests/'.length + pkgRoot.length + 1,
+            );
+          } else {
+            final pkgIndex = relativePath.indexOf('$pkgRoot/');
+            if (pkgIndex != -1) {
               relPathInPkgRoot = relativePath.substring(
-                'tests/'.length + pkgRoot.length + 1,
+                pkgIndex + pkgRoot.length + 1,
               );
             } else {
-              final pkgIndex = relativePath.indexOf('$pkgRoot/');
-              if (pkgIndex != -1) {
-                relPathInPkgRoot = relativePath.substring(
-                  pkgIndex + pkgRoot.length + 1,
-                );
-              } else {
-                relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
-              }
+              relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
             }
-          } else {
-            relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
           }
+        } else {
+          relPathInPkgRoot = relativePath.substring(pkgRoot.length + 1);
+        }
+        final normalizedPath = relPathInPkgRoot.replaceAll('\\', '/');
+
+        if (useIndividualTargets) {
           final targetName = '${_toTargetName(relPathInPkgRoot)}_$configName';
 
           if (seenTargets.add(targetName)) {
@@ -756,7 +758,6 @@ void main(List<String> args) async {
               ...resourceDeps,
             };
 
-            final normalizedPath = relPathInPkgRoot.replaceAll('\\', '/');
             for (final gEntry in globalExtraDepsByPattern.entries) {
               if (_matchesPattern(normalizedPath, gEntry.key)) {
                 targetDeps.addAll(gEntry.value);
@@ -970,6 +971,23 @@ $envAttr
           }
           otherDeps.addAll(activeSoDeps);
           otherDeps.addAll(resolvedResources);
+
+          for (final gEntry in globalExtraDepsByPattern.entries) {
+            if (_matchesPattern(normalizedPath, gEntry.key)) {
+              otherDeps.addAll(gEntry.value);
+            }
+          }
+
+          for (final pEntry in extraDepsByPattern.entries) {
+            if (normalizedPkgRoot == pEntry.key ||
+                normalizedPkgRoot.endsWith('/${pEntry.key}')) {
+              for (final patEntry in pEntry.value.entries) {
+                if (_matchesPattern(normalizedPath, patEntry.key)) {
+                  otherDeps.addAll(patEntry.value);
+                }
+              }
+            }
+          }
         }
       }
 
