@@ -84,6 +84,29 @@ void testOptions() {
   Expect.equals(1, configurations.length);
   Expect.equals("dart_precompiled", configurations.first.runtime.name);
   Expect.equals("dartkp", configurations.first.compiler.name);
+
+  // built-with-bazel with explicit build-directory
+  configurations = parseConfigurations([
+    '--built-with-bazel',
+    '--build-directory=/custom/bazel/bin/sdk',
+  ]);
+  Expect.equals(1, configurations.length);
+  Expect.isTrue(configurations.first.useSdk);
+  Expect.isFalse(configurations.first.build);
+  Expect.equals('/custom/bazel/bin/sdk', configurations.first.buildDirectory);
+
+  // built-with-bazel with BAZEL_BIN environment variable
+  if (Platform.environment.containsKey('BAZEL_BIN') &&
+      Platform.environment['BAZEL_BIN']!.isNotEmpty) {
+    configurations = parseConfigurations(['--built-with-bazel']);
+    Expect.equals(1, configurations.length);
+    Expect.isTrue(configurations.first.useSdk);
+    Expect.isFalse(configurations.first.build);
+    Expect.equals(
+      '${Platform.environment['BAZEL_BIN']}/sdk',
+      configurations.first.buildDirectory,
+    );
+  }
 }
 
 void testValidation() {
@@ -107,6 +130,15 @@ void testValidation() {
   expectValidationError([
     '-ninvalid-vm-android-simarm',
   ], 'The named configuration "invalid-vm-android-simarm" is invalid.');
+
+  // built-with-bazel requires either BAZEL_BIN env or --build-directory
+  if (!Platform.environment.containsKey('BAZEL_BIN') ||
+      Platform.environment['BAZEL_BIN']!.isEmpty) {
+    expectValidationError(
+      ['--built-with-bazel'],
+      'When using --built-with-bazel, either the BAZEL_BIN environment variable must be set or --build-directory must be provided.',
+    );
+  }
 }
 
 void testSelectors() {

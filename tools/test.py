@@ -332,6 +332,18 @@ def Main():
         args.remove('--cleanup-dart-processes')
         cleanup_dart = True
 
+    if '--built-with-bazel' in args:
+        if not any(arg == '--build-directory' or arg.startswith('--build-directory=')
+                   for arg in args) and 'BAZEL_BIN' not in os.environ:
+            try:
+                bazel_bin = subprocess.check_output(
+                    [utils.ResolveBazelPath(), 'info', 'bazel-bin'],
+                    text=True).strip()
+                os.environ['BAZEL_BIN'] = bazel_bin
+            except Exception as e:
+                print(f"Warning: Failed to resolve BAZEL_BIN via 'bazel info bazel-bin': {e}",
+                      file=sys.stderr)
+
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     repo_dir = os.path.dirname(tools_dir)
     dart_test_script = os.path.join(repo_dir, 'pkg', 'test_runner', 'bin',
