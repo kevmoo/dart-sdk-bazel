@@ -5,6 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'cli_utils.dart';
+
 const usage = '''
 fork_delta.dart: Trivial delta inspection tool between the long-running Bazel fork and upstream Dart SDK.
 
@@ -30,7 +32,9 @@ Categories:
   - deleted           (Deleted or masked upstream files)
 ''';
 
-void main(List<String> args) async {
+void main(List<String> args) => runCli(() => _main(args));
+
+void _main(List<String> args) async {
   if (args.contains('--help') || args.contains('-h')) {
     print(usage);
     return;
@@ -52,7 +56,7 @@ void main(List<String> args) async {
   }
 
   // Locate the Git database
-  final gitDir = await _runGit(['rev-parse', '--git-dir']);
+  final gitDir = await runGit(['rev-parse', '--git-dir']);
   if (gitDir == null) {
     _error('Fatal: Not inside a valid Git repository.', isJson);
     return;
@@ -67,7 +71,7 @@ void main(List<String> args) async {
       'dart-googlesource/main'
     ];
     for (final cand in candidates) {
-      final check = await _runGit(['merge-base', cand, 'HEAD']);
+      final check = await getGitMergeBase(cand, 'HEAD');
       if (check != null && check.isNotEmpty) {
         upstreamRef = cand;
         break;
@@ -77,7 +81,7 @@ void main(List<String> args) async {
   }
 
   // Find the merge base with upstream Ref
-  final mergeBase = await _runGit(['merge-base', upstreamRef, 'HEAD']);
+  final mergeBase = await getGitMergeBase(upstreamRef, 'HEAD');
   if (mergeBase == null) {
     _error(
         'Fatal: Could not find merge base between $upstreamRef and HEAD. Make sure official remote is fetched.',
@@ -86,9 +90,8 @@ void main(List<String> args) async {
   }
 
   // Retrieve both name-status and numstat deltas
-  final diffStatus =
-      await _runGit(['diff', '--name-status', mergeBase, 'HEAD']);
-  final diffNumstat = await _runGit(['diff', '--numstat', mergeBase, 'HEAD']);
+  final diffStatus = await runGit(['diff', '--name-status', mergeBase, 'HEAD']);
+  final diffNumstat = await runGit(['diff', '--numstat', mergeBase, 'HEAD']);
   if (diffStatus == null || diffNumstat == null) {
     _error('Fatal: Failed to run git diff against $mergeBase.', isJson);
     return;
@@ -199,7 +202,7 @@ class FileStat {
 
   @override
   String toString() =>
-      added == 0 && deleted == 0 ? path : '$path (+${added}, -${deleted})';
+      added == 0 && deleted == 0 ? path : '$path (+$added, -$deleted)';
 }
 
 class Delta {
@@ -487,21 +490,13 @@ Future<int?> _printDiff(
   }
 
   return Process.start('git', ['diff', mergeBase, 'HEAD', '--', ...filesToDiff])
-      .then((process) {
-    stdout.addStream(process.stdout);
-    stderr.addStream(process.stderr);
+      .then((process) async {
+    await Future.wait([
+      stdout.addStream(process.stdout).catchError((_) {}),
+      stderr.addStream(process.stderr).catchError((_) {}),
+    ]);
     return process.exitCode;
   });
-}
-
-Future<String?> _runGit(List<String> args) async {
-  try {
-    final res = await Process.run('git', args);
-    if (res.exitCode == 0) {
-      return res.stdout.toString().trim();
-    }
-  } catch (_) {}
-  return null;
 }
 
 void _error(String msg, bool isJson) {

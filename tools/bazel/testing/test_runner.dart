@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../cli_utils.dart';
+
 /// All coarse and fine-grained suites currently discovered in Starlark.
 const activeStarlarkSuites = {
   'language',
@@ -252,7 +254,9 @@ String normalizeLabel(String label) {
   return l;
 }
 
-void main(List<String> args) async {
+void main(List<String> args) => runCli(() => _main(args));
+
+void _main(List<String> args) async {
   final skipSuites = <String>{};
   final onlySuites = <String>{};
   final skipConfigs = <String>{};
@@ -773,10 +777,7 @@ void main(List<String> args) async {
           },
           'config_results': serializableConfigResults,
         };
-        final intermediateFile = File(outputPath);
-        intermediateFile.parent.createSync(recursive: true);
-        await intermediateFile.writeAsString(
-            JsonEncoder.withIndent('  ').convert(intermediateOutput));
+        await writeJsonFile(outputPath, intermediateOutput);
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
       } finally {
@@ -833,8 +834,6 @@ void main(List<String> args) async {
     'config_results': finalConfigResults,
   };
 
-  final outFile = File(outputPath);
-  outFile.parent.createSync(recursive: true);
-  await outFile.writeAsString(JsonEncoder.withIndent('  ').convert(outputMap));
+  await writeJsonFile(outputPath, outputMap);
   print('✅ Exported canonical test completion results to: $outputPath');
 }
