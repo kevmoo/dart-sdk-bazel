@@ -338,7 +338,13 @@ def Main():
             try:
                 bazel_path = utils.ResolveBazelPath() or 'bazel'
                 bazel_bin = subprocess.check_output(
-                    [bazel_path, 'info', 'bazel-bin'],
+                    [
+                        bazel_path,
+                        '--noblock_for_lock',
+                        '--local_startup_timeout_secs=120',
+                        'info',
+                        'bazel-bin',
+                    ],
                     text=True).strip()
                 os.environ['BAZEL_BIN'] = bazel_bin
             except Exception as e:
