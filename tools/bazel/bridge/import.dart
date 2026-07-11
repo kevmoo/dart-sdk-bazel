@@ -6,6 +6,8 @@
 import 'dart:io';
 import 'package:args/args.dart';
 
+import '../cli_utils.dart';
+
 /// Imports an upstream Gerrit CL or GitHub PR into the local Bazel workspace.
 ///
 /// This script automates the developer workflow for testing upstream changes
@@ -27,7 +29,9 @@ import 'package:args/args.dart';
 /// ```bash
 /// dart tools/bazel/bridge/import.dart <cl-number-or-pr-url> [options]
 /// ```
-void main(List<String> args) async {
+void main(List<String> args) => runCli(() => _main(args));
+
+void _main(List<String> args) async {
   final parser = ArgParser()
     ..addOption(
       'base',
@@ -44,19 +48,7 @@ void main(List<String> args) async {
     ..addFlag('verbose', abbr: 'v', help: 'Verbose output.', defaultsTo: false)
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Show this help.');
 
-  final ArgResults results;
-  try {
-    results = parser.parse(args);
-  } catch (e) {
-    stderr.writeln('Error: $e');
-    printUsage(parser);
-    exit(1);
-  }
-
-  if (results['help'] as bool) {
-    printUsage(parser);
-    exit(0);
-  }
+  final results = parseArgsOrExit(parser, args);
 
   if (results.rest.isEmpty) {
     stderr
@@ -137,13 +129,11 @@ void main(List<String> args) async {
 
   // 6. Apply the change (cherry-pick range from merge-base to FETCH_HEAD)
   print('Applying change...');
-  final mergeBaseResult =
-      await Process.run('git', ['merge-base', baseBranch, 'FETCH_HEAD']);
-  if (mergeBaseResult.exitCode != 0) {
+  final mergeBase = await getGitMergeBase(baseBranch, 'FETCH_HEAD');
+  if (mergeBase == null) {
     stderr.writeln('Error: Failed to find merge base.');
     exit(1);
   }
-  final mergeBase = (mergeBaseResult.stdout as String).trim();
 
   final countResult = await Process.run(
       'git', ['rev-list', '--count', '$mergeBase..FETCH_HEAD']);
@@ -275,11 +265,6 @@ ChangeInfo parseChangeIdentifier(String identifier, String? explicitPatchset) {
   }
 
   throw FormatException('Invalid change identifier: $identifier');
-}
-
-Future<bool> isGitClean() async {
-  final result = await Process.run('git', ['status', '--porcelain', '-uno']);
-  return result.exitCode == 0 && (result.stdout as String).trim().isEmpty;
 }
 
 Future<String?> resolveLatestGerritPatchset(String clId) async {
