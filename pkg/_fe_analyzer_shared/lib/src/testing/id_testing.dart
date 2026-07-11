@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:testing/src/runfiles.dart' as runfiles;
+import 'package:testing/testing.dart' as testing;
 import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
@@ -1231,4 +1231,4 @@ Future<void> updateAllTests(List<String> relativeTestPaths) async {
 
 /// Encapsulates dual-mode test resource resolution.
 Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) =>
-    runfiles.resolveTestResource(runfilesPath, baseUri: baseUri);
+    testing.resolveTestResource(runfilesPath, baseUri: baseUri);
