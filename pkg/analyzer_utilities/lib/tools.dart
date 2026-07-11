@@ -266,17 +266,52 @@ class CodeGeneratorSettings {
 
 /// A utility class for invoking 'dart format'.
 class DartFormat {
-  static final String _dartPath = Platform.environment['TEST_SRCDIR'] != null
-      ? Platform.resolvedExecutable
-      : join(
-          packageRoot,
-          '..',
-          'tools',
-          'sdks',
-          'dart-sdk',
+  static final String _dartPath = _findDartExecutable();
+
+  static String _findDartExecutable() {
+    if (Platform.environment['TEST_SRCDIR'] != null) {
+      if (basenameWithoutExtension(Platform.resolvedExecutable) == 'dart') {
+        return Platform.resolvedExecutable;
+      }
+      var runFiles = Platform.environment['TEST_SRCDIR']!;
+      for (var candidate in [
+        join(
+          runFiles,
+          'prebuilt_dart_sdk',
           'bin',
           Platform.isWindows ? 'dart.exe' : 'dart',
-        );
+        ),
+        join(
+          runFiles,
+          '_main',
+          'external',
+          'prebuilt_dart_sdk',
+          'bin',
+          Platform.isWindows ? 'dart.exe' : 'dart',
+        ),
+        join(
+          runFiles,
+          '+third_party_extension+prebuilt_dart_sdk',
+          'bin',
+          Platform.isWindows ? 'dart.exe' : 'dart',
+        ),
+      ]) {
+        if (File(candidate).existsSync()) {
+          return candidate;
+        }
+      }
+      return Platform.resolvedExecutable;
+    }
+    return join(
+      packageRoot,
+      '..',
+      'tools',
+      'sdks',
+      'dart-sdk',
+      'bin',
+      Platform.isWindows ? 'dart.exe' : 'dart',
+    );
+  }
 
   static void formatFile(File file) {
     var result = Process.runSync(_dartPath, ['format', file.path]);

@@ -580,7 +580,9 @@ void main(List<String> args) async {
       }
 
       for (final bEntry in extraBaselineDeps.entries) {
-        if (normalizedPkgDir == bEntry.key ||
+        if (normalizedPkgRoot == bEntry.key ||
+            normalizedPkgDir == bEntry.key ||
+            normalizedPkgDir.startsWith('${bEntry.key}/') ||
             normalizedPkgDir.endsWith('/${bEntry.key}')) {
           baselineDeps.addAll(bEntry.value);
         }
