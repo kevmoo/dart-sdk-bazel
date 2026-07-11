@@ -58,6 +58,11 @@
       ],
       "timeouts_by_pattern": {
         "**": "long"
+      },
+      "extra_deps_by_pattern": {
+        "test/id_tests/**": [
+          "@dart_packages//pkg/_fe_analyzer_shared:sdk_package_sources"
+        ]
       }
     },
     "pkg/test_api": {
