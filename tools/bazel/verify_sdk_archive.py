@@ -57,18 +57,25 @@ def verify_archive(archive_path):
         print(f"Error: Failed to read archive {archive_path}: {e}", file=sys.stderr)
         return False
 
+    # Normalize all paths once to forward slashes and strip leading './'
+    # to avoid redundant normalization and handle tar archives robustly.
+    normalized_paths = []
+    for path in file_list:
+        clean = path.replace("\\", "/")
+        if clean.startswith("./"):
+            clean = clean[2:]
+        normalized_paths.append((clean, path))
+
     # 1. Verify all paths have the 'dart-sdk/' prefix
     invalid_prefixes = []
-    for path in file_list:
+    for clean_path, original_path in normalized_paths:
         # Ignore empty directory entries or root-level directory entries if any
-        if not path or path == "." or path == "./":
+        if not clean_path or clean_path == "." or clean_path == "/":
             continue
-        # Normalize to forward slashes for platform-independent verification
-        clean_path = path.replace("\\", "/")
         if clean_path == "dart-sdk" or clean_path == "dart-sdk/":
             continue
         if not clean_path.startswith("dart-sdk/"):
-            invalid_prefixes.append(path)
+            invalid_prefixes.append(original_path)
 
     if invalid_prefixes:
         print("Error: Found files outside the 'dart-sdk/' root directory:")
@@ -80,12 +87,11 @@ def verify_archive(archive_path):
 
     # 2. Check for required paths
     missing_paths = []
-    # Normalize archive paths to use forward slashes for platform-independent comparison
-    normalized_file_list = {p.replace("\\", "/") for p in file_list}
+    normalized_set = {clean_path for clean_path, _ in normalized_paths}
     for required in REQUIRED_PATHS:
-        if required not in normalized_file_list:
+        if required not in normalized_set:
             # On some platforms (like Windows), executable might have .exe
-            if required == "dart-sdk/bin/dart" and "dart-sdk/bin/dart.exe" in normalized_file_list:
+            if required == "dart-sdk/bin/dart" and "dart-sdk/bin/dart.exe" in normalized_set:
                 continue
             missing_paths.append(required)
 
