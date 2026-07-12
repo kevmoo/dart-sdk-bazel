@@ -1369,9 +1369,13 @@ class BinaryPrinter
     writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= _newVariableIndexer();
+
+    // Account for `ThisVariable`.
+    int thisVariableCount = node.function.thisVariable == null ? 0 : 1;
     _variableIndexer!.restoreScope(
       node.function.positionalParameters.length +
-          node.function.namedParameters.length,
+          node.function.namedParameters.length +
+          thisVariableCount,
     );
     _variableContextIndexer.restoreScope(node.function.scope);
     writeNodeList(node.initializers);
@@ -2555,6 +2559,16 @@ class BinaryPrinter
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    writeVariable(node);
+  }
+
+  @override
   void visitNamedParameter(NamedParameter node) {
     writeVariable(node);
   }
@@ -2601,8 +2615,12 @@ class BinaryPrinter
     switch (node) {
       case LocalVariable():
         writeByte(Tag.LocalVariable);
+      case LocalFunctionVariable():
+        writeByte(Tag.LocalFunctionVariable);
       case LateVariable():
         writeByte(Tag.LateVariable);
+      case ConstVariable():
+        writeByte(Tag.ConstVariable);
       case CatchVariable():
         writeByte(Tag.CatchVariable);
       case ThisVariable():

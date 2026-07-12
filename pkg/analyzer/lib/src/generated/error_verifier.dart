@@ -7965,7 +7965,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var defaultValuesAreExpected = () {
       var parent = node.parent;
       if (parent is ConstructorDeclaration) {
-        if (parent.externalKeyword != null) {
+        if (parent.augmentKeyword != null) {
+          return false;
+        } else if (parent.externalKeyword != null) {
           return false;
         } else if (parent.factoryKeyword != null &&
             parent.redirectedConstructor != null) {
@@ -7974,14 +7976,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return true;
       } else if (parent is FunctionExpression) {
         var parent2 = parent.parent;
-        if (parent2 is FunctionDeclaration && parent2.externalKeyword != null) {
-          return false;
-        } else if (parent.body is NativeFunctionBody) {
+        if (parent2 is FunctionDeclaration) {
+          if (parent2.augmentKeyword != null) {
+            return false;
+          } else if (parent2.externalKeyword != null) {
+            return false;
+          }
+        }
+        if (parent.body is NativeFunctionBody) {
           return false;
         }
         return true;
       } else if (parent is MethodDeclaration) {
-        if (!parent.isComplete) {
+        if (parent.augmentKeyword != null) {
+          return false;
+        } else if (parent.declaredFragment!.element.isAbstract) {
           return false;
         } else if (parent.externalKeyword != null) {
           return false;
@@ -8153,7 +8162,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// `package:ui`.
   bool _isWasm(LibraryImport importElement) {
     var importedUri = importElement.importedLibrary?.uri.toString();
-    if (importedUri != 'dart:_wasm') {
+    if (importedUri != 'dart:_wasm' && importedUri != 'dart:_js_interop_wasm') {
       return false;
     }
     var importingUri = _currentLibrary.uri.toString();

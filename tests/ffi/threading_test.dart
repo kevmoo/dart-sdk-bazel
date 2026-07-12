@@ -37,6 +37,8 @@ void testRunSyncOnCurrentIsolate() {
   );
 }
 
+noop() {}
+
 Future<void> testFailRunSyncOnAnotherIsolate() async {
   final rpChild = ReceivePort();
   final rpChildExit = ReceivePort();
@@ -52,7 +54,7 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   );
   SendPort rpChildRequestExit = await rpChild.first;
   Expect.throws(
-    () => child.runSync(() {}),
+    () => child.runSync(noop),
     (e) => e is StateError && e.message.contains("Isolate has a message loop"),
   );
   rpChildRequestExit.send(true);
@@ -61,19 +63,23 @@ Future<void> testFailRunSyncOnAnotherIsolate() async {
   rpChild.close();
 }
 
+newRawReceivePort() {
+  return RawReceivePort()..keepIsolateAlive = false;
+}
+
+newRawReceivePortSendPort() {
+  final rp = RawReceivePort()..keepIsolateAlive = false;
+  return rp.sendPort;
+}
+
 void testRunSyncChecks() {
   final isolate = Isolate.current;
   // Only deeply immutable values can be returned from runSync closure.
   Expect.throwsArgumentError(() {
-    isolate.runSync(() => RawReceivePort()..keepIsolateAlive = false);
+    isolate.runSync(newRawReceivePort);
   });
   // SendPort can be returned from runSync closure.
-  Expect.isNotNull(
-    isolate.runSync(() {
-      final rrp = RawReceivePort()..keepIsolateAlive = false;
-      return rrp.sendPort;
-    }),
-  );
+  Expect.isNotNull(isolate.runSync(newRawReceivePortSendPort));
 
   // Only deeply immutable values can be captured by runSync closure.
   {
@@ -100,9 +106,7 @@ Future<void> testFailToRunOnExitedIsolate() async {
   );
   final spChildListening = await rp.first;
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
+    () => child.runSync(noop),
     (e) =>
         e is StateError &&
         e.message.contains("Isolate has a message loop running"),
@@ -111,9 +115,7 @@ Future<void> testFailToRunOnExitedIsolate() async {
   await rpChildExit.first;
   rpChildExit.close();
   Expect.throws(
-    () => child.runSync(() {
-      print('child runSync is running');
-    }),
+    () => child.runSync(noop),
     (e) =>
         e is StateError &&
         (e.message.contains("Unable to enter the isolate") ||
@@ -167,7 +169,7 @@ Future<void> testRunSyncOnPinnedToSelfIsolate() async {
     ),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 @pragma('vm:shared')
@@ -259,7 +261,7 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 @pragma('vm:shared')
@@ -329,7 +331,7 @@ Future<void> testFailRunSyncWithTimeout() async {
   await completer.future;
   rp.close();
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 }
 
 Future<void> testFailRunSyncDifferentIsolateGroup() async {
@@ -356,6 +358,41 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
   final spChildControl = (await rpFromChild.first) as SendPort;
   spChildControl.send('please, exit');
   await rpChildIsDone.first;
+}
+
+int threadMainCreatesTimer(Pointer<Void> data) {
+  final new_isolate = Isolate.create(debugName: "helperMainCreatesTimer");
+  new_isolate.runSync(() {
+    print(Future.delayed(Duration(seconds: 1)));
+  });
+  new_isolate.shutdownSync();
+  return 0;
+}
+
+Future<void> testCreateTimer() async {
+  if (Platform.isWindows) {
+    return; // pthread is not available on Windows.
+  }
+
+  final callback =
+      NativeCallable<IntPtr Function(Pointer<Void>)>.isolateGroupBound(
+        threadMainCreatesTimer,
+        exceptionalReturn: -1,
+      );
+
+  final threadInfo = ThreadInfo();
+  Expect.equals(0, pthreadAttrInit(threadInfo.ptr_attr));
+  Expect.equals(
+    0,
+    pthreadCreate(
+      threadInfo.ptr_tid,
+      threadInfo.ptr_attr,
+      callback.nativeFunction,
+      threadInfo.ptr_data.cast<Void>(),
+    ),
+  );
+
+  threadInfo.joinAndDestroy();
 }
 
 main(List<String> args, SendPort? toParent) async {
@@ -389,6 +426,8 @@ main(List<String> args, SendPort? toParent) async {
   await testFailRunSyncOnPinnedIsolate();
   await testFailRunSyncWithTimeout();
   await testFailRunSyncDifferentIsolateGroup();
+
+  await testCreateTimer();
 
   asyncEnd();
 }

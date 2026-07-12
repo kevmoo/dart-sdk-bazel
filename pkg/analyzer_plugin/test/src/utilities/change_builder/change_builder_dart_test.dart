@@ -177,6 +177,26 @@ class A {}
     await _assertwriteType2('(int, int)');
   }
 
+  Future<void> test_writeType_recordType_singlePositional() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+var r = (42,);
+''';
+    addSource(path, content);
+    var unitResult = await resolveFile(path);
+    var a = unitResult.libraryElement.getGetter('r')!;
+    var type = a.returnType;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeType(type);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('(int,)'));
+  }
+
   Future<void> test_writeType_recursive() async {
     // We were getting a stack overflow here.
     // See https://github.com/dart-lang/sdk/issues/62272
@@ -470,6 +490,54 @@ void f() {
     });
     var edits = getEdits(builder);
     expect(edits.first.replacement, equalsIgnoringWhitespace('var f;'));
+  }
+
+  Future<void> test_insertField_enum_multiLine_noTrailingComma() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+enum E {
+  ONE
+}''';
+    addSource(path, content);
+
+    var resolvedUnit = await resolveFile(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var enumNode = findNode.enumDeclaration('enum E');
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.insertField(enumNode, (builder) {
+        builder.writeFieldDeclaration('f');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits.first.length, 0);
+    expect(edits.first.replacement, equalsIgnoringWhitespace('; var f;'));
+  }
+
+  Future<void> test_insertField_enum_multiLine_trailingComma() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+enum E {
+  ONE,
+}''';
+    addSource(path, content);
+
+    var resolvedUnit = await resolveFile(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var enumNode = findNode.enumDeclaration('enum E');
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.insertField(enumNode, (builder) {
+        builder.writeFieldDeclaration('f');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits.first.length, 1);
+    expect(edits.first.replacement, equalsIgnoringWhitespace('; var f;'));
   }
 
   Future<void> test_writeClassDeclaration_interfaces() async {
