@@ -6,6 +6,7 @@ module(
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_pkg", version = "1.0.1")
 
 # Provides bool_flag (//build/config:dart_debug) for the M4 debug<->release
 # select() axis. Already in the resolved graph transitively (selected 1.8.2);
