@@ -2944,6 +2944,9 @@
   "lib/src/services/correction/dart/replace_with_part_of_uri.dart": [
     "lib/src/services/correction/fix.dart"
   ],
+  "lib/src/services/correction/dart/replace_with_syncvalue.dart": [
+    "lib/src/services/correction/fix.dart"
+  ],
   "lib/src/services/correction/dart/replace_with_tear_off.dart": [
     "lib/src/services/correction/fix.dart"
   ],
@@ -3380,6 +3383,7 @@
     "lib/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart",
     "lib/src/services/correction/dart/replace_with_null_aware.dart",
     "lib/src/services/correction/dart/replace_with_part_of_uri.dart",
+    "lib/src/services/correction/dart/replace_with_syncvalue.dart",
     "lib/src/services/correction/dart/replace_with_tear_off.dart",
     "lib/src/services/correction/dart/replace_with_unicode_escape.dart",
     "lib/src/services/correction/dart/replace_with_var.dart",
@@ -6296,6 +6300,9 @@
   "test/src/lsp/test_all.dart": [
     "test/src/lsp/lsp_packet_transformer_test.dart"
   ],
+  "test/src/plugin/dsatur_test.dart": [
+    "lib/src/plugin/dsatur.dart"
+  ],
   "test/src/plugin/notification_manager_test.dart": [
     "lib/protocol/protocol.dart",
     "lib/protocol/protocol_generated.dart",
@@ -6349,6 +6356,7 @@
     "lib/src/plugin/result_merger.dart"
   ],
   "test/src/plugin/test_all.dart": [
+    "test/src/plugin/dsatur_test.dart",
     "test/src/plugin/notification_manager_test.dart",
     "test/src/plugin/plugin_isolate_test.dart",
     "test/src/plugin/plugin_locator_test.dart",
@@ -8259,6 +8267,10 @@
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
   ],
+  "test/src/services/correction/fix/replace_with_syncvalue_test.dart": [
+    "lib/src/services/correction/fix.dart",
+    "test/src/services/correction/fix/fix_processor.dart"
+  ],
   "test/src/services/correction/fix/replace_with_tear_off_test.dart": [
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
@@ -8566,6 +8578,7 @@
     "test/src/services/correction/fix/replace_with_not_null_aware_test.dart",
     "test/src/services/correction/fix/replace_with_null_aware_test.dart",
     "test/src/services/correction/fix/replace_with_part_of_uri_test.dart",
+    "test/src/services/correction/fix/replace_with_syncvalue_test.dart",
     "test/src/services/correction/fix/replace_with_tear_off_test.dart",
     "test/src/services/correction/fix/replace_with_unicode_escape_test.dart",
     "test/src/services/correction/fix/replace_with_var_test.dart",
