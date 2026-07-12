@@ -34,23 +34,27 @@ def list_tar_files(archive_path):
 
 def verify_archive(archive_path):
     print(f"Auditing archive: {archive_path}")
-    if not os.path.exists(archive_path):
-        print(f"Error: File not found at {archive_path}", file=sys.stderr)
+    if not os.path.isfile(archive_path):
+        print(f"Error: File not found or is not a file at {archive_path}", file=sys.stderr)
         return False
 
-    if archive_path.endswith(".zip"):
-        file_list = list_zip_files(archive_path)
-    elif (
-        archive_path.endswith(".tar.xz")
-        or archive_path.endswith(".tar.gz")
-        or archive_path.endswith(".tar")
-    ):
-        file_list = list_tar_files(archive_path)
-    else:
-        print(
-            f"Error: Unknown archive format for {archive_path}",
-            file=sys.stderr,
-        )
+    try:
+        if archive_path.endswith(".zip"):
+            file_list = list_zip_files(archive_path)
+        elif (
+            archive_path.endswith(".tar.xz")
+            or archive_path.endswith(".tar.gz")
+            or archive_path.endswith(".tar")
+        ):
+            file_list = list_tar_files(archive_path)
+        else:
+            print(
+                f"Error: Unknown archive format for {archive_path}",
+                file=sys.stderr,
+            )
+            return False
+    except (zipfile.BadZipFile, tarfile.TarError, OSError) as e:
+        print(f"Error: Failed to read archive {archive_path}: {e}", file=sys.stderr)
         return False
 
     # 1. Verify all paths have the 'dart-sdk/' prefix
@@ -59,11 +63,11 @@ def verify_archive(archive_path):
         # Ignore empty directory entries or root-level directory entries if any
         if not path or path == "." or path == "./":
             continue
-        # Normalize path
-        normalized = os.path.normpath(path)
-        if normalized == "dart-sdk":
+        # Normalize to forward slashes for platform-independent verification
+        clean_path = path.replace("\\", "/")
+        if clean_path == "dart-sdk" or clean_path == "dart-sdk/":
             continue
-        if not normalized.startswith("dart-sdk" + os.sep) and not normalized.startswith("dart-sdk/"):
+        if not clean_path.startswith("dart-sdk/"):
             invalid_prefixes.append(path)
 
     if invalid_prefixes:
@@ -76,15 +80,13 @@ def verify_archive(archive_path):
 
     # 2. Check for required paths
     missing_paths = []
-    # Normalize our required paths for comparison
-    normalized_file_list = {os.path.normpath(p) for p in file_list}
+    # Normalize archive paths to use forward slashes for platform-independent comparison
+    normalized_file_list = {p.replace("\\", "/") for p in file_list}
     for required in REQUIRED_PATHS:
-        req_norm = os.path.normpath(required)
-        if req_norm not in normalized_file_list:
+        if required not in normalized_file_list:
             # On some platforms (like Windows), executable might have .exe
-            if required == "dart-sdk/bin/dart":
-                if os.path.normpath("dart-sdk/bin/dart.exe") in normalized_file_list:
-                    continue
+            if required == "dart-sdk/bin/dart" and "dart-sdk/bin/dart.exe" in normalized_file_list:
+                continue
             missing_paths.append(required)
 
     if missing_paths:

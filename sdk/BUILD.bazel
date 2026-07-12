@@ -4,10 +4,10 @@
 
 load("@bazel_skylib//rules:copy_directory.bzl", "copy_directory")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("//tools/bazel/dart:defs.bzl", "build_devtools_rule", "copy_internal_with_dills", "copy_sdk_library", "copy_tree")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
-load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
+load("//tools/bazel/dart:defs.bzl", "build_devtools_rule", "copy_internal_with_dills", "copy_sdk_library", "copy_tree")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -907,8 +907,8 @@ filegroup(
 filegroup(
     name = "create_sdk_layout",
     srcs = [
-        "//sdk:create_common_sdk",
         ":create_full_sdk_layout",
+        "//sdk:create_common_sdk",
     ],
 )
 
@@ -960,21 +960,21 @@ pkg_files(
 pkg_zip(
     name = "archive_sdk_zip",
     srcs = [":sdk_files"],
-    out = "dartsdk-linux-x64.zip",
+    out = "dartsdk.zip",
 )
 
 pkg_tar(
     name = "archive_sdk_tar",
     srcs = [":sdk_files"],
+    out = "dartsdk.tar.xz",
     extension = "tar.xz",
-    out = "dartsdk-linux-x64.tar.xz",
 )
 
 filegroup(
     name = "sdk_symbols",
     srcs = [
-        "//sdk:copy_dart_sym",
         "//sdk:copy_dart_aotruntime_sym",
+        "//sdk:copy_dart_sym",
         "//sdk:copy_dartvm_sym",
         "//sdk:copy_gen_snapshot_sym",
     ],
