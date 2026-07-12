@@ -39,12 +39,13 @@ def verify_archive(archive_path):
         return False
 
     try:
-        if archive_path.endswith(".zip"):
+        archive_path_lower = archive_path.lower()
+        if archive_path_lower.endswith(".zip"):
             file_list = list_zip_files(archive_path)
         elif (
-            archive_path.endswith(".tar.xz")
-            or archive_path.endswith(".tar.gz")
-            or archive_path.endswith(".tar")
+            archive_path_lower.endswith(".tar.xz")
+            or archive_path_lower.endswith(".tar.gz")
+            or archive_path_lower.endswith(".tar")
         ):
             file_list = list_tar_files(archive_path)
         else:
@@ -64,6 +65,9 @@ def verify_archive(archive_path):
         clean = path.replace("\\", "/")
         if clean.startswith("./"):
             clean = clean[2:]
+        if ".." in clean.split("/"):
+            print(f"Error: Path traversal sequence detected in path: {path}", file=sys.stderr)
+            return False
         normalized_paths.append((clean, path))
 
     # 1. Verify all paths have the 'dart-sdk/' prefix
