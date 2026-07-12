@@ -2327,7 +2327,8 @@
     "lib/src/error/getter_setter_types_verifier.dart",
     "lib/src/error/inference_error.dart",
     "lib/src/error/listener.dart",
-    "lib/src/summary2/types_builder.dart"
+    "lib/src/summary2/types_builder.dart",
+    "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/error/language_version_override_verifier.dart": [
     "lib/dart/ast/ast.dart",

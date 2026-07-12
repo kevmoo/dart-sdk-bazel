@@ -2251,6 +2251,7 @@ class BinaryBuilder {
           ..thisVariable = thisVariable
           ..scope = scope
           ..capturedContexts = capturedContexts;
+    thisVariable?.parent = result;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(
@@ -2323,6 +2324,10 @@ class BinaryBuilder {
 
   DeclaredVariable readDeclaredVariableReference() {
     return readVariableReference() as DeclaredVariable;
+  }
+
+  LocalFunctionVariable readLocalFunctionVariableReference() {
+    return readVariableReference() as LocalFunctionVariable;
   }
 
   Variable readVariableReference() {
@@ -2849,7 +2854,7 @@ class BinaryBuilder {
 
   Expression _readLocalFunctionInvocation() {
     int offset = readOffset();
-    Variable variable = readVariableReference();
+    LocalFunctionVariable variable = readLocalFunctionVariableReference();
     return new LocalFunctionInvocation(
       variable,
       readArguments(),
@@ -4051,7 +4056,7 @@ class BinaryBuilder {
 
   Statement _readFunctionDeclaration() {
     int offset = readOffset();
-    Variable variable = readVariable();
+    LocalFunctionVariable variable = readLocalFunctionVariable();
     variableStack.add(variable); // Will be popped by the enclosing scope.
     final LocalFunctionId id = LocalFunctionId(readUInt30());
     return new FunctionDeclaration(variable, readFunctionNode().functionNode)
@@ -4641,6 +4646,10 @@ class BinaryBuilder {
     return readVariable() as NamedParameter;
   }
 
+  LocalFunctionVariable readLocalFunctionVariable() {
+    return readVariable() as LocalFunctionVariable;
+  }
+
   Variable readVariable() {
     int tag = readByte();
     int offset = readOffset();
@@ -4662,10 +4671,24 @@ class BinaryBuilder {
               ..fileEqualsOffset = fileEqualsOffset;
       case Tag.LateVariable:
         node =
-            new LateVariable(name: name!, type: type, initializer: initializer)
+            new LateVariable(name: name!, type: type, initialValue: initializer)
               ..flags = flags
               ..fileOffset = offset
               ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.LocalFunctionVariable:
+        assert(
+          initializer == null,
+          "Unexpected initializer on LocalFunctionVariable",
+        );
+        node = new LocalFunctionVariable(name: name!, type: type)
+          ..flags = flags
+          ..fileOffset = offset
+          ..fileEqualsOffset = fileEqualsOffset;
+      case Tag.ConstVariable:
+        node = new ConstVariable(name: name!, type: type, value: initializer)
+          ..flags = flags
+          ..fileOffset = offset
+          ..fileEqualsOffset = fileEqualsOffset;
       case Tag.SyntheticVariable:
         node =
             new SyntheticVariable(

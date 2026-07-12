@@ -1657,6 +1657,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           seenTypes: seenTypes,
         );
       }
+      if (type.positionalFields.length == 1 && type.namedFields.isEmpty) {
+        write(',');
+      }
       var namedFields = type.namedFields;
       if (namedFields.isNotEmpty) {
         if (isFirst) {
@@ -2365,7 +2368,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         write,
       );
     } else {
-      addInsertion(offset, insertBeforeExisting: false, write);
+      var trailingComma = preparer._trailingComma;
+      if (trailingComma != null) {
+        addReplacement(range.token(trailingComma), write);
+      } else {
+        addInsertion(offset, insertBeforeExisting: false, write);
+      }
     }
   }
 
@@ -3221,6 +3229,8 @@ class _InsertionPreparer {
 
   late final bool _foundTargetMember;
 
+  Token? _trailingComma;
+
   factory _InsertionPreparer(
     CompilationUnitMember declaration,
     LineInfo lineInfo,
@@ -3284,7 +3294,11 @@ class _InsertionPreparer {
       if (semicolon != null) {
         return semicolon.end;
       } else if (hasConstants) {
-        return lastConstant!.end;
+        var next = lastConstant!.endToken.next;
+        if (next != null && next.type == TokenType.COMMA) {
+          _trailingComma = next;
+        }
+        return lastConstant.end;
       } else if (token != null) {
         return token.offset;
       }
