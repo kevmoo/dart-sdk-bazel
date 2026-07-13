@@ -75,6 +75,7 @@ Flags:
   --heartbeat=<path>        Heartbeat status file (default: docs/bazel-migration/PATROL_HEARTBEAT.json)
   --bazel-arg=<arg>         Extra argument to pass to bazel test (can be repeated)
   --watchdog-interval=<s>   Recommended watchdog timer in seconds (default: 300)
+  --include-manual          Include manual and quarantined targets in the run
   -h, --help                Show this help
 ''');
 }
@@ -274,6 +275,7 @@ void _main(List<String> args) async {
   var bySuite = false;
   var dryRun = false;
   var watchdogInterval = 300;
+  var includeManual = false;
 
   for (final arg in args) {
     if (arg == '-h' || arg == '--help') {
@@ -318,14 +320,19 @@ void _main(List<String> args) async {
       bazelStartupArgs.add(arg.substring('--bazel-startup-arg='.length));
     } else if (arg.startsWith('--bazel-arg=')) {
       bazelArgs.add(arg.substring('--bazel-arg='.length));
+    } else if (arg == '--include-manual') {
+      includeManual = true;
     }
   }
 
   print('🔍 Executing Bazel test target discovery via query...');
+  final queryPattern = includeManual
+      ? 'tests(@dart_tests//...) + tests(//runtime/...)'
+      : '(tests(@dart_tests//...) + tests(//runtime/...)) - attr(tags, manual, tests(@dart_tests//...) + tests(//runtime/...))';
   final queryArgs = [
     ...bazelStartupArgs,
     'query',
-    'tests(@dart_tests//...) + tests(//runtime/...)',
+    queryPattern,
   ];
 
   final queryRes = Process.runSync('bazel', queryArgs);
