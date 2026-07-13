@@ -56,3 +56,4 @@ Once the subagent finishes and writes the `bazel_pre_pr_review.md` artifact:
 1. Load and present the triage report to the user.
 2. The report file MUST be created as a user-facing artifact with `RequestFeedback: true` in the metadata to render the **Proceed** button.
 3. If no critical issues are found, notify the user that the branch is ready for push. If issues are found, prompt the user to approve the planned refactorings or fixes.
+```

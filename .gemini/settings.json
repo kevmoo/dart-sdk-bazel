@@ -2,8 +2,8 @@
   "context": {
     "fileName": ["AGENTS.md", "pre_pr_trigger.md"],
     "includeDirectories": [
-      "_agents",
-      "_agents/rules"
+      ".agents",
+      ".agents/rules"
     ],
     "loadMemoryFromIncludeDirectories": true
   }
