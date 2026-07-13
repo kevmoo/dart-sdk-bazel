@@ -37,7 +37,7 @@ If the branch checks pass, spin up a subagent of type `self` (inheriting all too
   1. Retrieve the full diff of the local commits. Safely resolve the base branch (falling back to `main` if `origin/main` is not configured) and run the diff:
      ```bash
      BASE_BRANCH=$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo "origin/main" || echo "main")
-     git diff $BASE_BRANCH..HEAD
+     git diff $BASE_BRANCH...HEAD
      ```
   2. Read the active migration guidelines from the repository root: `docs/bazel-migration/GUIDELINES.md`.
   3. Surgically audit all modifications in the diff against the guidelines listed in that file.
