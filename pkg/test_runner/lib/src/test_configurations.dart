@@ -23,7 +23,6 @@ import 'test_case.dart';
 import 'test_file.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
-import 'expectation_set.dart';
 import 'utils.dart';
 
 export 'configuration.dart' show TestConfiguration;

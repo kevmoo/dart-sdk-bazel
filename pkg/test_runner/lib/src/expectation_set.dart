@@ -19,7 +19,7 @@ import 'environment.dart';
 /// and the test is considered to pass if the outcome is any of those
 /// expectations.
 class ExpectationSet {
-  static final passSet = {Expectation.pass};
+  static final _passSet = {Expectation.pass};
 
   /// A cache of path component glob strings (like "b*r") that we've previously
   /// converted to regexes. This ensures we collapse multiple globs from the
@@ -87,7 +87,7 @@ class ExpectationSet {
     _tree.walk(path.split('/'), 0, result);
 
     // If no status files modified the expectation, default to the test passing.
-    if (result.isEmpty) return passSet;
+    if (result.isEmpty) return _passSet;
 
     return result;
   }
