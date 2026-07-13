@@ -840,14 +840,10 @@ void main(List<String> args) async {
 
             var isMetaTest = false;
             for (final mEntry in manualPatterns.entries) {
-              if (normalizedPkgDir == mEntry.key ||
-                  normalizedPkgDir.endsWith('/${mEntry.key}')) {
+              if (normalizedPkgRoot == mEntry.key ||
+                  normalizedPkgRoot.endsWith('/${mEntry.key}')) {
                 for (final pattern in mEntry.value) {
-                  final workspaceRelativePattern = normalizedPkgDir == '.'
-                      ? pattern
-                      : '$normalizedPkgDir/$pattern';
-                  if (_matchesPattern(
-                      normalizedPath, workspaceRelativePattern)) {
+                  if (_matchesPattern(normalizedPath, pattern)) {
                     isMetaTest = true;
                     break;
                   }
@@ -890,14 +886,10 @@ void main(List<String> args) async {
 
             if (!isQuarantined) {
               for (final qEntry in quarantinePatterns.entries) {
-                if (normalizedPkgDir == qEntry.key ||
-                    normalizedPkgDir.endsWith('/${qEntry.key}')) {
+                if (normalizedPkgRoot == qEntry.key ||
+                    normalizedPkgRoot.endsWith('/${qEntry.key}')) {
                   for (final pattern in qEntry.value) {
-                    final workspaceRelativePattern = normalizedPkgDir == '.'
-                        ? pattern
-                        : '$normalizedPkgDir/$pattern';
-                    if (_matchesPattern(
-                        normalizedPath, workspaceRelativePattern)) {
+                    if (_matchesPattern(normalizedPath, pattern)) {
                       isQuarantined = true;
                       break;
                     }

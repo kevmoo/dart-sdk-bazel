@@ -43,6 +43,61 @@ else
   echo "SKIP: buildifier not installed (the Buildifier CI workflow still runs it)"
 fi
 
+step "upstream changes audit"
+BASE_BRANCH="origin/main"
+if ! git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
+  BASE_BRANCH="main"
+fi
+
+if git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
+  MERGE_BASE=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "$BASE_BRANCH")
+  modified_files=$(git diff --name-only "$MERGE_BASE" || true)
+  
+  allowed_external_files=()
+  if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
+    while IFS= read -r line; do
+      [[ "$line" =~ ^# ]] && continue
+      [ -z "$line" ] && continue
+      allowed_external_files+=("$line")
+    done < "tools/bazel/allowed_upstream_files.txt"
+  fi
+  
+  violations=()
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    if [[ "$file" =~ ^tools/bazel/ ]] || [[ "$file" =~ ^docs/bazel-migration/ ]]; then
+      continue
+    fi
+    is_allowed=false
+    for allowed in "${allowed_external_files[@]}"; do
+      if [ "$file" = "$allowed" ]; then
+        is_allowed=true
+        break
+      fi
+    done
+    if [ "$is_allowed" = false ]; then
+      violations+=("$file")
+    fi
+  done <<< "$modified_files"
+  
+  if [ "${#violations[@]}" -gt 0 ]; then
+    echo "Modified files outside allowed Bazel directories:"
+    printf ' - %s\n' "${violations[@]}"
+    fail "upstream changes audit: detected changes outside tools/bazel/ or docs/bazel-migration/. Try to keep changes self-contained in Bazel directory."
+  fi
+else
+  echo "SKIP: base branch (origin/main or main) not found, cannot run upstream changes audit"
+fi
+
+step "Starlark copy audit"
+starlark_files=$(git ls-files '*.bzl' | grep -v '^third_party/' || true)
+starlark_cp_matches=$(echo "$starlark_files" | xargs grep -H -n -E 'ctx\.execute\(.*"cp"' 2>/dev/null | grep -v '# exempt-starlark-copy: ok' || true)
+if [ -n "$starlark_cp_matches" ]; then
+  echo "$starlark_cp_matches"
+  fail "Starlark copy audit: ctx.execute with 'cp' found (use ctx.read/ctx.file for hermetic copying, or ctx.symlink)"
+fi
+
+
 step "hardcoded-architecture audit"
 # Keep patterns and exclusions in sync with tools/bazel/hooks/pre-commit.
 forbidden_patterns=(

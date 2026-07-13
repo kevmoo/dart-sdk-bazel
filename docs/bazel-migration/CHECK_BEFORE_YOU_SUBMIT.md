@@ -237,3 +237,16 @@ Follow this checklist strictly before submitting changes to the repository.
       ...
   ```
 * **Prefer**: Delete the unused helper function entirely.
+
+---
+
+## 6. Minimizing Upstream Changes
+
+### Avoid Modifying Shared Upstream Files
+* **Rule**: Try not to touch existing upstream code, tests, or configurations outside the `tools/bazel/` directory unless absolutely necessary.
+* **Why**: The Bazel migration should serve as a clean replacement for GN, without polluting the core SDK codebase. Modifying shared files (like SDK language tests or global status files) increases merge friction with upstream and risk of regressions in non-Bazel workflows.
+* **Exceptions**:
+  - Bug fixes to the test runner dumper (`pkg/test_runner/lib/src/test_configurations.dart`) or other shared tools are acceptable if they resolve general correctness issues, but they should be kept minimal and generic.
+  - Adding expectations to `language_vm.status` is acceptable for genuine compiler bugs if quarantining the whole file would drastically reduce test coverage (e.g. for multitests).
+* **Alternatives**: Prefer using `tools/bazel/dart/suite_config.json` (e.g., `quarantine_patterns`, `extra_deps_by_pattern`) or modifying the Bazel-specific runner (`run_single_test.dart`) to handle Bazel-specific constraints.
+

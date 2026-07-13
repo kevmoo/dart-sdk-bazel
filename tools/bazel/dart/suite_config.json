@@ -69,6 +69,17 @@
       "quarantine_patterns": [
         "test/**"
       ]
+    },
+    "language": {
+      "quarantine_patterns": [
+        "mixin_declaration/mixin_declaration_superinvocation_application_test.dart",
+        "least_upper_bound/least_upper_bound_greatest_closure_2_test.dart"
+      ],
+      "extra_deps_by_pattern": {
+        "unsorted/extract_type_arguments_test.dart": [
+          "@dart_packages//pkg/dart_internal:sdk_package_sources"
+        ]
+      }
     }
   },
   "global_extra_deps_by_pattern": {

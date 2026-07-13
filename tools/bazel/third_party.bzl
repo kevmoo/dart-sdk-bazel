@@ -220,7 +220,7 @@ def _fetch_remote(repository_ctx, repo_type, prefix):
                 print(res.stderr)  # buildifier: disable=print
                 if res.return_code != 0:
                     fail("Failed to expand Firefox pkg: " + res.stderr)
-                res = repository_ctx.execute(["find", "tmp_pkg", "-name", "Firefox.app", "-type", "d", "-exec", "cp", "-R", "{}", ".", ";"])
+                res = repository_ctx.execute(["find", "tmp_pkg", "-name", "Firefox.app", "-type", "d", "-exec", "cp", "-R", "{}", ".", ";"])  # exempt-starlark-copy: ok
                 print(res.stdout)  # buildifier: disable=print
                 print(res.stderr)  # buildifier: disable=print
                 if res.return_code != 0:

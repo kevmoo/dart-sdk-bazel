@@ -404,7 +404,11 @@ Future<void> _dumpConfigurationsMetadata(
           testCase.configuration.configuration,
         ),
         "file_path": testCase.testFile.path.toNativePath(),
-        "expected_outcome": (testCase.realExpected != Expectation.pass)
+        "expected_outcome":
+            (testCase.realExpected != Expectation.pass &&
+                !testCase.expectedOutcomes.any(
+                  (e) => e.isOutcome && e != Expectation.pass,
+                ))
             ? [testCase.realExpected.toString()]
             : testCase.expectedOutcomes.map((e) => e.toString()).toList(),
         "commands": testCase.commands.map((cmd) {

@@ -713,7 +713,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         // Map non-zero exit codes to test Expectations
         if (exitCode == 254) {
           actualOutcome = 'CompileTimeError';
-        } else if (exitCode < 0 || exitCode == 253 || exitCode == 252) {
+        } else if (exitCode == 252) {
+          actualOutcome = 'DartkCrash';
+        } else if (exitCode < 0 || exitCode == 253) {
           actualOutcome = 'Crash';
         } else {
           actualOutcome = 'RuntimeError';
@@ -728,7 +730,37 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   print('Actual Outcome:    $actualOutcome');
   print('Expected Outcomes: $expectedOutcomes');
 
-  if (expectedOutcomes.contains(actualOutcome)) {
+  var matched = expectedOutcomes.contains(actualOutcome);
+  if (!matched) {
+    // Handle expectation grouping and "missing error" outcomes
+    matched = expectedOutcomes.any((exp) {
+      if (exp == 'Fail') {
+        return const {
+          'RuntimeError',
+          'CompileTimeError',
+          'SyntaxError',
+          'MissingRuntimeError',
+          'MissingCompileTimeError',
+          'MissingStaticWarning',
+          'StaticWarning',
+          'NonUtf8Output',
+          'TruncatedOutput',
+        }.contains(actualOutcome);
+      }
+      if (exp == 'Crash') {
+        return actualOutcome == 'DartkCrash';
+      }
+      if (exp == 'Skip') {
+        return actualOutcome == 'ExtraSlow' || actualOutcome == 'SkipSlow';
+      }
+      if (actualOutcome == 'Pass') {
+        return exp == 'MissingCompileTimeError' || exp == 'MissingRuntimeError';
+      }
+      return false;
+    });
+  }
+
+  if (matched) {
     print('RESULT: SUCCESS (Outcome matches expectations)');
     return true;
   } else {
