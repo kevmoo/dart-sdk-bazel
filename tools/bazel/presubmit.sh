@@ -59,6 +59,7 @@ else
     allowed_external_files=()
     if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
       while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
         [[ "$line" =~ ^# ]] && continue
         [ -z "$line" ] && continue
         allowed_external_files+=("$line")
