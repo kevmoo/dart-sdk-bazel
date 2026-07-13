@@ -53,11 +53,14 @@ if git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
   MERGE_BASE=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "$BASE_BRANCH")
   modified_files=$(git diff --name-only "$MERGE_BASE" || true)
   
-  allowed_external_files=(
-    "tests/language/language_vm.status"
-    "pkg/test_runner/lib/src/test_configurations.dart"
-    "pkg/test_runner/bin/run_single_test.dart"
-  )
+  allowed_external_files=()
+  if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
+    while IFS= read -r line; do
+      [[ "$line" =~ ^# ]] && continue
+      [ -z "$line" ] && continue
+      allowed_external_files+=("$line")
+    done < "tools/bazel/allowed_upstream_files.txt"
+  fi
   
   violations=()
   while IFS= read -r file; do

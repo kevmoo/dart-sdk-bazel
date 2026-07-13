@@ -9,11 +9,16 @@ import subprocess
 
 def CheckUpstreamChanges(input_api, output_api):
     """Ensure that we minimize changes outside tools/bazel/."""
-    allowed_external_files = {
-        "tests/language/language_vm.status",
-        "pkg/test_runner/lib/src/test_configurations.dart",
-        "pkg/test_runner/bin/run_single_test.dart",
-    }
+    repo_root = input_api.change.RepositoryRoot()
+    allowed_file_path = os.path.join(repo_root, "tools", "bazel", "allowed_upstream_files.txt")
+    allowed_external_files = set()
+    if os.path.exists(allowed_file_path):
+        with open(allowed_file_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                allowed_external_files.add(line)
 
     violations = []
     for git_file in input_api.AffectedTextFiles():
