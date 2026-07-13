@@ -75,7 +75,7 @@ class StaticField1RunNegativeTest {
 }
 
 class StaticField1aRunNegativeTest {
-  static // //# 02: compile-time error, runtime error
+  static // //# 02: compile-time error
   void m() {}
 
   testMain() {

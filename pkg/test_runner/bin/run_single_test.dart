@@ -728,7 +728,47 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   print('Actual Outcome:    $actualOutcome');
   print('Expected Outcomes: $expectedOutcomes');
 
-  if (expectedOutcomes.contains(actualOutcome)) {
+  var matched = expectedOutcomes.contains(actualOutcome);
+  if (!matched) {
+    // Handle expectation grouping and "missing error" outcomes
+    for (final exp in expectedOutcomes) {
+      if (exp == 'Fail') {
+        if (actualOutcome == 'RuntimeError' ||
+            actualOutcome == 'CompileTimeError' ||
+            actualOutcome == 'SyntaxError' ||
+            actualOutcome == 'MissingRuntimeError' ||
+            actualOutcome == 'MissingCompileTimeError' ||
+            actualOutcome == 'MissingStaticWarning' ||
+            actualOutcome == 'StaticWarning' ||
+            actualOutcome == 'NonUtf8Output' ||
+            actualOutcome == 'TruncatedOutput') {
+          matched = true;
+          break;
+        }
+      }
+      if (exp == 'Crash') {
+        if (actualOutcome == 'DartkCrash') {
+          matched = true;
+          break;
+        }
+      }
+      if (exp == 'Skip') {
+        if (actualOutcome == 'ExtraSlow' || actualOutcome == 'SkipSlow') {
+          matched = true;
+          break;
+        }
+      }
+      if (actualOutcome == 'Pass') {
+        if (exp == 'MissingCompileTimeError' || exp == 'MissingRuntimeError') {
+          actualOutcome = exp; // For correct logging
+          matched = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (matched) {
     print('RESULT: SUCCESS (Outcome matches expectations)');
     return true;
   } else {

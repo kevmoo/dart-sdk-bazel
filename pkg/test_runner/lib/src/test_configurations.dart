@@ -23,6 +23,7 @@ import 'test_case.dart';
 import 'test_file.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
+import 'expectation_set.dart';
 import 'utils.dart';
 
 export 'configuration.dart' show TestConfiguration;
@@ -404,7 +405,11 @@ Future<void> _dumpConfigurationsMetadata(
           testCase.configuration.configuration,
         ),
         "file_path": testCase.testFile.path.toNativePath(),
-        "expected_outcome": (testCase.realExpected != Expectation.pass)
+        "expected_outcome":
+            (testCase.realExpected != Expectation.pass &&
+                !testCase.expectedOutcomes.any(
+                  (e) => e.isOutcome && e != Expectation.pass,
+                ))
             ? [testCase.realExpected.toString()]
             : testCase.expectedOutcomes.map((e) => e.toString()).toList(),
         "commands": testCase.commands.map((cmd) {

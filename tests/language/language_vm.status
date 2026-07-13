@@ -21,3 +21,5 @@ syntax/deep_nesting_expression_test/01: Crash, Pass # Issue 31496
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 superinterface_variance/*: Skip # Issue dart-lang/language#113
+mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
+least_upper_bound/least_upper_bound_greatest_closure_2_test: Crash

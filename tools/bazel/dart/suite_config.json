@@ -69,6 +69,13 @@
       "quarantine_patterns": [
         "test/**"
       ]
+    },
+    "language": {
+      "extra_deps_by_pattern": {
+        "unsorted/extract_type_arguments_test.dart": [
+          "@dart_packages//pkg/dart_internal:sdk_package_sources"
+        ]
+      }
     }
   },
   "global_extra_deps_by_pattern": {
