@@ -22,21 +22,23 @@ Before initiating any code analysis, you MUST verify that the local repository i
 1. **Branch Check**: Get the current git branch name.
 2. **Gate Criterion**: The current branch MUST NOT be `main` (or the default base branch). If it is `main`, **stop immediately** and print a hard-stop error:
    `Error: Cannot run bazel-pre-pr on the 'main' branch. Please create a feature branch, commit your changes, and try again.`
-3. **Commit Check**: Ensure there is at least one local commit distinguishing the current branch from the remote base (`origin/main`). Run:
+3. **Commit Check**: Ensure there is at least one local commit distinguishing the current branch from the remote base (typically `origin/main`). Run:
    ```bash
    git log origin/main..HEAD --oneline
    ```
+   *(If `origin/main` is not configured, fall back to the remote tracking branch or `main`).*
    If this returns empty, **stop immediately** and print:
-   `Error: No local commits found on this branch compared to origin/main.`
+   `Error: No local commits found on this branch compared to the base branch.`
 
 ### Step 2: Spin Up Code Review Subagent
 If the branch checks pass, spin up a subagent of type `self` (inheriting all tools and rules) to run the code review in the background:
 - **Role**: `Bazel Code Reviewer`
 - **Initial Task**:
-  1. Retrieve the full diff of the local commits:
+  1. Retrieve the full diff of the local commits relative to the base branch (typically `origin/main`):
      ```bash
      git diff origin/main..HEAD
      ```
+     *(If `origin/main` is not configured, fall back to the remote tracking branch or `main`).*
   2. Read the active migration guidelines from the repository root: `docs/bazel-migration/GUIDELINES.md`.
   3. Surgically audit all modifications in the diff against the guidelines listed in that file.
   4. Conduct a general, highly skeptical engineering review of the diff: check for logical robustness, verify assumptions, look for edge cases, resource cleanup misses, or race conditions, and identify opportunities to simplify the code.
