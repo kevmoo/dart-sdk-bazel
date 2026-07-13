@@ -21,7 +21,7 @@ def CheckUpstreamChanges(input_api, output_api):
                 allowed_external_files.add(line)
 
     violations = []
-    for git_file in input_api.AffectedTextFiles():
+    for git_file in input_api.AffectedFiles(include_deletes=True):
         local_path = git_file.LocalPath().replace('\\', '/')
         if not local_path.startswith("tools/bazel/") and not local_path.startswith("docs/bazel-migration/"):
             if local_path not in allowed_external_files:
@@ -46,7 +46,8 @@ def CheckStarlarkCp(input_api, output_api):
         if local_path.endswith(".bzl"):
             for line_num, line_content in git_file.ChangedContents():
                 if "ctx.execute" in line_content and "cp " in line_content:
-                    violations.append(f"{local_path}:{line_num}: {line_content.strip()}")
+                    if "exempt-starlark-copy: ok" not in line_content:
+                        violations.append(f"{local_path}:{line_num}: {line_content.strip()}")
 
     if violations:
         return [

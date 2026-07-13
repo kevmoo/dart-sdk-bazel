@@ -713,7 +713,9 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         // Map non-zero exit codes to test Expectations
         if (exitCode == 254) {
           actualOutcome = 'CompileTimeError';
-        } else if (exitCode < 0 || exitCode == 253 || exitCode == 252) {
+        } else if (exitCode == 252) {
+          actualOutcome = 'DartkCrash';
+        } else if (exitCode < 0 || exitCode == 253) {
           actualOutcome = 'Crash';
         } else {
           actualOutcome = 'RuntimeError';
@@ -731,41 +733,31 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
   var matched = expectedOutcomes.contains(actualOutcome);
   if (!matched) {
     // Handle expectation grouping and "missing error" outcomes
-    for (final exp in expectedOutcomes) {
+    matched = expectedOutcomes.any((exp) {
       if (exp == 'Fail') {
-        if (actualOutcome == 'RuntimeError' ||
-            actualOutcome == 'CompileTimeError' ||
-            actualOutcome == 'SyntaxError' ||
-            actualOutcome == 'MissingRuntimeError' ||
-            actualOutcome == 'MissingCompileTimeError' ||
-            actualOutcome == 'MissingStaticWarning' ||
-            actualOutcome == 'StaticWarning' ||
-            actualOutcome == 'NonUtf8Output' ||
-            actualOutcome == 'TruncatedOutput') {
-          matched = true;
-          break;
-        }
+        return const {
+          'RuntimeError',
+          'CompileTimeError',
+          'SyntaxError',
+          'MissingRuntimeError',
+          'MissingCompileTimeError',
+          'MissingStaticWarning',
+          'StaticWarning',
+          'NonUtf8Output',
+          'TruncatedOutput',
+        }.contains(actualOutcome);
       }
       if (exp == 'Crash') {
-        if (actualOutcome == 'DartkCrash') {
-          matched = true;
-          break;
-        }
+        return actualOutcome == 'DartkCrash';
       }
       if (exp == 'Skip') {
-        if (actualOutcome == 'ExtraSlow' || actualOutcome == 'SkipSlow') {
-          matched = true;
-          break;
-        }
+        return actualOutcome == 'ExtraSlow' || actualOutcome == 'SkipSlow';
       }
       if (actualOutcome == 'Pass') {
-        if (exp == 'MissingCompileTimeError' || exp == 'MissingRuntimeError') {
-          actualOutcome = exp; // For correct logging
-          matched = true;
-          break;
-        }
+        return exp == 'MissingCompileTimeError' || exp == 'MissingRuntimeError';
       }
-    }
+      return false;
+    });
   }
 
   if (matched) {
