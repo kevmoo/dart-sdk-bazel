@@ -323,12 +323,12 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 * **Why**: The regular expression is matched against the **string representation of the entire list** (e.g., `[manual, quarantine]`), not against individual elements. Exact anchors like `^manual$` will fail to match. Word boundaries like `\b` can match hyphens.
 * **Avoid**:
   ```bash
-  bazel query 'attr("tags", "^manual$", //...)'
-  bazel query 'attr("tags", "\bmanual\b", //...)'
+  bazel query 'attr(tags, "^manual$", //...)'
+  bazel query 'attr(tags, "\bmanual\b", //...)'
   ```
 * **Prefer**:
   ```bash
-  bazel query 'attr("tags", "(\\[|, )manual(, |\\])", //...)'
+  bazel query 'attr(tags, "(\\[|, )manual(, |\\])", //...)'
   ```
 
 
