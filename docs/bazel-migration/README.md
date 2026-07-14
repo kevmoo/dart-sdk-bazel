@@ -81,7 +81,7 @@ bazel run //tools/bazel/dart:test_hello -- --verbose
 
 To prevent communication breakdowns and avoid merge collisions (especially when multiple AI agents are working concurrently):
 
-1.  **Scan the Backlog:** Run `bd ready` for actionable tasks (or read [BACKLOG.md](BACKLOG.md), which is generated from beads). Look for `[PENDING]` tasks.
+1.  **Scan the Backlog:** Run `bd ready` for actionable tasks. Look for `[PENDING]` tasks.
 2.  **Claim a Task:** Before editing any code, claim it in beads: `bd update <id> --status in_progress --assignee <you>`. Tasks live in the beads DB (`bd`), not a hand-edited file.
 3.  **Log Your Session:** Document your progress session-by-session in [STATUS.md](STATUS.md). Update the **"Cross-agent notes"** at the top of [STATUS.md](STATUS.md) for live claims and handoffs.
 4.  **Report SDK Defects:** If you discover a non-hermetic script or packaging defect in the upstream SDK, document it as a numbered issue in [todo_issues/](todo_issues/) following the protocol in [todo_issues/README.md](todo_issues/README.md) *before* implementing a workaround.
@@ -143,6 +143,21 @@ dart tools/bazel/fork_delta.dart --upstream-cl
 dart tools/bazel/fork_delta.dart --diff modified-tools
 ```
 
+### 6. Test Quarantining & Regeneration Workflow
+
+When fixing quarantined tests or modifying test metadata, follow these steps:
+
+1.  **Modify `suite_config.json`**: Quarantine rules and extra dependencies are mapped in `tools/bazel/dart/suite_config.json`. To unquarantine a test, remove or restrict its pattern from the `quarantine_patterns` array.
+2.  **Regenerate Test Targets**: Any change to `suite_config.json` or upstream `.status` files requires regenerating the Bazel test BUILD files. Run the generator script:
+    ```bash
+    dart tools/bazel/dart/generate_test_targets.dart
+    ```
+3.  **Debug & Verify**: Run the unquarantined test to verify your fix. Use the `bazel test` command directly on the newly active target:
+    ```bash
+    bazel test //tests/language:your_test_name
+    ```
+    If it fails, you can use `bazel run` to execute it interactively and debug.
+
 ---
 
 ## 🗺️ Directory Map
@@ -152,9 +167,7 @@ Only the following active files and directories are maintained in `docs/bazel-mi
 *   [README.md](README.md) — This file. Entry point and developer guide.
 *   [typical-layout.md](typical-layout.md) — Explanation of Kevmoo's multi-fork bare repository and sandbox worktree layout conventions.
 *   [GUIDELINES.md](GUIDELINES.md) — The 14 Bazel architectural migration rules and engineering guidelines.
-*   [BACKLOG.md](BACKLOG.md) — The active backlog and coordination board (generated from beads).
 *   [BEADS.md](BEADS.md) — Task tracking setup + workflow: how to install `bd` and bootstrap the task DB on a new machine.
 *   [STATUS.md](STATUS.md) — The living session-by-session progress tracker.
 *   [UPSTREAM_CANDIDATES.md](UPSTREAM_CANDIDATES.md) — List of non-Bazel fixes to be upstreamed to `main`.
-*   [gen_board_from_beads.dart](gen_board_from_beads.dart) — Regenerates [BACKLOG.md](BACKLOG.md) + [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md) from the beads issue DB (the task source of truth).
 *   [todo_issues/](todo_issues/) — Directory containing open, unresolved SDK-internal issues.

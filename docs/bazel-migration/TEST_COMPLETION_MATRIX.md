@@ -58,10 +58,10 @@
 
 The following test suites exist in GN/Ninja/RCI (`tools/bots/test_matrix.json` & `tests/`) but are not yet scanned in Starlark:
 
-* 🔴 `tests/benchmarks` *(Tracked by [`sdk-245`](./BACKLOG.md#sdk-245))*
-* 🔴 `tests/hot_reload` *(Tracked by [`sdk-2w0`](./BACKLOG.md#sdk-2w0))*
-* 🔴 `tests/modular` *(Tracked by [`sdk-2w0`](./BACKLOG.md#sdk-2w0))*
-* 🔴 `tests/web (HTML)` *(Tracked by [`sdk-wax`](./BACKLOG.md#sdk-wax))*
+* 🔴 `tests/benchmarks` *(Tracked by `bd show sdk-245`)*
+* 🔴 `tests/hot_reload` *(Tracked by `bd show sdk-2w0`)*
+* 🔴 `tests/modular` *(Tracked by `bd show sdk-2w0`)*
+* 🔴 `tests/web (HTML)` *(Tracked by `bd show sdk-wax`)*
 
 ---
 

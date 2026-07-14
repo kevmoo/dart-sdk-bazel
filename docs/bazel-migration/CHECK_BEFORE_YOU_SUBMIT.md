@@ -250,3 +250,20 @@ Follow this checklist strictly before submitting changes to the repository.
   - Adding expectations to `language_vm.status` is acceptable for genuine compiler bugs if quarantining the whole file would drastically reduce test coverage (e.g. for multitests).
 * **Alternatives**: Prefer using `tools/bazel/dart/suite_config.json` (e.g., `quarantine_patterns`, `extra_deps_by_pattern`) or modifying the Bazel-specific runner (`run_single_test.dart`) to handle Bazel-specific constraints.
 
+---
+
+## 7. Bazel Query
+
+### Regex Matching on List Attributes
+* **Rule**: When filtering list attributes (such as `tags`) using `attr()` in `bazel query`, use list-aware boundary patterns instead of exact anchors or word boundaries.
+* **Why**: The regular expression is matched against the **string representation of the entire list** (e.g., `[manual, quarantine]`), not against individual elements. Exact anchors like `^manual$` will fail to match. Word boundaries like `\b` can match hyphens.
+* **Avoid**:
+  ```bash
+  bazel query 'attr("tags", "^manual$", //...)'
+  bazel query 'attr("tags", "\bmanual\b", //...)'
+  ```
+* **Prefer**:
+  ```bash
+  bazel query 'attr("tags", "(\[|, )manual(, |\])", //...)'
+  ```
+

@@ -1,8 +1,7 @@
 # Task Tracking with Beads — Setup & Workflow
 
 Bazel-migration tasks live in **beads** (`bd`), a Dolt-backed issue tracker —
-**not** in a checked-in file. [BACKLOG.md](BACKLOG.md) / [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md)
-are *generated* from it (see [gen_board_from_beads.dart](gen_board_from_beads.dart)).
+**not** in a checked-in file.
 
 ---
 
@@ -60,10 +59,8 @@ bd show <id>                              # full task context
 bd update <id> --claim                    # claim + set in_progress
 bd close <id> --reason "..."              # complete a task
 
-# After any task change, regenerate the board and push the DB:
-tools/sdks/dart-sdk/bin/dart docs/bazel-migration/gen_board_from_beads.dart
+# After any task change, push the DB to the fork:
 bd dolt push                              # ship the DB to the fork
-git add docs/bazel-migration/BACKLOG.md docs/bazel-migration/BACKLOG_HISTORY.md  # commit the board
 ```
 
 ## 🔄 Task Lifecycle & PR Alignment (CRITICAL)
