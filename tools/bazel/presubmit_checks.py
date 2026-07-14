@@ -50,9 +50,21 @@ def CheckStarlarkCp(input_api, output_api):
                 start_idx = match.end()
                 paren_count = 1
                 end_idx = start_idx
+                in_string = None
+                in_comment = False
                 while end_idx < len(content) and paren_count > 0:
                     char = content[end_idx]
-                    if char == '(':
+                    if in_comment:
+                        if char == '\n':
+                            in_comment = False
+                    elif in_string:
+                        if char == in_string and content[end_idx - 1] != '\\':
+                            in_string = None
+                    elif char == '#':
+                        in_comment = True
+                    elif char in ('"', "'"):
+                        in_string = char
+                    elif char == '(':
                         paren_count += 1
                     elif char == ')':
                         paren_count -= 1
