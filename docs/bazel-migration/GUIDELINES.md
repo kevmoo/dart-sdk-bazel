@@ -47,9 +47,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ## Part 2: 🛠️ Code-Level Patterns (Pre-Flight Checklist)
 
-## 1. Windows Path Compatibility
+### 1. Windows Path Compatibility
 
-### Normalize Path Separators Before Matching
+#### Normalize Path Separators Before Matching
 * **Rule**: Always normalize path separators (`\` to `/`) before running suffix (`.endsWith`), prefix (`.startsWith`), or equality checks on file paths.
 * **Why**: On Windows, paths use backslashes (`\`). If your logic expects forward slashes (`/`) for directory boundaries (e.g. matching `out/ReleaseX64/dart`), it will fail on Windows when backslashes are present.
 * **Avoid**:
@@ -66,7 +66,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   }
   ```
 
-### Append Executable File Extensions (`.exe`)
+#### Append Executable File Extensions (`.exe`)
 * **Rule**: Append `.exe` to binary and executable names when running on Windows.
 * **Why**: Windows requires the `.exe` extension to execute binaries. Dynamically built paths (like `dartaotruntime` or `gen_snapshot`) will fail to run with "file not found" errors unless `.exe` is appended.
 * **Avoid**:
@@ -79,7 +79,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
   ```
 
-### Use Path Package for Parent Directory Calculations
+#### Use Path Package for Parent Directory Calculations
 * **Rule**: Use `p.dirname` from `package:path` instead of `File.parent.path` to calculate the parent directory of a path string.
 * **Why**: If a path is relative and has no directory separators (e.g. `dart`), `File(path).parent.path` returns an empty string `""` which breaks downstream path joining. `p.dirname(path)` correctly returns `"."`.
 * **Avoid**:
@@ -93,7 +93,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   executable = p.join(sdkBinDir, 'dartaotruntime$exeExt');
   ```
 
-### Safe Junction and Symbolic Link Cleanup in Python
+#### Safe Junction and Symbolic Link Cleanup in Python
 * **Rule**: When cleaning up directories and links in Python scripts (within repository extensions), use a try-except cascade starting with `os.unlink`, falling back to `os.rmdir`, and ending with `shutil.rmtree`.
 * **Why**: On Windows, `shutil.rmtree` or standard `os.remove` can raise permission errors on directory junctions or symbolic links. You must also check for links using `os.lexists` instead of `os.path.exists` so that broken symlinks are detected and removed.
 * **Avoid**:
@@ -118,9 +118,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 2. Bazel Sandbox & Runfiles
+### 2. Bazel Sandbox & Runfiles
 
-### Use `copy_file` over Shell `cp` in Genrules
+#### Use `copy_file` over Shell `cp` in Genrules
 * **Rule**: Never use non-hermetic host shell commands (`cp`, `mv`) inside `genrule` definitions for file staging. Always import and use `copy_file` from `@bazel_skylib//rules:copy_file.bzl`.
 * **Why**: Host shell commands are non-hermetic and break build isolation. (Complex multi-line assembly generation scripts are exempt when explicitly tagged with `# exempt-genrule: ok`).
 * **Avoid**:
@@ -143,7 +143,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   )
   ```
 
-### Avoid Copying Directories in Repository Rules
+#### Avoid Copying Directories in Repository Rules
 * **Rule**: Use `ctx.symlink` rather than copying entire directories (`lib/`, `bin/`, etc.) in custom repository rules.
 * **Why**: Copying directories hides individual file modifications from Bazel's input tracker, breaking incremental builds. Modifying a file inside a copied directory won't trigger rebuilds/test runs. Symlinking ensures Bazel can track all underlying files correctly.
 * **Avoid**:
@@ -155,7 +155,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   ctx.symlink(physical_lib, virtual_pkg_dir + "/lib") # Preserves incremental tracking
   ```
 
-### Copy Single Files Using Hermetic In-Process Starlark Writing
+#### Copy Single Files Using Hermetic In-Process Starlark Writing
 * **Rule**: For single files, copy them using Starlark's `ctx.read` and `ctx.file` rather than spawning external copy commands (`cp`, `cp -RL`). If a host copy is absolutely unavoidable, tag the execution block with `# exempt-starlark-copy: ok`.
 * **Why**: Spawning external shell subprocesses (`ctx.execute(["cp", ...])`) is slow, non-hermetic, and increases repo rule overhead. In-process Starlark writing is fully hermetic and highly performant.
 * **Avoid**:
@@ -167,7 +167,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   ctx.file(dst, ctx.read(src))
   ```
 
-### Bypass Runfiles Resolution for Absolute Paths
+#### Bypass Runfiles Resolution for Absolute Paths
 * **Rule**: Skip `_Runfiles.resolve` calls if a path is already absolute.
 * **Why**: Attempting to resolve an absolute path (e.g. `C:\path\to\file`) through runfiles resolution can prepend the runfiles directory, producing invalid paths (like `/runfiles/dir/C:\path\to\file`).
 * **Avoid**:
@@ -181,7 +181,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
       : _Runfiles.resolve(runfilesScriptPath);
   ```
 
-### Support Workspace and External Repository Prefix Layouts
+#### Support Workspace and External Repository Prefix Layouts
 * **Rule**: Check script paths for standard runfiles repository prefixes (`_main/`, `external/`, `@`) before prepending the default `_main/` workspace prefix.
 * **Why**: Scripts might be referenced differently depending on whether they come from the main repository or an external repository (e.g., `co19` tests under `external/`). Prepending `_main/` indiscriminately breaks resolution for external scripts.
 * **Avoid**:
@@ -190,6 +190,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   ```
 * **Prefer**:
   ```dart
+  final normalizedScript = scriptPath.replaceAll('\\', '/');
   final runfilesScriptPath =
       (normalizedScript.startsWith('_main/') ||
           normalizedScript.startsWith('@') ||
@@ -201,9 +202,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 3. Environment & Staging Configurations
+### 3. Environment & Staging Configurations
 
-### Use `DART_PACKAGE_CONFIG` Instead of Sandbox Copying
+#### Use `DART_PACKAGE_CONFIG` Instead of Sandbox Copying
 * **Rule**: Export the `DART_PACKAGE_CONFIG` environment variable in test wrapper scripts instead of attempting to copy and patch `package_config.json` inside the sandbox.
 * **Why**: Bazel sandboxes are read-only. Attempting to copy `package_config.json` to a staging folder and patching it with `sed` inside the shell wrapper will fail with permission errors. The Dart VM natively reads `DART_PACKAGE_CONFIG` directly.
 * **Avoid**:
@@ -223,9 +224,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 4. Dart Robustness & Argument Parsing
+### 4. Dart Robustness & Argument Parsing
 
-### Support Space-Separated and Equals-Separated Arguments
+#### Support Space-Separated and Equals-Separated Arguments
 * **Rule**: When parsing or rewriting CLI flags (like `--packages`), handle both space-separated (`--packages <path>`) and equals-separated (`--packages=<path>`) arguments.
 * **Why**: Dart VM options allow both formats. If your parser only searches for `--packages=`, it will miss space-separated configs, leading to duplicate package flags which cause Dart VM execution crashes.
 * **Avoid**:
@@ -252,7 +253,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   }
   ```
 
-### VM Options Must Precede Script Paths
+#### VM Options Must Precede Script Paths
 * **Rule**: Insert any dynamic script or snapshot path *after* leading VM options (arguments starting with `-`).
 * **Why**: The Dart VM expects option flags to come before the script name. If you insert a script path at index 0, the options that follow will be treated as arguments passed *to the script* instead of VM configurations, breaking execution.
 * **Avoid**:
@@ -269,7 +270,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   }
   ```
 
-### Leverage Flow-Analysis Type Promotion
+#### Leverage Flow-Analysis Type Promotion
 * **Rule**: Use local final variables when working with nullable values. Do not use redundant null assertion operators (`!`) inside blocks guarded by null checks.
 * **Why**: Dart's flow analysis automatically promotes a local final variable from a nullable type (e.g. `String?`) to non-nullable (e.g. `String`) after a null check. Adding redundant `!` assertions makes code harder to read and violates style guidelines.
 * **Avoid**:
@@ -289,9 +290,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 5. Starlark Code Quality
+### 5. Starlark Code Quality
 
-### Clean Up Unused Declarations
+#### Clean Up Unused Declarations
 * **Rule**: Remove all unused variables, constants, and helper functions in Starlark files (`.bzl`).
 * **Why**: Leaving unused helper methods (such as obsolete directory copy functions after moving to symlinking) violates Buildifier lint rules and blocks presubmission.
 * **Avoid**:
@@ -304,9 +305,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 6. Minimizing Upstream Changes
+### 6. Minimizing Upstream Changes
 
-### Avoid Modifying Shared Upstream Files
+#### Avoid Modifying Shared Upstream Files
 * **Rule**: Try not to touch existing upstream code, tests, or configurations outside the `tools/bazel/` directory unless absolutely necessary.
 * **Why**: The Bazel migration should serve as a clean replacement for GN, without polluting the core SDK codebase. Modifying shared files (like SDK language tests or global status files) increases merge friction with upstream and risk of regressions in non-Bazel workflows.
 * **Exceptions**:
@@ -316,9 +317,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
 
 ---
 
-## 7. Bazel Query
+### 7. Bazel Query
 
-### Regex Matching on List Attributes
+#### Regex Matching on List Attributes
 * **Rule**: When filtering list attributes (such as `tags`) using `attr()` in `bazel query`, use list-aware boundary patterns instead of exact anchors or word boundaries.
 * **Why**: The regular expression is matched against the **string representation of the entire list** (e.g., `[manual, quarantine]`), not against individual elements. Exact anchors like `^manual$` will fail to match. Word boundaries like `\b` can match hyphens.
 * **Avoid**:
