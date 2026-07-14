@@ -83,7 +83,7 @@ def CheckStarlarkCp(input_api, output_api):
                     end_idx += 1
                 if paren_count == 0:
                     call_text = content[match.start():end_idx]
-                    if re.search(r'["\']cp["\']', call_text):
+                    if re.search(r'["\' ]cp["\' ]', call_text):
                         if "exempt-starlark-copy: ok" not in call_text:
                             line_num = content[:match.start()].count('\n') + 1
                             violations.append(f"{local_path}:{line_num}: {call_text.strip()}")
