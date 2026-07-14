@@ -195,9 +195,9 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
       (normalizedScript.startsWith('_main/') ||
           normalizedScript.startsWith('@') ||
           normalizedScript.startsWith('external/') ||
-          p.isAbsolute(scriptPath))
-      ? scriptPath
-      : '_main/$scriptPath';
+          p.isAbsolute(normalizedScript))
+      ? normalizedScript
+      : '_main/$normalizedScript';
   ```
 
 ---
