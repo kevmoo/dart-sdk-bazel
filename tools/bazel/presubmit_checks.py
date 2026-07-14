@@ -46,12 +46,23 @@ def CheckStarlarkCp(input_api, output_api):
         local_path = git_file.LocalPath().replace('\\', '/')
         if local_path.endswith(".bzl"):
             content = "\n".join(git_file.NewContents())
-            for match in re.finditer(r'(ctx|repository_ctx)\.execute\((?:[^()]+|\([^()]*\))*\)', content, re.DOTALL):
-                call_text = match.group(0)
-                if re.search(r'["\']cp["\']', call_text):
-                    if "exempt-starlark-copy: ok" not in call_text:
-                        line_num = content[:match.start()].count('\n') + 1
-                        violations.append(f"{local_path}:{line_num}: {call_text.strip()}")
+            for match in re.finditer(r'\b(ctx|repository_ctx)\.execute\s*\(', content):
+                start_idx = match.end()
+                paren_count = 1
+                end_idx = start_idx
+                while end_idx < len(content) and paren_count > 0:
+                    char = content[end_idx]
+                    if char == '(':
+                        paren_count += 1
+                    elif char == ')':
+                        paren_count -= 1
+                    end_idx += 1
+                if paren_count == 0:
+                    call_text = content[match.start():end_idx]
+                    if re.search(r'["\']cp["\']', call_text):
+                        if "exempt-starlark-copy: ok" not in call_text:
+                            line_num = content[:match.start()].count('\n') + 1
+                            violations.append(f"{local_path}:{line_num}: {call_text.strip()}")
 
     if violations:
         return [

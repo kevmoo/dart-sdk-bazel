@@ -652,6 +652,7 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
             } else if (arg == '--packages') {
               if (j + 1 < arguments.length) {
                 arguments[j + 1] = resolvedPkg;
+                j++;
               }
             }
           }
