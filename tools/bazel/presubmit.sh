@@ -95,7 +95,7 @@ else
 fi
 
 step "Starlark copy audit"
-starlark_cp_matches=$(git grep -n -E "(ctx|repository_ctx)\.execute\(.*['\" ]cp['\" ]" -- '*.bzl' 2>/dev/null | grep -v '^third_party/' | grep -v '# exempt-starlark-copy: ok' || true)
+starlark_cp_matches=$(git grep -n -E "(ctx|repository_ctx)\.execute *\(.*['\" ]cp['\" ]" -- '*.bzl' 2>/dev/null | grep -v '^third_party/' | grep -v '# exempt-starlark-copy: ok' || true)
 if [ -n "$starlark_cp_matches" ]; then
   echo "$starlark_cp_matches"
   fail "Starlark copy audit: ctx.execute with 'cp' found (use ctx.read/ctx.file for hermetic copying, or ctx.symlink)"

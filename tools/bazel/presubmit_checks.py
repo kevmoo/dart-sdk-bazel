@@ -52,13 +52,18 @@ def CheckStarlarkCp(input_api, output_api):
                 end_idx = start_idx
                 in_string = None
                 in_comment = False
+                escaped = False
                 while end_idx < len(content) and paren_count > 0:
                     char = content[end_idx]
                     if in_comment:
                         if char == '\n':
                             in_comment = False
                     elif in_string:
-                        if char == in_string and content[end_idx - 1] != '\\':
+                        if escaped:
+                            escaped = False
+                        elif char == '\\':
+                            escaped = True
+                        elif char == in_string:
                             in_string = None
                     elif char == '#':
                         in_comment = True
