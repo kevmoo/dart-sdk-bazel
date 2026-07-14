@@ -328,7 +328,7 @@ void _main(List<String> args) async {
   print('🔍 Executing Bazel test target discovery via query...');
   final queryPattern = includeManual
       ? 'tests(@dart_tests//...) + tests(//runtime/...)'
-      : r'let t = tests(@dart_tests//...) + tests(//runtime/...) in $t - attr(tags, manual, $t)';
+      : r'let t = tests(@dart_tests//...) + tests(//runtime/...) in $t - attr(tags, "(\[|, )manual(, |\])", $t)';
   final queryArgs = [
     ...bazelStartupArgs,
     'query',

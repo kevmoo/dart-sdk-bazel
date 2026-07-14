@@ -46,7 +46,7 @@ def CheckStarlarkCp(input_api, output_api):
         local_path = git_file.LocalPath().replace('\\', '/')
         if local_path.endswith(".bzl"):
             content = "\n".join(git_file.NewContents())
-            for match in re.finditer(r'(ctx|repository_ctx)\.execute\(([^)]+)\)', content, re.DOTALL):
+            for match in re.finditer(r'(ctx|repository_ctx)\.execute\((?:[^()]+|\([^()]*\))*\)', content, re.DOTALL):
                 call_text = match.group(0)
                 if re.search(r'["\']cp["\']', call_text):
                     if "exempt-starlark-copy: ok" not in call_text:
