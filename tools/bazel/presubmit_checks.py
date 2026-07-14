@@ -40,14 +40,18 @@ def CheckUpstreamChanges(input_api, output_api):
 
 def CheckStarlarkCp(input_api, output_api):
     """Ensure we don't use 'cp' command in Starlark files."""
+    import re
     violations = []
     for git_file in input_api.AffectedTextFiles():
         local_path = git_file.LocalPath().replace('\\', '/')
         if local_path.endswith(".bzl"):
-            for line_num, line_content in git_file.ChangedContents():
-                if "ctx.execute" in line_content and "cp " in line_content:
-                    if "exempt-starlark-copy: ok" not in line_content:
-                        violations.append(f"{local_path}:{line_num}: {line_content.strip()}")
+            content = "\n".join(git_file.NewContents())
+            for match in re.finditer(r'(ctx|repository_ctx)\.execute\(([^)]+)\)', content, re.DOTALL):
+                call_text = match.group(0)
+                if re.search(r'["\']cp["\']', call_text):
+                    if "exempt-starlark-copy: ok" not in call_text:
+                        line_num = content[:match.start()].count('\n') + 1
+                        violations.append(f"{local_path}:{line_num}: {call_text.strip()}")
 
     if violations:
         return [
