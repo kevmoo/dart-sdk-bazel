@@ -93,7 +93,6 @@ else
     echo "SKIP: base branch (origin/main or main) not found, cannot run upstream changes audit"
   fi
 fi
-fi
 
 step "Starlark copy audit"
 starlark_files=$(git ls-files '*.bzl' | grep -v '^third_party/' || true)
