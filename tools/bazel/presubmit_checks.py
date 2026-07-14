@@ -63,10 +63,17 @@ def CheckStarlarkCp(input_api, output_api):
                             escaped = False
                         elif char == '\\':
                             escaped = True
+                        elif in_string in ('"""', "'''"):
+                            if content[end_idx:end_idx+3] == in_string:
+                                in_string = None
+                                end_idx += 2
                         elif char == in_string:
                             in_string = None
                     elif char == '#':
                         in_comment = True
+                    elif content[end_idx:end_idx+3] in ('"""', "'''"):
+                        in_string = content[end_idx:end_idx+3]
+                        end_idx += 2
                     elif char in ('"', "'"):
                         in_string = char
                     elif char == '(':
