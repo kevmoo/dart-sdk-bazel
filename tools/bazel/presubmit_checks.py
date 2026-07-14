@@ -40,14 +40,53 @@ def CheckUpstreamChanges(input_api, output_api):
 
 def CheckStarlarkCp(input_api, output_api):
     """Ensure we don't use 'cp' command in Starlark files."""
+    import re
     violations = []
     for git_file in input_api.AffectedTextFiles():
         local_path = git_file.LocalPath().replace('\\', '/')
         if local_path.endswith(".bzl"):
-            for line_num, line_content in git_file.ChangedContents():
-                if "ctx.execute" in line_content and "cp " in line_content:
-                    if "exempt-starlark-copy: ok" not in line_content:
-                        violations.append(f"{local_path}:{line_num}: {line_content.strip()}")
+            content = "\n".join(git_file.NewContents())
+            for match in re.finditer(r'\b(ctx|repository_ctx)\.execute\s*\(', content):
+                start_idx = match.end()
+                paren_count = 1
+                end_idx = start_idx
+                in_string = None
+                in_comment = False
+                escaped = False
+                while end_idx < len(content) and paren_count > 0:
+                    char = content[end_idx]
+                    if in_comment:
+                        if char == '\n':
+                            in_comment = False
+                    elif in_string:
+                        if escaped:
+                            escaped = False
+                        elif char == '\\':
+                            escaped = True
+                        elif in_string in ('"""', "'''"):
+                            if content[end_idx:end_idx+3] == in_string:
+                                in_string = None
+                                end_idx += 2
+                        elif char == in_string:
+                            in_string = None
+                    elif char == '#':
+                        in_comment = True
+                    elif content[end_idx:end_idx+3] in ('"""', "'''"):
+                        in_string = content[end_idx:end_idx+3]
+                        end_idx += 2
+                    elif char in ('"', "'"):
+                        in_string = char
+                    elif char == '(':
+                        paren_count += 1
+                    elif char == ')':
+                        paren_count -= 1
+                    end_idx += 1
+                if paren_count == 0:
+                    call_text = content[match.start():end_idx]
+                    if re.search(r'["\' ]cp["\' ]', call_text):
+                        if "exempt-starlark-copy: ok" not in call_text:
+                            line_num = content[:match.start()].count('\n') + 1
+                            violations.append(f"{local_path}:{line_num}: {call_text.strip()}")
 
     if violations:
         return [

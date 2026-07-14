@@ -48,6 +48,13 @@ Never use non-hermetic host shell commands (`cp`, `mv`) inside `genrule` definit
 ### Rule 3.14: Universal Determinism and Hermetic Timestamps
 Never allow C++ builds to depend on non-deterministic host paths or build timestamps. All wrappers must inject `-Wno-builtin-macro-redefined`, `-D__DATE__=""`, and `-D__TIME__=""`. Never invoke ambient host commands (`git`, `date`) inside build action `cmd` strings.
 
+### Rule 3.15: Mandatory Hermetic File Operations in Starlark
+Inside repository rules, module extensions, or other Starlark helpers, never use `ctx.execute` with host shell commands like `cp` to stage or copy files. Instead, use hermetic Starlark APIs such as `ctx.read()` and `ctx.file()`, or `ctx.symlink()` where appropriate. This preserves Bazel's hermeticity and avoids spawning unnecessary host processes. If a host copy is absolutely unavoidable, tag the execution block with `# exempt-starlark-copy: ok`.
+
+### Rule 3.16: Bazel Query Regex Matching on List Attributes
+When filtering list attributes (such as `tags`) using `attr()` in `bazel query`, remember that the regular expression is matched against the **string representation of the entire list** (e.g., `[manual, quarantine]`), not against individual elements.
+Consequently, exact anchors like `^manual$` will fail to match. To match a specific tag cleanly without matching substrings (e.g., matching `manual` but not `manual-test`), use a list-aware boundary pattern like `(\[|, )tag_name(, |\])`. Do not rely on `\b` word boundaries as they will match hyphens.
+
 ---
 
 ## ⚡ Developer Performance Tips

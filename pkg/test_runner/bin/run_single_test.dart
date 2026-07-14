@@ -625,17 +625,55 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
         arguments[scriptIndex] = resolvedScript;
 
         final resolvedPkg = _getRewrittenPackageConfig();
-        final packagesIndex = arguments.indexWhere(
-          (arg) => arg.startsWith('--packages='),
-        );
-        if (packagesIndex != -1) {
-          arguments[packagesIndex] = '--packages=$resolvedPkg';
-        } else {
-          final pkgIndex = arguments.indexOf('--packages');
-          if (pkgIndex != -1 && pkgIndex + 1 < arguments.length) {
-            arguments[pkgIndex + 1] = resolvedPkg;
-          } else {
+        if (scriptPath.endsWith('.dart')) {
+          var vmPackagesUpdated = false;
+
+          // Update any --packages flag before the script (VM option)
+          for (var j = 0; j < scriptIndex; j++) {
+            final arg = arguments[j];
+            if (arg.startsWith('--packages=')) {
+              arguments[j] = '--packages=$resolvedPkg';
+              vmPackagesUpdated = true;
+              break;
+            } else if (arg == '--packages') {
+              if (j + 1 < scriptIndex) {
+                arguments[j + 1] = resolvedPkg;
+                vmPackagesUpdated = true;
+                break;
+              }
+            }
+          }
+
+          // Update any --packages flag after the script (Script argument)
+          for (var j = scriptIndex + 1; j < arguments.length; j++) {
+            final arg = arguments[j];
+            if (arg.startsWith('--packages=')) {
+              arguments[j] = '--packages=$resolvedPkg';
+            } else if (arg == '--packages') {
+              if (j + 1 < arguments.length) {
+                arguments[j + 1] = resolvedPkg;
+                j++;
+              }
+            }
+          }
+
+          // Only insert if no VM-level --packages option was found
+          if (!vmPackagesUpdated) {
             arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+          }
+        } else {
+          final packagesIndex = arguments.indexWhere(
+            (arg) => arg.startsWith('--packages='),
+          );
+          if (packagesIndex != -1) {
+            arguments[packagesIndex] = '--packages=$resolvedPkg';
+          } else {
+            final pkgIndex = arguments.indexOf('--packages');
+            if (pkgIndex != -1 && pkgIndex + 1 < arguments.length) {
+              arguments[pkgIndex + 1] = resolvedPkg;
+            } else {
+              arguments.insert(scriptIndex, '--packages=$resolvedPkg');
+            }
           }
         }
       }
@@ -926,17 +964,21 @@ abstract final class _Runfiles {
         Platform.environment['TEST_SRCDIR'];
     if (runfilesDir != null && runfilesDir.isNotEmpty) {
       if (pkgName != null && pkgName.isNotEmpty) {
-        for (final prefix in [
+        final prefixes = [
           '_main',
           _getCanonicalRepoName('dart_packages'),
           '+dart_packages_extension+dart_packages',
           'dart_packages',
-        ]) {
+        ];
+        for (final prefix in prefixes) {
           final pkgAltPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
           final libType = FileSystemEntity.typeSync(p.join(pkgAltPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return pkgAltPath;
           }
+        }
+        for (final prefix in prefixes) {
+          final pkgAltPath = p.join(runfilesDir, prefix, 'pkg', pkgName);
           final pkgType = FileSystemEntity.typeSync(pkgAltPath);
           if (pkgType == FileSystemEntityType.directory) {
             return pkgAltPath;
@@ -945,19 +987,23 @@ abstract final class _Runfiles {
       }
       if (normalizedPath.startsWith('_main/')) {
         final subPath = normalizedPath.substring('_main/'.length);
-        for (final prefix in [
+        final prefixes = [
           _getCanonicalRepoName('dart_packages'),
           _getCanonicalRepoName('third_party'),
           '+dart_packages_extension+dart_packages',
           '+third_party_extension+third_party',
           'dart_packages',
           'third_party',
-        ]) {
+        ];
+        for (final prefix in prefixes) {
           final altPath = p.join(runfilesDir, prefix, subPath);
           final libType = FileSystemEntity.typeSync(p.join(altPath, 'lib'));
           if (libType != FileSystemEntityType.notFound) {
             return altPath;
           }
+        }
+        for (final prefix in prefixes) {
+          final altPath = p.join(runfilesDir, prefix, subPath);
           final altType = FileSystemEntity.typeSync(altPath);
           if (altType != FileSystemEntityType.notFound) {
             return altPath;
