@@ -15,11 +15,7 @@ For details on the typical Bare Repository + Sandbox Worktree layout used across
 If you are a contributor (human or AI agent) looking to build or run the SDK using Bazel, here is what you need to know right now.
 
 ### 1. Host Prerequisites
-Ensure your host machine has:
-*   **Python 3** (used for minor helper scripts).
-*   **Bazel** (recommended to use [bazelisk](https://github.com/bazelbuild/bazelisk) to automatically respect the [.bazelversion](../../.bazelversion) file).
-*   **Xcode-select** (macOS only) or **MSVC** (Windows only) for native C++ compilation.
-*   All third-party dependencies are fetched hermetically by Bazel via Bzlmod overlays. No manual sync scripts (like the retired `restore.sh`) are required.
+Ensure your host machine has **Python 3**, **Bazel** (via bazelisk), and **Xcode-select** (macOS) or **MSVC** (Windows). All third-party dependencies are fetched hermetically by Bazel via Bzlmod overlays.
 
 ### 2. Core Build Commands
 Execute these from the repository root:
@@ -81,7 +77,7 @@ bazel run //tools/bazel/dart:test_hello -- --verbose
 
 To prevent communication breakdowns and avoid merge collisions (especially when multiple AI agents are working concurrently):
 
-1.  **Scan the Backlog:** Run `bd ready` for actionable tasks (or read [BACKLOG.md](BACKLOG.md), which is generated from beads). Look for `[PENDING]` tasks.
+1.  **Scan the Backlog:** Run `bd ready` for actionable tasks. Look for `[PENDING]` tasks.
 2.  **Claim a Task:** Before editing any code, claim it in beads: `bd update <id> --status in_progress --assignee <you>`. Tasks live in the beads DB (`bd`), not a hand-edited file.
 3.  **Log Your Session:** Document your progress session-by-session in [STATUS.md](STATUS.md). Update the **"Cross-agent notes"** at the top of [STATUS.md](STATUS.md) for live claims and handoffs.
 4.  **Report SDK Defects:** If you discover a non-hermetic script or packaging defect in the upstream SDK, document it as a numbered issue in [todo_issues/](todo_issues/) following the protocol in [todo_issues/README.md](todo_issues/README.md) *before* implementing a workaround.
@@ -97,12 +93,11 @@ To prevent communication breakdowns and avoid merge collisions (especially when 
 *   **Never push to `main` without explicit human approval.**
 *   Local branch names and git remote names vary per machine — do not assume a particular layout (the old local `bazel` tracking-branch convention is retired). Check `git remote -v` and `git branch -vv` instead of hardcoding.
 
-### 2. Pre-PR Validation (One Command)
-Before sending a PR, run the presubmit gate — CI runs the same script, so a local pass should closely predict a green PR:
-```bash
-./tools/bazel/presubmit.sh
-```
-It bundles (cheap → expensive): buildifier format+lint, the hardcoded-architecture audit, python byte-compile, `--nobuild` analysis of `//sdk:create_sdk` + `//runtime/bin:dartvm` + the utils exes, evaluation of both module extensions (`@dart_packages`, `@dart_tests`), and `dart analyze` over the Bazel tooling scripts. Takes ~1.5 minutes warm.
+### 2. Pre-PR Validation (One Command + Agent)
+Before sending a PR, validate your branch locally to ensure it will pass CI and architectural review:
+*   **Run CI Checks Locally:** `./tools/bazel/presubmit.sh`
+    It bundles buildifier format+lint, architecture audits, and analysis. Takes ~1.5 minutes warm.
+*   **Agent Code Review:** Run the `bazel-pre-pr` agent skill in your terminal. This spins up an autonomous code reviewer that surgically audits your local commits against the rules defined in `GUIDELINES.md`.
 
 ### 3. Formatting & Linting (Buildifier)
 We enforce standard Starlark formatting and linting repository-wide.
@@ -143,6 +138,21 @@ dart tools/bazel/fork_delta.dart --upstream-cl
 dart tools/bazel/fork_delta.dart --diff modified-tools
 ```
 
+### 6. Test Quarantining & Regeneration Workflow
+
+When fixing quarantined tests or modifying test metadata, follow these steps:
+
+1.  **Modify `suite_config.json`**: Quarantine rules and extra dependencies are mapped in `tools/bazel/dart/suite_config.json`. To unquarantine a test, remove or restrict its pattern from the `quarantine_patterns` array.
+2.  **Regenerate Test Targets**: Any change to `suite_config.json` or upstream `.status` files requires regenerating the Bazel test BUILD files. Run the generator script:
+    ```bash
+    dart tools/bazel/dart/generate_test_targets.dart
+    ```
+3.  **Debug & Verify**: Run the unquarantined test to verify your fix. Use the `bazel test` command directly on the newly active target:
+    ```bash
+    bazel test @dart_tests//language:your_test_name
+    ```
+    If it fails, you can use `bazel run` to execute it interactively and debug.
+
 ---
 
 ## 🗺️ Directory Map
@@ -151,10 +161,8 @@ Only the following active files and directories are maintained in `docs/bazel-mi
 
 *   [README.md](README.md) — This file. Entry point and developer guide.
 *   [typical-layout.md](typical-layout.md) — Explanation of Kevmoo's multi-fork bare repository and sandbox worktree layout conventions.
-*   [GUIDELINES.md](GUIDELINES.md) — The 14 Bazel architectural migration rules and engineering guidelines.
-*   [BACKLOG.md](BACKLOG.md) — The active backlog and coordination board (generated from beads).
+*   [GUIDELINES.md](GUIDELINES.md) — The unified master rulebook containing both core architectural rules and code-level pre-flight patterns.
 *   [BEADS.md](BEADS.md) — Task tracking setup + workflow: how to install `bd` and bootstrap the task DB on a new machine.
 *   [STATUS.md](STATUS.md) — The living session-by-session progress tracker.
 *   [UPSTREAM_CANDIDATES.md](UPSTREAM_CANDIDATES.md) — List of non-Bazel fixes to be upstreamed to `main`.
-*   [gen_board_from_beads.dart](gen_board_from_beads.dart) — Regenerates [BACKLOG.md](BACKLOG.md) + [BACKLOG_HISTORY.md](BACKLOG_HISTORY.md) from the beads issue DB (the task source of truth).
 *   [todo_issues/](todo_issues/) — Directory containing open, unresolved SDK-internal issues.
