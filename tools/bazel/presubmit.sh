@@ -55,7 +55,8 @@ if git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
   
   allowed_external_files=()
   if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
-    while IFS= read -r line; do
+    while IFS= read -r line || [ -n "$line" ]; do
+      line="${line%$'\r'}"
       [[ "$line" =~ ^# ]] && continue
       [ -z "$line" ] && continue
       allowed_external_files+=("$line")

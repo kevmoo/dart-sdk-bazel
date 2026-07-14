@@ -626,19 +626,39 @@ Future<bool> _runTestCase(Map<String, dynamic> testCase) async {
 
         final resolvedPkg = _getRewrittenPackageConfig();
         if (scriptPath.endsWith('.dart')) {
-          arguments.insert(scriptIndex, '--packages=$resolvedPkg');
-          final searchStart = scriptIndex + 2;
-          final packagesIndex = arguments.indexWhere(
-            (arg) => arg.startsWith('--packages='),
-            searchStart,
-          );
-          if (packagesIndex != -1) {
-            arguments[packagesIndex] = '--packages=$resolvedPkg';
-          } else {
-            final pkgIndex = arguments.indexOf('--packages', searchStart);
-            if (pkgIndex != -1 && pkgIndex + 1 < arguments.length) {
-              arguments[pkgIndex + 1] = resolvedPkg;
+          var vmPackagesUpdated = false;
+
+          // Update any --packages flag before the script (VM option)
+          for (var j = 0; j < scriptIndex; j++) {
+            final arg = arguments[j];
+            if (arg.startsWith('--packages=')) {
+              arguments[j] = '--packages=$resolvedPkg';
+              vmPackagesUpdated = true;
+              break;
+            } else if (arg == '--packages') {
+              if (j + 1 < scriptIndex) {
+                arguments[j + 1] = resolvedPkg;
+                vmPackagesUpdated = true;
+                break;
+              }
             }
+          }
+
+          // Update any --packages flag after the script (Script argument)
+          for (var j = scriptIndex + 1; j < arguments.length; j++) {
+            final arg = arguments[j];
+            if (arg.startsWith('--packages=')) {
+              arguments[j] = '--packages=$resolvedPkg';
+            } else if (arg == '--packages') {
+              if (j + 1 < arguments.length) {
+                arguments[j + 1] = resolvedPkg;
+              }
+            }
+          }
+
+          // Only insert if no VM-level --packages option was found
+          if (!vmPackagesUpdated) {
+            arguments.insert(scriptIndex, '--packages=$resolvedPkg');
           }
         } else {
           final packagesIndex = arguments.indexWhere(
