@@ -328,7 +328,7 @@ Never allow C++ builds to depend on non-deterministic host paths or build timest
   ```
 * **Prefer**:
   ```bash
-  bazel query 'attr("tags", "(\[|, )manual(, |\])", //...)'
+  bazel query 'attr("tags", "(\\[|, )manual(, |\\])", //...)'
   ```
 
 

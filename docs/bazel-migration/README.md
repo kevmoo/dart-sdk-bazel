@@ -149,7 +149,7 @@ When fixing quarantined tests or modifying test metadata, follow these steps:
     ```
 3.  **Debug & Verify**: Run the unquarantined test to verify your fix. Use the `bazel test` command directly on the newly active target:
     ```bash
-    bazel test //tests/language:your_test_name
+    bazel test @dart_tests//language:your_test_name
     ```
     If it fails, you can use `bazel run` to execute it interactively and debug.
 
