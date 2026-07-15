@@ -170,7 +170,7 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
           await process.exitCode.timeout(
             const Duration(seconds: 5),
             onTimeout: () {
-              process.kill();
+              process.kill(ProcessSignal.sigkill);
               return -1;
             },
           );
