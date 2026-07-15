@@ -915,11 +915,14 @@ Map<String, dynamic> mergeResults(
     Map<String, dynamic> existing, Map<String, dynamic> newResults) {
   final merged = Map<String, dynamic>.from(existing);
 
-  merged['timestamp'] = newResults['timestamp'];
-  merged['is_dry_run'] = newResults['is_dry_run'];
-  merged['watchdog_interval_seconds'] = newResults['watchdog_interval_seconds'];
-  merged['quarantine'] = newResults['quarantine'];
-  merged['universe_gap_analysis'] = newResults['universe_gap_analysis'];
+  merged['timestamp'] = newResults['timestamp'] ?? existing['timestamp'];
+  merged['is_dry_run'] = newResults['is_dry_run'] ?? existing['is_dry_run'];
+  merged['watchdog_interval_seconds'] =
+      newResults['watchdog_interval_seconds'] ??
+          existing['watchdog_interval_seconds'];
+  merged['quarantine'] = newResults['quarantine'] ?? existing['quarantine'];
+  merged['universe_gap_analysis'] =
+      newResults['universe_gap_analysis'] ?? existing['universe_gap_analysis'];
 
   final existingConfigs = Map<String, dynamic>.from(
       (merged['config_results'] as Map?)?.cast<String, dynamic>() ?? {});
