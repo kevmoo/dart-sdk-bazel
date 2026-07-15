@@ -944,7 +944,11 @@ Map<String, dynamic> mergeResults(
           (newConfig['by_suite'] as Map?)?.cast<String, dynamic>() ?? {};
 
       for (final suiteEntry in newBySuite.entries) {
-        existingBySuite[suiteEntry.key] = suiteEntry.value;
+        final newSuiteVal =
+            Map<String, dynamic>.from(suiteEntry.value as Map? ?? {});
+        if ((newSuiteVal['total'] as int? ?? 0) > 0) {
+          existingBySuite[suiteEntry.key] = suiteEntry.value;
+        }
       }
       existingConfig['by_suite'] = existingBySuite;
 
@@ -964,7 +968,10 @@ Map<String, dynamic> mergeResults(
       existingConfig['status'] =
           totalTargets == 0 ? 'Skipped / Filtered Out' : 'Active';
 
-      final newFailedSuites = newBySuite.keys.toSet();
+      final newFailedSuites = newBySuite.entries
+          .where((e) => ((e.value as Map?)?['total'] as int? ?? 0) > 0)
+          .map((e) => e.key)
+          .toSet();
       final existingFailedTargets =
           List<String>.from(existingConfig['failed_targets'] as List? ?? []);
 
