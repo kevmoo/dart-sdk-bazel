@@ -571,7 +571,8 @@ void _main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
       });
 
-      final heartbeatTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      final heartbeatTimer =
+          Timer.periodic(Duration(seconds: watchdogInterval), (_) {
         final currentDt = DateTime.now().difference(startTime).inSeconds;
         final currentElapsedMins = currentDt / 60.0;
         final currentPercent = totalCount > 0
@@ -817,7 +818,18 @@ void _main(List<String> args) async {
           },
           'config_results': serializableConfigResults,
         };
-        await writeJsonFile(outputPath, intermediateOutput);
+        Map<String, dynamic> finalIntermediate = intermediateOutput;
+        final outputFile = File(outputPath);
+        if (outputFile.existsSync()) {
+          try {
+            final content = outputFile.readAsStringSync();
+            if (content.isNotEmpty) {
+              final existing = jsonDecode(content) as Map<String, dynamic>;
+              finalIntermediate = mergeResults(existing, intermediateOutput);
+            }
+          } catch (_) {}
+        }
+        await writeJsonFile(outputPath, finalIntermediate);
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
       } finally {
@@ -874,6 +886,92 @@ void _main(List<String> args) async {
     'config_results': finalConfigResults,
   };
 
-  await writeJsonFile(outputPath, outputMap);
+  Map<String, dynamic> finalOutputMap = outputMap;
+  final outputFile = File(outputPath);
+  if (outputFile.existsSync()) {
+    try {
+      final content = outputFile.readAsStringSync();
+      if (content.isNotEmpty) {
+        final existing = jsonDecode(content) as Map<String, dynamic>;
+        finalOutputMap = mergeResults(existing, outputMap);
+        print('🔄 Merged new test results with existing: $outputPath');
+      }
+    } catch (e) {
+      print(
+          '⚠️ Failed to merge with existing results file (writing fresh): $e');
+    }
+  }
+  await writeJsonFile(outputPath, finalOutputMap);
   print('✅ Exported canonical test completion results to: $outputPath');
+}
+
+Map<String, dynamic> mergeResults(
+    Map<String, dynamic> existing, Map<String, dynamic> newResults) {
+  final merged = Map<String, dynamic>.from(existing);
+
+  merged['timestamp'] = newResults['timestamp'];
+  merged['is_dry_run'] = newResults['is_dry_run'];
+  merged['watchdog_interval_seconds'] = newResults['watchdog_interval_seconds'];
+  merged['quarantine'] = newResults['quarantine'];
+  merged['universe_gap_analysis'] = newResults['universe_gap_analysis'];
+
+  final existingConfigs = Map<String, dynamic>.from(
+      merged['config_results'] as Map<String, dynamic>? ?? {});
+  final newConfigs = newResults['config_results'] as Map<String, dynamic>;
+
+  for (final entry in newConfigs.entries) {
+    final configKey = entry.key;
+    final Map<String, dynamic> newConfig = entry.value;
+
+    if (existingConfigs.containsKey(configKey)) {
+      final Map<String, dynamic> existingConfig = Map<String, dynamic>.from(
+          existingConfigs[configKey] as Map<String, dynamic>);
+
+      final existingBySuite = Map<String, dynamic>.from(
+          existingConfig['by_suite'] as Map<String, dynamic>? ?? {});
+      final Map<String, dynamic> newBySuite =
+          newConfig['by_suite'] as Map<String, dynamic>;
+
+      for (final suiteEntry in newBySuite.entries) {
+        existingBySuite[suiteEntry.key] = suiteEntry.value;
+      }
+      existingConfig['by_suite'] = existingBySuite;
+
+      var totalTargets = 0;
+      var passed = 0;
+      var failed = 0;
+      for (final suiteVal in existingBySuite.values) {
+        final Map<String, dynamic> stats = Map<String, dynamic>.from(suiteVal);
+        totalTargets += stats['total'] as int? ?? 0;
+        passed += stats['passed'] as int? ?? 0;
+        failed += stats['failed'] as int? ?? 0;
+      }
+      existingConfig['total_targets'] = totalTargets;
+      existingConfig['passed'] = passed;
+      existingConfig['failed'] = failed;
+      existingConfig['status'] =
+          totalTargets == 0 ? 'Skipped / Filtered Out' : 'Active';
+
+      final newFailedSuites = newBySuite.keys.toSet();
+      final existingFailedTargets = List<String>.from(
+          existingConfig['failed_targets'] as List<dynamic>? ?? []);
+
+      final filteredFailedTargets = existingFailedTargets.where((t) {
+        final suite = determineSuite(t);
+        return !newFailedSuites.contains(suite);
+      }).toList();
+
+      final newFailedTargets = List<String>.from(
+          newConfig['failed_targets'] as List<dynamic>? ?? []);
+      filteredFailedTargets.addAll(newFailedTargets);
+      existingConfig['failed_targets'] = filteredFailedTargets;
+
+      existingConfigs[configKey] = existingConfig;
+    } else {
+      existingConfigs[configKey] = newConfig;
+    }
+  }
+
+  merged['config_results'] = existingConfigs;
+  return merged;
 }
