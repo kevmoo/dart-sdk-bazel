@@ -73,6 +73,7 @@ Flags:
   --dry-run                 Query and filter targets without executing bazel test
   --output=<path>           JSON output path (default: docs/bazel-migration/test_matrix_results.json)
   --heartbeat=<path>        Heartbeat status file (default: docs/bazel-migration/PATROL_HEARTBEAT.json)
+  --heartbeat-callback=<arg> Command and arguments to run on heartbeat, repeated for each argument (JSON payload is appended as final arg)
   --bazel-arg=<arg>         Extra argument to pass to bazel test (can be repeated)
   --watchdog-interval=<s>   Recommended watchdog timer in seconds (default: 300)
   --include-manual          Include manual and quarantined targets in the run
@@ -137,6 +138,8 @@ double getFreeDiskGb(String path) {
   return -1.0;
 }
 
+List<String>? _heartbeatCallback;
+
 void writeHeartbeat(String path, Map<String, dynamic> data) {
   try {
     final tmpFree = getFreeDiskGb(Directory.systemTemp.path);
@@ -154,6 +157,31 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
       file.deleteSync();
     }
     tmpFile.renameSync(path);
+
+    // Trigger push-based callback if configured
+    final callback = _heartbeatCallback;
+    if (callback != null && callback.isNotEmpty) {
+      final args = [...callback, jsonEncode(data)];
+      Future<void> runCallback() async {
+        try {
+          final process = await Process.start(args[0], args.sublist(1));
+          final stdoutFuture = process.stdout.drain<void>();
+          final stderrFuture = process.stderr.drain<void>();
+          await process.exitCode.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              process.kill(Platform.isWindows
+                  ? ProcessSignal.sigterm
+                  : ProcessSignal.sigkill);
+              return -1;
+            },
+          );
+          await Future.wait([stdoutFuture, stderrFuture]);
+        } catch (_) {}
+      }
+
+      unawaited(runCallback());
+    }
   } catch (_) {}
 }
 
@@ -312,6 +340,11 @@ void _main(List<String> args) async {
       outputPath = arg.substring('--output='.length);
     } else if (arg.startsWith('--heartbeat=')) {
       heartbeatPath = arg.substring('--heartbeat='.length);
+    } else if (arg.startsWith('--heartbeat-callback=')) {
+      final val = arg.substring('--heartbeat-callback='.length);
+      if (val.isNotEmpty) {
+        (_heartbeatCallback ??= []).add(val);
+      }
     } else if (arg.startsWith('--watchdog-interval=')) {
       watchdogInterval =
           int.tryParse(arg.substring('--watchdog-interval='.length)) ??
