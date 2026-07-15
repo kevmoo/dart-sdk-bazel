@@ -162,7 +162,7 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
     final callback = _heartbeatCallback;
     if (callback != null && callback.isNotEmpty) {
       final args = [...callback, jsonEncode(data)];
-      () async {
+      Future<void> runCallback() async {
         try {
           final process = await Process.start(args[0], args.sublist(1));
           final stdoutFuture = process.stdout.drain<void>();
@@ -176,7 +176,9 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
           );
           await Future.wait([stdoutFuture, stderrFuture]);
         } catch (_) {}
-      }();
+      }
+
+      unawaited(runCallback());
     }
   } catch (_) {}
 }
