@@ -571,8 +571,9 @@ void _main(List<String> args) async {
             (ProcessInfo.currentRss / (1024 * 1024)).toStringAsFixed(1),
       });
 
-      final heartbeatTimer =
-          Timer.periodic(Duration(seconds: watchdogInterval), (_) {
+      final heartbeatTimer = Timer.periodic(
+          Duration(seconds: watchdogInterval <= 0 ? 60 : watchdogInterval),
+          (_) {
         final currentDt = DateTime.now().difference(startTime).inSeconds;
         final currentElapsedMins = currentDt / 60.0;
         final currentPercent = totalCount > 0
@@ -818,17 +819,8 @@ void _main(List<String> args) async {
           },
           'config_results': serializableConfigResults,
         };
-        Map<String, dynamic> finalIntermediate = intermediateOutput;
-        final outputFile = File(outputPath);
-        if (outputFile.existsSync()) {
-          try {
-            final content = outputFile.readAsStringSync();
-            if (content.isNotEmpty) {
-              final existing = jsonDecode(content) as Map<String, dynamic>;
-              finalIntermediate = mergeResults(existing, intermediateOutput);
-            }
-          } catch (_) {}
-        }
+        final finalIntermediate =
+            _mergeWithExistingFile(outputPath, intermediateOutput);
         await writeJsonFile(outputPath, finalIntermediate);
       } catch (e) {
         print('⚠️ Error executing chunk ${chunkIdx + 1}: $e');
@@ -886,23 +878,37 @@ void _main(List<String> args) async {
     'config_results': finalConfigResults,
   };
 
-  Map<String, dynamic> finalOutputMap = outputMap;
+  final finalOutputMap =
+      _mergeWithExistingFile(outputPath, outputMap, logWarning: true);
+  await writeJsonFile(outputPath, finalOutputMap);
+  print('✅ Exported canonical test completion results to: $outputPath');
+}
+
+Map<String, dynamic> _mergeWithExistingFile(
+  String outputPath,
+  Map<String, dynamic> newResults, {
+  bool logWarning = false,
+}) {
   final outputFile = File(outputPath);
   if (outputFile.existsSync()) {
     try {
       final content = outputFile.readAsStringSync();
       if (content.isNotEmpty) {
         final existing = jsonDecode(content) as Map<String, dynamic>;
-        finalOutputMap = mergeResults(existing, outputMap);
-        print('🔄 Merged new test results with existing: $outputPath');
+        final merged = mergeResults(existing, newResults);
+        if (logWarning) {
+          print('🔄 Merged new test results with existing: $outputPath');
+        }
+        return merged;
       }
     } catch (e) {
-      print(
-          '⚠️ Failed to merge with existing results file (writing fresh): $e');
+      if (logWarning) {
+        print(
+            '⚠️ Failed to merge with existing results file (writing fresh): $e');
+      }
     }
   }
-  await writeJsonFile(outputPath, finalOutputMap);
-  print('✅ Exported canonical test completion results to: $outputPath');
+  return newResults;
 }
 
 Map<String, dynamic> mergeResults(
@@ -916,21 +922,23 @@ Map<String, dynamic> mergeResults(
   merged['universe_gap_analysis'] = newResults['universe_gap_analysis'];
 
   final existingConfigs = Map<String, dynamic>.from(
-      merged['config_results'] as Map<String, dynamic>? ?? {});
-  final newConfigs = newResults['config_results'] as Map<String, dynamic>;
+      (merged['config_results'] as Map?)?.cast<String, dynamic>() ?? {});
+  final newConfigs =
+      (newResults['config_results'] as Map?)?.cast<String, dynamic>() ?? {};
 
   for (final entry in newConfigs.entries) {
     final configKey = entry.key;
-    final Map<String, dynamic> newConfig = entry.value;
+    final Map<String, dynamic> newConfig =
+        Map<String, dynamic>.from(entry.value as Map? ?? {});
 
     if (existingConfigs.containsKey(configKey)) {
       final Map<String, dynamic> existingConfig = Map<String, dynamic>.from(
-          existingConfigs[configKey] as Map<String, dynamic>);
+          (existingConfigs[configKey] as Map?)?.cast<String, dynamic>() ?? {});
 
       final existingBySuite = Map<String, dynamic>.from(
-          existingConfig['by_suite'] as Map<String, dynamic>? ?? {});
+          (existingConfig['by_suite'] as Map?)?.cast<String, dynamic>() ?? {});
       final Map<String, dynamic> newBySuite =
-          newConfig['by_suite'] as Map<String, dynamic>;
+          (newConfig['by_suite'] as Map?)?.cast<String, dynamic>() ?? {};
 
       for (final suiteEntry in newBySuite.entries) {
         existingBySuite[suiteEntry.key] = suiteEntry.value;
@@ -941,7 +949,8 @@ Map<String, dynamic> mergeResults(
       var passed = 0;
       var failed = 0;
       for (final suiteVal in existingBySuite.values) {
-        final Map<String, dynamic> stats = Map<String, dynamic>.from(suiteVal);
+        final Map<String, dynamic> stats =
+            Map<String, dynamic>.from(suiteVal as Map? ?? {});
         totalTargets += stats['total'] as int? ?? 0;
         passed += stats['passed'] as int? ?? 0;
         failed += stats['failed'] as int? ?? 0;
@@ -953,16 +962,16 @@ Map<String, dynamic> mergeResults(
           totalTargets == 0 ? 'Skipped / Filtered Out' : 'Active';
 
       final newFailedSuites = newBySuite.keys.toSet();
-      final existingFailedTargets = List<String>.from(
-          existingConfig['failed_targets'] as List<dynamic>? ?? []);
+      final existingFailedTargets =
+          List<String>.from(existingConfig['failed_targets'] as List? ?? []);
 
       final filteredFailedTargets = existingFailedTargets.where((t) {
         final suite = determineSuite(t);
         return !newFailedSuites.contains(suite);
       }).toList();
 
-      final newFailedTargets = List<String>.from(
-          newConfig['failed_targets'] as List<dynamic>? ?? []);
+      final newFailedTargets =
+          List<String>.from(newConfig['failed_targets'] as List? ?? []);
       filteredFailedTargets.addAll(newFailedTargets);
       existingConfig['failed_targets'] = filteredFailedTargets;
 
