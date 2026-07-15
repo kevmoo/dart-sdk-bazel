@@ -73,6 +73,7 @@ Flags:
   --dry-run                 Query and filter targets without executing bazel test
   --output=<path>           JSON output path (default: docs/bazel-migration/test_matrix_results.json)
   --heartbeat=<path>        Heartbeat status file (default: docs/bazel-migration/PATROL_HEARTBEAT.json)
+  --heartbeat-callback=<cmd> Comma-separated command and args to run on heartbeat (JSON payload is appended as final arg)
   --bazel-arg=<arg>         Extra argument to pass to bazel test (can be repeated)
   --watchdog-interval=<s>   Recommended watchdog timer in seconds (default: 300)
   --include-manual          Include manual and quarantined targets in the run
@@ -137,6 +138,8 @@ double getFreeDiskGb(String path) {
   return -1.0;
 }
 
+List<String>? _heartbeatCallback;
+
 void writeHeartbeat(String path, Map<String, dynamic> data) {
   try {
     final tmpFree = getFreeDiskGb(Directory.systemTemp.path);
@@ -154,6 +157,21 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
       file.deleteSync();
     }
     tmpFile.renameSync(path);
+
+    // Trigger push-based callback if configured
+    final callback = _heartbeatCallback;
+    if (callback != null && callback.isNotEmpty) {
+      final args = [...callback, jsonEncode(data)];
+      Process.start(args[0], args.sublist(1)).then((process) {
+        process.exitCode.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            process.kill();
+            return -1;
+          },
+        ).catchError((_) => -1);
+      }).catchError((_) {});
+    }
   } catch (_) {}
 }
 
@@ -312,6 +330,11 @@ void _main(List<String> args) async {
       outputPath = arg.substring('--output='.length);
     } else if (arg.startsWith('--heartbeat=')) {
       heartbeatPath = arg.substring('--heartbeat='.length);
+    } else if (arg.startsWith('--heartbeat-callback=')) {
+      final callbackStr = arg.substring('--heartbeat-callback='.length);
+      if (callbackStr.isNotEmpty) {
+        _heartbeatCallback = callbackStr.split(',');
+      }
     } else if (arg.startsWith('--watchdog-interval=')) {
       watchdogInterval =
           int.tryParse(arg.substring('--watchdog-interval='.length)) ??
