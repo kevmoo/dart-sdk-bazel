@@ -73,7 +73,7 @@ Flags:
   --dry-run                 Query and filter targets without executing bazel test
   --output=<path>           JSON output path (default: docs/bazel-migration/test_matrix_results.json)
   --heartbeat=<path>        Heartbeat status file (default: docs/bazel-migration/PATROL_HEARTBEAT.json)
-  --heartbeat-callback=<cmd> Comma-separated command and args to run on heartbeat (JSON payload is appended as final arg)
+  --heartbeat-callback=<arg> Command and arguments to run on heartbeat, repeated for each argument (JSON payload is appended as final arg)
   --bazel-arg=<arg>         Extra argument to pass to bazel test (can be repeated)
   --watchdog-interval=<s>   Recommended watchdog timer in seconds (default: 300)
   --include-manual          Include manual and quarantined targets in the run
@@ -341,9 +341,9 @@ void _main(List<String> args) async {
     } else if (arg.startsWith('--heartbeat=')) {
       heartbeatPath = arg.substring('--heartbeat='.length);
     } else if (arg.startsWith('--heartbeat-callback=')) {
-      final callbackStr = arg.substring('--heartbeat-callback='.length);
-      if (callbackStr.isNotEmpty) {
-        _heartbeatCallback = callbackStr.split(',');
+      final val = arg.substring('--heartbeat-callback='.length);
+      if (val.isNotEmpty) {
+        (_heartbeatCallback ??= []).add(val);
       }
     } else if (arg.startsWith('--watchdog-interval=')) {
       watchdogInterval =
