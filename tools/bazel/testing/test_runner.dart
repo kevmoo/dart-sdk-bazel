@@ -165,8 +165,8 @@ void writeHeartbeat(String path, Map<String, dynamic> data) {
       () async {
         try {
           final process = await Process.start(args[0], args.sublist(1));
-          final stdoutFuture = process.stdout.drain();
-          final stderrFuture = process.stderr.drain();
+          final stdoutFuture = process.stdout.drain<void>();
+          final stderrFuture = process.stderr.drain<void>();
           await process.exitCode.timeout(
             const Duration(seconds: 5),
             onTimeout: () {
