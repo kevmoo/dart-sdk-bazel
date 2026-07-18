@@ -17,7 +17,13 @@
         "@prebuilt_dart_sdk//:bin/dart"
       ],
       "quarantine_patterns": [
-        "test/**"
+        "test/verify_sorted_test.dart",
+        "test/src/plugin/plugin_manager_test.dart",
+        "test/tool/lsp_spec/readme_test.dart",
+        "test/src/services/completion/yaml/pubspec_generator_test.dart",
+        "test/lsp/completion_yaml_test.dart",
+        "test/lsp/pub_package_service_test.dart",
+        "test/benchmarks_test.dart"
       ]
     },
     "pkg/analyzer": {
@@ -29,9 +35,6 @@
       "manual_patterns": [
         "tool/**",
         "test/verify_*_test.dart"
-      ],
-      "quarantine_patterns": [
-        "test/**"
       ],
       "extra_deps_by_pattern": {
         "test/id_tests/**": [

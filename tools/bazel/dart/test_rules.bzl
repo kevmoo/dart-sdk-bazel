@@ -217,8 +217,10 @@ exec "$DART_BIN" "$RUNNER_DART" "$@"
 """, executable = True)
 
     # Run the dynamic generator natively
+    package_config = workspace_dir.get_child(".dart_tool").get_child("package_config.json")
     generator_args = [
         str(dart_path),
+        "--packages=" + str(package_config),
         str(generator_path),
         "--workspace-dir=" + str(workspace_dir),
         "--output-dir=" + str(repository_ctx.path(".")),
