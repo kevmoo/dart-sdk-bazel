@@ -74,6 +74,7 @@ struct atomic_ref {
   }
 
   _Tp fetch_add(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    static_assert(is_integral_v<_Tp> || is_pointer_v<_Tp>, "atomic_ref fetch_add only supports integral or pointer types");
     _Raw __val;
     if constexpr (is_pointer_v<_Tp>) {
       __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
@@ -87,6 +88,7 @@ struct atomic_ref {
   }
 
   _Tp fetch_sub(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    static_assert(is_integral_v<_Tp> || is_pointer_v<_Tp>, "atomic_ref fetch_sub only supports integral or pointer types");
     _Raw __val;
     if constexpr (is_pointer_v<_Tp>) {
       __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
