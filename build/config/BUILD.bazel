@@ -42,8 +42,19 @@ config_setting(
 )
 
 config_setting(
+    name = "release_android",
+    constraint_values = ["@platforms//os:android"],
+    flag_values = {":dart_debug": "false"},
+)
+
+config_setting(
     name = "os_macos",
     constraint_values = ["@platforms//os:macos"],
+)
+
+config_setting(
+    name = "os_android",
+    constraint_values = ["@platforms//os:android"],
 )
 
 config_setting(
@@ -148,6 +159,11 @@ cc_library(
         "//conditions:default": [],
     }),
     linkopts = select({
+        ":release_android": [
+            "-Wl,--gc-sections",
+            "-Wl,-z,max-page-size=65536",
+            "-Wl,--exclude-libs=libc++_static.a",
+        ],
         ":release_linux": [
             "-Wl,--icf=all",
             "-Wl,-O2",
@@ -159,6 +175,11 @@ cc_library(
         ],
         "//conditions:default": [],
     }) + select({
+        ":os_android": [
+            "-llog",
+            "-landroid",
+            "-ldl",
+        ],
         ":os_macos": [
             "-framework",
             "CoreFoundation",
@@ -266,6 +287,11 @@ cc_library(
         "//conditions:default": ["NDEBUG"],
     }),
     linkopts = select({
+        ":release_android": [
+            "-Wl,--gc-sections",
+            "-Wl,-z,max-page-size=65536",
+            "-Wl,--exclude-libs=libc++_static.a",
+        ],
         ":release_linux": [
             "-Wl,--icf=all",
             "-Wl,-O2",
@@ -277,6 +303,11 @@ cc_library(
         ],
         "//conditions:default": [],
     }) + select({
+        ":os_android": [
+            "-llog",
+            "-landroid",
+            "-ldl",
+        ],
         ":os_macos": [
             "-framework",
             "CoreFoundation",

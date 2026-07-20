@@ -1,0 +1,94 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain")
+load(":android_cc_toolchain_config.bzl", "android_cc_toolchain_config")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "android_clang_files",
+    srcs = glob(["bazel_*.py"]) + [
+        "@dart_android_ndk//:all_files",
+        "@dart_linux_x64_clang//:all_files",
+    ],
+)
+
+filegroup(name = "empty")
+
+# ==============================================================================
+# Android ARM64 Toolchain Configurations
+# ==============================================================================
+android_cc_toolchain_config(
+    name = "android_clang_arm64_linux_config",
+    cpu = "aarch64",
+    host_os = "linux",
+    target_triple = "aarch64-linux-android26",
+)
+
+android_cc_toolchain_config(
+    name = "android_clang_arm64_macos_config",
+    cpu = "aarch64",
+    host_os = "macos",
+    target_triple = "aarch64-linux-android26",
+)
+
+cc_toolchain(
+    name = "android_clang_arm64_linux",
+    all_files = ":android_clang_files",
+    ar_files = ":android_clang_files",
+    as_files = ":android_clang_files",
+    compiler_files = ":android_clang_files",
+    dwp_files = ":empty",
+    linker_files = ":android_clang_files",
+    objcopy_files = ":android_clang_files",
+    strip_files = ":android_clang_files",
+    toolchain_config = ":android_clang_arm64_linux_config",
+    toolchain_identifier = "android_clang_arm64_linux",
+)
+
+cc_toolchain(
+    name = "android_clang_arm64_macos",
+    all_files = ":android_clang_files",
+    ar_files = ":android_clang_files",
+    as_files = ":android_clang_files",
+    compiler_files = ":android_clang_files",
+    dwp_files = ":empty",
+    linker_files = ":android_clang_files",
+    objcopy_files = ":android_clang_files",
+    strip_files = ":android_clang_files",
+    toolchain_config = ":android_clang_arm64_macos_config",
+    toolchain_identifier = "android_clang_arm64_macos",
+)
+
+toolchain(
+    name = "android_clang_arm64_linux_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:android",
+        "@platforms//cpu:aarch64",
+    ],
+    toolchain = ":android_clang_arm64_linux",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+toolchain(
+    name = "android_clang_arm64_macos_arm64_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:android",
+        "@platforms//cpu:aarch64",
+    ],
+    toolchain = ":android_clang_arm64_macos",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+# Smoke test for Android C++ compilation
+cc_library(
+    name = "smoke_test",
+    srcs = ["smoke_test.cc"],
+    alwayslink = True,
+)

@@ -188,6 +188,19 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//build/toolchain/android:ndk_repo.bzl%dart_android_ndk": {
+      "general": {
+        "bzlTransitiveDigest": "Ehko37Foy6fHuwZk2pRkO+fqdbkWbNyrK06TjKs+owg=",
+        "usagesDigest": "5pLcI18qDxBUvLGw3LzqbfnNRyANrxY23YFAn/yurwI=",
+        "recordedInputs": [],
+        "generatedRepoSpecs": {
+          "dart_android_ndk": {
+            "repoRuleId": "@@//build/toolchain/android:ndk_repo.bzl%android_ndk_repository",
+            "attributes": {}
+          }
+        }
+      }
+    },
     "//build/toolchain/linux:clang_repo.bzl%dart_clang": {
       "general": {
         "bzlTransitiveDigest": "aISm0X6ZIjlAbb7lrbbnWZwvsd9fP1n2/IFjHfAih6c=",

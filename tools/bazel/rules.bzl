@@ -10,6 +10,11 @@ cc_shared_library = _cc_shared_library
 
 def _inject_local_defines(local_defines, defines):
     custom_local_defines = local_defines + select({
+        "@platforms//os:android": [
+            "DART_TARGET_OS_ANDROID",
+            "ANDROID",
+            "HAVE_SYS_UIO_H",
+        ],
         "@platforms//os:linux": ["DART_TARGET_OS_LINUX"],
         "@platforms//os:macos": ["DART_TARGET_OS_MACOS", "_DARWIN_C_SOURCE"],
         "//conditions:default": [],
@@ -41,6 +46,9 @@ def _inject_local_defines(local_defines, defines):
 
 def _inject_copts(copts):
     return copts + select({
+        "@platforms//os:android": [
+            "-std=c++20",
+        ],
         "@platforms//os:macos": [
             "-mmacosx-version-min=14.0",
         ],
@@ -74,6 +82,13 @@ def cc_binary(name, defines = [], local_defines = [], copts = [], linkopts = [],
         local_defines = _inject_local_defines(local_defines, defines),
         copts = _inject_copts(copts),
         linkopts = linkopts + select({
+            "@platforms//os:android": [
+                "-llog",
+                "-landroid",
+                "-ldl",
+                "-Wl,-z,max-page-size=65536",
+                "-Wl,--exclude-libs=libc++_static.a",
+            ],
             "@platforms//os:macos": [
                 "-mmacosx-version-min=14.0",
             ],
@@ -90,6 +105,13 @@ def cc_test(name, defines = [], local_defines = [], copts = [], linkopts = [], *
         local_defines = _inject_local_defines(local_defines, defines),
         copts = _inject_copts(copts),
         linkopts = linkopts + select({
+            "@platforms//os:android": [
+                "-llog",
+                "-landroid",
+                "-ldl",
+                "-Wl,-z,max-page-size=65536",
+                "-Wl,--exclude-libs=libc++_static.a",
+            ],
             "@platforms//os:macos": [
                 "-mmacosx-version-min=14.0",
             ],

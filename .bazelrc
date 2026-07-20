@@ -19,3 +19,9 @@ build --experimental_inmemory_dotd_files
 build --remote_cache_async
 build:ci --guard_against_concurrent_changes=false
 build:ci --config=remote-cache
+
+# Platform shorthand configurations for cross-compilation
+build:android_arm64   --platforms=//build/platforms:android_arm64
+build:android_x64     --platforms=//build/platforms:android_x64
+build:android_arm     --platforms=//build/platforms:android_arm
+build:android_riscv64 --platforms=//build/platforms:android_riscv64

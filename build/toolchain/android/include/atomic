@@ -1,0 +1,57 @@
+#pragma once
+#include_next <atomic>
+
+#if !defined(__cpp_lib_atomic_ref)
+#define __cpp_lib_atomic_ref 201806L
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+template <typename _Tp>
+struct atomic_ref {
+  explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {}
+  atomic_ref(const atomic_ref&) noexcept = default;
+  atomic_ref& operator=(const atomic_ref&) = delete;
+
+  _Tp load(memory_order __m = memory_order_seq_cst) const noexcept {
+    return __c11_atomic_load(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), static_cast<int>(__m));
+  }
+
+  void store(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
+    __c11_atomic_store(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __desired, static_cast<int>(__m));
+  }
+
+  _Tp exchange(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
+    return __c11_atomic_exchange(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __desired, static_cast<int>(__m));
+  }
+
+  bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
+    return __c11_atomic_compare_exchange_weak(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), &__expected, __desired, static_cast<int>(__success), static_cast<int>(__failure));
+  }
+
+  bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
+    memory_order __failure = (__order == memory_order_acq_rel) ? memory_order_acquire : ((__order == memory_order_release) ? memory_order_relaxed : __order);
+    return compare_exchange_weak(__expected, __desired, __order, __failure);
+  }
+
+  bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
+    return __c11_atomic_compare_exchange_strong(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), &__expected, __desired, static_cast<int>(__success), static_cast<int>(__failure));
+  }
+
+  bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
+    memory_order __failure = (__order == memory_order_acq_rel) ? memory_order_acquire : ((__order == memory_order_release) ? memory_order_relaxed : __order);
+    return compare_exchange_strong(__expected, __desired, __order, __failure);
+  }
+
+  _Tp fetch_add(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    return __c11_atomic_fetch_add(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __arg, static_cast<int>(__m));
+  }
+
+  _Tp fetch_sub(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    return __c11_atomic_fetch_sub(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __arg, static_cast<int>(__m));
+  }
+
+  _Tp* __ptr_;
+};
+
+_LIBCPP_END_NAMESPACE_STD
+#endif

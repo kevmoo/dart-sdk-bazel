@@ -16,9 +16,14 @@ bazel_dep(name = "bazel_skylib", version = "1.8.2")
 dart_clang = use_extension("//build/toolchain/linux:clang_repo.bzl", "dart_clang")
 use_repo(dart_clang, "dart_linux_x64_clang", "dart_linux_x64_sysroot")
 
+dart_android_ndk = use_extension("//build/toolchain/android:ndk_repo.bzl", "dart_android_ndk")
+use_repo(dart_android_ndk, "dart_android_ndk")
+
 register_toolchains(
     "//build/toolchain/linux:clang_x64_toolchain",
     "//build/toolchain/linux:clang_arm64_toolchain",
+    "//build/toolchain/android:android_clang_arm64_linux_toolchain",
+    "//build/toolchain/android:android_clang_arm64_macos_arm64_toolchain",
     "//tools/bazel/dart:prebuilt_dart_toolchain",
 )
 

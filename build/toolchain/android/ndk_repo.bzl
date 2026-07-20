@@ -1,0 +1,75 @@
+"""Repository rule and Bzlmod extension for locating and exposing the Android NDK.
+
+Recursively mirrors/symlinks the Android NDK into the external repository
+so that Bazel sandbox actions have access to all Clang toolchain and sysroot files.
+"""
+
+_BUILD_FILE = """
+package(default_visibility = ["//visibility:public"])
+
+exports_files(glob(["**/*"], allow_empty = True))
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"], allow_empty = True),
+)
+"""
+
+def _android_ndk_repository_impl(repository_ctx):
+    workspace_root = repository_ctx.workspace_root
+    in_tree_ndk = workspace_root.get_child("third_party").get_child("android_tools").get_child("ndk")
+    
+    ndk_path = None
+    if in_tree_ndk.exists:
+        ndk_path = str(in_tree_ndk)
+    elif "ANDROID_NDK_HOME" in repository_ctx.os.environ:
+        ndk_path = repository_ctx.os.environ["ANDROID_NDK_HOME"]
+    elif "ANDROID_NDK_ROOT" in repository_ctx.os.environ:
+        ndk_path = repository_ctx.os.environ["ANDROID_NDK_ROOT"]
+
+    if ndk_path:
+        py_script = repository_ctx.path("symlink_ndk.py")
+        repository_ctx.file(py_script, content = """
+import os
+import sys
+
+src = sys.argv[1]
+dest = sys.argv[2]
+
+for root, dirs, files in os.walk(src, followlinks=True):
+    rel = os.path.relpath(root, src)
+    if rel == ".":
+        td = dest
+    else:
+        td = os.path.join(dest, rel)
+    os.makedirs(td, exist_ok=True)
+    for f in files:
+        src_file = os.path.join(root, f)
+        dest_file = os.path.join(td, f)
+        try:
+            os.symlink(src_file, dest_file)
+        except FileExistsError:
+            pass
+""")
+        res = repository_ctx.execute(["python3", str(py_script), str(ndk_path), "."])
+        repository_ctx.delete(py_script)
+        if res.return_code != 0:
+            fail("Failed to symlink Android NDK: " + res.stderr)
+
+        repository_ctx.file("paths.bzl", "NDK_FOUND = True\n")
+        repository_ctx.file("BUILD.bazel", _BUILD_FILE)
+    else:
+        repository_ctx.file("paths.bzl", "NDK_FOUND = False\n")
+        repository_ctx.file("BUILD.bazel", _BUILD_FILE)
+
+android_ndk_repository = repository_rule(
+    implementation = _android_ndk_repository_impl,
+    environ = ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT"],
+)
+
+def _dart_android_ndk_impl(module_ctx):
+    android_ndk_repository(name = "dart_android_ndk")
+
+dart_android_ndk = module_extension(
+    implementation = _dart_android_ndk_impl,
+)
