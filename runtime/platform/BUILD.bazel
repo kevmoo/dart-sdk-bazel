@@ -7,6 +7,10 @@ load("//tools/bazel:rules.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 TEMPLATE_PLATFORM_OS_SRCS = select({
+    "@platforms//os:android": [
+        "syslog_android.cc",
+        "utils_android.cc",
+    ],
     "@platforms//os:linux": [
         "syslog_linux.cc",
         "utils_linux.cc",
@@ -122,7 +126,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "DART_PRECOMPILED_RUNTIME",
     ],
     deps = [
@@ -214,7 +217,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "DART_PRECOMPILED_RUNTIME",
         "PRODUCT",
     ],
@@ -304,7 +306,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
     ],
     deps = [
         "//build/config:dart_mode",
@@ -395,7 +396,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "PRODUCT",
     ],
     deps = ["//build/config:dart_mode"],
@@ -485,7 +485,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION",
     ],
     deps = [
@@ -577,7 +576,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "DART_PRECOMPILER",
     ],
     deps = [
@@ -761,7 +759,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "DART_PRECOMPILER",
         "PRODUCT",
     ],
@@ -944,7 +941,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "TARGET_ARCH_ARM",
         "DART_PRECOMPILER",
         "PRODUCT",
@@ -1037,7 +1033,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "TARGET_ARCH_ARM64",
         "DART_PRECOMPILER",
         "PRODUCT",
@@ -1130,7 +1125,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "TARGET_ARCH_RISCV64",
         "DART_PRECOMPILER",
         "PRODUCT",
@@ -1223,7 +1217,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "TARGET_ARCH_X64",  # arch-pinned-variant: ok
         "DART_PRECOMPILER",
         "PRODUCT",
@@ -1315,7 +1308,6 @@ cc_library(
     ],
     local_defines = [
         "SUPPORT_PERFETTO",
-        "DART_TARGET_OS_LINUX",
         "DART_PRECOMPILER",
         "TESTING",
     ],

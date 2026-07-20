@@ -1,0 +1,121 @@
+#pragma once
+#include_next <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <type_traits>
+
+#if !defined(__cpp_lib_atomic_ref)
+#define __cpp_lib_atomic_ref 201806L
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+template <typename _Tp>
+struct atomic_ref {
+  static_assert(sizeof(_Tp) == 1 || sizeof(_Tp) == 2 || sizeof(_Tp) == 4 || sizeof(_Tp) == 8,
+                "atomic_ref polyfill only supports 1, 2, 4, or 8-byte types");
+
+  using _Raw = conditional_t<sizeof(_Tp) == 8, uint64_t,
+               conditional_t<sizeof(_Tp) == 4, uint32_t,
+               conditional_t<sizeof(_Tp) == 2, uint16_t, uint8_t>>>;
+
+  explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {
+    if (reinterpret_cast<uintptr_t>(__ptr_) % sizeof(_Tp) != 0) {
+      __builtin_trap();
+    }
+  }
+  atomic_ref(const atomic_ref&) noexcept = default;
+  atomic_ref& operator=(const atomic_ref&) = delete;
+
+  operator _Tp() const noexcept {
+    return load();
+  }
+
+  _Tp operator=(_Tp __desired) const noexcept {
+    store(__desired);
+    return __desired;
+  }
+
+  _Tp load(memory_order __m = memory_order_seq_cst) const noexcept {
+    _Raw __val = __atomic_load_n(reinterpret_cast<const _Raw*>(__ptr_), static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__val, sizeof(_Tp));
+    return __res;
+  }
+
+  void store(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
+    _Raw __val;
+    __builtin_memcpy(&__val, &__desired, sizeof(_Tp));
+    __atomic_store_n(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+  }
+
+  _Tp exchange(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
+    _Raw __val;
+    __builtin_memcpy(&__val, &__desired, sizeof(_Tp));
+    _Raw __old = __atomic_exchange_n(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
+  }
+
+  bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
+    _Raw __exp, __des;
+    __builtin_memcpy(&__exp, &__expected, sizeof(_Tp));
+    __builtin_memcpy(&__des, &__desired, sizeof(_Tp));
+    bool __ret = __atomic_compare_exchange(reinterpret_cast<_Raw*>(__ptr_), &__exp, &__des, true, static_cast<int>(__success), static_cast<int>(__failure));
+    __builtin_memcpy(&__expected, &__exp, sizeof(_Tp));
+    return __ret;
+  }
+
+  bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
+    memory_order __failure = (__order == memory_order_acq_rel) ? memory_order_acquire : ((__order == memory_order_release) ? memory_order_relaxed : __order);
+    return compare_exchange_weak(__expected, __desired, __order, __failure);
+  }
+
+  bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
+    _Raw __exp, __des;
+    __builtin_memcpy(&__exp, &__expected, sizeof(_Tp));
+    __builtin_memcpy(&__des, &__desired, sizeof(_Tp));
+    bool __ret = __atomic_compare_exchange(reinterpret_cast<_Raw*>(__ptr_), &__exp, &__des, false, static_cast<int>(__success), static_cast<int>(__failure));
+    __builtin_memcpy(&__expected, &__exp, sizeof(_Tp));
+    return __ret;
+  }
+
+  bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
+    memory_order __failure = (__order == memory_order_acq_rel) ? memory_order_acquire : ((__order == memory_order_release) ? memory_order_relaxed : __order);
+    return compare_exchange_strong(__expected, __desired, __order, __failure);
+  }
+
+  _Tp fetch_add(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    static_assert(is_integral_v<_Tp> || is_pointer_v<_Tp>, "atomic_ref fetch_add only supports integral or pointer types");
+    _Raw __val;
+    if constexpr (is_pointer_v<_Tp>) {
+      __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
+    } else {
+      __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    }
+    _Raw __old = __atomic_fetch_add(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
+  }
+
+  _Tp fetch_sub(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+    static_assert(is_integral_v<_Tp> || is_pointer_v<_Tp>, "atomic_ref fetch_sub only supports integral or pointer types");
+    _Raw __val;
+    if constexpr (is_pointer_v<_Tp>) {
+      __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
+    } else {
+      __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    }
+    _Raw __old = __atomic_fetch_sub(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
+  }
+
+  _Tp* __ptr_;
+};
+
+_LIBCPP_END_NAMESPACE_STD
+#endif
