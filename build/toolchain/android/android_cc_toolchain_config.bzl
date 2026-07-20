@@ -102,6 +102,8 @@ def _impl(ctx):
         features = features,
         cxx_builtin_include_directories = [
             ndk_sysroot,
+            "external/" + sysroot_repo,
+            "build/toolchain/android/include",
         ],
         toolchain_identifier = "android_clang_" + cpu + "_" + host_os,
         host_system_name = host_os + "-x86_64",
