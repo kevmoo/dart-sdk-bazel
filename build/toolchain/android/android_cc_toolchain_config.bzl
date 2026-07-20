@@ -100,7 +100,9 @@ def _impl(ctx):
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         features = features,
-        cxx_builtin_include_directories = ["/"],
+        cxx_builtin_include_directories = [
+            ndk_sysroot,
+        ],
         toolchain_identifier = "android_clang_" + cpu + "_" + host_os,
         host_system_name = host_os + "-x86_64",
         target_system_name = triple,

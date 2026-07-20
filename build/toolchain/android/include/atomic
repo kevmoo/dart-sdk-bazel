@@ -19,7 +19,11 @@ struct atomic_ref {
                conditional_t<sizeof(_Tp) == 4, uint32_t,
                conditional_t<sizeof(_Tp) == 2, uint16_t, uint8_t>>>;
 
-  explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {}
+  explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {
+    if (reinterpret_cast<uintptr_t>(__ptr_) % sizeof(_Tp) != 0) {
+      __builtin_trap();
+    }
+  }
   atomic_ref(const atomic_ref&) noexcept = default;
   atomic_ref& operator=(const atomic_ref&) = delete;
 
