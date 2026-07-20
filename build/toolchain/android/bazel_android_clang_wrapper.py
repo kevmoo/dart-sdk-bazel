@@ -39,21 +39,30 @@ def main():
     else:
         binary_to_run = find_ndk_binary("clang++")
 
-    # Determine target architecture
-    is_arm64 = any("aarch64" in arg for arg in args)
+    # Extract target triple from arguments or params file, or fallback to heuristics
+    target_triple = None
     for arg in args:
-        if arg.startswith("@"):
-            params_file = arg[1:]
-            if os.path.exists(params_file):
-                with open(params_file, "r") as pf:
-                    content = pf.read()
-                    if "aarch64" in content:
-                        is_arm64 = True
-
-    if is_arm64:
-        target_triple = "aarch64-linux-android26"
-    else:
-        target_triple = "x86_64-linux-android26"
+        if arg.startswith("--target="):
+            target_triple = arg.split("=")[1]
+    if not target_triple:
+        for arg in args:
+            if arg.startswith("@"):
+                params_file = arg[1:]
+                if os.path.exists(params_file):
+                    with open(params_file, "r") as pf:
+                        for line in pf:
+                            if line.startswith("--target="):
+                                target_triple = line.strip().split("=")[1]
+                                break
+    if not target_triple:
+        if any("aarch64" in arg for arg in args):
+            target_triple = "aarch64-linux-android26"
+        elif any("arm" in arg for arg in args):
+            target_triple = "armv7a-linux-androideabi26"
+        elif any("riscv64" in arg for arg in args):
+            target_triple = "riscv64-linux-android35"
+        else:
+            target_triple = "x86_64-linux-android26"
 
     # Find NDK cpufeatures include directory
     cpufeatures_inc = None

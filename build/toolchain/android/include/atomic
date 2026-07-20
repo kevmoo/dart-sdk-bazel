@@ -1,5 +1,8 @@
 #pragma once
 #include_next <atomic>
+#include <cstdint>
+#include <cstring>
+#include <type_traits>
 
 #if !defined(__cpp_lib_atomic_ref)
 #define __cpp_lib_atomic_ref 201806L
@@ -8,24 +11,43 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <typename _Tp>
 struct atomic_ref {
+  using _Raw = typename conditional<sizeof(_Tp) == 8, uint64_t,
+               typename conditional<sizeof(_Tp) == 4, uint32_t,
+               typename conditional<sizeof(_Tp) == 2, uint16_t, uint8_t>::type>::type>::type;
+
   explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {}
   atomic_ref(const atomic_ref&) noexcept = default;
   atomic_ref& operator=(const atomic_ref&) = delete;
 
   _Tp load(memory_order __m = memory_order_seq_cst) const noexcept {
-    return __c11_atomic_load(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), static_cast<int>(__m));
+    _Raw __val = __atomic_load_n(reinterpret_cast<const _Raw*>(__ptr_), static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__val, sizeof(_Tp));
+    return __res;
   }
 
   void store(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
-    __c11_atomic_store(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __desired, static_cast<int>(__m));
+    _Raw __val;
+    __builtin_memcpy(&__val, &__desired, sizeof(_Tp));
+    __atomic_store_n(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
   }
 
   _Tp exchange(_Tp __desired, memory_order __m = memory_order_seq_cst) const noexcept {
-    return __c11_atomic_exchange(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __desired, static_cast<int>(__m));
+    _Raw __val;
+    __builtin_memcpy(&__val, &__desired, sizeof(_Tp));
+    _Raw __old = __atomic_exchange_n(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
   }
 
   bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
-    return __c11_atomic_compare_exchange_weak(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), &__expected, __desired, static_cast<int>(__success), static_cast<int>(__failure));
+    _Raw __exp, __des;
+    __builtin_memcpy(&__exp, &__expected, sizeof(_Tp));
+    __builtin_memcpy(&__des, &__desired, sizeof(_Tp));
+    bool __ret = __atomic_compare_exchange(reinterpret_cast<_Raw*>(__ptr_), &__exp, &__des, true, static_cast<int>(__success), static_cast<int>(__failure));
+    __builtin_memcpy(&__expected, &__exp, sizeof(_Tp));
+    return __ret;
   }
 
   bool compare_exchange_weak(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
@@ -34,7 +56,12 @@ struct atomic_ref {
   }
 
   bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __success, memory_order __failure) const noexcept {
-    return __c11_atomic_compare_exchange_strong(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), &__expected, __desired, static_cast<int>(__success), static_cast<int>(__failure));
+    _Raw __exp, __des;
+    __builtin_memcpy(&__exp, &__expected, sizeof(_Tp));
+    __builtin_memcpy(&__des, &__desired, sizeof(_Tp));
+    bool __ret = __atomic_compare_exchange(reinterpret_cast<_Raw*>(__ptr_), &__exp, &__des, false, static_cast<int>(__success), static_cast<int>(__failure));
+    __builtin_memcpy(&__expected, &__exp, sizeof(_Tp));
+    return __ret;
   }
 
   bool compare_exchange_strong(_Tp& __expected, _Tp __desired, memory_order __order = memory_order_seq_cst) const noexcept {
@@ -43,11 +70,21 @@ struct atomic_ref {
   }
 
   _Tp fetch_add(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
-    return __c11_atomic_fetch_add(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __arg, static_cast<int>(__m));
+    _Raw __val;
+    __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    _Raw __old = __atomic_fetch_add(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
   }
 
   _Tp fetch_sub(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
-    return __c11_atomic_fetch_sub(reinterpret_cast<_Atomic(_Tp)*>(__ptr_), __arg, static_cast<int>(__m));
+    _Raw __val;
+    __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    _Raw __old = __atomic_fetch_sub(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
+    _Tp __res;
+    __builtin_memcpy(&__res, &__old, sizeof(_Tp));
+    return __res;
   }
 
   _Tp* __ptr_;

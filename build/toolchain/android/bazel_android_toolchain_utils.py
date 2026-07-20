@@ -6,10 +6,13 @@ import sys
 
 
 def find_android_toolchain_binary(binary_name):
+    if os.path.lexists("external") and not os.path.exists("external"):
+        try:
+            os.unlink("external")
+        except Exception:
+            pass
     if not os.path.exists("external"):
         try:
-            if os.path.lexists("external"):
-                os.unlink("external")
             os.symlink("../../external", "external")
         except Exception:
             pass

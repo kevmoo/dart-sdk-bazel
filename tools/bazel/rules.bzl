@@ -46,9 +46,6 @@ def _inject_local_defines(local_defines, defines):
 
 def _inject_copts(copts):
     return copts + select({
-        "@platforms//os:android": [
-            "-std=c++20",
-        ],
         "@platforms//os:macos": [
             "-mmacosx-version-min=14.0",
         ],

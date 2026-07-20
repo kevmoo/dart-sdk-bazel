@@ -28,33 +28,9 @@ def _android_ndk_repository_impl(repository_ctx):
         ndk_path = repository_ctx.os.environ["ANDROID_NDK_ROOT"]
 
     if ndk_path:
-        py_script = repository_ctx.path("symlink_ndk.py")
-        repository_ctx.file(py_script, content = """
-import os
-import sys
-
-src = sys.argv[1]
-dest = sys.argv[2]
-
-for root, dirs, files in os.walk(src, followlinks=True):
-    rel = os.path.relpath(root, src)
-    if rel == ".":
-        td = dest
-    else:
-        td = os.path.join(dest, rel)
-    os.makedirs(td, exist_ok=True)
-    for f in files:
-        src_file = os.path.join(root, f)
-        dest_file = os.path.join(td, f)
-        try:
-            os.symlink(src_file, dest_file)
-        except FileExistsError:
-            pass
-""")
-        res = repository_ctx.execute(["python3", str(py_script), str(ndk_path), "."])
-        repository_ctx.delete(py_script)
-        if res.return_code != 0:
-            fail("Failed to symlink Android NDK: " + res.stderr)
+        ndk_dir = repository_ctx.path(ndk_path)
+        for entry in ndk_dir.readdir():
+            repository_ctx.symlink(entry, entry.basename)
 
         repository_ctx.file("paths.bzl", "NDK_FOUND = True\n")
         repository_ctx.file("BUILD.bazel", _BUILD_FILE)
