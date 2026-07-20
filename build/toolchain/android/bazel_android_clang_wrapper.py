@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import glob
 import os
 import subprocess
 import sys

@@ -17,8 +17,9 @@ filegroup(
 
 def _android_ndk_repository_impl(repository_ctx):
     module_label = Label("@//:MODULE.bazel")
-    repository_ctx.watch(module_label)
-    workspace_root = repository_ctx.path(module_label).dirname
+    module_path = repository_ctx.path(module_label)
+    repository_ctx.watch(module_path)
+    workspace_root = module_path.dirname
     in_tree_ndk = workspace_root.get_child("third_party").get_child("android_tools").get_child("ndk")
 
     ndk_path = None
