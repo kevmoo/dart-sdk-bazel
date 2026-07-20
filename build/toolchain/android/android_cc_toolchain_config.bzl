@@ -127,7 +127,7 @@ android_cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
         "cpu": attr.string(mandatory = True),
-        "target_triple": attr.string(mandatory = True),
         "host_os": attr.string(default = "linux"),
+        "target_triple": attr.string(mandatory = True),
     },
 )

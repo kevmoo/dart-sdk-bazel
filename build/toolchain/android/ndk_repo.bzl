@@ -18,7 +18,7 @@ filegroup(
 def _android_ndk_repository_impl(repository_ctx):
     workspace_root = repository_ctx.workspace_root
     in_tree_ndk = workspace_root.get_child("third_party").get_child("android_tools").get_child("ndk")
-    
+
     ndk_path = None
     if in_tree_ndk.exists:
         ndk_path = str(in_tree_ndk)
@@ -67,7 +67,7 @@ android_ndk_repository = repository_rule(
     environ = ["ANDROID_NDK_HOME", "ANDROID_NDK_ROOT"],
 )
 
-def _dart_android_ndk_impl(module_ctx):
+def _dart_android_ndk_impl(_module_ctx):
     android_ndk_repository(name = "dart_android_ndk")
 
 dart_android_ndk = module_extension(
