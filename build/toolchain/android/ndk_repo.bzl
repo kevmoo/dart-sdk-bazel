@@ -33,6 +33,8 @@ def _android_ndk_repository_impl(repository_ctx):
         ndk_dir = repository_ctx.path(ndk_path)
         if ndk_dir.exists:
             for entry in ndk_dir.readdir():
+                if entry.basename in ["BUILD", "BUILD.bazel", "paths.bzl"]:
+                    continue
                 repository_ctx.symlink(entry, entry.basename)
 
             repository_ctx.file("paths.bzl", "NDK_FOUND = True\n")

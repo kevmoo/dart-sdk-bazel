@@ -27,6 +27,15 @@ struct atomic_ref {
   atomic_ref(const atomic_ref&) noexcept = default;
   atomic_ref& operator=(const atomic_ref&) = delete;
 
+  operator _Tp() const noexcept {
+    return load();
+  }
+
+  _Tp operator=(_Tp __desired) const noexcept {
+    store(__desired);
+    return __desired;
+  }
+
   _Tp load(memory_order __m = memory_order_seq_cst) const noexcept {
     _Raw __val = __atomic_load_n(reinterpret_cast<const _Raw*>(__ptr_), static_cast<int>(__m));
     _Tp __res;

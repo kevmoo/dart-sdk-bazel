@@ -9,17 +9,6 @@ from bazel_android_toolchain_utils import find_android_sysroot, find_android_too
 
 
 def find_ndk_binary(binary_name):
-    patterns = [
-        f"external/*dart_android_ndk*/toolchains/llvm/prebuilt/*/bin/{binary_name}",
-        f"../../external/*dart_android_ndk*/toolchains/llvm/prebuilt/*/bin/{binary_name}",
-        f"third_party/android_tools/ndk/toolchains/llvm/prebuilt/*/bin/{binary_name}",
-        f"../../third_party/android_tools/ndk/toolchains/llvm/prebuilt/*/bin/{binary_name}",
-    ]
-    matches = []
-    for p in patterns:
-        matches.extend(sorted(glob.glob(p)))
-    if matches:
-        return os.path.abspath(matches[0])
     return find_android_toolchain_binary(binary_name)
 
 

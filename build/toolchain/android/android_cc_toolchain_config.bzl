@@ -30,7 +30,7 @@ def _impl(ctx):
         tool_path(name = "gcc", path = "bazel_android_clang_wrapper.py"),
         tool_path(name = "ld", path = "bazel_android_clang_wrapper.py"),
         tool_path(name = "ar", path = "bazel_android_ar_wrapper.py"),
-        tool_path(name = "cpp", path = "bazel_android_cpp_wrapper.py"),
+        tool_path(name = "cpp", path = "bazel_android_clang_wrapper.py"),
         tool_path(name = "gcov", path = "/bin/false"),
         tool_path(name = "nm", path = "bazel_android_nm_wrapper.py"),
         tool_path(name = "objdump", path = "bazel_android_objdump_wrapper.py"),
