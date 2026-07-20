@@ -116,9 +116,9 @@ def _impl(ctx):
 android_cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
-        "_sysroot": attr.label(default = Label("@dart_android_ndk//:all_files")),
         "cpu": attr.string(mandatory = True),
         "host_os": attr.string(default = "linux"),
         "target_triple": attr.string(mandatory = True),
+        "_sysroot": attr.label(default = Label("@dart_android_ndk//:all_files")),
     },
 )

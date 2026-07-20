@@ -1,5 +1,6 @@
 #pragma once
 #include_next <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
@@ -11,9 +12,12 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 template <typename _Tp>
 struct atomic_ref {
-  using _Raw = typename conditional<sizeof(_Tp) == 8, uint64_t,
-               typename conditional<sizeof(_Tp) == 4, uint32_t,
-               typename conditional<sizeof(_Tp) == 2, uint16_t, uint8_t>::type>::type>::type;
+  static_assert(sizeof(_Tp) == 1 || sizeof(_Tp) == 2 || sizeof(_Tp) == 4 || sizeof(_Tp) == 8,
+                "atomic_ref polyfill only supports 1, 2, 4, or 8-byte types");
+
+  using _Raw = conditional_t<sizeof(_Tp) == 8, uint64_t,
+               conditional_t<sizeof(_Tp) == 4, uint32_t,
+               conditional_t<sizeof(_Tp) == 2, uint16_t, uint8_t>>>;
 
   explicit atomic_ref(_Tp& __obj) noexcept : __ptr_(&__obj) {}
   atomic_ref(const atomic_ref&) noexcept = default;
