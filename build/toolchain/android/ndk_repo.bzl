@@ -16,7 +16,9 @@ filegroup(
 """
 
 def _android_ndk_repository_impl(repository_ctx):
-    workspace_root = repository_ctx.workspace_root
+    module_label = Label("@//:MODULE.bazel")
+    repository_ctx.watch(module_label)
+    workspace_root = repository_ctx.path(module_label).dirname
     in_tree_ndk = workspace_root.get_child("third_party").get_child("android_tools").get_child("ndk")
 
     ndk_path = None
@@ -29,14 +31,16 @@ def _android_ndk_repository_impl(repository_ctx):
 
     if ndk_path:
         ndk_dir = repository_ctx.path(ndk_path)
-        for entry in ndk_dir.readdir():
-            repository_ctx.symlink(entry, entry.basename)
+        if ndk_dir.exists:
+            for entry in ndk_dir.readdir():
+                repository_ctx.symlink(entry, entry.basename)
 
-        repository_ctx.file("paths.bzl", "NDK_FOUND = True\n")
-        repository_ctx.file("BUILD.bazel", _BUILD_FILE)
-    else:
-        repository_ctx.file("paths.bzl", "NDK_FOUND = False\n")
-        repository_ctx.file("BUILD.bazel", _BUILD_FILE)
+            repository_ctx.file("paths.bzl", "NDK_FOUND = True\n")
+            repository_ctx.file("BUILD.bazel", _BUILD_FILE)
+            return
+
+    repository_ctx.file("paths.bzl", "NDK_FOUND = False\n")
+    repository_ctx.file("BUILD.bazel", _BUILD_FILE)
 
 android_ndk_repository = repository_rule(
     implementation = _android_ndk_repository_impl,

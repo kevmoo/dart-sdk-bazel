@@ -41,9 +41,12 @@ def main():
 
     # Extract target triple from arguments or params file, or fallback to heuristics
     target_triple = None
-    for arg in args:
+    for i, arg in enumerate(args):
         if arg.startswith("--target="):
             target_triple = arg.split("=")[1]
+        elif arg == "--target" and i + 1 < len(args):
+            target_triple = args[i + 1]
+
     if not target_triple:
         for arg in args:
             if arg.startswith("@"):
@@ -51,9 +54,11 @@ def main():
                 if os.path.exists(params_file):
                     with open(params_file, "r") as pf:
                         for line in pf:
-                            if line.startswith("--target="):
-                                target_triple = line.strip().split("=")[1]
+                            line_str = line.strip()
+                            if line_str.startswith("--target="):
+                                target_triple = line_str.split("=")[1]
                                 break
+
     if not target_triple:
         if any("aarch64" in arg for arg in args):
             target_triple = "aarch64-linux-android26"
@@ -101,10 +106,7 @@ def main():
             continue
         elif arg.startswith("-std="):
             has_std = True
-            if is_c_file:
-                new_args.append("-std=c17")
-            else:
-                new_args.append("-std=c++20")
+            new_args.append(arg)
         elif arg.startswith("--sysroot="):
             if sysroot:
                 new_args.append(f"--sysroot={sysroot}")

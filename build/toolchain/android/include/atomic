@@ -69,18 +69,26 @@ struct atomic_ref {
     return compare_exchange_strong(__expected, __desired, __order, __failure);
   }
 
-  _Tp fetch_add(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+  _Tp fetch_add(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
     _Raw __val;
-    __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    if constexpr (is_pointer_v<_Tp>) {
+      __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
+    } else {
+      __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    }
     _Raw __old = __atomic_fetch_add(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
     _Tp __res;
     __builtin_memcpy(&__res, &__old, sizeof(_Tp));
     return __res;
   }
 
-  _Tp fetch_sub(_Tp __arg, memory_order __m = memory_order_seq_cst) const noexcept {
+  _Tp fetch_sub(conditional_t<is_pointer_v<_Tp>, ptrdiff_t, _Tp> __arg, memory_order __m = memory_order_seq_cst) const noexcept {
     _Raw __val;
-    __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    if constexpr (is_pointer_v<_Tp>) {
+      __val = static_cast<_Raw>(__arg * sizeof(remove_pointer_t<_Tp>));
+    } else {
+      __builtin_memcpy(&__val, &__arg, sizeof(_Tp));
+    }
     _Raw __old = __atomic_fetch_sub(reinterpret_cast<_Raw*>(__ptr_), __val, static_cast<int>(__m));
     _Tp __res;
     __builtin_memcpy(&__res, &__old, sizeof(_Tp));

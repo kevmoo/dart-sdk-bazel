@@ -190,7 +190,7 @@
   "moduleExtensions": {
     "//build/toolchain/android:ndk_repo.bzl%dart_android_ndk": {
       "general": {
-        "bzlTransitiveDigest": "yiHVKnuAJ44URWZCDMCL8tHMkIwbwh2rqWmHd/yWy/8=",
+        "bzlTransitiveDigest": "ED8KBnDhXNCCbFORAG6qLaPGnvQN1Yn2WSJ/f0Uh11w=",
         "usagesDigest": "5pLcI18qDxBUvLGw3LzqbfnNRyANrxY23YFAn/yurwI=",
         "recordedInputs": [],
         "generatedRepoSpecs": {

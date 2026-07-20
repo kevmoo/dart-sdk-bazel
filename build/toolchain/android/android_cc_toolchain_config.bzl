@@ -22,7 +22,9 @@ def _impl(ctx):
     if host_os == "macos":
         host_tag = "darwin-x86_64"
 
-    ndk_sysroot = "external/dart_android_ndk/toolchains/llvm/prebuilt/" + host_tag + "/sysroot"
+    sysroot_attr = getattr(ctx.attr, "_sysroot", None)
+    sysroot_repo = getattr(sysroot_attr.label, "repo_name", sysroot_attr.label.workspace_name) if sysroot_attr else "dart_android_ndk"
+    ndk_sysroot = "external/" + sysroot_repo + "/toolchains/llvm/prebuilt/" + host_tag + "/sysroot"
 
     tool_paths = [
         tool_path(name = "gcc", path = "bazel_android_clang_wrapper.py"),
@@ -38,70 +40,58 @@ def _impl(ctx):
         tool_path(name = "llvm-profdata", path = "/bin/false"),
     ]
 
-    target_flags = [
-        "--target=" + triple,
-        "--sysroot=" + ndk_sysroot,
-        "-D_FILE_OFFSET_BITS=64",
-        "-D_LARGEFILE_SOURCE",
-        "-D_LARGEFILE64_SOURCE",
-        "-no-canonical-prefixes",
-        "-fPIC",
-        "-fPIE",
-    ]
-
-    cpp_flags = target_flags + [
-        "-std=c++20",
-    ]
-
-    c_flags = target_flags + [
-        "-std=c17",
-    ]
-
-    target_linkopts = [
-        "--target=" + triple,
-        "--sysroot=" + ndk_sysroot,
-        "-pie",
-        "-Wl,-z,max-page-size=65536",
-        "-Wl,--exclude-libs=libc++_static.a",
-        "-llog",
-        "-landroid",
-        "-ldl",
-    ]
-
     features = [
         feature(
-            name = "dart_android_flags",
+            name = "default_compile_flags",
             enabled = True,
             flag_sets = [
                 flag_set(
                     actions = [
                         ACTION_NAMES.c_compile,
-                    ],
-                    flag_groups = [flag_group(flags = c_flags)],
-                ),
-                flag_set(
-                    actions = [
                         ACTION_NAMES.cpp_compile,
                         ACTION_NAMES.cpp_header_parsing,
                         ACTION_NAMES.cpp_module_compile,
-                        ACTION_NAMES.cpp_module_codegen,
-                    ],
-                    flag_groups = [flag_group(flags = cpp_flags)],
-                ),
-                flag_set(
-                    actions = [
                         ACTION_NAMES.assemble,
                         ACTION_NAMES.preprocess_assemble,
                     ],
-                    flag_groups = [flag_group(flags = target_flags)],
+                    flag_groups = [
+                        flag_group(
+                            flags = [
+                                "--target=" + triple,
+                                "--sysroot=" + ndk_sysroot,
+                                "-ffunction-sections",
+                                "-fdata-sections",
+                                "-no-canonical-prefixes",
+                                "-fPIC",
+                            ],
+                        ),
+                    ],
                 ),
+            ],
+        ),
+        feature(
+            name = "default_link_flags",
+            enabled = True,
+            flag_sets = [
                 flag_set(
                     actions = [
                         ACTION_NAMES.cpp_link_executable,
                         ACTION_NAMES.cpp_link_dynamic_library,
                         ACTION_NAMES.cpp_link_nodeps_dynamic_library,
                     ],
-                    flag_groups = [flag_group(flags = target_linkopts)],
+                    flag_groups = [
+                        flag_group(
+                            flags = [
+                                "--target=" + triple,
+                                "--sysroot=" + ndk_sysroot,
+                                "-Wl,--gc-sections",
+                                "-Wl,-z,nocopyreloc",
+                                "-Wl,--no-undefined",
+                                "-pie",
+                                "-static-libstdc++",
+                            ],
+                        ),
+                    ],
                 ),
             ],
         ),
@@ -109,8 +99,10 @@ def _impl(ctx):
 
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
+        features = features,
+        cxx_builtin_include_directories = ["/"],
         toolchain_identifier = "android_clang_" + cpu + "_" + host_os,
-        host_system_name = host_tag,
+        host_system_name = host_os + "-x86_64",
         target_system_name = triple,
         target_cpu = cpu,
         target_libc = "bionic",
@@ -119,13 +111,12 @@ def _impl(ctx):
         abi_libc_version = "unknown",
         tool_paths = tool_paths,
         builtin_sysroot = ndk_sysroot,
-        features = features,
-        cxx_builtin_include_directories = ["/"],
     )
 
 android_cc_toolchain_config = rule(
     implementation = _impl,
     attrs = {
+        "_sysroot": attr.label(default = Label("@dart_android_ndk//:all_files")),
         "cpu": attr.string(mandatory = True),
         "host_os": attr.string(default = "linux"),
         "target_triple": attr.string(mandatory = True),
