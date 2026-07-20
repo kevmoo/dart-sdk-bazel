@@ -9,14 +9,21 @@ def _get_host_os():
     return "darwin-x86_64" if platform.system().lower() == "darwin" else "linux-x86_64"
 
 
-def find_android_toolchain_binary(binary_name):
+def find_android_toolchain_binary(binary_name, sysroot=None):
     host_os = _get_host_os()
+
+    if sysroot:
+        binary_path = os.path.abspath(os.path.join(sysroot, "..", "bin", binary_name))
+        if os.path.exists(binary_path):
+            return binary_path
 
     # Check exact sandbox paths first to avoid expensive glob/directory traversals
     exact_sandbox_paths = [
         f"external/dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
+        f"external/_main~dart_android_ndk~dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
         f"external/+dart_android_ndk+dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
         f"../../external/dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
+        f"../../external/_main~dart_android_ndk~dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
         f"../../external/+dart_android_ndk+dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/bin/{binary_name}",
     ]
     for path in exact_sandbox_paths:
@@ -54,8 +61,10 @@ def find_android_sysroot():
     # Check exact sandbox paths first
     exact_sandbox_paths = [
         f"external/dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
+        f"external/_main~dart_android_ndk~dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
         f"external/+dart_android_ndk+dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
         f"../../external/dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
+        f"../../external/_main~dart_android_ndk~dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
         f"../../external/+dart_android_ndk+dart_android_ndk/toolchains/llvm/prebuilt/{host_os}/sysroot",
     ]
     for path in exact_sandbox_paths:

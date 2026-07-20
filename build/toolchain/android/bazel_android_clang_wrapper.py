@@ -7,17 +7,12 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 from bazel_android_toolchain_utils import find_android_sysroot, find_android_toolchain_binary
 
 
-def find_ndk_binary(binary_name):
-    return find_android_toolchain_binary(binary_name)
+def find_ndk_binary(binary_name, sysroot=None):
+    return find_android_toolchain_binary(binary_name, sysroot)
 
 
 def main():
     args = sys.argv[1:]
-    sysroot = find_android_sysroot()
-    if not sysroot:
-        print("Error: Android NDK sysroot not found. Ensure the NDK is properly configured.", file=sys.stderr)
-        sys.exit(1)
-
     cwd = os.getcwd()
     wrapper_dir = os.path.dirname(os.path.realpath(__file__))
     shim_inc_dir = os.path.join(wrapper_dir, "include")
@@ -38,15 +33,32 @@ def main():
         else:
             effective_args.append(arg)
 
+    # Extract sysroot from effective arguments if present
+    sysroot = None
+    for i, arg in enumerate(effective_args):
+        if arg.startswith("--sysroot="):
+            sysroot = arg.split("=")[1]
+            break
+        elif arg == "--sysroot" and i + 1 < len(effective_args):
+            sysroot = effective_args[i + 1]
+            break
+
+    if not sysroot:
+        sysroot = find_android_sysroot()
+
+    if not sysroot:
+        print("Error: Android NDK sysroot not found. Ensure the NDK is properly configured.", file=sys.stderr)
+        sys.exit(1)
+
     is_c_file = any(not arg.startswith("-") and arg.endswith(".c") for arg in effective_args)
     is_assembly_file = any(not arg.startswith("-") and (arg.endswith(".s") or arg.endswith(".S")) for arg in effective_args)
     is_linking = not any(arg in ("-c", "-S", "-E") for arg in effective_args)
     has_std = any(arg.startswith("-std=") for arg in effective_args)
 
     if is_linking or is_c_file:
-        binary_to_run = find_ndk_binary("clang++" if is_linking else "clang")
+        binary_to_run = find_ndk_binary("clang++" if is_linking else "clang", sysroot)
     else:
-        binary_to_run = find_ndk_binary("clang++")
+        binary_to_run = find_ndk_binary("clang++", sysroot)
 
     # Extract target triple from effective arguments, or fallback to heuristics
     target_triple = None
