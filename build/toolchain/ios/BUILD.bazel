@@ -51,7 +51,7 @@ cc_toolchain(
 )
 
 cc_toolchain(
-    name = "ios_clang_sim_arm64_macos",
+    name = "ios_clang_sim_x64_macos",
     all_files = ":ios_clang_files",
     ar_files = ":ios_clang_files",
     as_files = ":ios_clang_files",
@@ -60,8 +60,8 @@ cc_toolchain(
     linker_files = ":ios_clang_files",
     objcopy_files = ":ios_clang_files",
     strip_files = ":ios_clang_files",
-    toolchain_config = ":ios_clang_sim_arm64_macos_config",
-    toolchain_identifier = "ios_clang_sim_aarch64_macos",
+    toolchain_config = ":ios_clang_sim_x64_macos_config",
+    toolchain_identifier = "ios_clang_sim_x86_64_macos",
 )
 
 toolchain(
@@ -74,6 +74,19 @@ toolchain(
         "@platforms//cpu:aarch64",
     ],
     toolchain = ":ios_clang_arm64_macos",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+toolchain(
+    name = "ios_clang_sim_x64_macos_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    target_compatible_with = [
+        "@platforms//os:ios",
+        "@platforms//cpu:x86_64",
+    ],
+    toolchain = ":ios_clang_sim_x64_macos",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 

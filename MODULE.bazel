@@ -28,6 +28,7 @@ register_toolchains(
     "//build/toolchain/android:android_clang_arm64_linux_toolchain",
     "//build/toolchain/android:android_clang_arm64_macos_arm64_toolchain",
     "//build/toolchain/ios:ios_clang_arm64_macos_toolchain",
+    "//build/toolchain/ios:ios_clang_sim_x64_macos_toolchain",
     "//tools/bazel/dart:prebuilt_dart_toolchain",
 )
 
