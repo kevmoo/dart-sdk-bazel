@@ -3,14 +3,13 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bazel_ios_toolchain_utils import find_ios_toolchain_binary
 
 
 def main():
-    args = sys.argv[1:]
-    real_binary = find_ios_toolchain_binary("strip")
-    cmd = [real_binary] + args
+    real_strip = find_ios_toolchain_binary("strip")
+    cmd = [real_strip] + sys.argv[1:]
     sys.exit(subprocess.run(cmd).returncode)
 
 
