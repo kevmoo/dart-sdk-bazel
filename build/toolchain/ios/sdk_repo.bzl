@@ -20,6 +20,11 @@ def _ios_sdk_repository_impl(repository_ctx):
     module_path = repository_ctx.path(module_label)
     repository_ctx.watch(module_path)
 
+    if "mac" not in repository_ctx.os.name.lower():
+        repository_ctx.file("paths.bzl", "SDK_FOUND = False\nIPHONEOS_SDK = ''\nIPHONESIMULATOR_SDK = ''\n")
+        repository_ctx.file("BUILD.bazel", _BUILD_FILE)
+        return
+
     # 1. Discover iPhoneOS SDK path
     res = repository_ctx.execute(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"])
     iphoneos_sdk_path = res.stdout.strip() if res.return_code == 0 else ""
@@ -42,6 +47,7 @@ def _ios_sdk_repository_impl(repository_ctx):
     if iphonesimulator_sdk_path:
         sim_dir = repository_ctx.path(iphonesimulator_sdk_path)
         if sim_dir.exists:
+            sdk_found = True
             repository_ctx.symlink(sim_dir, "iphonesimulator_sdk")
 
     if xcode_path:
