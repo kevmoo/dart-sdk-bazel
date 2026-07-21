@@ -109,7 +109,7 @@ def main():
                         else:
                             new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
 
-                    rewritten_params = os.path.join(cwd, os.path.basename(params_file) + ".ios")
+                    rewritten_params = params_file + ".ios"
                     with open(rewritten_params, "w", encoding="utf-8") as pf:
                         pf.writelines(new_lines)
                     new_args.append(f"@{rewritten_params}")

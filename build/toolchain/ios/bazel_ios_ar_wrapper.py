@@ -10,7 +10,6 @@ from bazel_ios_toolchain_utils import find_ios_toolchain_binary
 def main():
     args = sys.argv[1:]
     real_ar = find_ios_toolchain_binary("ar")
-    cwd = os.getcwd()
 
     new_args = []
     for arg in args:
@@ -37,7 +36,7 @@ def main():
                             new_lines.append("-s\n")
                         else:
                             new_lines.append(line)
-                    rewritten_params = os.path.join(cwd, os.path.basename(params_file) + ".ios_ar")
+                    rewritten_params = params_file + ".ios_ar"
                     with open(rewritten_params, "w", encoding="utf-8") as pf:
                         pf.writelines(new_lines)
                     new_args.append(f"@{rewritten_params}")
