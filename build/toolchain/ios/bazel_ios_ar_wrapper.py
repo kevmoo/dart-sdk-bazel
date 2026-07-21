@@ -21,7 +21,7 @@ def main():
                         lines = pf.readlines()
                     new_lines = []
                     for line in lines:
-                        stripped = line.strip()
+                        stripped = line.rstrip("\r\n")
                         if stripped == "rcsD":
                             new_lines.append("rcs\n")
                         elif stripped == "rcD":

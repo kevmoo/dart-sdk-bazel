@@ -18,7 +18,7 @@ def main():
             if os.path.exists(params_file):
                 try:
                     with open(params_file, "r", encoding="utf-8") as pf:
-                        effective_args.extend([line.strip().replace("__BAZEL_EXECROOT__", cwd) for line in pf.readlines()])
+                        effective_args.extend([line.rstrip("\r\n").replace("__BAZEL_EXECROOT__", cwd) for line in pf.readlines()])
                 except IOError:
                     effective_args.append(arg)
             else:
@@ -100,7 +100,7 @@ def main():
                         if skip_param_next:
                             skip_param_next = False
                             continue
-                        stripped = line.strip()
+                        stripped = line.rstrip("\r\n")
                         if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
                             new_lines.append(f"-isysroot\n{sysroot}\n")
                         elif stripped in ("--sysroot", "-isysroot"):
