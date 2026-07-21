@@ -11,6 +11,10 @@ TEMPLATE_PLATFORM_OS_SRCS = select({
         "syslog_android.cc",
         "utils_android.cc",
     ],
+    "@platforms//os:ios": [
+        "syslog_macos.cc",
+        "utils_macos.cc",
+    ],
     "@platforms//os:linux": [
         "syslog_linux.cc",
         "utils_linux.cc",

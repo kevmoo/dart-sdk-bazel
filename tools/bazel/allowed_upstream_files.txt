@@ -17,4 +17,14 @@ build/toolchain/android/bazel_android_toolchain_utils.py
 build/toolchain/android/include/atomic
 build/toolchain/android/ndk_repo.bzl
 build/toolchain/android/smoke_test.cc
+build/toolchain/ios/BUILD.bazel
+build/toolchain/ios/bazel_ios_ar_wrapper.py
+build/toolchain/ios/bazel_ios_clang_wrapper.py
+build/toolchain/ios/bazel_ios_nm_wrapper.py
+build/toolchain/ios/bazel_ios_objdump_wrapper.py
+build/toolchain/ios/bazel_ios_strip_wrapper.py
+build/toolchain/ios/bazel_ios_toolchain_utils.py
+build/toolchain/ios/ios_cc_toolchain_config.bzl
+build/toolchain/ios/sdk_repo.bzl
+build/toolchain/ios/smoke_test.cc
 runtime/platform/BUILD.bazel

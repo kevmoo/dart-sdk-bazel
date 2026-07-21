@@ -25,3 +25,9 @@ build:android_arm64   --platforms=//build/platforms:android_arm64
 build:android_x64     --platforms=//build/platforms:android_x64
 build:android_arm     --platforms=//build/platforms:android_arm
 build:android_riscv64 --platforms=//build/platforms:android_riscv64
+
+# iOS platform shorthand configurations
+build:ios_arm64     --platforms=//build/platforms:ios_arm64
+build:ios_sim_arm64 --platforms=//build/platforms:ios_sim_arm64
+build:ios_x64       --platforms=//build/platforms:ios_x64
+build:ios_arm       --platforms=//build/platforms:ios_arm

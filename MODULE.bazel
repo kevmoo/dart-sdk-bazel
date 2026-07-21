@@ -19,11 +19,17 @@ use_repo(dart_clang, "dart_linux_x64_clang", "dart_linux_x64_sysroot")
 dart_android_ndk = use_extension("//build/toolchain/android:ndk_repo.bzl", "dart_android_ndk")
 use_repo(dart_android_ndk, "dart_android_ndk")
 
+dart_ios_sdk = use_extension("//build/toolchain/ios:sdk_repo.bzl", "dart_ios_sdk")
+use_repo(dart_ios_sdk, "dart_ios_sdk")
+
 register_toolchains(
     "//build/toolchain/linux:clang_x64_toolchain",
     "//build/toolchain/linux:clang_arm64_toolchain",
     "//build/toolchain/android:android_clang_arm64_linux_toolchain",
     "//build/toolchain/android:android_clang_arm64_macos_arm64_toolchain",
+    "//build/toolchain/ios:ios_clang_arm64_macos_toolchain",
+    "//build/toolchain/ios:ios_clang_sim_arm64_macos_toolchain",
+    "//build/toolchain/ios:ios_clang_sim_x64_macos_toolchain",
     "//tools/bazel/dart:prebuilt_dart_toolchain",
 )
 
