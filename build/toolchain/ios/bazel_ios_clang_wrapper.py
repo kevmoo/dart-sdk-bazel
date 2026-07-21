@@ -43,7 +43,7 @@ def main():
     if target_triple:
         is_simulator = "simulator" in target_triple.lower()
     else:
-        is_simulator = any("simulator" in arg.lower() for arg in effective_args if arg.startswith("-"))
+        is_simulator = any(arg.startswith(("-mios-simulator-version-min", "-miphonesimulator-version-min")) for arg in effective_args)
 
     if not target_triple:
         target_triple = "arm64-apple-ios15.0-simulator" if is_simulator else "arm64-apple-ios15.0"
