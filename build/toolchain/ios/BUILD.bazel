@@ -5,9 +5,7 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
     name = "ios_clang_files",
-    srcs = glob(["bazel_*.py"]) + [
-        "@dart_ios_sdk//:all_files",
-    ],
+    srcs = glob(["bazel_*.py"]),
 )
 
 filegroup(name = "empty")

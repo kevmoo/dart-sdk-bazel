@@ -7,11 +7,9 @@ so that Bazel sandbox actions have access to all Apple Clang compiler and sysroo
 _BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
 
-exports_files(glob(["**/*"], allow_empty = True))
-
 filegroup(
     name = "all_files",
-    srcs = glob(["**"], allow_empty = True),
+    srcs = [],
 )
 """
 
