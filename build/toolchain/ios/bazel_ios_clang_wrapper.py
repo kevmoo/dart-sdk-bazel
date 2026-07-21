@@ -18,7 +18,7 @@ def main():
             if os.path.exists(params_file):
                 try:
                     with open(params_file, "r", encoding="utf-8") as pf:
-                        effective_args.extend([line.strip() for line in pf.readlines()])
+                        effective_args.extend([line.strip().replace("__BAZEL_EXECROOT__", cwd) for line in pf.readlines()])
                 except IOError:
                     effective_args.append(arg)
             else:
