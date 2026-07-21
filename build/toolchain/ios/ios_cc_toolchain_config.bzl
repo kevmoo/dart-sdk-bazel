@@ -69,6 +69,28 @@ def _impl(ctx):
                         ),
                     ],
                 ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.c_compile,
+                    ],
+                    flag_groups = [
+                        flag_group(
+                            flags = ["-std=c17"],
+                        ),
+                    ],
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                    ],
+                    flag_groups = [
+                        flag_group(
+                            flags = ["-std=c++20"],
+                        ),
+                    ],
+                ),
             ],
         ),
         feature(
