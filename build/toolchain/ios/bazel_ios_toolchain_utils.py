@@ -10,6 +10,9 @@ def find_sdk_repo_path():
     for start_dir in [cwd, script_dir]:
         cur = start_dir
         while True:
+            direct_path = os.path.join(cur, "external", "dart_ios_sdk")
+            if os.path.isdir(direct_path):
+                return os.path.abspath(direct_path)
             ext = os.path.join(cur, "external")
             if os.path.isdir(ext):
                 try:

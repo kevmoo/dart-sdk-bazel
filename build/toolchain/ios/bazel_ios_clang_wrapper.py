@@ -102,9 +102,9 @@ def main():
                             continue
                         stripped = line.strip()
                         if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
-                            new_lines.append(f"-isysroot\n\"{sysroot}\"\n")
+                            new_lines.append(f"-isysroot\n{sysroot}\n")
                         elif stripped in ("--sysroot", "-isysroot"):
-                            new_lines.append(f"-isysroot\n\"{sysroot}\"\n")
+                            new_lines.append(f"-isysroot\n{sysroot}\n")
                             skip_param_next = True
                         else:
                             new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
