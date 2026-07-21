@@ -201,6 +201,19 @@
         }
       }
     },
+    "//build/toolchain/ios:sdk_repo.bzl%dart_ios_sdk": {
+      "general": {
+        "bzlTransitiveDigest": "v/d/zxKSoDgKWOVNw7X75w13RFGHgfwI2B8ud/h8vBU=",
+        "usagesDigest": "t99m8JP7KMkgSrvT5Eh6ex1orWQBRPUnJr91DWwYjOc=",
+        "recordedInputs": [],
+        "generatedRepoSpecs": {
+          "dart_ios_sdk": {
+            "repoRuleId": "@@//build/toolchain/ios:sdk_repo.bzl%ios_sdk_repository",
+            "attributes": {}
+          }
+        }
+      }
+    },
     "//build/toolchain/linux:clang_repo.bzl%dart_clang": {
       "general": {
         "bzlTransitiveDigest": "aISm0X6ZIjlAbb7lrbbnWZwvsd9fP1n2/IFjHfAih6c=",

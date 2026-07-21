@@ -1,0 +1,85 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_toolchain")
+load(":ios_cc_toolchain_config.bzl", "ios_cc_toolchain_config")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "ios_clang_files",
+    srcs = glob(["bazel_*.py"]) + [
+        "@dart_ios_sdk//:all_files",
+    ],
+)
+
+filegroup(name = "empty")
+
+# ==============================================================================
+# iOS Toolchain Configurations (Device & Simulator)
+# ==============================================================================
+ios_cc_toolchain_config(
+    name = "ios_clang_arm64_macos_config",
+    cpu = "aarch64",
+    is_simulator = False,
+    target_triple = "arm64-apple-ios15.0",
+)
+
+ios_cc_toolchain_config(
+    name = "ios_clang_sim_arm64_macos_config",
+    cpu = "aarch64",
+    is_simulator = True,
+    target_triple = "arm64-apple-ios15.0-simulator",
+)
+
+ios_cc_toolchain_config(
+    name = "ios_clang_sim_x64_macos_config",
+    cpu = "x86_64",
+    is_simulator = True,
+    target_triple = "x86_64-apple-ios15.0-simulator",
+)
+
+cc_toolchain(
+    name = "ios_clang_arm64_macos",
+    all_files = ":ios_clang_files",
+    ar_files = ":ios_clang_files",
+    as_files = ":ios_clang_files",
+    compiler_files = ":ios_clang_files",
+    dwp_files = ":empty",
+    linker_files = ":ios_clang_files",
+    objcopy_files = ":ios_clang_files",
+    strip_files = ":ios_clang_files",
+    toolchain_config = ":ios_clang_arm64_macos_config",
+    toolchain_identifier = "ios_clang_aarch64_macos",
+)
+
+cc_toolchain(
+    name = "ios_clang_sim_arm64_macos",
+    all_files = ":ios_clang_files",
+    ar_files = ":ios_clang_files",
+    as_files = ":ios_clang_files",
+    compiler_files = ":ios_clang_files",
+    dwp_files = ":empty",
+    linker_files = ":ios_clang_files",
+    objcopy_files = ":ios_clang_files",
+    strip_files = ":ios_clang_files",
+    toolchain_config = ":ios_clang_sim_arm64_macos_config",
+    toolchain_identifier = "ios_clang_sim_aarch64_macos",
+)
+
+toolchain(
+    name = "ios_clang_arm64_macos_toolchain",
+    exec_compatible_with = [
+        "@platforms//os:macos",
+    ],
+    target_compatible_with = [
+        "@platforms//os:ios",
+        "@platforms//cpu:aarch64",
+    ],
+    toolchain = ":ios_clang_arm64_macos",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+# Smoke test for iOS C++ compilation
+cc_library(
+    name = "smoke_test",
+    srcs = ["smoke_test.cc"],
+    alwayslink = True,
+)

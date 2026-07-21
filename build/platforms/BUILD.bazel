@@ -55,3 +55,27 @@ platform(
         "@platforms//os:fuchsia",
     ],
 )
+
+platform(
+    name = "ios_arm64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:ios",
+    ],
+)
+
+platform(
+    name = "ios_x64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:ios",
+    ],
+)
+
+platform(
+    name = "ios_arm",
+    constraint_values = [
+        "@platforms//cpu:armv7",
+        "@platforms//os:ios",
+    ],
+)

@@ -15,6 +15,11 @@ def _inject_local_defines(local_defines, defines):
             "ANDROID",
             "HAVE_SYS_UIO_H",
         ],
+        "@platforms//os:ios": [
+            "DART_TARGET_OS_MACOS",
+            "DART_TARGET_OS_MACOS_IOS",
+            "_DARWIN_C_SOURCE",
+        ],
         "@platforms//os:linux": ["DART_TARGET_OS_LINUX"],
         "@platforms//os:macos": ["DART_TARGET_OS_MACOS", "_DARWIN_C_SOURCE"],
         "//conditions:default": [],
@@ -46,6 +51,9 @@ def _inject_local_defines(local_defines, defines):
 
 def _inject_copts(copts):
     return copts + select({
+        "@platforms//os:ios": [
+            "-miphoneos-version-min=15.0",
+        ],
         "@platforms//os:macos": [
             "-mmacosx-version-min=14.0",
         ],
@@ -86,6 +94,15 @@ def cc_binary(name, defines = [], local_defines = [], copts = [], linkopts = [],
                 "-Wl,-z,max-page-size=65536",
                 "-Wl,--exclude-libs=libc++_static.a",
             ],
+            "@platforms//os:ios": [
+                "-miphoneos-version-min=15.0",
+                "-framework",
+                "CoreFoundation",
+                "-framework",
+                "Foundation",
+                "-framework",
+                "Security",
+            ],
             "@platforms//os:macos": [
                 "-mmacosx-version-min=14.0",
             ],
@@ -108,6 +125,15 @@ def cc_test(name, defines = [], local_defines = [], copts = [], linkopts = [], *
                 "-ldl",
                 "-Wl,-z,max-page-size=65536",
                 "-Wl,--exclude-libs=libc++_static.a",
+            ],
+            "@platforms//os:ios": [
+                "-miphoneos-version-min=15.0",
+                "-framework",
+                "CoreFoundation",
+                "-framework",
+                "Foundation",
+                "-framework",
+                "Security",
             ],
             "@platforms//os:macos": [
                 "-mmacosx-version-min=14.0",

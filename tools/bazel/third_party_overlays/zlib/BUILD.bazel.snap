@@ -388,9 +388,6 @@ cc_library(
         "-std=c++20",
         "-fno-rtti",
     ],
-    local_defines = [
-        "NDEBUG",
-    ],
     defines = [
         "ZLIB_IMPLEMENTATION",
     ] + select({
@@ -406,6 +403,9 @@ cc_library(
     linkopts = [
         "-ldl",
         "-lpthread",
+    ],
+    local_defines = [
+        "NDEBUG",
     ],
     deps = [
         "//third_party/zlib:zlib_common_headers",
@@ -557,6 +557,14 @@ config_setting(
     ],
 )
 
+config_setting(
+    name = "arm64_ios",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:ios",
+    ],
+)
+
 cc_library(
     name = "zlib_crc32_simd",
     srcs = [
@@ -611,6 +619,31 @@ cc_library(
         "-std=c++20",
         "-fno-rtti",
     ],
+    defines = [
+        "ZLIB_IMPLEMENTATION",
+    ] + select({
+        "//build/config:cpu_arm64": [
+            "CRC32_ARMV8_CRC32",
+        ],
+        "//build/config:cpu_x64": [
+            "CRC32_SIMD_SSE42_PCLMUL",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        ":arm64_android": [
+            "ARMV8_OS_ANDROID",
+        ],
+        ":arm64_ios": [
+            "ARMV8_OS_MACOS",
+        ],
+        ":arm64_linux": [
+            "ARMV8_OS_LINUX",
+        ],
+        ":arm64_macos": [
+            "ARMV8_OS_MACOS",
+        ],
+        "//conditions:default": [],
+    }),
     linkopts = [
         "-ldl",
         "-lpthread",
@@ -618,28 +651,6 @@ cc_library(
     local_defines = [
         "NDEBUG",
     ],
-    defines = [
-        "ZLIB_IMPLEMENTATION",
-    ] + select({
-        "//build/config:cpu_x64": [
-            "CRC32_SIMD_SSE42_PCLMUL",
-        ],
-        "//build/config:cpu_arm64": [
-            "CRC32_ARMV8_CRC32",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        ":arm64_macos": [
-            "ARMV8_OS_MACOS",
-        ],
-        ":arm64_linux": [
-            "ARMV8_OS_LINUX",
-        ],
-        ":arm64_android": [
-            "ARMV8_OS_ANDROID",
-        ],
-        "//conditions:default": [],
-    }),
     deps = [
         "//third_party/zlib:zlib_common_headers",
     ],
@@ -692,9 +703,6 @@ cc_library(
         "-std=c++20",
         "-fno-rtti",
     ],
-    local_defines = [
-        "NDEBUG",
-    ],
     defines = [
         "ZLIB_IMPLEMENTATION",
         "INFLATE_CHUNK_READ_64LE",
@@ -711,6 +719,9 @@ cc_library(
     linkopts = [
         "-ldl",
         "-lpthread",
+    ],
+    local_defines = [
+        "NDEBUG",
     ],
     deps = [
         "//third_party/zlib:zlib_common_headers",
@@ -759,9 +770,6 @@ cc_library(
         "-std=c++20",
         "-fno-rtti",
     ],
-    local_defines = [
-        "NDEBUG",
-    ],
     defines = [
         "ZLIB_IMPLEMENTATION",
     ] + select({
@@ -776,6 +784,9 @@ cc_library(
     linkopts = [
         "-ldl",
         "-lpthread",
+    ],
+    local_defines = [
+        "NDEBUG",
     ],
     deps = [
         "//third_party/zlib:zlib_common_headers",

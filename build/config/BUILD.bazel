@@ -48,6 +48,12 @@ config_setting(
 )
 
 config_setting(
+    name = "release_ios",
+    constraint_values = ["@platforms//os:ios"],
+    flag_values = {":dart_debug": "false"},
+)
+
+config_setting(
     name = "os_macos",
     constraint_values = ["@platforms//os:macos"],
 )
@@ -55,6 +61,11 @@ config_setting(
 config_setting(
     name = "os_android",
     constraint_values = ["@platforms//os:android"],
+)
+
+config_setting(
+    name = "os_ios",
+    constraint_values = ["@platforms//os:ios"],
 )
 
 config_setting(
@@ -164,6 +175,9 @@ cc_library(
             "-Wl,-z,max-page-size=65536",
             "-Wl,--exclude-libs=libc++_static.a",
         ],
+        ":release_ios": [
+            "-Wl,-dead_strip",
+        ],
         ":release_linux": [
             "-Wl,--icf=all",
             "-Wl,-O2",
@@ -179,6 +193,14 @@ cc_library(
             "-llog",
             "-landroid",
             "-ldl",
+        ],
+        ":os_ios": [
+            "-framework",
+            "CoreFoundation",
+            "-framework",
+            "Foundation",
+            "-framework",
+            "Security",
         ],
         ":os_macos": [
             "-framework",
@@ -292,6 +314,9 @@ cc_library(
             "-Wl,-z,max-page-size=65536",
             "-Wl,--exclude-libs=libc++_static.a",
         ],
+        ":release_ios": [
+            "-Wl,-dead_strip",
+        ],
         ":release_linux": [
             "-Wl,--icf=all",
             "-Wl,-O2",
@@ -307,6 +332,14 @@ cc_library(
             "-llog",
             "-landroid",
             "-ldl",
+        ],
+        ":os_ios": [
+            "-framework",
+            "CoreFoundation",
+            "-framework",
+            "Foundation",
+            "-framework",
+            "Security",
         ],
         ":os_macos": [
             "-framework",
