@@ -64,7 +64,7 @@ def main():
             sysroot = effective_args[i + 1]
             break
 
-    if not sysroot or "dart_ios_sdk" in sysroot or not os.path.exists(sysroot):
+    if not sysroot or not os.path.exists(sysroot):
         sysroot = find_ios_sysroot(is_simulator=is_simulator)
 
     if not sysroot:
