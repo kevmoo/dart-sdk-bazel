@@ -121,5 +121,8 @@ toolchain(
 cc_library(
     name = "smoke_test",
     srcs = ["smoke_test.cc"],
+    target_compatible_with = [
+        "@platforms//os:ios",
+    ],
     alwayslink = True,
 )

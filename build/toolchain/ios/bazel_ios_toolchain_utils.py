@@ -12,11 +12,14 @@ def find_sdk_repo_path():
         while True:
             ext = os.path.join(cur, "external")
             if os.path.isdir(ext):
-                for entry in os.listdir(ext):
-                    if "dart_ios_sdk" in entry:
-                        path = os.path.join(ext, entry)
-                        if os.path.isdir(path):
-                            return os.path.abspath(path)
+                try:
+                    for entry in os.listdir(ext):
+                        if "dart_ios_sdk" in entry:
+                            path = os.path.join(ext, entry)
+                            if os.path.isdir(path):
+                                return os.path.abspath(path)
+                except OSError:
+                    pass
             parent = os.path.dirname(cur)
             if parent == cur:
                 break
