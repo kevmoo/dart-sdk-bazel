@@ -132,9 +132,11 @@ def main():
             else:
                 new_args.insert(0, "-std=c++20")
     else:
-        if "-target" not in new_args and "--target" not in new_args:
+        has_target = any(arg.startswith("-target") or arg.startswith("--target") for arg in effective_args)
+        if not has_target:
             new_args.extend(["-target", target_triple])
-        if "-isysroot" not in new_args and "--sysroot" not in new_args:
+        has_sysroot = any(arg.startswith("-isysroot") or arg.startswith("--sysroot") for arg in effective_args)
+        if not has_sysroot:
             new_args.extend(["-isysroot", sysroot])
 
     cmd = [binary_to_run] + new_args
