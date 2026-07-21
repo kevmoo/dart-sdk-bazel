@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bazel_ios_toolchain_utils import find_ios_sysroot, find_ios_toolchain_binary
 
 
@@ -26,7 +26,29 @@ def main():
         else:
             effective_args.append(arg)
 
-    is_simulator = any("simulator" in arg.lower() for arg in effective_args)
+    # Extract target triple first
+    target_triple = None
+    for i, arg in enumerate(effective_args):
+        if arg.startswith("--target="):
+            target_triple = arg.split("=")[1]
+            break
+        elif arg.startswith("-target="):
+            target_triple = arg.split("=")[1]
+            break
+        elif arg in ("--target", "-target") and i + 1 < len(effective_args):
+            target_triple = effective_args[i + 1]
+            break
+
+    # Determine if we are targeting simulator
+    if target_triple:
+        is_simulator = "simulator" in target_triple.lower()
+    else:
+        is_simulator = any("simulator" in arg.lower() for arg in effective_args if arg.startswith("-"))
+
+    if not target_triple:
+        target_triple = "arm64-apple-ios15.0-simulator" if is_simulator else "arm64-apple-ios15.0"
+
+    # Extract sysroot
     sysroot = None
     for i, arg in enumerate(effective_args):
         if arg.startswith("--sysroot="):
@@ -59,21 +81,6 @@ def main():
         binary_to_run = find_ios_toolchain_binary("clang++" if is_linking else "clang")
     else:
         binary_to_run = find_ios_toolchain_binary("clang++")
-
-    target_triple = None
-    for i, arg in enumerate(effective_args):
-        if arg.startswith("--target="):
-            target_triple = arg.split("=")[1]
-        elif arg.startswith("-target="):
-            target_triple = arg.split("=")[1]
-        elif arg in ("--target", "-target") and i + 1 < len(effective_args):
-            target_triple = effective_args[i + 1]
-
-    if not target_triple:
-        if is_simulator:
-            target_triple = "arm64-apple-ios15.0-simulator"
-        else:
-            target_triple = "arm64-apple-ios15.0"
 
     new_args = []
     skip_next = False
@@ -125,10 +132,10 @@ def main():
             else:
                 new_args.insert(0, "-std=c++20")
     else:
-        new_args.append("-target")
-        new_args.append(target_triple)
-        new_args.append("-isysroot")
-        new_args.append(sysroot)
+        if "-target" not in new_args and "--target" not in new_args:
+            new_args.extend(["-target", target_triple])
+        if "-isysroot" not in new_args and "--sysroot" not in new_args:
+            new_args.extend(["-isysroot", sysroot])
 
     cmd = [binary_to_run] + new_args
     sys.exit(subprocess.run(cmd).returncode)

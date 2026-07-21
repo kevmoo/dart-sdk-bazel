@@ -6,7 +6,7 @@ import sys
 
 def find_sdk_repo_path():
     cwd = os.getcwd()
-    script_dir = os.path.dirname(os.path.realpath(__file__))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     for start_dir in [cwd, script_dir]:
         cur = start_dir
         while True:
