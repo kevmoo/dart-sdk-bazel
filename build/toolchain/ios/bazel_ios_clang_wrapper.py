@@ -17,9 +17,9 @@ def main():
             params_file = arg[1:]
             if os.path.exists(params_file):
                 try:
-                    with open(params_file, "r", encoding="utf-8") as pf:
+                    with open(params_file, "r", encoding="utf-8", errors="replace") as pf:
                         effective_args.extend([line.rstrip("\r\n").replace("__BAZEL_EXECROOT__", cwd) for line in pf.readlines()])
-                except IOError:
+                except Exception:
                     effective_args.append(arg)
             else:
                 effective_args.append(arg)
@@ -92,7 +92,7 @@ def main():
             params_file = arg[1:]
             if os.path.exists(params_file):
                 try:
-                    with open(params_file, "r", encoding="utf-8") as pf:
+                    with open(params_file, "r", encoding="utf-8", errors="replace") as pf:
                         lines = pf.readlines()
                     new_lines = []
                     skip_param_next = False
@@ -110,10 +110,10 @@ def main():
                             new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
 
                     rewritten_params = params_file + ".ios"
-                    with open(rewritten_params, "w", encoding="utf-8") as pf:
+                    with open(rewritten_params, "w", encoding="utf-8", errors="replace") as pf:
                         pf.writelines(new_lines)
                     new_args.append(f"@{rewritten_params}")
-                except IOError:
+                except Exception:
                     new_args.append(arg)
             else:
                 new_args.append(arg)

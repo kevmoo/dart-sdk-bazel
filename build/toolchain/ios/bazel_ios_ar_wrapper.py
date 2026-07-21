@@ -17,7 +17,7 @@ def main():
             params_file = arg[1:]
             if os.path.exists(params_file):
                 try:
-                    with open(params_file, "r", encoding="utf-8") as pf:
+                    with open(params_file, "r", encoding="utf-8", errors="replace") as pf:
                         lines = pf.readlines()
                     new_lines = []
                     for line in lines:
@@ -37,10 +37,10 @@ def main():
                         else:
                             new_lines.append(line)
                     rewritten_params = params_file + ".ios_ar"
-                    with open(rewritten_params, "w", encoding="utf-8") as pf:
+                    with open(rewritten_params, "w", encoding="utf-8", errors="replace") as pf:
                         pf.writelines(new_lines)
                     new_args.append(f"@{rewritten_params}")
-                except IOError:
+                except Exception:
                     new_args.append(arg)
             else:
                 new_args.append(arg)
