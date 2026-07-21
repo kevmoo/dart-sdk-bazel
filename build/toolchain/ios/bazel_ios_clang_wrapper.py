@@ -75,24 +75,28 @@ def main():
             target_triple = "arm64-apple-ios15.0"
 
     new_args = []
-    for arg in args:
+    skip_next = False
+    for i, arg in enumerate(args):
+        if skip_next:
+            skip_next = False
+            continue
         if arg.startswith("@"):
             params_file = arg[1:]
             if os.path.exists(params_file):
                 with open(params_file, "r", encoding="utf-8") as pf:
                     lines = pf.readlines()
                 new_lines = []
-                skip_next = False
+                skip_param_next = False
                 for line in lines:
-                    if skip_next:
-                        skip_next = False
+                    if skip_param_next:
+                        skip_param_next = False
                         continue
                     stripped = line.strip()
                     if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
                         new_lines.append(f"-isysroot\n{sysroot}\n")
                     elif stripped in ("--sysroot", "-isysroot"):
                         new_lines.append(f"-isysroot\n{sysroot}\n")
-                        skip_next = True
+                        skip_param_next = True
                     else:
                         new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
 
@@ -104,6 +108,9 @@ def main():
                 new_args.append(arg)
         elif arg.startswith("--sysroot=") or arg.startswith("-isysroot="):
             new_args.extend(["-isysroot", sysroot])
+        elif arg in ("--sysroot", "-isysroot") and i + 1 < len(args):
+            new_args.extend(["-isysroot", sysroot])
+            skip_next = True
         else:
             new_args.append(arg.replace("__BAZEL_EXECROOT__", cwd))
 
