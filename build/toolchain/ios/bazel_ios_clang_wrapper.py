@@ -50,11 +50,12 @@ def main():
         sys.exit(1)
 
     is_c_file = any(not arg.startswith("-") and arg.endswith(".c") for arg in effective_args)
+    is_objc_file = any(not arg.startswith("-") and arg.endswith(".m") for arg in effective_args)
     is_assembly_file = any(not arg.startswith("-") and (arg.endswith(".s") or arg.endswith(".S")) for arg in effective_args)
     is_linking = not any(arg in ("-c", "-S", "-E") for arg in effective_args)
     has_std = any(arg.startswith("-std=") for arg in effective_args)
 
-    if is_linking or is_c_file:
+    if is_linking or is_c_file or is_objc_file:
         binary_to_run = find_ios_toolchain_binary("clang++" if is_linking else "clang")
     else:
         binary_to_run = find_ios_toolchain_binary("clang++")
@@ -83,27 +84,30 @@ def main():
         if arg.startswith("@"):
             params_file = arg[1:]
             if os.path.exists(params_file):
-                with open(params_file, "r", encoding="utf-8") as pf:
-                    lines = pf.readlines()
-                new_lines = []
-                skip_param_next = False
-                for line in lines:
-                    if skip_param_next:
-                        skip_param_next = False
-                        continue
-                    stripped = line.strip()
-                    if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
-                        new_lines.append(f"-isysroot\n{sysroot}\n")
-                    elif stripped in ("--sysroot", "-isysroot"):
-                        new_lines.append(f"-isysroot\n{sysroot}\n")
-                        skip_param_next = True
-                    else:
-                        new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
+                try:
+                    with open(params_file, "r", encoding="utf-8") as pf:
+                        lines = pf.readlines()
+                    new_lines = []
+                    skip_param_next = False
+                    for line in lines:
+                        if skip_param_next:
+                            skip_param_next = False
+                            continue
+                        stripped = line.strip()
+                        if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
+                            new_lines.append(f"-isysroot\n{sysroot}\n")
+                        elif stripped in ("--sysroot", "-isysroot"):
+                            new_lines.append(f"-isysroot\n{sysroot}\n")
+                            skip_param_next = True
+                        else:
+                            new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
 
-                rewritten_params = params_file + ".ios"
-                with open(rewritten_params, "w", encoding="utf-8") as pf:
-                    pf.writelines(new_lines)
-                new_args.append(f"@{rewritten_params}")
+                    rewritten_params = params_file + ".ios"
+                    with open(rewritten_params, "w", encoding="utf-8") as pf:
+                        pf.writelines(new_lines)
+                    new_args.append(f"@{rewritten_params}")
+                except IOError:
+                    new_args.append(arg)
             else:
                 new_args.append(arg)
         elif arg.startswith("--sysroot=") or arg.startswith("-isysroot="):
@@ -116,7 +120,7 @@ def main():
 
     if not is_linking:
         if not has_std and not is_assembly_file:
-            if is_c_file:
+            if is_c_file or is_objc_file:
                 new_args.insert(0, "-std=c17")
             else:
                 new_args.insert(0, "-std=c++20")
