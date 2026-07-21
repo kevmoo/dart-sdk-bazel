@@ -132,10 +132,10 @@ def main():
             else:
                 new_args.insert(0, "-std=c++20")
     else:
-        has_target = any(arg.startswith("-target") or arg.startswith("--target") for arg in effective_args)
+        has_target = any(arg in ("-target", "--target") or arg.startswith("-target=") or arg.startswith("--target=") for arg in effective_args)
         if not has_target:
             new_args.extend(["-target", target_triple])
-        has_sysroot = any(arg.startswith("-isysroot") or arg.startswith("--sysroot") for arg in effective_args)
+        has_sysroot = any(arg in ("-isysroot", "--sysroot") or arg.startswith("-isysroot=") or arg.startswith("--sysroot=") for arg in effective_args)
         if not has_sysroot:
             new_args.extend(["-isysroot", sysroot])
 
