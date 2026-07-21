@@ -51,9 +51,6 @@ def _inject_local_defines(local_defines, defines):
 
 def _inject_copts(copts):
     return copts + select({
-        "@platforms//os:ios": [
-            "-miphoneos-version-min=15.0",
-        ],
         "@platforms//os:macos": [
             "-mmacosx-version-min=14.0",
         ],
@@ -95,7 +92,6 @@ def cc_binary(name, defines = [], local_defines = [], copts = [], linkopts = [],
                 "-Wl,--exclude-libs=libc++_static.a",
             ],
             "@platforms//os:ios": [
-                "-miphoneos-version-min=15.0",
                 "-framework",
                 "CoreFoundation",
                 "-framework",
@@ -127,7 +123,6 @@ def cc_test(name, defines = [], local_defines = [], copts = [], linkopts = [], *
                 "-Wl,--exclude-libs=libc++_static.a",
             ],
             "@platforms//os:ios": [
-                "-miphoneos-version-min=15.0",
                 "-framework",
                 "CoreFoundation",
                 "-framework",

@@ -82,10 +82,17 @@ def main():
                 with open(params_file, "r", encoding="utf-8") as pf:
                     lines = pf.readlines()
                 new_lines = []
+                skip_next = False
                 for line in lines:
+                    if skip_next:
+                        skip_next = False
+                        continue
                     stripped = line.strip()
                     if stripped.startswith("--sysroot=") or stripped.startswith("-isysroot="):
                         new_lines.append(f"-isysroot\n{sysroot}\n")
+                    elif stripped in ("--sysroot", "-isysroot"):
+                        new_lines.append(f"-isysroot\n{sysroot}\n")
+                        skip_next = True
                     else:
                         new_lines.append(line.replace("__BAZEL_EXECROOT__", cwd))
 

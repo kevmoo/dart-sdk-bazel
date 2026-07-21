@@ -21,12 +21,18 @@ def main():
                 new_lines = []
                 for line in lines:
                     stripped = line.strip()
-                    if "rcsD" in stripped:
-                        new_lines.append(line.replace("rcsD", "rcs"))
-                    elif "rcD" in stripped:
-                        new_lines.append(line.replace("rcD", "rc"))
-                    elif "sD" in stripped:
-                        new_lines.append(line.replace("sD", "s"))
+                    if stripped == "rcsD":
+                        new_lines.append("rcs\n")
+                    elif stripped == "rcD":
+                        new_lines.append("rc\n")
+                    elif stripped == "sD":
+                        new_lines.append("s\n")
+                    elif stripped == "-rcsD":
+                        new_lines.append("-rcs\n")
+                    elif stripped == "-rcD":
+                        new_lines.append("-rc\n")
+                    elif stripped == "-sD":
+                        new_lines.append("-s\n")
                     else:
                         new_lines.append(line)
                 rewritten_params = params_file + ".ios_ar"
@@ -35,12 +41,12 @@ def main():
                 new_args.append(f"@{rewritten_params}")
             else:
                 new_args.append(arg)
-        elif arg == "rcsD":
-            new_args.append("rcs")
-        elif arg == "rcD":
-            new_args.append("rc")
-        elif arg == "sD":
-            new_args.append("s")
+        elif arg in ("rcsD", "-rcsD"):
+            new_args.append("rcs" if arg == "rcsD" else "-rcs")
+        elif arg in ("rcD", "-rcD"):
+            new_args.append("rc" if arg == "rcD" else "-rc")
+        elif arg in ("sD", "-sD"):
+            new_args.append("s" if arg == "sD" else "-s")
         else:
             new_args.append(arg)
 
