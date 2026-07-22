@@ -1031,8 +1031,10 @@ abstract interface class HttpRequest implements Stream<Uint8List> {
 ///     });
 ///
 /// When one of the IOSink methods is used for the
-/// first time, the request header is sent. Calling any methods that
-/// change the header after it is sent throws an exception.
+/// first time, the header is committed. Calling any methods that
+/// change the header after it is committed, throws an exception. The header
+/// and any buffered body data are written to the network when the internal
+/// buffer fills up, when [flush] is called, or when the response is closed.
 ///
 /// If no "Content-Type" header is set then a default of
 /// "text/plain; charset=utf-8" is used and string data written to the IOSink
@@ -1107,6 +1109,12 @@ abstract interface class HttpResponse implements IOSink {
   /// Gets or sets if the [HttpResponse] should buffer output.
   ///
   /// Default value is `true`.
+  ///
+  /// When buffering is enabled, the header and data written to the response
+  /// are held in an internal buffer and reach the network when the buffer
+  /// fills up, when [flush] is called, or when the response is closed. Call
+  /// [flush], or set [bufferOutput] to `false`, to deliver small writes
+  /// promptly, for example when streaming events.
   ///
   /// __Note__: Disabling buffering of the output can result in very poor
   /// performance, when writing many small chunks.

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
@@ -15,8 +16,6 @@ import 'common/fakes.dart';
 Future<HttpServer> startHttpServer() async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((event) async {
-    event.response.add([1, 2, 3]);
-    await event.response.flush();
     await server.close(force: true);
   });
   return server;
@@ -37,8 +36,11 @@ void main() {
     try {
       final client = HttpClient();
       final request = await client.get(uri.host, uri.port, 'getVM');
-      await request.close();
-      fail('Unexpected successful response');
+      final response = await request.close();
+      expect(response.statusCode, HttpStatus.internalServerError);
+      final body = await response.transform(utf8.decoder).join();
+      expect(
+          body, contains('Connection closed before full header was received'));
     } catch (e) {
       expect(
         e.toString(),

@@ -1,3 +1,26 @@
+## 3.14.0
+
+**Released on:** Unreleased
+
+### Libraries
+
+#### `dart:io`
+
+- **Behavioral change**: `HttpResponse` now coalesces the response header
+  and buffered body data into a single socket write, roughly halving the
+  number of `write` syscalls for typical small responses. With the default
+  `bufferOutput`, the header is no longer written to the network when the
+  first body chunk is added; it is sent together with buffered body data
+  when the internal buffer fills up, when `flush` is called, or when the
+  response is closed. Long-lived responses that trickle small writes should
+  call `flush` or set `bufferOutput` to `false`. In addition, `flush` on
+  `HttpResponse` and `HttpClientRequest` now delivers buffered body data to
+  the socket; previously it could complete without doing so. (`flush` still
+  does not force out data held back by the gzip encoder when
+  `HttpServer.autoCompress` is enabled.) See SDK issue [#26283][].
+
+[#26283]: https://github.com/dart-lang/sdk/issues/26283
+
 ## 3.13.0
 
 **Released on:** Unreleased

@@ -35,9 +35,12 @@ part of "dart:_http";
 /// ```
 
 typedef TestingClass$_Cookie = _Cookie;
+typedef TestingClass$_CopyingBytesBuilder = _CopyingBytesBuilder;
 typedef TestingClass$_HttpHeaders = _HttpHeaders;
 typedef TestingClass$_HttpParser = _HttpParser;
+typedef TestingClass$_HttpOutgoing = _HttpOutgoing;
 typedef TestingClass$_HttpRequest = _HttpRequest;
+typedef TestingClass$_HttpResponse = _HttpResponse;
 typedef TestingClass$_SHA1 = _SHA1;
 typedef TestingClass$_WebSocketPerMessageDeflate = _WebSocketPerMessageDeflate;
 typedef TestingClass$_WebSocketProtocolTransformer =
@@ -56,6 +59,17 @@ extension Testing$_HttpHeaders on _HttpHeaders {
 
 extension Testing$_HttpRequest on _HttpRequest {
   _HttpConnection get test$_httpConnection => _httpConnection;
+}
+
+extension Testing$_HttpOutboundMessage on _HttpOutboundMessage {
+  _HttpOutgoing get test$_outgoing => _outgoing;
+}
+
+extension Testing$_HttpOutgoing on _HttpOutgoing {
+  Uint8List? get test$_buffer => _buffer;
+  int get test$_length => _length;
+  void test$_addChunk(List<int> chunk, void Function(List<int> data) add) =>
+      _addChunk(chunk, add);
 }
 
 extension Testing$_HttpConnection on _HttpConnection {
