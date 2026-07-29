@@ -292,11 +292,10 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   }
 }
 
-typedef CompilerArgumentsFunction =
-    List<String> Function(
-      List<String> globalArguments,
-      String? previousCompilerOutput,
-    );
+typedef CompilerArgumentsFunction = List<String> Function(
+  List<String> globalArguments,
+  String? previousCompilerOutput,
+);
 
 class PipelineCommand {
   final CompilerConfiguration compilerConfiguration;
@@ -726,9 +725,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
       var sdkSummaryFile = 'ddc_outline.dill';
-      var sdkSummary = Path(
-        _configuration.buildDirectory,
-      ).append(sdkSummaryFile).absolute.toNativePath();
+      var sdkSummary = Path(_configuration.buildDirectory)
+          .append(sdkSummaryFile)
+          .absolute
+          .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
     }
     args.addAll(options);
@@ -753,9 +753,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       args.add("-s");
       var outlineFilename = '${package}_outline.dill';
 
-      var summary = Path(
-        _configuration.buildDirectory,
-      ).append('$ddcGenDir/$outlineFilename').absolute.toNativePath();
+      var summary = Path(_configuration.buildDirectory)
+          .append('$ddcGenDir/$outlineFilename')
+          .absolute
+          .toNativePath();
       args.add("$summary=$package");
     }
 
@@ -817,12 +818,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
           .path;
-      var sdkJsDir = Uri.directory(
-        _configuration.buildDirectory,
-      ).resolve('$buildOptionsDir/sdk/ddc');
-      var pkgJsDir = Uri.directory(
-        _configuration.buildDirectory,
-      ).resolve('$buildOptionsDir/pkg/ddc');
+      var sdkJsDir = Uri.directory(_configuration.buildDirectory)
+          .resolve('$buildOptionsDir/sdk/ddc');
+      var pkgJsDir = Uri.directory(_configuration.buildDirectory)
+          .resolve('$buildOptionsDir/pkg/ddc');
       var sdkJsPath = 'dart_sdk.js';
       // Approximate the renaming done to identifiers in `pathToJSIdentifier()`
       // from pkg/dev_compiler/lib/src/compiler/js_names.dart to handle the
@@ -914,7 +913,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 =>
       _configuration.architecture == Architecture.arm64 ||
-      _configuration.architecture == Architecture.arm64c;
+      _configuration.architecture == Architecture.arm64c ||
+      _configuration.architecture == Architecture.arm64e;
 
   bool get _isX64 =>
       _configuration.architecture == Architecture.x64 ||
@@ -1245,6 +1245,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64:
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
+          break;
+        case Architecture.arm64e:
+          target = ['-arch', 'arm64e'];
           break;
         case Architecture.riscv32:
         case Architecture.simriscv32:

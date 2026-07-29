@@ -246,19 +246,21 @@ final Matcher isCompletionSuggestion = LazyMatcher(
 ///       PARAMETER
 ///       PACKAGE_NAME
 ///     }
-final Matcher isCompletionSuggestionKind =
-    MatchesEnum('CompletionSuggestionKind', [
-      'ARGUMENT_LIST',
-      'IMPORT',
-      'IDENTIFIER',
-      'INVOCATION',
-      'KEYWORD',
-      'NAMED_ARGUMENT',
-      'OPTIONAL_ARGUMENT',
-      'OVERRIDE',
-      'PARAMETER',
-      'PACKAGE_NAME',
-    ]);
+final Matcher isCompletionSuggestionKind = MatchesEnum(
+  'CompletionSuggestionKind',
+  [
+    'ARGUMENT_LIST',
+    'IMPORT',
+    'IDENTIFIER',
+    'INVOCATION',
+    'KEYWORD',
+    'NAMED_ARGUMENT',
+    'OPTIONAL_ARGUMENT',
+    'OVERRIDE',
+    'PARAMETER',
+    'PACKAGE_NAME',
+  ],
+);
 
 /// ContextRoot
 ///
@@ -811,6 +813,19 @@ final Matcher isParameterKind = MatchesEnum('ParameterKind', [
   'REQUIRED_POSITIONAL',
 ]);
 
+/// PluginConfiguration
+///
+///     {
+///       "enabled": bool
+///       "diagnosticSeverities": Map<String, String>
+///     }
+final Matcher isPluginConfiguration = LazyMatcher(
+  () => MatchesJsonObject('PluginConfiguration', {
+    'enabled': isBool,
+    'diagnosticSeverities': isMapOf(isString, isString),
+  }),
+);
+
 /// PluginDetails
 ///
 ///     {
@@ -1234,6 +1249,28 @@ final Matcher isAnalysisSetAnalysisRootsParams = LazyMatcher(
 
 /// analysis.setAnalysisRoots result
 final Matcher isAnalysisSetAnalysisRootsResult = isNull;
+
+/// analysis.setConfigurations params
+///
+///     {
+///       "configurations": Map<FilePath, Map<String, PluginConfiguration>>
+///     }
+final Matcher isAnalysisSetConfigurationsParams = LazyMatcher(
+  () => MatchesJsonObject('analysis.setConfigurations params', {
+    'configurations': isMapOf(
+      isFilePath,
+      isMapOf(isString, isPluginConfiguration),
+    ),
+  }),
+);
+
+/// analysis.setConfigurations result
+///
+///     {
+///     }
+final Matcher isAnalysisSetConfigurationsResult = LazyMatcher(
+  () => MatchesJsonObject('analysis.setConfigurations result', null),
+);
 
 /// analysis.setContextRoots params
 ///

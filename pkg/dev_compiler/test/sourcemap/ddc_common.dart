@@ -109,6 +109,9 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     // Hack for DDC naming scheme.
     var result = name;
     if (result.startsWith('new ')) result = result.substring(4);
+    if (result.startsWith('dartDevEmbedder.defineLibrary.')) {
+      result = result.substring(30);
+    }
     if (result.startsWith('Object.')) result = result.substring(7);
     var inputName = inputFileName.substring(0, inputFileName.indexOf('.') + 1);
     if (result.startsWith(inputName)) {
@@ -211,17 +214,16 @@ void createHtmlWrapper({
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
     jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"),
   );
-  File.fromUri(
-    outputFile.resolve('$outputFilename.html.html'),
-  ).writeAsStringSync(
-    getWrapperHtmlContent(
-      inputFile: inputFile,
-      jsRootDart: jsRootDart,
-      outFileRootBuild: '/root_build/$outputFilename.html.js',
-      moduleFormat: moduleFormat,
-      canary: canary,
-    ),
-  );
+  File.fromUri(outputFile.resolve('$outputFilename.html.html'))
+      .writeAsStringSync(
+        getWrapperHtmlContent(
+          inputFile: inputFile,
+          jsRootDart: jsRootDart,
+          outFileRootBuild: '/root_build/$outputFilename.html.js',
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+      );
 
   print(
     'You should now be able to run\n\n'

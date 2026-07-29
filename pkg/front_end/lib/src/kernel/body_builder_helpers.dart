@@ -56,32 +56,25 @@ class JumpTarget {
     users.add(statement);
   }
 
-  void resolveBreaks(
-    InternalLabeledStatement target,
-    InternalStatement targetStatement,
-  ) {
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
     assert(isBreakTarget);
     for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
-      breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
     }
     users.clear();
   }
 
-  List<InternalContinueStatement>? resolveContinues(
-    InternalLabeledStatement target,
-  ) {
+  void resolveContinues(InternalContinuableStatement targetStatement) {
     assert(isContinueTarget);
     List<InternalContinueStatement> statements = [];
     for (InternalGotoStatement user in users) {
-      InternalContinueStatement breakStatement =
+      InternalContinueStatement continueStatement =
           user as InternalContinueStatement;
-      breakStatement.target = target;
-      statements.add(breakStatement);
+      statements.add(continueStatement);
+      continueStatement.targetStatement = targetStatement;
     }
     users.clear();
-    return statements;
   }
 
   void resolveGotos(InternalSwitchCase target) {
@@ -163,19 +156,14 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(
-    InternalLabeledStatement target,
-    InternalStatement targetStatement,
-  ) {
-    breakTarget.resolveBreaks(target, targetStatement);
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
+    breakTarget.resolveBreaks(targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<InternalContinueStatement>? resolveContinues(
-    InternalLabeledStatement target,
-  ) {
-    return continueTarget.resolveContinues(target);
+  void resolveContinues(InternalContinuableStatement targetStatement) {
+    continueTarget.resolveContinues(targetStatement);
   }
 
   @override
@@ -458,7 +446,7 @@ class PendingAnnotations(
 
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
-  final Annotatable target,
+  final InternalAnnotatable target,
   final List<InternalExpression> annotations,
 );
 
@@ -467,7 +455,7 @@ class SingleTargetAnnotations(
 /// The annotations are on the first target and needs to be cloned to the
 /// subsequent targets after inference.
 class MultiTargetAnnotations(
-  final List<Annotatable> targets,
+  final List<InternalAnnotatable> targets,
   final List<InternalExpression> annotations,
 );
 

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -128,6 +129,30 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleMixinDeclaration;
     _assertSource(code, node);
+  }
+
+  void test_toSource_ConstructorName_v1Projection() {
+    var code = 'prefix.A.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = new $code();
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(node.toSource(), code);
+  }
+
+  void test_toSource_InstanceCreationExpression_v1Projection() {
+    var code = 'new prefix.A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleInstanceCreationExpression;
+    expect(node.toSource(), code);
   }
 
   void test_visitAdjacentStrings() {
@@ -1082,12 +1107,40 @@ class C {
     _assertSource(code, node);
   }
 
+  void test_visitConstructorInvocation_const() {
+    var code = 'const A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_named() {
+    var code = 'new A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_unnamed() {
+    var code = 'new A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
   void test_visitConstructorName_named_prefix() {
     var code = 'prefix.A.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1096,7 +1149,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1105,7 +1159,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -2542,33 +2597,6 @@ import 'a.dart' $code;
 final x = $code;
 ''');
     var node = parseResult.findNode.singleIndexExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_const() {
-    var code = 'const A()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_named() {
-    var code = 'new A.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_unnamed() {
-    var code = 'new A()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
     _assertSource(code, node);
   }
 
@@ -4568,7 +4596,7 @@ void f() sync* {
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
-    node.accept(ToSourceVisitor(buffer));
+    node.accept2(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
   }
 }

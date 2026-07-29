@@ -83,19 +83,17 @@ class PropertyElementResolver with ScopeHelpers {
         var elementToInfer = _resolver.inferenceHelper
             .constructorElementToInfer(
               typeElement: context.element,
-              constructorName: identifier,
+              constructorName: identifier.token,
               definingLibrary: _resolver.definingLibrary,
             );
         if (elementToInfer != null &&
             elementToInfer.typeParameters.isNotEmpty) {
-          var inferred =
-              _resolver.inferenceHelper.inferTearOff(
-                    node,
-                    identifier,
-                    elementToInfer.asType,
-                    contextType: contextType,
-                  )
-                  as FunctionType;
+          var inferred = _resolver.inferenceHelper.inferTearOff(
+            node,
+            identifier,
+            elementToInfer.asType,
+            contextType: contextType,
+          ) as FunctionType;
           var inferredType = inferred.returnType;
           var constructorElement = SubstitutedConstructorElementImpl.from2(
             elementToInfer.element.baseElement,
@@ -300,7 +298,7 @@ class PropertyElementResolver with ScopeHelpers {
     return _resolve(
       node: node,
       target: target,
-      isCascaded: node.target == null,
+      isCascaded: node.target2 == null,
       isNullAware: node.isNullAware,
       propertyName: propertyName,
       hasRead: hasRead,
@@ -318,7 +316,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (ancestorCascade != null) {
       return _resolve(
         node: node,
-        target: ancestorCascade.target,
+        target: ancestorCascade.target2,
         isCascaded: true,
         isNullAware: ancestorCascade.isNullAware,
         propertyName: node,
@@ -731,7 +729,7 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
   }) {
-    if (target.parent is CascadeExpression) {
+    if (target.parent2 is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
       diagnosticReporter.report(
         diag.extensionOverrideWithCascade.at(target.name),

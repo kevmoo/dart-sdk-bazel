@@ -190,7 +190,7 @@ class Translator with KernelNodes {
   final Map<(w.ModuleBuilder, String), w.Global> _internalizedStringGlobals =
       {};
 
-  final Map<w.HeapType, ClassInfo> classForHeapType = {};
+  final Map<w.HeapType, bool> _isCyclicHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
@@ -306,11 +306,9 @@ class Translator with KernelNodes {
   late final w.RefType stringTypeNullable = stringType.withNullability(true);
 
   // The wasm type used to hold values of `Invocation`
-  late final w.RefType invocationType =
-      translateType(
-            InterfaceType(coreTypes.invocationClass, Nullability.nonNullable),
-          )
-          as w.RefType;
+  late final w.RefType invocationType = translateType(
+    InterfaceType(coreTypes.invocationClass, Nullability.nonNullable),
+  ) as w.RefType;
 
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
@@ -605,9 +603,9 @@ class Translator with KernelNodes {
       // This function will be null if we didn't pass `--use-load-ids` but we
       // ended up not having any actual deferred code (e.g. `await
       // foo.loadLibrary()` is never called anywhere).
-      final function =
-          (functions.getExistingFunction(loadingMapGetter.reference)
-              as w.FunctionBuilder?);
+      final function = (functions.getExistingFunction(
+        loadingMapGetter.reference,
+      ) as w.FunctionBuilder?);
       if (function != null) {
         _patchLoadingMapGetter(function);
       }
@@ -619,9 +617,9 @@ class Translator with KernelNodes {
       // If the actual emitted code accesses the names (i.e. --no-minify and
       // code emits a deferred library load)
       assert(!options.minify);
-      final function =
-          (functions.getExistingFunction(loadingMapNamesGetter.reference)
-              as w.FunctionBuilder?);
+      final function = (functions.getExistingFunction(
+        loadingMapNamesGetter.reference,
+      ) as w.FunctionBuilder?);
       if (function != null) {
         _patchLoadingMapNamesGetter(function);
       }
@@ -710,11 +708,9 @@ class Translator with KernelNodes {
     final prefix = WasmCompilerOptions.deferredModuleFilenamePrefix(
       mainModuleOutput.moduleName,
     );
-    final prefixGetter =
-        functions.getExistingFunction(
-              dartInternalModuleNamePrefixGetter!.reference,
-            )
-            as w.FunctionBuilder;
+    final prefixGetter = functions.getExistingFunction(
+      dartInternalModuleNamePrefixGetter!.reference,
+    ) as w.FunctionBuilder;
     _replaceBody(prefixGetter)
       ..global_get(getInternalizedStringGlobal(mainModule, prefix))
       ..end();
@@ -1520,9 +1516,8 @@ class Translator with KernelNodes {
       );
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
-          : getDummyValuesCollectorForModule(
-              ib.moduleBuilder,
-            ).getDummyFunction(signature);
+          : getDummyValuesCollectorForModule(ib.moduleBuilder)
+                .getDummyFunction(signature);
       functions.add(function);
       ib.ref_func(function);
     }
@@ -2098,10 +2093,10 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfLocalVariable(Variable node) {
-    DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
-    if (dartType is InterfaceType) {
-      final info = classInfo[dartType.classNode];
-      if (info != null && info.isCyclic) {
+    final dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
+    final wasmType = translateType(dartType);
+    if (wasmType case w.RefType(nullable: false, heapType: final heapType)) {
+      if (isCyclicHeapType(heapType)) {
         // Cyclic types can't be instantiated, so locals with cyclic types won't
         // be assigned and we can give them a more general type. Returning a
         // nullable type here makes dummy initialization of the variable
@@ -2109,7 +2104,7 @@ class Translator with KernelNodes {
         return topType;
       }
     }
-    return translateType(dartType);
+    return wasmType;
   }
 
   DartType? _inferredTypeOfParameterVariable(Variable node) {
@@ -2296,15 +2291,15 @@ class Translator with KernelNodes {
         // The body will have to call the super body with evaluated arguments
         // supplied as to the body function.
         if (init is SuperInitializer) {
-          nodeCounter.count += getConstructorInfo(
-            init.target,
-          ).bodyParameters.length;
+          nodeCounter.count += getConstructorInfo(init.target)
+              .bodyParameters
+              .length;
           break;
         }
         if (init is RedirectingInitializer) {
-          nodeCounter.count += getConstructorInfo(
-            init.target,
-          ).bodyParameters.length;
+          nodeCounter.count += getConstructorInfo(init.target)
+              .bodyParameters
+              .length;
           break;
         }
       }
@@ -2648,13 +2643,37 @@ class Translator with KernelNodes {
         return;
       } else if (type is w.FunctionType) {
         b.ref_func(
-          getDummyValuesCollectorForModule(
-            b.moduleBuilder,
-          ).getDummyFunction(type),
+          getDummyValuesCollectorForModule(b.moduleBuilder)
+              .getDummyFunction(type),
         );
         return;
       }
     }
+  }
+
+  /// Whether we can have an instance of [klass] or any of its transitive
+  /// subclasses.
+  bool isAllocatable(Class klass) =>
+      !isCyclicHeapType(classInfo[klass]!.repr.heapType);
+
+  bool isCyclicHeapType(w.HeapType type) {
+    final alreadyCalculated = _isCyclicHeapType[type];
+    if (alreadyCalculated != null) return alreadyCalculated;
+
+    _isCyclicHeapType[type] = true;
+    if (type is w.StructType) {
+      for (final field in type.fields) {
+        if (field.type case w.RefType(
+          nullable: false,
+          heapType: final fieldHeapType,
+        )) {
+          if (isCyclicHeapType(fieldHeapType)) {
+            return _isCyclicHeapType[type] = true;
+          }
+        }
+      }
+    }
+    return _isCyclicHeapType[type] = false;
   }
 }
 
@@ -3439,7 +3458,7 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    node.variable.initializer!.accept(this);
+    node.value.accept(this);
   }
 
   @override

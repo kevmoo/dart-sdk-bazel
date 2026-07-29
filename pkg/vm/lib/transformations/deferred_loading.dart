@@ -10,7 +10,8 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../dominators.dart';
 import '../metadata/loading_units.dart';
-import 'pragma.dart';
+
+import 'package:vm/modular/transformations/pragma.dart';
 
 class _LoadingUnitBuilder {
   late int id;

@@ -115,7 +115,7 @@ abstract interface class TypeAnalyzerOperations<
     required bool inferenceUsingBoundsIsEnabled,
     required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
-    required AstNode? treeNodeForTesting,
+    required AstNode? astNodeForTesting,
   });
 
   TypeConstraintGenerator<
@@ -1094,7 +1094,7 @@ mixin TypeAnalyzerOperationsMixin<
     required bool inferenceUsingBoundsIsEnabled,
     required TypeConstraintGenerationDataForTesting<Variable, AstNode>?
     dataForTesting,
-    required AstNode? treeNodeForTesting,
+    required AstNode? astNodeForTesting,
   }) {
     List<SharedType> inferredTypes =
         previouslyInferredTypes?.toList(growable: false) ??
@@ -1437,27 +1437,24 @@ mixin TypeAnalyzerOperationsMixin<
 
   @override
   SharedTypeView? matchIterableType(SharedTypeView type) {
-    return matchIterableTypeInternal(
-      type.unwrapTypeView(),
-    )?.wrapSharedTypeView();
+    return matchIterableTypeInternal(type.unwrapTypeView())
+        ?.wrapSharedTypeView();
   }
 
   @override
   SharedTypeSchemaView? matchIterableTypeSchema(
     SharedTypeSchemaView typeSchema,
   ) {
-    return matchIterableTypeInternal(
-      typeSchema.unwrapTypeSchemaView(),
-    )?.wrapSharedTypeSchemaView();
+    return matchIterableTypeInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
   }
 
   @override
   SharedTypeSchemaView? matchTypeSchemaFutureOr(
     SharedTypeSchemaView typeSchema,
   ) {
-    return matchFutureOrInternal(
-      typeSchema.unwrapTypeSchemaView(),
-    )?.wrapSharedTypeSchemaView();
+    return matchFutureOrInternal(typeSchema.unwrapTypeSchemaView())
+        ?.wrapSharedTypeSchemaView();
   }
 
   @override

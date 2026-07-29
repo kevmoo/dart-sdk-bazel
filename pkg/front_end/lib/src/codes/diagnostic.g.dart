@@ -7614,6 +7614,14 @@ Message _withArgumentsJsInteropExportNoExportableMembers({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    const MessageCode(
+      "JsInteropExtensionConstructorJsAnnotationHasNoEffect",
+      problemMessage: """The '@JS' annotation on an extension type constructor has no effect.""",
+      correctionMessage: """Remove the '@JS' annotation from the extension type constructor and put it on the extension type to rename non-object literal constructors.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropExtensionTypeMemberNotInterop = const MessageCode(
   "JsInteropExtensionTypeMemberNotInterop",
   problemMessage: """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
@@ -11443,6 +11451,28 @@ Message _withArgumentsSpreadElementTypeMismatch({
       'spreadElementType': spreadElementType,
       'collectionElementType': collectionElementType,
     },
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType spreadType})>
+spreadEntryOrElementTypeMismatch = const Template(
+  "SpreadEntryOrElementTypeMismatch",
+  withArguments: _withArgumentsSpreadEntryOrElementTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSpreadEntryOrElementTypeMismatch({
+  required DartType spreadType,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var spreadType_0 = labeler.labelType(spreadType);
+  return new Message(
+    spreadEntryOrElementTypeMismatch,
+    problemMessage:
+        """Unexpected type '${spreadType_0}' of a spread element.  Expected 'dynamic', a Map or an Iterable.""" +
+        labeler.originMessages,
+    arguments: {'spreadType': spreadType},
   );
 }
 

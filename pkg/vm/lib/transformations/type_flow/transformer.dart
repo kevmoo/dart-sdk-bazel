@@ -27,7 +27,7 @@ import 'package:vm/metadata/table_selector.dart';
 import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -61,13 +61,11 @@ Component transformComponent(
   bool useRapidTypeAnalysis = true,
 }) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy =
-      new ClassHierarchy(
-            component,
-            coreTypes,
-            onAmbiguousSupertypes: ignoreAmbiguousSupertypes,
-          )
-          as ClosedWorldClassHierarchy;
+  final hierarchy = new ClassHierarchy(
+    component,
+    coreTypes,
+    onAmbiguousSupertypes: ignoreAmbiguousSupertypes,
+  ) as ClosedWorldClassHierarchy;
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(
@@ -266,7 +264,7 @@ class MoveFieldInitializers {
           }
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(SyntheticVariable(initializer: initExpr))
+            ? LocalInitializer(SyntheticVariable(), initExpr)
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -1430,7 +1428,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new SyntheticVariable(initializer: _makeUnreachableCall(args)),
+      new SyntheticVariable(),
+      _makeUnreachableCall(args),
     );
   }
 
@@ -1563,9 +1562,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
         _flattenArguments(node.arguments, receiver: node.receiver),
       );
     }
-    node.interfaceTarget =
-        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)
-            as Procedure;
+    node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+      node.interfaceTarget,
+    ) as Procedure;
     shaker.addUsedMember(node.interfaceTarget);
     return node;
   }
@@ -1636,9 +1635,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.left, node.right]);
     }
-    node.interfaceTarget =
-        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)
-            as Procedure;
+    node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+      node.interfaceTarget,
+    ) as Procedure;
     shaker.addUsedMember(node.interfaceTarget);
     return node;
   }
@@ -1681,9 +1680,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)
-              as Procedure;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+      ) as Procedure;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1733,9 +1732,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)
-              as Procedure;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+      ) as Procedure;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1907,9 +1906,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
             SyntheticVariable(
-              initializer: node.value,
               type: visitDartType(field.type, cannotRemoveSentinel),
             ),
+            node.value,
           );
         } else {
           return removalSentinel!;

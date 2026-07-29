@@ -10,11 +10,7 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'get_stack_lib.dart' as testee_lib;
 
-void expectFrame(
-  frame,
-  kindExpectation,
-  codeNameExpectation,
-) {
+void expectFrame(frame, kindExpectation, codeNameExpectation) {
   expect(frame.kind, kindExpectation);
   expect(frame.code?.name, codeNameExpectation);
 }
@@ -29,10 +25,8 @@ void expectFrames(frames, expectKindAndCodeName) {
   }
 }
 
-void main([args = const <String>[]]) => IsolateTestHarness(
-      'get_stack_lib.dart',
-      args,
-    )
+void main([args = const <String>[]]) =>
+    IsolateTestHarness('get_stack_lib.dart', args)
         // Before the first await.
         .hasStoppedAtBreakpoint()
         .stoppedAtLine('LINE_0')
@@ -70,12 +64,13 @@ void main([args = const <String>[]]) => IsolateTestHarness(
         .addCustomTest((VmService service, IsolateRef isolateRef) async {
           final result = await service.getStack(isolateRef.id!);
 
-          expect(result.frames, hasLength(5));
+          expect(result.frames, hasLength(6));
           expect(result.asyncCausalFrames, hasLength(26));
 
           expectFrames(result.frames!, [
             [equals('Regular'), endsWith(' func10')],
             [equals('Regular'), anything], // Internal mech. ..
+            [equals('Regular'), anything],
             [equals('Regular'), anything],
             [equals('Regular'), anything],
             [equals('Regular'), endsWith(' _RawReceivePort._handleMessage')],

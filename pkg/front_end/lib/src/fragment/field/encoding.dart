@@ -577,13 +577,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       "Type has not been computed for field ${_fragment.name}.",
     );
     if (needsPromotion) {
-      SyntheticVariable variable = extern.createVariableCache(
-        _createFieldGet(_field!),
-        _type!.withDeclaredNullability(Nullability.nullable),
+      CachedExpression cache = extern.createCachedExpression(
+        expression: _createFieldGet(_field!),
+        type: _type!.withDeclaredNullability(Nullability.nullable),
       );
       return extern.createLet(
-        variable: variable,
-        body: extern.createVariableGet(variable, promotedType: _type),
+        cache: cache,
+        body: extern.createVariableGet(cache.variable, promotedType: _type),
       );
     } else {
       return _createFieldGet(_field!);
@@ -1237,7 +1237,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
@@ -1804,7 +1804,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');

@@ -36,8 +36,12 @@ import 'package:language_server_protocol/protocol_special.dart';
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
 bool _canParseArgumentEdit(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -61,8 +65,12 @@ bool _canParseArgumentEdit(
 }
 
 bool _canParseBool(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -86,8 +94,12 @@ bool _canParseBool(
 }
 
 bool _canParseElement(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -110,8 +122,12 @@ bool _canParseElement(
 }
 
 bool _canParseErrorCodes(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -135,8 +151,12 @@ bool _canParseErrorCodes(
 }
 
 bool _canParseFileExistence(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -160,8 +180,12 @@ bool _canParseFileExistence(
 }
 
 bool _canParseFileType(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -184,8 +208,12 @@ bool _canParseFileType(
 }
 
 bool _canParseFlutterOutline(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -209,8 +237,12 @@ bool _canParseFlutterOutline(
 }
 
 bool _canParseFormFieldType(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -234,8 +266,12 @@ bool _canParseFormFieldType(
 }
 
 bool _canParseInsertTextFormat(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -259,8 +295,12 @@ bool _canParseInsertTextFormat(
 }
 
 bool _canParseInt(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -284,8 +324,12 @@ bool _canParseInt(
 }
 
 bool _canParseIntString(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -309,8 +353,12 @@ bool _canParseIntString(
 }
 
 bool _canParseListClosingLabel(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -336,8 +384,12 @@ bool _canParseListClosingLabel(
 }
 
 bool _canParseListEditableArgument(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -363,8 +415,12 @@ bool _canParseListEditableArgument(
 }
 
 bool _canParseListFlutterOutline(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -390,8 +446,12 @@ bool _canParseListFlutterOutline(
 }
 
 bool _canParseListFlutterOutlineAttribute(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -407,7 +467,8 @@ bool _canParseListFlutterOutlineAttribute(
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> ||
             value.any(
-                (item) => !FlutterOutlineAttribute.canParse(item, reporter)))) {
+              (item) => !FlutterOutlineAttribute.canParse(item, reporter),
+            ))) {
       reporter.reportError('must be of type List<FlutterOutlineAttribute>');
       return false;
     }
@@ -418,8 +479,12 @@ bool _canParseListFlutterOutlineAttribute(
 }
 
 bool _canParseListFlutterWidgetPreviewDetails(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -434,8 +499,9 @@ bool _canParseListFlutterWidgetPreviewDetails(
     }
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> ||
-            value.any((item) =>
-                !FlutterWidgetPreviewDetails.canParse(item, reporter)))) {
+            value.any(
+              (item) => !FlutterWidgetPreviewDetails.canParse(item, reporter),
+            ))) {
       reporter.reportError('must be of type List<FlutterWidgetPreviewDetails>');
       return false;
     }
@@ -446,8 +512,12 @@ bool _canParseListFlutterWidgetPreviewDetails(
 }
 
 bool _canParseListFormAnswer(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -473,8 +543,12 @@ bool _canParseListFormAnswer(
 }
 
 bool _canParseListFormField(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -499,9 +573,44 @@ bool _canParseListFormField(
   return true;
 }
 
+bool _canParseListMigrationStep(
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !MigrationStep.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<MigrationStep>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListObjectNullable(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -526,8 +635,12 @@ bool _canParseListObjectNullable(
 }
 
 bool _canParseListOutline(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -552,9 +665,44 @@ bool _canParseListOutline(
   return true;
 }
 
+bool _canParseListRegexValidator(
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !RegexValidator.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<StringValidator>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListString(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -579,8 +727,12 @@ bool _canParseListString(
 }
 
 bool _canParseListUri(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -596,7 +748,8 @@ bool _canParseListUri(
     if ((!nullCheck || value != null) &&
         (value is! List<Object?> ||
             value.any(
-                (item) => (item is! String || Uri.tryParse(item) == null)))) {
+              (item) => (item is! String || Uri.tryParse(item) == null),
+            ))) {
       reporter.reportError('must be of type List<Uri>');
       return false;
     }
@@ -607,10 +760,13 @@ bool _canParseListUri(
 }
 
 bool _canParseLiteral(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined,
-    required bool allowsNull,
-    required String literal}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+  required String literal,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -634,8 +790,12 @@ bool _canParseLiteral(
 }
 
 bool _canParseMapStringListString(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -650,11 +810,15 @@ bool _canParseMapStringListString(
     }
     if ((!nullCheck || value != null) &&
         (value is! Map ||
-            (value.keys.any((item) =>
-                item is! String ||
-                value.values.any((item) =>
-                    item is! List<Object?> ||
-                    item.any((item) => item is! String)))))) {
+            (value.keys.any(
+              (item) =>
+                  item is! String ||
+                  value.values.any(
+                    (item) =>
+                        item is! List<Object?> ||
+                        item.any((item) => item is! String),
+                  ),
+            )))) {
       reporter.reportError('must be of type Map<String, List<String>>');
       return false;
     }
@@ -665,8 +829,12 @@ bool _canParseMapStringListString(
 }
 
 bool _canParseMapStringString(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -681,9 +849,11 @@ bool _canParseMapStringString(
     }
     if ((!nullCheck || value != null) &&
         (value is! Map ||
-            (value.keys.any((item) =>
-                item is! String ||
-                value.values.any((item) => item is! String))))) {
+            (value.keys.any(
+              (item) =>
+                  item is! String ||
+                  value.values.any((item) => item is! String),
+            )))) {
       reporter.reportError('must be of type Map<String, String>');
       return false;
     }
@@ -694,8 +864,12 @@ bool _canParseMapStringString(
 }
 
 bool _canParseMethod(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -718,8 +892,12 @@ bool _canParseMethod(
 }
 
 bool _canParseOutline(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -742,8 +920,12 @@ bool _canParseOutline(
 }
 
 bool _canParsePosition(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -766,8 +948,12 @@ bool _canParsePosition(
 }
 
 bool _canParseRange(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -790,8 +976,12 @@ bool _canParseRange(
 }
 
 bool _canParseResponseError(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -815,8 +1005,12 @@ bool _canParseResponseError(
 }
 
 bool _canParseString(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -840,8 +1034,12 @@ bool _canParseString(
 }
 
 bool _canParseTextDocumentIdentifier(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -865,8 +1063,12 @@ bool _canParseTextDocumentIdentifier(
 }
 
 bool _canParseUri(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -890,9 +1092,42 @@ bool _canParseUri(
   return true;
 }
 
+bool _canParseValidationSeverity(
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ValidationSeverity.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseWorkspaceEdit(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
+  Map<String, Object?> map,
+  LspJsonReporter reporter,
+  String fieldName, {
+  required bool allowsUndefined,
+  required bool allowsNull,
+}) {
   reporter.push(fieldName);
   try {
     if (!allowsUndefined && !map.containsKey(fieldName)) {
@@ -919,8 +1154,8 @@ Either2<int, String> _eitherIntString(Object? value) {
   return value is int
       ? Either2.t1(value)
       : value is String
-          ? Either2.t2(value)
-          : throw '$value was not one of (int, String)';
+      ? Either2.t2(value)
+      : throw '$value was not one of (int, String)';
 }
 
 typedef DocumentUri = Uri;
@@ -931,9 +1166,18 @@ typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
 
-typedef TextDocumentEditEdits = List<
-    Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit,
-        TextEdit>>;
+/// Validators applicable to string fields.
+typedef StringValidator = RegexValidator;
+
+typedef TextDocumentEditEdits =
+    List<
+      Either4<
+        AnnotatedTextEdit,
+        LegacySnippetTextEdit,
+        SnippetTextEdit,
+        TextEdit
+      >
+    >;
 
 class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
@@ -943,9 +1187,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   final bool isAnalyzing;
 
-  AnalyzerStatusParams({
-    required this.isAnalyzing,
-  });
+  AnalyzerStatusParams({required this.isAnalyzing});
 
   @override
   int get hashCode => isAnalyzing.hashCode;
@@ -969,8 +1211,13 @@ class AnalyzerStatusParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseBool(obj, reporter, 'isAnalyzing',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseBool(
+        obj,
+        reporter,
+        'isAnalyzing',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type AnalyzerStatusParams');
       return false;
@@ -980,9 +1227,7 @@ class AnalyzerStatusParams implements ToJsonable {
   static AnalyzerStatusParams fromJson(Map<String, Object?> json) {
     final isAnalyzingJson = json['isAnalyzing'];
     final isAnalyzing = isAnalyzingJson as bool;
-    return AnalyzerStatusParams(
-      isAnalyzing: isAnalyzing,
-    );
+    return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
   }
 }
 
@@ -996,15 +1241,9 @@ class ArgumentEdit implements ToJsonable {
 
   final Object? newValue;
 
-  ArgumentEdit({
-    required this.name,
-    this.newValue,
-  });
+  ArgumentEdit({required this.name, this.newValue});
   @override
-  int get hashCode => Object.hash(
-        name,
-        newValue,
-      );
+  int get hashCode => Object.hash(name, newValue);
 
   @override
   bool operator ==(Object other) {
@@ -1027,8 +1266,13 @@ class ArgumentEdit implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ArgumentEdit');
       return false;
@@ -1040,10 +1284,7 @@ class ArgumentEdit implements ToJsonable {
     final name = nameJson as String;
     final newValueJson = json['newValue'];
     final newValue = newValueJson;
-    return ArgumentEdit(
-      name: name,
-      newValue: newValue,
-    );
+    return ArgumentEdit(name: name, newValue: newValue);
   }
 }
 
@@ -1057,15 +1298,9 @@ class ClosingLabel implements ToJsonable {
 
   final Range range;
 
-  ClosingLabel({
-    required this.label,
-    required this.range,
-  });
+  ClosingLabel({required this.label, required this.range});
   @override
-  int get hashCode => Object.hash(
-        label,
-        range,
-      );
+  int get hashCode => Object.hash(label, range);
 
   @override
   bool operator ==(Object other) {
@@ -1088,12 +1323,22 @@ class ClosingLabel implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'label',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'label',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ClosingLabel');
       return false;
@@ -1105,10 +1350,7 @@ class ClosingLabel implements ToJsonable {
     final label = labelJson as String;
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
-    return ClosingLabel(
-      label: label,
-      range: range,
-    );
+    return ClosingLabel(label: label, range: range);
   }
 }
 
@@ -1128,9 +1370,7 @@ abstract class CommandParameter implements ToJsonable {
   /// the user for the value of the parameter.
   final String parameterLabel;
 
-  CommandParameter({
-    required this.parameterLabel,
-  });
+  CommandParameter({required this.parameterLabel});
 
   /// An optional default value for the parameter. The type of this value may
   /// vary between parameter kinds but must always be something that can be
@@ -1162,8 +1402,13 @@ abstract class CommandParameter implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'parameterLabel',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'parameterLabel',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type CommandParameter');
       return false;
@@ -1175,7 +1420,8 @@ abstract class CommandParameter implements ToJsonable {
       return SaveUriCommandParameter.fromJson(json);
     }
     throw ArgumentError(
-        'Supplied map is not valid for any subclass of CommandParameter');
+      'Supplied map is not valid for any subclass of CommandParameter',
+    );
   }
 }
 
@@ -1211,15 +1457,21 @@ class CompletionResolutionInfo implements ToJsonable {
 
   static CompletionResolutionInfo fromJson(Map<String, Object?> json) {
     if (DartCompletionMergedResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
+      json,
+      nullLspJsonReporter,
+    )) {
       return DartCompletionMergedResolutionInfo.fromJson(json);
     }
     if (DartCompletionRequestResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
+      json,
+      nullLspJsonReporter,
+    )) {
       return DartCompletionRequestResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
+      json,
+      nullLspJsonReporter,
+    )) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
     }
     if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
@@ -1242,15 +1494,9 @@ class ConnectToDtdParams implements ToJsonable {
 
   final Uri uri;
 
-  ConnectToDtdParams({
-    this.registerExperimentalHandlers,
-    required this.uri,
-  });
+  ConnectToDtdParams({this.registerExperimentalHandlers, required this.uri});
   @override
-  int get hashCode => Object.hash(
-        registerExperimentalHandlers,
-        uri,
-      );
+  int get hashCode => Object.hash(registerExperimentalHandlers, uri);
 
   @override
   bool operator ==(Object other) {
@@ -1275,12 +1521,22 @@ class ConnectToDtdParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseBool(obj, reporter, 'registerExperimentalHandlers',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'registerExperimentalHandlers',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ConnectToDtdParams');
       return false;
@@ -1320,17 +1576,9 @@ class DartCompletionItemResolutionInfo
   ///
   /// This is used to provide documentation in the resolved response.
   final String? ref;
-  DartCompletionItemResolutionInfo({
-    this.file,
-    this.importUris,
-    this.ref,
-  });
+  DartCompletionItemResolutionInfo({this.file, this.importUris, this.ref});
   @override
-  int get hashCode => Object.hash(
-        file,
-        lspHashCode(importUris),
-        ref,
-      );
+  int get hashCode => Object.hash(file, lspHashCode(importUris), ref);
 
   @override
   bool operator ==(Object other) {
@@ -1361,16 +1609,31 @@ class DartCompletionItemResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'file',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListString(obj, reporter, 'importUris',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListString(
+        obj,
+        reporter,
+        'importUris',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'ref',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'ref',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type DartCompletionItemResolutionInfo');
       return false;
@@ -1379,7 +1642,9 @@ class DartCompletionItemResolutionInfo
 
   static DartCompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
     if (DartCompletionMergedResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
+      json,
+      nullLspJsonReporter,
+    )) {
       return DartCompletionMergedResolutionInfo.fromJson(json);
     }
     final fileJson = json['file'];
@@ -1430,11 +1695,7 @@ class DartCompletionMergedResolutionInfo
     this.ref,
   });
   @override
-  int get hashCode => Object.hash(
-        file,
-        lspHashCode(importUris),
-        ref,
-      );
+  int get hashCode => Object.hash(file, lspHashCode(importUris), ref);
 
   @override
   bool operator ==(Object other) {
@@ -1463,25 +1724,42 @@ class DartCompletionMergedResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'file',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListString(obj, reporter, 'importUris',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListString(
+        obj,
+        reporter,
+        'importUris',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'ref',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'ref',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
-      reporter
-          .reportError('must be of type DartCompletionMergedResolutionInfo');
+      reporter.reportError(
+        'must be of type DartCompletionMergedResolutionInfo',
+      );
       return false;
     }
   }
 
   static DartCompletionMergedResolutionInfo fromJson(
-      Map<String, Object?> json) {
+    Map<String, Object?> json,
+  ) {
     final fileJson = json['file'];
     final file = fileJson as String;
     final importUrisJson = json['importUris'];
@@ -1510,9 +1788,7 @@ class DartCompletionRequestResolutionInfo
   /// This is used to compute where to add the import.
   final String file;
 
-  DartCompletionRequestResolutionInfo({
-    required this.file,
-  });
+  DartCompletionRequestResolutionInfo({required this.file});
 
   @override
   int get hashCode => file.hashCode;
@@ -1536,26 +1812,33 @@ class DartCompletionRequestResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'file',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
-      reporter
-          .reportError('must be of type DartCompletionRequestResolutionInfo');
+      reporter.reportError(
+        'must be of type DartCompletionRequestResolutionInfo',
+      );
       return false;
     }
   }
 
   static DartCompletionRequestResolutionInfo fromJson(
-      Map<String, Object?> json) {
+    Map<String, Object?> json,
+  ) {
     if (DartCompletionMergedResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
+      json,
+      nullLspJsonReporter,
+    )) {
       return DartCompletionMergedResolutionInfo.fromJson(json);
     }
     final fileJson = json['file'];
     final file = fileJson as String;
-    return DartCompletionRequestResolutionInfo(
-      file: file,
-    );
+    return DartCompletionRequestResolutionInfo(file: file);
   }
 }
 
@@ -1567,9 +1850,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   final int port;
 
-  DartDiagnosticServer({
-    required this.port,
-  });
+  DartDiagnosticServer({required this.port});
 
   @override
   int get hashCode => port.hashCode;
@@ -1593,8 +1874,13 @@ class DartDiagnosticServer implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseInt(obj, reporter, 'port',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseInt(
+        obj,
+        reporter,
+        'port',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type DartDiagnosticServer');
       return false;
@@ -1604,9 +1890,7 @@ class DartDiagnosticServer implements ToJsonable {
   static DartDiagnosticServer fromJson(Map<String, Object?> json) {
     final portJson = json['port'];
     final port = portJson as int;
-    return DartDiagnosticServer(
-      port: port,
-    );
+    return DartDiagnosticServer(port: port);
   }
 }
 
@@ -1619,25 +1903,22 @@ class DartMigrateParams implements ToJsonable {
   /// Whether to apply the migration changes.
   final bool? apply;
 
+  /// The specific migration steps to run.
+  final List<MigrationStep>? steps;
+
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
-
-  DartMigrateParams({
-    this.apply,
-    required this.uris,
-  });
+  DartMigrateParams({this.apply, this.steps, required this.uris});
   @override
-  int get hashCode => Object.hash(
-        apply,
-        lspHashCode(uris),
-      );
+  int get hashCode => Object.hash(apply, lspHashCode(steps), lspHashCode(uris));
 
   @override
   bool operator ==(Object other) {
     return other is DartMigrateParams &&
         other.runtimeType == DartMigrateParams &&
         apply == other.apply &&
+        const DeepCollectionEquality().equals(steps, other.steps) &&
         const DeepCollectionEquality().equals(uris, other.uris);
   }
 
@@ -1646,6 +1927,9 @@ class DartMigrateParams implements ToJsonable {
     var result = <String, Object?>{};
     if (apply != null) {
       result['apply'] = apply;
+    }
+    if (steps != null) {
+      result['steps'] = steps?.map((item) => item.toJson()).toList();
     }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
     return result;
@@ -1656,12 +1940,31 @@ class DartMigrateParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseBool(obj, reporter, 'apply',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'apply',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseListUri(obj, reporter, 'uris',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseListMigrationStep(
+        obj,
+        reporter,
+        'steps',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      return _canParseListUri(
+        obj,
+        reporter,
+        'uris',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type DartMigrateParams');
       return false;
@@ -1671,14 +1974,15 @@ class DartMigrateParams implements ToJsonable {
   static DartMigrateParams fromJson(Map<String, Object?> json) {
     final applyJson = json['apply'];
     final apply = applyJson as bool?;
+    final stepsJson = json['steps'];
+    final steps = (stepsJson as List<Object?>?)
+        ?.map((item) => MigrationStep.fromJson(item as String))
+        .toList();
     final urisJson = json['uris'];
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
-    return DartMigrateParams(
-      apply: apply,
-      uris: uris,
-    );
+    return DartMigrateParams(apply: apply, steps: steps, uris: uris);
   }
 }
 
@@ -1696,15 +2000,9 @@ class DartMigrateResult implements ToJsonable {
   /// the pubspec.yaml.
   final String? summary;
 
-  DartMigrateResult({
-    this.edit,
-    this.summary,
-  });
+  DartMigrateResult({this.edit, this.summary});
   @override
-  int get hashCode => Object.hash(
-        edit,
-        summary,
-      );
+  int get hashCode => Object.hash(edit, summary);
 
   @override
   bool operator ==(Object other) {
@@ -1727,12 +2025,22 @@ class DartMigrateResult implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseWorkspaceEdit(obj, reporter, 'edit',
-          allowsUndefined: false, allowsNull: true)) {
+      if (!_canParseWorkspaceEdit(
+        obj,
+        reporter,
+        'edit',
+        allowsUndefined: false,
+        allowsNull: true,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'summary',
-          allowsUndefined: false, allowsNull: true);
+      return _canParseString(
+        obj,
+        reporter,
+        'summary',
+        allowsUndefined: false,
+        allowsNull: true,
+      );
     } else {
       reporter.reportError('must be of type DartMigrateResult');
       return false;
@@ -1746,10 +2054,7 @@ class DartMigrateResult implements ToJsonable {
         : null;
     final summaryJson = json['summary'];
     final summary = summaryJson as String?;
-    return DartMigrateResult(
-      edit: edit,
-      summary: summary,
-    );
+    return DartMigrateResult(edit: edit, summary: summary);
   }
 }
 
@@ -1761,9 +2066,7 @@ class DartTextDocumentSummaryParams implements ToJsonable {
 
   final DocumentUri uri;
 
-  DartTextDocumentSummaryParams({
-    required this.uri,
-  });
+  DartTextDocumentSummaryParams({required this.uri});
 
   @override
   int get hashCode => uri.hashCode;
@@ -1787,8 +2090,13 @@ class DartTextDocumentSummaryParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type DartTextDocumentSummaryParams');
       return false;
@@ -1798,9 +2106,7 @@ class DartTextDocumentSummaryParams implements ToJsonable {
   static DartTextDocumentSummaryParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return DartTextDocumentSummaryParams(
-      uri: uri,
-    );
+    return DartTextDocumentSummaryParams(uri: uri);
   }
 }
 
@@ -1812,9 +2118,7 @@ class DocumentSummary implements ToJsonable {
 
   final String? summary;
 
-  DocumentSummary({
-    this.summary,
-  });
+  DocumentSummary({this.summary});
 
   @override
   int get hashCode => summary.hashCode;
@@ -1838,8 +2142,13 @@ class DocumentSummary implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'summary',
-          allowsUndefined: false, allowsNull: true);
+      return _canParseString(
+        obj,
+        reporter,
+        'summary',
+        allowsUndefined: false,
+        allowsNull: true,
+      );
     } else {
       reporter.reportError('must be of type DocumentSummary');
       return false;
@@ -1849,9 +2158,7 @@ class DocumentSummary implements ToJsonable {
   static DocumentSummary fromJson(Map<String, Object?> json) {
     final summaryJson = json['summary'];
     final summary = summaryJson as String?;
-    return DocumentSummary(
-      summary: summary,
-    );
+    return DocumentSummary(summary: summary);
   }
 }
 
@@ -1942,20 +2249,20 @@ class EditableArgument implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
-        defaultValue,
-        displayValue,
-        documentation,
-        hasArgument,
-        isDeprecated,
-        isEditable,
-        isNullable,
-        isRequired,
-        name,
-        notEditableReason,
-        lspHashCode(options),
-        type,
-        value,
-      );
+    defaultValue,
+    displayValue,
+    documentation,
+    hasArgument,
+    isDeprecated,
+    isEditable,
+    isNullable,
+    isRequired,
+    name,
+    notEditableReason,
+    lspHashCode(options),
+    type,
+    value,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -2012,48 +2319,103 @@ class EditableArgument implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'displayValue',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'displayValue',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'documentation',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'documentation',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'hasArgument',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'hasArgument',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isDeprecated',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isDeprecated',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isEditable',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isEditable',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isNullable',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isNullable',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isRequired',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isRequired',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'notEditableReason',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'notEditableReason',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListString(obj, reporter, 'options',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListString(
+        obj,
+        reporter,
+        'options',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'type',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'type',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type EditableArgument');
       return false;
@@ -2082,8 +2444,9 @@ class EditableArgument implements ToJsonable {
     final notEditableReasonJson = json['notEditableReason'];
     final notEditableReason = notEditableReasonJson as String?;
     final optionsJson = json['options'];
-    final options =
-        (optionsJson as List<Object?>?)?.map((item) => item as String).toList();
+    final options = (optionsJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
     final typeJson = json['type'];
     final type = typeJson as String;
     final valueJson = json['value'];
@@ -2130,12 +2493,12 @@ class EditableArguments implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
-        lspHashCode(arguments),
-        documentation,
-        name,
-        range,
-        textDocument,
-      );
+    lspHashCode(arguments),
+    documentation,
+    name,
+    range,
+    textDocument,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -2168,24 +2531,49 @@ class EditableArguments implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListEditableArgument(obj, reporter, 'arguments',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseListEditableArgument(
+        obj,
+        reporter,
+        'arguments',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'documentation',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'documentation',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseTextDocumentIdentifier(
+        obj,
+        reporter,
+        'textDocument',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type EditableArguments');
       return false;
@@ -2205,7 +2593,8 @@ class EditableArguments implements ToJsonable {
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
-        textDocumentJson as Map<String, Object?>);
+      textDocumentJson as Map<String, Object?>,
+    );
     return EditableArguments(
       arguments: arguments,
       documentation: documentation,
@@ -2233,11 +2622,7 @@ class EditArgumentParams implements ToJsonable {
     required this.textDocument,
   });
   @override
-  int get hashCode => Object.hash(
-        edit,
-        position,
-        textDocument,
-      );
+  int get hashCode => Object.hash(edit, position, textDocument);
 
   @override
   bool operator ==(Object other) {
@@ -2262,16 +2647,31 @@ class EditArgumentParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseArgumentEdit(obj, reporter, 'edit',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseArgumentEdit(
+        obj,
+        reporter,
+        'edit',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParsePosition(obj, reporter, 'position',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParsePosition(
+        obj,
+        reporter,
+        'position',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseTextDocumentIdentifier(obj, reporter, 'textDocument',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseTextDocumentIdentifier(
+        obj,
+        reporter,
+        'textDocument',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type EditArgumentParams');
       return false;
@@ -2285,7 +2685,8 @@ class EditArgumentParams implements ToJsonable {
     final position = Position.fromJson(positionJson as Map<String, Object?>);
     final textDocumentJson = json['textDocument'];
     final textDocument = TextDocumentIdentifier.fromJson(
-        textDocumentJson as Map<String, Object?>);
+      textDocumentJson as Map<String, Object?>,
+    );
     return EditArgumentParams(
       edit: edit,
       position: position,
@@ -2295,10 +2696,7 @@ class EditArgumentParams implements ToJsonable {
 }
 
 class Element implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    Element.canParse,
-    Element.fromJson,
-  );
+  static const jsonHandler = LspJsonHandler(Element.canParse, Element.fromJson);
 
   final String kind;
 
@@ -2317,14 +2715,8 @@ class Element implements ToJsonable {
     this.typeParameters,
   });
   @override
-  int get hashCode => Object.hash(
-        kind,
-        name,
-        parameters,
-        range,
-        returnType,
-        typeParameters,
-      );
+  int get hashCode =>
+      Object.hash(kind, name, parameters, range, returnType, typeParameters);
 
   @override
   bool operator ==(Object other) {
@@ -2363,28 +2755,58 @@ class Element implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'parameters',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'parameters',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseRange(obj, reporter, 'range',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'returnType',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'returnType',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'typeParameters',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'typeParameters',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type Element');
       return false;
@@ -2449,9 +2871,9 @@ class FileExistence implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
 
-  static FileExistence combine(List<FileExistence> values) =>
-      FileExistence(values.fold<int>(
-          0, (combinedValue, value) => combinedValue | value._value));
+  static FileExistence combine(List<FileExistence> values) => FileExistence(
+    values.fold<int>(0, (combinedValue, value) => combinedValue | value._value),
+  );
 }
 
 /// FileType represents the expected filesystem resource type.
@@ -2485,8 +2907,9 @@ class FileType implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
 
-  static FileType combine(List<FileType> values) => FileType(values.fold<int>(
-      0, (combinedValue, value) => combinedValue | value._value));
+  static FileType combine(List<FileType> values) => FileType(
+    values.fold<int>(0, (combinedValue, value) => combinedValue | value._value),
+  );
 }
 
 class FlutterOutline implements ToJsonable {
@@ -2519,16 +2942,16 @@ class FlutterOutline implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
-        lspHashCode(attributes),
-        lspHashCode(children),
-        className,
-        codeRange,
-        dartElement,
-        kind,
-        label,
-        range,
-        variableName,
-      );
+    lspHashCode(attributes),
+    lspHashCode(children),
+    className,
+    codeRange,
+    dartElement,
+    kind,
+    label,
+    range,
+    variableName,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -2577,40 +3000,85 @@ class FlutterOutline implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListFlutterOutlineAttribute(obj, reporter, 'attributes',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListFlutterOutlineAttribute(
+        obj,
+        reporter,
+        'attributes',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListFlutterOutline(obj, reporter, 'children',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListFlutterOutline(
+        obj,
+        reporter,
+        'children',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'className',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'className',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseRange(obj, reporter, 'codeRange',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseRange(
+        obj,
+        reporter,
+        'codeRange',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseElement(obj, reporter, 'dartElement',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseElement(
+        obj,
+        reporter,
+        'dartElement',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'label',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'label',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'variableName',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'variableName',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FlutterOutline');
       return false;
@@ -2620,8 +3088,10 @@ class FlutterOutline implements ToJsonable {
   static FlutterOutline fromJson(Map<String, Object?> json) {
     final attributesJson = json['attributes'];
     final attributes = (attributesJson as List<Object?>?)
-        ?.map((item) =>
-            FlutterOutlineAttribute.fromJson(item as Map<String, Object?>))
+        ?.map(
+          (item) =>
+              FlutterOutlineAttribute.fromJson(item as Map<String, Object?>),
+        )
         .toList();
     final childrenJson = json['children'];
     final children = (childrenJson as List<Object?>?)
@@ -2674,11 +3144,7 @@ class FlutterOutlineAttribute implements ToJsonable {
     this.valueRange,
   });
   @override
-  int get hashCode => Object.hash(
-        label,
-        name,
-        valueRange,
-      );
+  int get hashCode => Object.hash(label, name, valueRange);
 
   @override
   bool operator ==(Object other) {
@@ -2705,16 +3171,31 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'label',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'label',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'name',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'name',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseRange(obj, reporter, 'valueRange',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseRange(
+        obj,
+        reporter,
+        'valueRange',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FlutterOutlineAttribute');
       return false;
@@ -2803,17 +3284,17 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
-        dependencyHasErrors,
-        functionName,
-        hasError,
-        isBuilder,
-        isMultiPreview,
-        libraryUri,
-        packageName,
-        position,
-        previewAnnotation,
-        scriptUri,
-      );
+    dependencyHasErrors,
+    functionName,
+    hasError,
+    isBuilder,
+    isMultiPreview,
+    libraryUri,
+    packageName,
+    position,
+    previewAnnotation,
+    scriptUri,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -2852,44 +3333,94 @@ class FlutterWidgetPreviewDetails implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseBool(obj, reporter, 'dependencyHasErrors',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'dependencyHasErrors',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'functionName',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'functionName',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'hasError',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'hasError',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isBuilder',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isBuilder',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'isMultiPreview',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'isMultiPreview',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseUri(obj, reporter, 'libraryUri',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseUri(
+        obj,
+        reporter,
+        'libraryUri',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'packageName',
-          allowsUndefined: false, allowsNull: true)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'packageName',
+        allowsUndefined: false,
+        allowsNull: true,
+      )) {
         return false;
       }
-      if (!_canParsePosition(obj, reporter, 'position',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParsePosition(
+        obj,
+        reporter,
+        'position',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'previewAnnotation',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'previewAnnotation',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseUri(obj, reporter, 'scriptUri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'scriptUri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FlutterWidgetPreviewDetails');
       return false;
@@ -2956,10 +3487,10 @@ class FlutterWidgetPreviews implements ToJsonable {
   });
   @override
   int get hashCode => Object.hash(
-        lspHashCode(namespaces),
-        lspHashCode(previews),
-        lspHashCode(scriptUris),
-      );
+    lspHashCode(namespaces),
+    lspHashCode(previews),
+    lspHashCode(scriptUris),
+  );
 
   @override
   bool operator ==(Object other) {
@@ -2984,16 +3515,31 @@ class FlutterWidgetPreviews implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseMapStringString(obj, reporter, 'namespaces',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseMapStringString(
+        obj,
+        reporter,
+        'namespaces',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListFlutterWidgetPreviewDetails(obj, reporter, 'previews',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseListFlutterWidgetPreviewDetails(
+        obj,
+        reporter,
+        'previews',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseListUri(obj, reporter, 'scriptUris',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseListUri(
+        obj,
+        reporter,
+        'scriptUris',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FlutterWidgetPreviews');
       return false;
@@ -3002,12 +3548,16 @@ class FlutterWidgetPreviews implements ToJsonable {
 
   static FlutterWidgetPreviews fromJson(Map<String, Object?> json) {
     final namespacesJson = json['namespaces'];
-    final namespaces = (namespacesJson as Map<Object, Object?>)
-        .map((key, value) => MapEntry(key as String, value as String));
+    final namespaces = (namespacesJson as Map<Object, Object?>).map(
+      (key, value) => MapEntry(key as String, value as String),
+    );
     final previewsJson = json['previews'];
     final previews = (previewsJson as List<Object?>)
-        .map((item) =>
-            FlutterWidgetPreviewDetails.fromJson(item as Map<String, Object?>))
+        .map(
+          (item) => FlutterWidgetPreviewDetails.fromJson(
+            item as Map<String, Object?>,
+          ),
+        )
         .toList();
     final scriptUrisJson = json['scriptUris'];
     final scriptUris = (scriptUrisJson as List<Object?>)
@@ -3034,15 +3584,9 @@ class FormAnswer implements ToJsonable {
   /// The user's answer value.
   final LSPAny value;
 
-  FormAnswer({
-    required this.id,
-    this.value,
-  });
+  FormAnswer({required this.id, this.value});
   @override
-  int get hashCode => Object.hash(
-        id,
-        value,
-      );
+  int get hashCode => Object.hash(id, value);
 
   @override
   bool operator ==(Object other) {
@@ -3065,8 +3609,13 @@ class FormAnswer implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'id',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'id',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FormAnswer');
       return false;
@@ -3078,10 +3627,7 @@ class FormAnswer implements ToJsonable {
     final id = idJson as String;
     final valueJson = json['value'];
     final value = valueJson;
-    return FormAnswer(
-      id: id,
-      value: value,
-    );
+    return FormAnswer(id: id, value: value);
   }
 }
 
@@ -3121,14 +3667,8 @@ class FormField implements ToJsonable {
     required this.type,
   });
   @override
-  int get hashCode => Object.hash(
-        defaultValue,
-        description,
-        error,
-        id,
-        required,
-        type,
-      );
+  int get hashCode =>
+      Object.hash(defaultValue, description, error, id, required, type);
 
   @override
   bool operator ==(Object other) {
@@ -3163,24 +3703,49 @@ class FormField implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'description',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'description',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'error',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'error',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'id',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'id',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseBool(obj, reporter, 'required',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'required',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseFormFieldType(obj, reporter, 'type',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseFormFieldType(
+        obj,
+        reporter,
+        'type',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FormField');
       return false;
@@ -3219,9 +3784,7 @@ sealed class FormFieldType implements ToJsonable {
 
   final String kind;
 
-  FormFieldType({
-    required this.kind,
-  });
+  FormFieldType({required this.kind});
 
   @override
   int get hashCode => kind.hashCode;
@@ -3245,8 +3808,13 @@ sealed class FormFieldType implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FormFieldType');
       return false;
@@ -3257,17 +3825,18 @@ sealed class FormFieldType implements ToJsonable {
     if (FormFieldTypeFile.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeFile.fromJson(json);
     }
+    if (FormFieldTypeString.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeString.fromJson(json);
+    }
     if (FormFieldTypeBool.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeBool.fromJson(json);
     }
     if (FormFieldTypeNumber.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeNumber.fromJson(json);
     }
-    if (FormFieldTypeString.canParse(json, nullLspJsonReporter)) {
-      return FormFieldTypeString.fromJson(json);
-    }
     throw ArgumentError(
-        'Supplied map is not valid for any subclass of FormFieldType');
+      'Supplied map is not valid for any subclass of FormFieldType',
+    );
   }
 }
 
@@ -3281,9 +3850,7 @@ class FormFieldTypeBool implements FormFieldType, ToJsonable {
   @override
   final String kind;
 
-  FormFieldTypeBool({
-    this.kind = 'bool',
-  }) {
+  FormFieldTypeBool({this.kind = 'bool'}) {
     if (kind != 'bool') {
       throw 'kind may only be the literal \'bool\'';
     }
@@ -3311,8 +3878,14 @@ class FormFieldTypeBool implements FormFieldType, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'bool');
+      return _canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'bool',
+      );
     } else {
       reporter.reportError('must be of type FormFieldTypeBool');
       return false;
@@ -3322,9 +3895,7 @@ class FormFieldTypeBool implements FormFieldType, ToJsonable {
   static FormFieldTypeBool fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = kindJson as String;
-    return FormFieldTypeBool(
-      kind: kind,
-    );
+    return FormFieldTypeBool(kind: kind);
   }
 }
 
@@ -3372,12 +3943,7 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
     }
   }
   @override
-  int get hashCode => Object.hash(
-        existence,
-        lspHashCode(filters),
-        kind,
-        type,
-      );
+  int get hashCode => Object.hash(existence, lspHashCode(filters), kind, type);
 
   @override
   bool operator ==(Object other) {
@@ -3410,20 +3976,41 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseFileExistence(obj, reporter, 'existence',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseFileExistence(
+        obj,
+        reporter,
+        'existence',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListString(obj, reporter, 'filters',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListString(
+        obj,
+        reporter,
+        'filters',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'file')) {
+      if (!_canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'file',
+      )) {
         return false;
       }
-      return _canParseFileType(obj, reporter, 'type',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseFileType(
+        obj,
+        reporter,
+        'type',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FormFieldTypeFile');
       return false;
@@ -3436,8 +4023,9 @@ class FormFieldTypeFile implements FormFieldType, ToJsonable {
         ? FileExistence.fromJson(existenceJson as int)
         : null;
     final filtersJson = json['filters'];
-    final filters =
-        (filtersJson as List<Object?>?)?.map((item) => item as String).toList();
+    final filters = (filtersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
     final kindJson = json['kind'];
     final kind = kindJson as String;
     final typeJson = json['type'];
@@ -3461,9 +4049,7 @@ class FormFieldTypeNumber implements FormFieldType, ToJsonable {
   @override
   final String kind;
 
-  FormFieldTypeNumber({
-    this.kind = 'number',
-  }) {
+  FormFieldTypeNumber({this.kind = 'number'}) {
     if (kind != 'number') {
       throw 'kind may only be the literal \'number\'';
     }
@@ -3491,8 +4077,14 @@ class FormFieldTypeNumber implements FormFieldType, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'number');
+      return _canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'number',
+      );
     } else {
       reporter.reportError('must be of type FormFieldTypeNumber');
       return false;
@@ -3502,9 +4094,7 @@ class FormFieldTypeNumber implements FormFieldType, ToJsonable {
   static FormFieldTypeNumber fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = kindJson as String;
-    return FormFieldTypeNumber(
-      kind: kind,
-    );
+    return FormFieldTypeNumber(kind: kind);
   }
 }
 
@@ -3518,28 +4108,36 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
   @override
   final String kind;
 
-  FormFieldTypeString({
-    this.kind = 'string',
-  }) {
+  /// Validators for this form field.Field validators only validate the
+  /// input/answer to a field in isolation and cannot depend on the answers to
+  /// other fields. For example a string field may have a regex validator, or a
+  /// numeric field may have a range validator.Clients must ignore validators
+  /// they do not support.
+  final List<StringValidator>? validators;
+
+  FormFieldTypeString({this.kind = 'string', this.validators}) {
     if (kind != 'string') {
       throw 'kind may only be the literal \'string\'';
     }
   }
-
   @override
-  int get hashCode => kind.hashCode;
+  int get hashCode => Object.hash(kind, lspHashCode(validators));
 
   @override
   bool operator ==(Object other) {
     return other is FormFieldTypeString &&
         other.runtimeType == FormFieldTypeString &&
-        kind == other.kind;
+        kind == other.kind &&
+        const DeepCollectionEquality().equals(validators, other.validators);
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
+    if (validators != null) {
+      result['validators'] = validators?.map((item) => item.toJson()).toList();
+    }
     return result;
   }
 
@@ -3548,8 +4146,23 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'string');
+      if (!_canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'string',
+      )) {
+        return false;
+      }
+      return _canParseListRegexValidator(
+        obj,
+        reporter,
+        'validators',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type FormFieldTypeString');
       return false;
@@ -3559,13 +4172,15 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
   static FormFieldTypeString fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = kindJson as String;
-    return FormFieldTypeString(
-      kind: kind,
-    );
+    final validatorsJson = json['validators'];
+    final validators = (validatorsJson as List<Object?>?)
+        ?.map((item) => RegexValidator.fromJson(item as Map<String, Object?>))
+        .toList();
+    return FormFieldTypeString(kind: kind, validators: validators);
   }
 }
 
-class IncomingMessage implements Message, ToJsonable {
+sealed class IncomingMessage implements Message, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     IncomingMessage.canParse,
     IncomingMessage.fromJson,
@@ -3586,12 +4201,7 @@ class IncomingMessage implements Message, ToJsonable {
     this.params,
   });
   @override
-  int get hashCode => Object.hash(
-        clientRequestTime,
-        jsonrpc,
-        method,
-        params,
-      );
+  int get hashCode => Object.hash(clientRequestTime, jsonrpc, method, params);
 
   @override
   bool operator ==(Object other) {
@@ -3622,16 +4232,31 @@ class IncomingMessage implements Message, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInt(obj, reporter, 'clientRequestTime',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseInt(
+        obj,
+        reporter,
+        'clientRequestTime',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'jsonrpc',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'jsonrpc',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseMethod(obj, reporter, 'method',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseMethod(
+        obj,
+        reporter,
+        'method',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type IncomingMessage');
       return false;
@@ -3645,19 +4270,8 @@ class IncomingMessage implements Message, ToJsonable {
     if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
       return NotificationMessage.fromJson(json);
     }
-    final clientRequestTimeJson = json['clientRequestTime'];
-    final clientRequestTime = clientRequestTimeJson as int?;
-    final jsonrpcJson = json['jsonrpc'];
-    final jsonrpc = jsonrpcJson as String;
-    final methodJson = json['method'];
-    final method = Method.fromJson(methodJson as String);
-    final paramsJson = json['params'];
-    final params = paramsJson;
-    return IncomingMessage(
-      clientRequestTime: clientRequestTime,
-      jsonrpc: jsonrpc,
-      method: method,
-      params: params,
+    throw ArgumentError(
+      'Supplied map is not valid for any subclass of IncomingMessage',
     );
   }
 }
@@ -3727,13 +4341,13 @@ class InteractiveExecuteCommandParams
   });
   @override
   int get hashCode => Object.hash(
-        lspHashCode(arguments),
-        command,
-        data,
-        lspHashCode(formAnswers),
-        lspHashCode(formFields),
-        workDoneToken,
-      );
+    lspHashCode(arguments),
+    command,
+    data,
+    lspHashCode(formAnswers),
+    lspHashCode(formFields),
+    workDoneToken,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -3758,8 +4372,9 @@ class InteractiveExecuteCommandParams
       result['data'] = data;
     }
     if (formAnswers != null) {
-      result['formAnswers'] =
-          formAnswers?.map((item) => item.toJson()).toList();
+      result['formAnswers'] = formAnswers
+          ?.map((item) => item.toJson())
+          .toList();
     }
     if (formFields != null) {
       result['formFields'] = formFields?.map((item) => item.toJson()).toList();
@@ -3775,24 +4390,49 @@ class InteractiveExecuteCommandParams
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListObjectNullable(obj, reporter, 'arguments',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListObjectNullable(
+        obj,
+        reporter,
+        'arguments',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'command',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'command',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListFormAnswer(obj, reporter, 'formAnswers',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListFormAnswer(
+        obj,
+        reporter,
+        'formAnswers',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseListFormField(obj, reporter, 'formFields',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListFormField(
+        obj,
+        reporter,
+        'formFields',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseIntString(obj, reporter, 'workDoneToken',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseIntString(
+        obj,
+        reporter,
+        'workDoneToken',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type InteractiveExecuteCommandParams');
       return false;
@@ -3801,8 +4441,9 @@ class InteractiveExecuteCommandParams
 
   static InteractiveExecuteCommandParams fromJson(Map<String, Object?> json) {
     final argumentsJson = json['arguments'];
-    final arguments =
-        (argumentsJson as List<Object?>?)?.map((item) => item).toList();
+    final arguments = (argumentsJson as List<Object?>?)
+        ?.map((item) => item)
+        .toList();
     final commandJson = json['command'];
     final command = commandJson as String;
     final dataJson = json['data'];
@@ -3816,8 +4457,9 @@ class InteractiveExecuteCommandParams
         ?.map((item) => FormField.fromJson(item as Map<String, Object?>))
         .toList();
     final workDoneTokenJson = json['workDoneToken'];
-    final workDoneToken =
-        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
+    final workDoneToken = workDoneTokenJson == null
+        ? null
+        : _eitherIntString(workDoneTokenJson);
     return InteractiveExecuteCommandParams(
       arguments: arguments,
       command: command,
@@ -3866,17 +4508,10 @@ class InteractiveParams implements ToJsonable {
   /// The interactive phase is considered complete when the server returns a
   /// response where this slice is omitted.
   final List<FormField>? formFields;
-  InteractiveParams({
-    this.data,
-    this.formAnswers,
-    this.formFields,
-  });
+  InteractiveParams({this.data, this.formAnswers, this.formFields});
   @override
-  int get hashCode => Object.hash(
-        data,
-        lspHashCode(formAnswers),
-        lspHashCode(formFields),
-      );
+  int get hashCode =>
+      Object.hash(data, lspHashCode(formAnswers), lspHashCode(formFields));
 
   @override
   bool operator ==(Object other) {
@@ -3894,8 +4529,9 @@ class InteractiveParams implements ToJsonable {
       result['data'] = data;
     }
     if (formAnswers != null) {
-      result['formAnswers'] =
-          formAnswers?.map((item) => item.toJson()).toList();
+      result['formAnswers'] = formAnswers
+          ?.map((item) => item.toJson())
+          .toList();
     }
     if (formFields != null) {
       result['formFields'] = formFields?.map((item) => item.toJson()).toList();
@@ -3908,12 +4544,22 @@ class InteractiveParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListFormAnswer(obj, reporter, 'formAnswers',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListFormAnswer(
+        obj,
+        reporter,
+        'formAnswers',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseListFormField(obj, reporter, 'formFields',
-          allowsUndefined: true, allowsNull: false);
+      return _canParseListFormField(
+        obj,
+        reporter,
+        'formFields',
+        allowsUndefined: true,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type InteractiveParams');
       return false;
@@ -3968,11 +4614,7 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
     required this.range,
   });
   @override
-  int get hashCode => Object.hash(
-        insertTextFormat,
-        newText,
-        range,
-      );
+  int get hashCode => Object.hash(insertTextFormat, newText, range);
 
   @override
   bool operator ==(Object other) {
@@ -3997,16 +4639,31 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInsertTextFormat(obj, reporter, 'insertTextFormat',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseInsertTextFormat(
+        obj,
+        reporter,
+        'insertTextFormat',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'newText',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'newText',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type LegacySnippetTextEdit');
       return false;
@@ -4015,8 +4672,9 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
 
   static LegacySnippetTextEdit fromJson(Map<String, Object?> json) {
     final insertTextFormatJson = json['insertTextFormat'];
-    final insertTextFormat =
-        InsertTextFormat.fromJson(insertTextFormatJson as int);
+    final insertTextFormat = InsertTextFormat.fromJson(
+      insertTextFormatJson as int,
+    );
     final newTextJson = json['newText'];
     final newText = newTextJson as String;
     final rangeJson = json['range'];
@@ -4029,25 +4687,16 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
   }
 }
 
-class Message implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    Message.canParse,
-    Message.fromJson,
-  );
+sealed class Message implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
   final int? clientRequestTime;
 
   final String jsonrpc;
 
-  Message({
-    this.clientRequestTime,
-    required this.jsonrpc,
-  });
+  Message({this.clientRequestTime, required this.jsonrpc});
   @override
-  int get hashCode => Object.hash(
-        clientRequestTime,
-        jsonrpc,
-      );
+  int get hashCode => Object.hash(clientRequestTime, jsonrpc);
 
   @override
   bool operator ==(Object other) {
@@ -4072,12 +4721,22 @@ class Message implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInt(obj, reporter, 'clientRequestTime',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseInt(
+        obj,
+        reporter,
+        'clientRequestTime',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'jsonrpc',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'jsonrpc',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type Message');
       return false;
@@ -4091,15 +4750,37 @@ class Message implements ToJsonable {
     if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
       return ResponseMessage.fromJson(json);
     }
-    final clientRequestTimeJson = json['clientRequestTime'];
-    final clientRequestTime = clientRequestTimeJson as int?;
-    final jsonrpcJson = json['jsonrpc'];
-    final jsonrpc = jsonrpcJson as String;
-    return Message(
-      clientRequestTime: clientRequestTime,
-      jsonrpc: jsonrpc,
+    throw ArgumentError(
+      'Supplied map is not valid for any subclass of Message',
     );
   }
+}
+
+/// The specific migration step to run.
+class MigrationStep implements ToJsonable {
+  static const All = MigrationStep('all');
+  static const Bump = MigrationStep('bump');
+
+  static const Cleanup = MigrationStep('cleanup');
+
+  static const Prepare = MigrationStep('prepare');
+  final String _value;
+  const MigrationStep(this._value);
+  const MigrationStep.fromJson(this._value);
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MigrationStep && other._value == _value;
+
+  @override
+  String toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
 }
 
 class NotificationMessage implements IncomingMessage, ToJsonable {
@@ -4125,12 +4806,7 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
     this.params,
   });
   @override
-  int get hashCode => Object.hash(
-        clientRequestTime,
-        jsonrpc,
-        method,
-        params,
-      );
+  int get hashCode => Object.hash(clientRequestTime, jsonrpc, method, params);
 
   @override
   bool operator ==(Object other) {
@@ -4161,16 +4837,31 @@ class NotificationMessage implements IncomingMessage, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInt(obj, reporter, 'clientRequestTime',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseInt(
+        obj,
+        reporter,
+        'clientRequestTime',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'jsonrpc',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'jsonrpc',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseMethod(obj, reporter, 'method',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseMethod(
+        obj,
+        reporter,
+        'method',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type NotificationMessage');
       return false;
@@ -4203,9 +4894,7 @@ class OpenUriParams implements ToJsonable {
 
   final Uri uri;
 
-  OpenUriParams({
-    required this.uri,
-  });
+  OpenUriParams({required this.uri});
 
   @override
   int get hashCode => uri.hashCode;
@@ -4229,8 +4918,13 @@ class OpenUriParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type OpenUriParams');
       return false;
@@ -4240,17 +4934,12 @@ class OpenUriParams implements ToJsonable {
   static OpenUriParams fromJson(Map<String, Object?> json) {
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return OpenUriParams(
-      uri: uri,
-    );
+    return OpenUriParams(uri: uri);
   }
 }
 
 class Outline implements ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    Outline.canParse,
-    Outline.fromJson,
-  );
+  static const jsonHandler = LspJsonHandler(Outline.canParse, Outline.fromJson);
 
   final List<Outline>? children;
 
@@ -4265,12 +4954,8 @@ class Outline implements ToJsonable {
     required this.range,
   });
   @override
-  int get hashCode => Object.hash(
-        lspHashCode(children),
-        codeRange,
-        element,
-        range,
-      );
+  int get hashCode =>
+      Object.hash(lspHashCode(children), codeRange, element, range);
 
   @override
   bool operator ==(Object other) {
@@ -4299,20 +4984,40 @@ class Outline implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListOutline(obj, reporter, 'children',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseListOutline(
+        obj,
+        reporter,
+        'children',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseRange(obj, reporter, 'codeRange',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseRange(
+        obj,
+        reporter,
+        'codeRange',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseElement(obj, reporter, 'element',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseElement(
+        obj,
+        reporter,
+        'element',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseRange(obj, reporter, 'range',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseRange(
+        obj,
+        reporter,
+        'range',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type Outline');
       return false;
@@ -4349,15 +5054,9 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   final Uri uri;
 
-  PublishClosingLabelsParams({
-    required this.labels,
-    required this.uri,
-  });
+  PublishClosingLabelsParams({required this.labels, required this.uri});
   @override
-  int get hashCode => Object.hash(
-        lspHashCode(labels),
-        uri,
-      );
+  int get hashCode => Object.hash(lspHashCode(labels), uri);
 
   @override
   bool operator ==(Object other) {
@@ -4380,12 +5079,22 @@ class PublishClosingLabelsParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListClosingLabel(obj, reporter, 'labels',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseListClosingLabel(
+        obj,
+        reporter,
+        'labels',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type PublishClosingLabelsParams');
       return false;
@@ -4399,10 +5108,7 @@ class PublishClosingLabelsParams implements ToJsonable {
         .toList();
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return PublishClosingLabelsParams(
-      labels: labels,
-      uri: uri,
-    );
+    return PublishClosingLabelsParams(labels: labels, uri: uri);
   }
 }
 
@@ -4416,15 +5122,9 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   final Uri uri;
 
-  PublishFlutterOutlineParams({
-    required this.outline,
-    required this.uri,
-  });
+  PublishFlutterOutlineParams({required this.outline, required this.uri});
   @override
-  int get hashCode => Object.hash(
-        outline,
-        uri,
-      );
+  int get hashCode => Object.hash(outline, uri);
 
   @override
   bool operator ==(Object other) {
@@ -4447,12 +5147,22 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseFlutterOutline(obj, reporter, 'outline',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseFlutterOutline(
+        obj,
+        reporter,
+        'outline',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type PublishFlutterOutlineParams');
       return false;
@@ -4461,14 +5171,12 @@ class PublishFlutterOutlineParams implements ToJsonable {
 
   static PublishFlutterOutlineParams fromJson(Map<String, Object?> json) {
     final outlineJson = json['outline'];
-    final outline =
-        FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
+    final outline = FlutterOutline.fromJson(
+      outlineJson as Map<String, Object?>,
+    );
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return PublishFlutterOutlineParams(
-      outline: outline,
-      uri: uri,
-    );
+    return PublishFlutterOutlineParams(outline: outline, uri: uri);
   }
 }
 
@@ -4482,15 +5190,9 @@ class PublishOutlineParams implements ToJsonable {
 
   final Uri uri;
 
-  PublishOutlineParams({
-    required this.outline,
-    required this.uri,
-  });
+  PublishOutlineParams({required this.outline, required this.uri});
   @override
-  int get hashCode => Object.hash(
-        outline,
-        uri,
-      );
+  int get hashCode => Object.hash(outline, uri);
 
   @override
   bool operator ==(Object other) {
@@ -4513,12 +5215,22 @@ class PublishOutlineParams implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseOutline(obj, reporter, 'outline',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseOutline(
+        obj,
+        reporter,
+        'outline',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseUri(obj, reporter, 'uri',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseUri(
+        obj,
+        reporter,
+        'uri',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type PublishOutlineParams');
       return false;
@@ -4530,10 +5242,7 @@ class PublishOutlineParams implements ToJsonable {
     final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
     final uriJson = json['uri'];
     final uri = Uri.parse(uriJson as String);
-    return PublishOutlineParams(
-      outline: outline,
-      uri: uri,
-    );
+    return PublishOutlineParams(outline: outline, uri: uri);
   }
 }
 
@@ -4546,9 +5255,7 @@ class PubPackageCompletionItemResolutionInfo
 
   final String packageName;
 
-  PubPackageCompletionItemResolutionInfo({
-    required this.packageName,
-  });
+  PubPackageCompletionItemResolutionInfo({required this.packageName});
 
   @override
   int get hashCode => packageName.hashCode;
@@ -4572,21 +5279,168 @@ class PubPackageCompletionItemResolutionInfo
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'packageName',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'packageName',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError(
-          'must be of type PubPackageCompletionItemResolutionInfo');
+        'must be of type PubPackageCompletionItemResolutionInfo',
+      );
       return false;
     }
   }
 
   static PubPackageCompletionItemResolutionInfo fromJson(
-      Map<String, Object?> json) {
+    Map<String, Object?> json,
+  ) {
     final packageNameJson = json['packageName'];
     final packageName = packageNameJson as String;
-    return PubPackageCompletionItemResolutionInfo(
-      packageName: packageName,
+    return PubPackageCompletionItemResolutionInfo(packageName: packageName);
+  }
+}
+
+/// A regex-based validator that ensures an answer matches a given regex.
+class RegexValidator implements Validator, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    RegexValidator.canParse,
+    RegexValidator.fromJson,
+  );
+
+  final String kind;
+
+  /// Whether the answer matching the pattern means it is valid (no message
+  /// reported) or invalid (message reported).
+  final bool matchIsValid;
+
+  /// The message to show if the answer is not valid according to `pattern` and
+  /// `matchIsValid`.
+  @override
+  final String message;
+
+  /// The regex pattern to validate the input.
+  ///
+  /// The server must only provide regular expressions for the engine supported
+  /// by the client in the `general.regularExpressions` client capability. If
+  /// the server cannot provide an appropriate regular expression it should not
+  /// provide the regex validator.
+  final String pattern;
+
+  /// The severity of a violation of this validator.
+  @override
+  final ValidationSeverity severity;
+  RegexValidator({
+    this.kind = 'regex',
+    required this.matchIsValid,
+    required this.message,
+    required this.pattern,
+    required this.severity,
+  }) {
+    if (kind != 'regex') {
+      throw 'kind may only be the literal \'regex\'';
+    }
+  }
+  @override
+  int get hashCode =>
+      Object.hash(kind, matchIsValid, message, pattern, severity);
+
+  @override
+  bool operator ==(Object other) {
+    return other is RegexValidator &&
+        other.runtimeType == RegexValidator &&
+        kind == other.kind &&
+        matchIsValid == other.matchIsValid &&
+        message == other.message &&
+        pattern == other.pattern &&
+        severity == other.severity;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    result['matchIsValid'] = matchIsValid;
+    result['message'] = message;
+    result['pattern'] = pattern;
+    result['severity'] = severity.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'regex',
+      )) {
+        return false;
+      }
+      if (!_canParseBool(
+        obj,
+        reporter,
+        'matchIsValid',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      if (!_canParseString(
+        obj,
+        reporter,
+        'message',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      if (!_canParseString(
+        obj,
+        reporter,
+        'pattern',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      return _canParseValidationSeverity(
+        obj,
+        reporter,
+        'severity',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
+    } else {
+      reporter.reportError('must be of type RegexValidator');
+      return false;
+    }
+  }
+
+  static RegexValidator fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final matchIsValidJson = json['matchIsValid'];
+    final matchIsValid = matchIsValidJson as bool;
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final patternJson = json['pattern'];
+    final pattern = patternJson as String;
+    final severityJson = json['severity'];
+    final severity = ValidationSeverity.fromJson(severityJson as int);
+    return RegexValidator(
+      kind: kind,
+      matchIsValid: matchIsValid,
+      message: message,
+      pattern: pattern,
+      severity: severity,
     );
   }
 }
@@ -4616,13 +5470,8 @@ class RequestMessage implements IncomingMessage, ToJsonable {
     this.params,
   });
   @override
-  int get hashCode => Object.hash(
-        clientRequestTime,
-        id,
-        jsonrpc,
-        method,
-        params,
-      );
+  int get hashCode =>
+      Object.hash(clientRequestTime, id, jsonrpc, method, params);
 
   @override
   bool operator ==(Object other) {
@@ -4655,20 +5504,40 @@ class RequestMessage implements IncomingMessage, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInt(obj, reporter, 'clientRequestTime',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseInt(
+        obj,
+        reporter,
+        'clientRequestTime',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseIntString(obj, reporter, 'id',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseIntString(
+        obj,
+        reporter,
+        'id',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'jsonrpc',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'jsonrpc',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseMethod(obj, reporter, 'method',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseMethod(
+        obj,
+        reporter,
+        'method',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type RequestMessage');
       return false;
@@ -4709,17 +5578,9 @@ class ResponseError implements ToJsonable {
   final String? data;
 
   final String message;
-  ResponseError({
-    required this.code,
-    this.data,
-    required this.message,
-  });
+  ResponseError({required this.code, this.data, required this.message});
   @override
-  int get hashCode => Object.hash(
-        code,
-        data,
-        message,
-      );
+  int get hashCode => Object.hash(code, data, message);
 
   @override
   bool operator ==(Object other) {
@@ -4746,16 +5607,31 @@ class ResponseError implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseErrorCodes(obj, reporter, 'code',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseErrorCodes(
+        obj,
+        reporter,
+        'code',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'data',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'data',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'message',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'message',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ResponseError');
       return false;
@@ -4769,11 +5645,7 @@ class ResponseError implements ToJsonable {
     final data = dataJson as String?;
     final messageJson = json['message'];
     final message = messageJson as String;
-    return ResponseError(
-      code: code,
-      data: data,
-      message: message,
-    );
+    return ResponseError(code: code, data: data, message: message);
   }
 }
 
@@ -4800,13 +5672,8 @@ class ResponseMessage implements Message, ToJsonable {
     this.result,
   });
   @override
-  int get hashCode => Object.hash(
-        clientRequestTime,
-        error,
-        id,
-        jsonrpc,
-        result,
-      );
+  int get hashCode =>
+      Object.hash(clientRequestTime, error, id, jsonrpc, result);
 
   @override
   bool operator ==(Object other) {
@@ -4844,20 +5711,40 @@ class ResponseMessage implements Message, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseInt(obj, reporter, 'clientRequestTime',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseInt(
+        obj,
+        reporter,
+        'clientRequestTime',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseResponseError(obj, reporter, 'error',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseResponseError(
+        obj,
+        reporter,
+        'error',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseIntString(obj, reporter, 'id',
-          allowsUndefined: false, allowsNull: true)) {
+      if (!_canParseIntString(
+        obj,
+        reporter,
+        'id',
+        allowsUndefined: false,
+        allowsNull: true,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'jsonrpc',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'jsonrpc',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ResponseMessage');
       return false;
@@ -4928,13 +5815,13 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
   }
   @override
   int get hashCode => Object.hash(
-        actionLabel,
-        defaultValue,
-        lspHashCode(filters),
-        kind,
-        parameterLabel,
-        parameterTitle,
-      );
+    actionLabel,
+    defaultValue,
+    lspHashCode(filters),
+    kind,
+    parameterLabel,
+    parameterTitle,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -4969,28 +5856,59 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'actionLabel',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'actionLabel',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'defaultValue',
-          allowsUndefined: true, allowsNull: true)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'defaultValue',
+        allowsUndefined: true,
+        allowsNull: true,
+      )) {
         return false;
       }
-      if (!_canParseMapStringListString(obj, reporter, 'filters',
-          allowsUndefined: true, allowsNull: true)) {
+      if (!_canParseMapStringListString(
+        obj,
+        reporter,
+        'filters',
+        allowsUndefined: true,
+        allowsNull: true,
+      )) {
         return false;
       }
-      if (!_canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'saveUri')) {
+      if (!_canParseLiteral(
+        obj,
+        reporter,
+        'kind',
+        allowsUndefined: false,
+        allowsNull: false,
+        literal: 'saveUri',
+      )) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'parameterLabel',
-          allowsUndefined: false, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'parameterLabel',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseString(obj, reporter, 'parameterTitle',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'parameterTitle',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type SaveUriCommandParameter');
       return false;
@@ -5003,9 +5921,12 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
     final defaultValueJson = json['defaultValue'];
     final defaultValue = defaultValueJson as String?;
     final filtersJson = json['filters'];
-    final filters = (filtersJson as Map<Object, Object?>?)?.map((key, value) =>
-        MapEntry(key as String,
-            (value as List<Object?>).map((item) => item as String).toList()));
+    final filters = (filtersJson as Map<Object, Object?>?)?.map(
+      (key, value) => MapEntry(
+        key as String,
+        (value as List<Object?>).map((item) => item as String).toList(),
+      ),
+    );
     final kindJson = json['kind'];
     final kind = kindJson as String;
     final parameterLabelJson = json['parameterLabel'];
@@ -5033,9 +5954,7 @@ class TypeHierarchyItemInfo implements ToJsonable {
   /// subtypes/supertypes are fetched later.
   final String ref;
 
-  TypeHierarchyItemInfo({
-    required this.ref,
-  });
+  TypeHierarchyItemInfo({required this.ref});
 
   @override
   int get hashCode => ref.hashCode;
@@ -5059,8 +5978,13 @@ class TypeHierarchyItemInfo implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseString(obj, reporter, 'ref',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseString(
+        obj,
+        reporter,
+        'ref',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type TypeHierarchyItemInfo');
       return false;
@@ -5070,9 +5994,7 @@ class TypeHierarchyItemInfo implements ToJsonable {
   static TypeHierarchyItemInfo fromJson(Map<String, Object?> json) {
     final refJson = json['ref'];
     final ref = refJson as String;
-    return TypeHierarchyItemInfo(
-      ref: ref,
-    );
+    return TypeHierarchyItemInfo(ref: ref);
   }
 }
 
@@ -5086,15 +6008,9 @@ class ValidateRefactorResult implements ToJsonable {
 
   final bool valid;
 
-  ValidateRefactorResult({
-    this.message,
-    required this.valid,
-  });
+  ValidateRefactorResult({this.message, required this.valid});
   @override
-  int get hashCode => Object.hash(
-        message,
-        valid,
-      );
+  int get hashCode => Object.hash(message, valid);
 
   @override
   bool operator ==(Object other) {
@@ -5119,12 +6035,22 @@ class ValidateRefactorResult implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'message',
-          allowsUndefined: true, allowsNull: false)) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'message',
+        allowsUndefined: true,
+        allowsNull: false,
+      )) {
         return false;
       }
-      return _canParseBool(obj, reporter, 'valid',
-          allowsUndefined: false, allowsNull: false);
+      return _canParseBool(
+        obj,
+        reporter,
+        'valid',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
     } else {
       reporter.reportError('must be of type ValidateRefactorResult');
       return false;
@@ -5136,9 +6062,107 @@ class ValidateRefactorResult implements ToJsonable {
     final message = messageJson as String?;
     final validJson = json['valid'];
     final valid = validJson as bool;
-    return ValidateRefactorResult(
-      message: message,
-      valid: valid,
-    );
+    return ValidateRefactorResult(message: message, valid: valid);
+  }
+}
+
+/// The severity of a violation of a validator.
+class ValidationSeverity implements ToJsonable {
+  /// An error message that prevents submission of the value.
+  static const Error = ValidationSeverity(3);
+
+  /// An informational message that does not block submission of the value.
+  static const Info = ValidationSeverity(1);
+
+  /// A warning message that does not block submission of the value.
+  static const Warning = ValidationSeverity(2);
+
+  final int _value;
+  const ValidationSeverity(this._value);
+  const ValidationSeverity.fromJson(this._value);
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ValidationSeverity && other._value == _value;
+
+  @override
+  int toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
+}
+
+class Validator implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    Validator.canParse,
+    Validator.fromJson,
+  );
+
+  /// The message to show if the answer fails this validator.
+  final String message;
+
+  /// The severity of a violation of this validator.
+  final ValidationSeverity severity;
+
+  Validator({required this.message, required this.severity});
+  @override
+  int get hashCode => Object.hash(message, severity);
+
+  @override
+  bool operator ==(Object other) {
+    return other is Validator &&
+        other.runtimeType == Validator &&
+        message == other.message &&
+        severity == other.severity;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['message'] = message;
+    result['severity'] = severity.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(
+        obj,
+        reporter,
+        'message',
+        allowsUndefined: false,
+        allowsNull: false,
+      )) {
+        return false;
+      }
+      return _canParseValidationSeverity(
+        obj,
+        reporter,
+        'severity',
+        allowsUndefined: false,
+        allowsNull: false,
+      );
+    } else {
+      reporter.reportError('must be of type Validator');
+      return false;
+    }
+  }
+
+  static Validator fromJson(Map<String, Object?> json) {
+    if (RegexValidator.canParse(json, nullLspJsonReporter)) {
+      return RegexValidator.fromJson(json);
+    }
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final severityJson = json['severity'];
+    final severity = ValidationSeverity.fromJson(severityJson as int);
+    return Validator(message: message, severity: severity);
   }
 }

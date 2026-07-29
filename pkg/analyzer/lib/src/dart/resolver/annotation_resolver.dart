@@ -30,7 +30,7 @@ class AnnotationResolver {
     AnnotationImpl node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    node.typeArguments?.accept(_resolver);
+    node.typeArguments?.accept2(_resolver);
     _resolve(node, whyNotPromotedArguments);
   }
 
@@ -420,10 +420,9 @@ class AnnotationResolver {
       argumentList,
       (typeArguments) {
         return typeAliasElement.instantiateImpl(
-              typeArguments: typeArguments,
-              nullabilitySuffix: NullabilitySuffix.none,
-            )
-            as InterfaceType;
+          typeArguments: typeArguments,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ) as InterfaceType;
       },
       whyNotPromotedArguments,
     );

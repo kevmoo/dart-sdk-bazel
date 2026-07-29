@@ -86,8 +86,10 @@ class DartDevelopmentServiceLauncher {
       // then invoke it directly as it would avoid the additional hop
       // of going through the dart CLI process to invoke dds.
       executable = Platform.executable;
-      var sdkPath =
-          path.absolute(path.dirname(path.dirname(executable)), 'bin');
+      var sdkPath = path.absolute(
+        path.dirname(path.dirname(executable)),
+        'bin',
+      );
       var snapshotsDir = path.join(sdkPath, 'snapshots');
       final type = FileSystemEntity.typeSync(snapshotsDir);
       if (type != FileSystemEntityType.directory &&
@@ -98,10 +100,14 @@ class DartDevelopmentServiceLauncher {
         sdkPath = path.absolute(path.dirname(executable));
         snapshotsDir = sdkPath;
       }
-      final dartAotRuntime = path.absolute(sdkPath,
-          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime');
-      final ddsAotSnapshot =
-          path.absolute(snapshotsDir, 'dds_aot.dart.snapshot');
+      final dartAotRuntime = path.absolute(
+        sdkPath,
+        Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+      );
+      final ddsAotSnapshot = path.absolute(
+        snapshotsDir,
+        'dds_aot.dart.snapshot',
+      );
       if (File(dartAotRuntime).existsSync() &&
           File(ddsAotSnapshot).existsSync()) {
         executable = dartAotRuntime;
@@ -118,63 +124,70 @@ class DartDevelopmentServiceLauncher {
       args,
       mode: ProcessStartMode.detachedWithStdio,
     );
+    final exitCompleter = Completer<void>();
+    // We must drain stdout to prevent the process from deadlocking if the
+    // OS pipe buffer fills up.
+    process.stdout.listen(
+      (_) {},
+      onDone: () => exitCompleter.complete(),
+      onError: (_) => exitCompleter.complete(),
+    );
     final completer = Completer<DartDevelopmentServiceLauncher>();
     late StreamSubscription<Object?> stderrSub;
     stderrSub = process.stderr
         .transform(utf8.decoder)
         .transform(json.decoder)
-        .listen((Object? result) {
-      if (result
-          case {
-            'state': 'started',
-            'ddsUri': final String ddsUriStr,
-          }) {
-        final ddsUri = Uri.parse(ddsUriStr);
-        final devToolsUriStr = result['devToolsUri'] as String?;
-        final devToolsUri =
-            devToolsUriStr == null ? null : Uri.parse(devToolsUriStr);
-        final dtdUriStr =
-            (result['dtd'] as Map<String, Object?>?)?['uri'] as String?;
-        final dtdUri = dtdUriStr == null ? null : Uri.parse(dtdUriStr);
+        .listen(
+          (Object? result) {
+            if (result case {
+              'state': 'started',
+              'ddsUri': final String ddsUriStr,
+            }) {
+              final ddsUri = Uri.parse(ddsUriStr);
+              final devToolsUriStr = result['devToolsUri'] as String?;
+              final devToolsUri = devToolsUriStr == null
+                  ? null
+                  : Uri.parse(devToolsUriStr);
+              final dtdUriStr =
+                  (result['dtd'] as Map<String, Object?>?)?['uri'] as String?;
+              final dtdUri = dtdUriStr == null ? null : Uri.parse(dtdUriStr);
 
-        final launcher = DartDevelopmentServiceLauncher._(
-          process: process,
-          uri: ddsUri,
-          devToolsUri: devToolsUri,
-          dtdUri: dtdUri,
-          appName: appName,
+              final launcher = DartDevelopmentServiceLauncher._(
+                process: process,
+                uri: ddsUri,
+                devToolsUri: devToolsUri,
+                dtdUri: dtdUri,
+                appName: appName,
+                exitCompleter: exitCompleter,
+              );
+              completer.complete(launcher);
+            } else if (result case {
+              'state': 'error',
+              'error': final String error,
+            }) {
+              final Map<String, Object?>? exceptionDetails =
+                  result['ddsExceptionDetails'] as Map<String, Object?>?;
+              completer.completeError(
+                exceptionDetails != null
+                    ? DartDevelopmentServiceException.fromJson(exceptionDetails)
+                    : StateError(error),
+              );
+            } else {
+              throw StateError('Unexpected result from DDS: $result');
+            }
+            // Drain stderr to prevent process from blocking.
+            stderrSub.onData((_) {});
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!completer.isCompleted) {
+              completer.completeError(
+                DartDevelopmentServiceException.failedToStart(),
+                stackTrace,
+              );
+            }
+            stderrSub.cancel();
+          },
         );
-        process.stdout.listen(
-          (_) {},
-          onDone: () => launcher._exitCompleter.complete(),
-          onError: (_) => launcher._exitCompleter.complete(),
-        );
-        completer.complete(launcher);
-      } else if (result
-          case {
-            'state': 'error',
-            'error': final String error,
-          }) {
-        final Map<String, Object?>? exceptionDetails =
-            result['ddsExceptionDetails'] as Map<String, Object?>?;
-        completer.completeError(
-          exceptionDetails != null
-              ? DartDevelopmentServiceException.fromJson(exceptionDetails)
-              : StateError(error),
-        );
-      } else {
-        throw StateError('Unexpected result from DDS: $result');
-      }
-      stderrSub.cancel();
-    }, onError: (Object error, StackTrace stackTrace) {
-      if (!completer.isCompleted) {
-        completer.completeError(
-          DartDevelopmentServiceException.failedToStart(),
-          stackTrace,
-        );
-      }
-      stderrSub.cancel();
-    });
     return completer.future;
   }
 
@@ -184,10 +197,12 @@ class DartDevelopmentServiceLauncher {
     required this.devToolsUri,
     required this.dtdUri,
     required this.appName,
-  }) : _ddsInstance = process;
+    required Completer<void> exitCompleter,
+  }) : _ddsInstance = process,
+       _exitCompleter = exitCompleter;
 
   final Process _ddsInstance;
-  final _exitCompleter = Completer<void>();
+  final Completer<void> _exitCompleter;
 
   /// A short, user focused description of the application that DDS will
   /// connect to.

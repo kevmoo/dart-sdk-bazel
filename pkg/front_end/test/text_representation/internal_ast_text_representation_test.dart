@@ -15,7 +15,6 @@ import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
-import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/target/targets.dart';
@@ -92,8 +91,31 @@ void testVariableDeclaration(
   );
 }
 
+void testElement(
+  InternalElement node,
+  String normal, {
+  String? verbose,
+  String? limited,
+}) {
+  Expect.stringEquals(
+    normal,
+    node.toText(normalStrategy),
+    "Unexpected normal strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    verbose ?? normal,
+    node.toText(verboseStrategy),
+    "Unexpected verbose strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    limited ?? normal,
+    node.toText(limitedStrategy),
+    "Unexpected limited strategy text for ${node.runtimeType}",
+  );
+}
+
 void testExpression(
-  Expression node,
+  InternalExpression node,
   String normal, {
   String? verbose,
   String? limited,
@@ -116,7 +138,7 @@ void testExpression(
 }
 
 void testPattern(
-  Pattern node,
+  InternalPattern node,
   String normal, {
   String? verbose,
   String? limited,
@@ -247,7 +269,7 @@ void main() {
 
 void _testVariableDeclarations() {
   testStatement(
-    forest.variablesDeclaration([
+    new MultiVariableDeclaration([
       new InternalVariableDeclaration(
         new InternalLocalVariable(
           name: 'a',
@@ -255,6 +277,7 @@ void _testVariableDeclarations() {
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
+        nameOffset: TreeNode.noOffset,
       ),
       new InternalVariableDeclaration(
         new InternalLocalVariable(
@@ -263,13 +286,14 @@ void _testVariableDeclarations() {
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
+        nameOffset: TreeNode.noOffset,
       ),
-    ], dummyUri),
+    ], fileOffset: TreeNode.noOffset),
     '''
 dynamic a, b;''',
   );
   testStatement(
-    forest.variablesDeclaration([
+    new MultiVariableDeclaration([
       new InternalVariableDeclaration(
         new InternalLocalVariable(
           name: 'a',
@@ -277,6 +301,7 @@ dynamic a, b;''',
           isImplicitlyTyped: false,
           fileOffset: TreeNode.noOffset,
         ),
+        nameOffset: TreeNode.noOffset,
       ),
       new InternalVariableDeclaration(
         new InternalLocalVariable(
@@ -286,8 +311,9 @@ dynamic a, b;''',
           fileOffset: TreeNode.noOffset,
         ),
         initializer: new InternalNullLiteral(fileOffset: TreeNode.noOffset),
+        nameOffset: TreeNode.noOffset,
       ),
-    ], dummyUri),
+    ], fileOffset: TreeNode.noOffset),
     '''
 void a, b = null;''',
   );
@@ -389,11 +415,24 @@ void _testTryStatement() {
     fileOffset: TreeNode.noOffset,
   );
 
-  testStatement(new TryStatement(emptyBlock1, [], emptyBlock2), '''
-try {} finally {}''');
+  testStatement(
+    new TryStatement(
+      emptyBlock1,
+      [],
+      emptyBlock2,
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+try {} finally {}''',
+  );
 
   testStatement(
-    new TryStatement(returnBlock1, [], returnBlock2),
+    new TryStatement(
+      returnBlock1,
+      [],
+      returnBlock2,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {
   return;
@@ -404,35 +443,57 @@ try {
 try { return; } finally { return; }''',
   );
 
-  testStatement(new TryStatement(emptyBlock1, [emptyCatchBlock], null), '''
-try {} catch (e) {}''');
+  testStatement(
+    new TryStatement(
+      emptyBlock1,
+      [emptyCatchBlock],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+try {} catch (e) {}''',
+  );
 
   testStatement(
-    new TryStatement(emptyBlock1, [emptyCatchBlockOnVoid], null),
+    new TryStatement(
+      emptyBlock1,
+      [emptyCatchBlockOnVoid],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {} on void catch (e) {}''',
   );
 
   testStatement(
-    new TryStatement(emptyBlock1, [
-      emptyCatchBlockOnVoid,
-      emptyCatchBlock,
-    ], null),
+    new TryStatement(
+      emptyBlock1,
+      [emptyCatchBlockOnVoid, emptyCatchBlock],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {} on void catch (e) {} catch (e) {}''',
   );
 
   testStatement(
-    new TryStatement(emptyBlock1, [
-      emptyCatchBlockOnVoid,
-      emptyCatchBlock,
-    ], emptyBlock2),
+    new TryStatement(
+      emptyBlock1,
+      [emptyCatchBlockOnVoid, emptyCatchBlock],
+      emptyBlock2,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {} on void catch (e) {} catch (e) {} finally {}''',
   );
 
   testStatement(
-    new TryStatement(returnBlock1, [returnCatchBlock], null),
+    new TryStatement(
+      returnBlock1,
+      [returnCatchBlock],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {
   return;
@@ -444,7 +505,12 @@ try { return; } catch (e) { return; }''',
   );
 
   testStatement(
-    new TryStatement(returnBlock1, [returnCatchBlockOnVoid], null),
+    new TryStatement(
+      returnBlock1,
+      [returnCatchBlockOnVoid],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {
   return;
@@ -456,10 +522,12 @@ try { return; } on void catch (e) { return; }''',
   );
 
   testStatement(
-    new TryStatement(returnBlock1, [
-      returnCatchBlockOnVoid,
-      returnCatchBlock,
-    ], null),
+    new TryStatement(
+      returnBlock1,
+      [returnCatchBlockOnVoid, returnCatchBlock],
+      null,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {
   return;
@@ -473,10 +541,12 @@ try { return; } on void catch (e) { return; } catch (e) { return; }''',
   );
 
   testStatement(
-    new TryStatement(returnBlock1, [
-      returnCatchBlockOnVoid,
-      returnCatchBlock,
-    ], returnBlock2),
+    new TryStatement(
+      returnBlock1,
+      [returnCatchBlockOnVoid, returnCatchBlock],
+      returnBlock2,
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 try {
   return;
@@ -503,6 +573,7 @@ void _testInternalForInStatement() {
             isImplicitlyTyped: true,
             fileOffset: -1,
           ),
+          nameOffset: TreeNode.noOffset,
         ),
         error: null,
       ),
@@ -530,6 +601,7 @@ for (var e in null) {}''',
             isImplicitlyTyped: false,
             fileOffset: -1,
           ),
+          nameOffset: TreeNode.noOffset,
         ),
         error: null,
       ),
@@ -554,20 +626,18 @@ for (void e in null) {}''',
           patterns: [
             new InternalVariablePattern(
               type: const VoidType(),
-              variable: new InternalLocalVariable(
+              variable: new InternalPatternVariable(
                 name: 'a',
                 type: null,
                 fileOffset: TreeNode.noOffset,
-                isImplicitlyTyped: true,
               ),
               fileOffset: TreeNode.noOffset,
             ),
             new InternalVariablePattern(
               type: null,
-              variable: new InternalLocalVariable(
+              variable: new InternalPatternVariable(
                 name: 'b',
                 type: null,
-                isImplicitlyTyped: true,
                 fileOffset: TreeNode.noOffset,
               ),
               fileOffset: TreeNode.noOffset,
@@ -720,6 +790,7 @@ for (null in null) {}''',
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
+            nameOffset: TreeNode.noOffset,
           ),
           new InternalVariableDeclaration(
             new InternalLocalVariable(
@@ -728,12 +799,14 @@ for (null in null) {}''',
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
+            nameOffset: TreeNode.noOffset,
           ),
         ],
         error: new InternalInvalidExpression(
           'error',
           fileOffset: TreeNode.noOffset,
         ),
+        fileOffset: TreeNode.noOffset,
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
@@ -760,6 +833,7 @@ for (var a, b in null) {}''',
               isImplicitlyTyped: false,
               fileOffset: -1,
             ),
+            nameOffset: TreeNode.noOffset,
           ),
           new InternalVariableDeclaration(
             new InternalLocalVariable(
@@ -768,12 +842,14 @@ for (var a, b in null) {}''',
               isImplicitlyTyped: true,
               fileOffset: -1,
             ),
+            nameOffset: TreeNode.noOffset,
           ),
         ],
         error: new InternalInvalidExpression(
           'error',
           fileOffset: TreeNode.noOffset,
         ),
+        fileOffset: TreeNode.noOffset,
       ),
       new InternalNullLiteral(fileOffset: TreeNode.noOffset),
       new InternalBlock(
@@ -1100,43 +1176,61 @@ switch (null) { case 0: case 1: return; label: case 2 when 3: default: return; }
 }
 
 void _testSwitchExpression() {
-  Expression expression = new InternalNullLiteral(
+  InternalExpression expression = new InternalNullLiteral(
     fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case0 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case0 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
+    guard: null,
+    fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case1 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case1 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
+    guard: null,
+    fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case2 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case2 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
-    new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+    guard: new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+    fileOffset: TreeNode.noOffset,
   );
-  Expression body0 = new InternalIntLiteral(
+  InternalExpression body0 = new InternalIntLiteral(
     4,
     '4',
     fileOffset: TreeNode.noOffset,
   );
-  Expression body1 = new InternalIntLiteral(
+  InternalExpression body1 = new InternalIntLiteral(
     5,
     '5',
     fileOffset: TreeNode.noOffset,
   );
-  Expression body2 = new InternalIntLiteral(
+  InternalExpression body2 = new InternalIntLiteral(
     6,
     '6',
     fileOffset: TreeNode.noOffset,
   );
 
   testExpression(
-    new SwitchExpression(expression, [new SwitchExpressionCase(case0, body0)]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4 }''',
     limited: '''
@@ -1144,10 +1238,22 @@ switch (null) { case 0 => 4 }''',
   );
 
   testExpression(
-    new SwitchExpression(expression, [
-      new SwitchExpressionCase(case0, body0),
-      new SwitchExpressionCase(case1, body1),
-    ]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case1,
+          expression: body1,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4, case 1 => 5 }''',
     limited: '''
@@ -1155,11 +1261,27 @@ switch (null) { case 0 => 4, case 1 => 5 }''',
   );
 
   testExpression(
-    new SwitchExpression(expression, [
-      new SwitchExpressionCase(case0, body0),
-      new SwitchExpressionCase(case1, body1),
-      new SwitchExpressionCase(case2, body2),
-    ]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case1,
+          expression: body1,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case2,
+          expression: body2,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4, case 1 => 5, case 2 when 3 => 6 }''',
     limited: '''
@@ -1209,51 +1331,54 @@ void _testCascade() {
     variable: variable,
     receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
     isNullAware: false,
+    fileOffset: TreeNode.noOffset,
   );
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
 
   cascade.addCascadeExpression(
     new PropertySet(
-      new InternalVariableGet(variable),
+      new InternalVariableGet(variable, fileOffset: TreeNode.noOffset),
       new Name('foo'),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       forEffect: false,
       readOnlyReceiver: false,
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
   );
   testExpression(
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  (#0).foo = 1;
+  #0.foo = 1;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
+let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
     new PropertySet(
-      new InternalVariableGet(variable),
+      new InternalVariableGet(variable, fileOffset: TreeNode.noOffset),
       new Name('bar'),
       new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
       forEffect: false,
       readOnlyReceiver: false,
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
   );
   testExpression(
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  (#0).foo = 1;
-  (#0).bar = 2;
+  #0.foo = 1;
+  #0.bar = 2;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { (#0).foo = 1; (#0).bar = 2; } => #0''',
+let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''',
   );
 }
 
@@ -1288,10 +1413,11 @@ void _testFactoryConstructorInvocation() {
 
   testExpression(
     new FactoryConstructorInvocation(
-      factoryConstructor,
-      null,
-      new ActualArguments.empty(),
+      target: factoryConstructor,
+      typeArguments: null,
+      arguments: _emptyArguments,
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Class()''',
@@ -1301,10 +1427,11 @@ new library test:dummy::Class()''',
 
   testExpression(
     new FactoryConstructorInvocation(
-      factoryConstructor,
-      null,
-      new ActualArguments.empty(),
+      target: factoryConstructor,
+      typeArguments: null,
+      arguments: _emptyArguments,
       isConst: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 const Class()''',
@@ -1325,17 +1452,19 @@ const library test:dummy::Class()''',
 
   testExpression(
     new FactoryConstructorInvocation(
-      factoryConstructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      target: factoryConstructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Class<void>(0, bar: 1)''',
@@ -1346,17 +1475,19 @@ new library test:dummy::Class<void>(0, bar: 1)''',
   factoryConstructor.name = new Name('foo');
   testExpression(
     new FactoryConstructorInvocation(
-      factoryConstructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      target: factoryConstructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Class<void>.foo(0, bar: 1)''',
@@ -1404,10 +1535,12 @@ void _testTypeAliasedConstructorInvocation(CompilerContext c) {
 
   testExpression(
     new TypeAliasedConstructorInvocation(
-      typeAliasBuilder,
-      constructor,
-      null,
-      new ActualArguments.empty(),
+      typeAliasBuilder: typeAliasBuilder,
+      target: constructor,
+      typeArguments: null,
+      arguments: _emptyArguments,
+      isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef()''',
@@ -1428,17 +1561,20 @@ new library test:dummy::Typedef()''',
 
   testExpression(
     new TypeAliasedConstructorInvocation(
-      typeAliasBuilder,
-      constructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: constructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
+      isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -1449,17 +1585,20 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
   constructor.name = new Name('foo');
   testExpression(
     new TypeAliasedConstructorInvocation(
-      typeAliasBuilder,
-      constructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: constructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
+      isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -1470,18 +1609,20 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
   constructor.name = new Name('foo');
   testExpression(
     new TypeAliasedConstructorInvocation(
-      typeAliasBuilder,
-      constructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: constructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 const Typedef<void>.foo(0, bar: 1)''',
@@ -1530,11 +1671,12 @@ void _testTypeAliasedFactoryInvocation(CompilerContext c) {
 
   testExpression(
     new TypeAliasedFactoryInvocation(
-      typeAliasBuilder,
-      factoryConstructor,
-      null,
-      new ActualArguments.empty(),
+      typeAliasBuilder: typeAliasBuilder,
+      target: factoryConstructor,
+      typeArguments: null,
+      arguments: _emptyArguments,
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef()''',
@@ -1555,18 +1697,20 @@ new library test:dummy::Typedef()''',
 
   testExpression(
     new TypeAliasedFactoryInvocation(
-      typeAliasBuilder,
-      factoryConstructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: factoryConstructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -1577,18 +1721,20 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
   factoryConstructor.name = new Name('foo');
   testExpression(
     new TypeAliasedFactoryInvocation(
-      typeAliasBuilder,
-      factoryConstructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: factoryConstructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -1599,18 +1745,20 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
   factoryConstructor.name = new Name('foo');
   testExpression(
     new TypeAliasedFactoryInvocation(
-      typeAliasBuilder,
-      factoryConstructor,
-      new TypeArguments([const VoidType()]),
-      new ActualArguments(
+      typeAliasBuilder: typeAliasBuilder,
+      target: factoryConstructor,
+      typeArguments: new TypeArguments([const VoidType()]),
+      arguments: new ActualArguments(
         argumentList: [
           new PositionalArgument(positionalArgument),
           new NamedArgument(namedArgument),
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isConst: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 const Typedef<void>.foo(0, bar: 1)''',
@@ -1655,10 +1803,11 @@ void _testIfNullExpression() {
     new IfNullExpression(
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) ?? (1)''',
+0 ?? 1''',
   );
 }
 
@@ -1683,13 +1832,14 @@ void _testInternalMethodInvocation() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new Name('boz'),
       null,
-      new ActualArguments.empty(),
+      _emptyArguments,
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz()''',
+0.boz()''',
   );
 
   InternalExpression positionalArgument = new InternalIntLiteral(
@@ -1721,26 +1871,29 @@ void _testInternalMethodInvocation() {
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz<void, dynamic>(1, foo: 2, bar: 3)''',
+0.boz<void, dynamic>(1, foo: 2, bar: 3)''',
   );
   testExpression(
     new MethodInvocation(
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new Name('boz'),
       null,
-      new ActualArguments.empty(),
+      _emptyArguments,
       isNullAware: true,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz()''',
+0?.boz()''',
   );
   testExpression(
     new MethodInvocation(
@@ -1755,13 +1908,15 @@ void _testInternalMethodInvocation() {
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: true,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz<void, dynamic>(1, foo: 2, bar: 3)''',
+0?.boz<void, dynamic>(1, foo: 2, bar: 3)''',
   );
 }
 
@@ -1772,10 +1927,11 @@ void _testPropertyGet() {
       new Name('boz'),
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz''',
+0.boz''',
   );
 
   testExpression(
@@ -1784,10 +1940,11 @@ void _testPropertyGet() {
       new Name('boz'),
       isNullAware: true,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz''',
+0?.boz''',
   );
 }
 
@@ -1801,10 +1958,11 @@ void _testPropertySet() {
       readOnlyReceiver: false,
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz = 1''',
+0.boz = 1''',
   );
 
   testExpression(
@@ -1816,10 +1974,11 @@ void _testPropertySet() {
       readOnlyReceiver: false,
       isNullAware: true,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz = 1''',
+0?.boz = 1''',
   );
 }
 
@@ -1828,7 +1987,8 @@ void _testExpressionInvocation() {
     new ExpressionInvocation(
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       null,
-      new ActualArguments.empty(),
+      _emptyArguments,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0()''',
@@ -1862,7 +2022,9 @@ void _testExpressionInvocation() {
         ],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -1875,13 +2037,14 @@ void _testMethodInvocation() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new Name('foo'),
       null,
-      new ActualArguments.empty(),
+      _emptyArguments,
       isNullAware: false,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).foo()''',
+0.foo()''',
   );
 
   testExpression(
@@ -1889,13 +2052,14 @@ void _testMethodInvocation() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new Name('foo'),
       null,
-      new ActualArguments.empty(),
+      _emptyArguments,
       isNullAware: true,
       isImplicitThis: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.foo()''',
+0?.foo()''',
   );
 }
 
@@ -1939,6 +2103,7 @@ void _testVariableDeclarationImpl() {
         isImplicitlyTyped: false,
         fileOffset: TreeNode.noOffset,
       ),
+      nameOffset: TreeNode.noOffset,
     ),
     '''
 dynamic foo''',
@@ -1956,20 +2121,21 @@ dynamic foo''',
         '0',
         fileOffset: TreeNode.noOffset,
       ),
+      nameOffset: TreeNode.noOffset,
     ),
     '''
 dynamic foo = 0''',
   );
   testVariable(
     new InternalPositionalParameter(
+      defaultValue: new InternalIntLiteral(
+        0,
+        '0',
+        fileOffset: TreeNode.noOffset,
+      ),
       astVariable: new PositionalParameter(
         cosmeticName: 'foo',
         type: const VoidType(),
-        defaultValue: new InternalIntLiteral(
-          0,
-          '0',
-          fileOffset: TreeNode.noOffset,
-        ),
         isFinal: true,
         isRequired: true,
       ),
@@ -1992,6 +2158,7 @@ required void foo''',
         '0',
         fileOffset: TreeNode.noOffset,
       ),
+      nameOffset: TreeNode.noOffset,
     ),
     '''
 late void foo = 0''',
@@ -2013,6 +2180,7 @@ late void foo = 0''',
         '0',
         fileOffset: TreeNode.noOffset,
       ),
+      nameOffset: TreeNode.noOffset,
     ),
 
     '''
@@ -2036,6 +2204,7 @@ late void foo = 0''',
         '0',
         fileOffset: TreeNode.noOffset,
       ),
+      nameOffset: TreeNode.noOffset,
     ),
     '''
 late dynamic foo = 0''',
@@ -2051,7 +2220,7 @@ void _testLoadLibraryImpl() {
   testExpression(
     new InternalLoadLibrary(
       dependency,
-      new ActualArguments.empty(),
+      _emptyArguments,
       fileOffset: TreeNode.noOffset,
     ),
     '''
@@ -2071,6 +2240,7 @@ pre.loadLibrary()''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       fileOffset: TreeNode.noOffset,
     ),
@@ -2091,59 +2261,70 @@ void _testLoadLibraryTearOff() {
     new FunctionNode(new Block([])),
     fileUri: dummyUri,
   );
-  testExpression(new LoadLibraryTearOff(dependency, procedure), '''
-pre.loadLibrary''');
+  testExpression(
+    new LoadLibraryTearOff(
+      dependency,
+      procedure,
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+pre.loadLibrary''',
+  );
 }
 
 void _testIfNullPropertySet() {
   testExpression(
     new IfNullPropertySet(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      propertyName: new Name('foo'),
+      rhs: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       readOffset: -1,
       writeOffset: -1,
       forEffect: false,
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '0.foo ??= 1',
   );
 
   testExpression(
     new IfNullPropertySet(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      propertyName: new Name('foo'),
+      rhs: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       readOffset: -1,
       writeOffset: -1,
       forEffect: true,
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '0.foo ??= 1',
   );
 
   testExpression(
     new IfNullPropertySet(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      propertyName: new Name('foo'),
+      rhs: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       readOffset: -1,
       writeOffset: -1,
       forEffect: false,
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '0?.foo ??= 1',
   );
 
   testExpression(
     new IfNullPropertySet(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      propertyName: new Name('foo'),
+      rhs: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       readOffset: -1,
       writeOffset: -1,
       forEffect: true,
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '0?.foo ??= 1',
   );
@@ -2158,12 +2339,14 @@ void _testIfNullSet() {
   );
   testExpression(
     new IfNullSet(
-      new InternalVariableGet(variable),
-      new InternalVariableSet(
+      read: new InternalVariableGet(variable, fileOffset: TreeNode.noOffset),
+      write: new InternalVariableSet(
         variable,
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
       forEffect: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 foo ?? foo = 1''',
@@ -2171,12 +2354,14 @@ foo ?? foo = 1''',
 
   testExpression(
     new IfNullSet(
-      new InternalVariableGet(variable),
-      new InternalVariableSet(
+      read: new InternalVariableGet(variable, fileOffset: TreeNode.noOffset),
+      write: new InternalVariableSet(
         variable,
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
       forEffect: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 foo ?? foo = 1''',
@@ -2352,8 +2537,8 @@ void _testCompoundPropertySet() {
 void _testPropertyIncDec() {
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: false,
       forEffect: false,
       isInc: true,
@@ -2368,8 +2553,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: false,
       forEffect: false,
       isInc: false,
@@ -2384,8 +2569,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: true,
       forEffect: false,
       isInc: true,
@@ -2400,8 +2585,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: true,
       forEffect: false,
       isInc: false,
@@ -2416,8 +2601,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: false,
       forEffect: false,
       isInc: true,
@@ -2432,8 +2617,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: false,
       forEffect: false,
       isInc: false,
@@ -2448,8 +2633,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: true,
       forEffect: false,
       isInc: true,
@@ -2464,8 +2649,8 @@ void _testPropertyIncDec() {
 
   testExpression(
     new PropertyIncDec(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new Name('foo'),
+      receiver: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      name: new Name('foo'),
       isNullAware: true,
       forEffect: false,
       isInc: false,
@@ -2686,6 +2871,7 @@ void _testIndexGet() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0[1]''',
@@ -2696,6 +2882,7 @@ void _testIndexGet() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0?[1]''',
@@ -2710,6 +2897,7 @@ void _testIndexSet() {
       new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
       forEffect: false,
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0[1] = 2''',
@@ -2722,6 +2910,7 @@ void _testIndexSet() {
       new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
       forEffect: false,
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0?[1] = 2''',
@@ -2742,9 +2931,10 @@ void _testSuperIndexSet() {
 
   testExpression(
     new SuperIndexSet(
-      setter,
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      setter: setter,
+      index: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      value: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 super[0] = 1''',
@@ -2776,6 +2966,7 @@ void _testExtensionIndexGet() {
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)[1]''',
@@ -2790,6 +2981,7 @@ Extension(0)[1]''',
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?[1]''',
@@ -2804,6 +2996,7 @@ Extension(0)?[1]''',
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)[1]''',
@@ -2818,6 +3011,7 @@ Extension<void>(0)[1]''',
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?[1]''',
@@ -2851,6 +3045,7 @@ void _testExtensionIndexSet() {
       isNullAware: false,
       forEffect: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)[1] = 2''',
@@ -2867,6 +3062,7 @@ Extension(0)[1] = 2''',
       isNullAware: true,
       forEffect: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?[1] = 2''',
@@ -2883,6 +3079,7 @@ Extension(0)?[1] = 2''',
       isNullAware: false,
       forEffect: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)[1] = 2''',
@@ -2899,6 +3096,7 @@ Extension<void>(0)[1] = 2''',
       isNullAware: true,
       forEffect: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?[1] = 2''',
@@ -3518,6 +3716,7 @@ void _testExtensionGet() {
       getter: getter,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo''',
@@ -3532,6 +3731,7 @@ Extension(0).foo''',
       getter: getter,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo''',
@@ -3546,6 +3746,7 @@ Extension(0)?.foo''',
       getter: getter,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo''',
@@ -3560,6 +3761,7 @@ Extension<void>(0).foo''',
       getter: getter,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo''',
@@ -3577,6 +3779,7 @@ Extension<void>(0)?.foo''',
       thisAccess: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       name: name,
       getter: getter,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo''',
@@ -3619,8 +3822,10 @@ void _testExtensionGetterInvocation() {
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo(1)''',
@@ -3639,8 +3844,10 @@ Extension(0).foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo(1)''',
@@ -3659,8 +3866,10 @@ Extension(0)?.foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo(1)''',
@@ -3679,8 +3888,10 @@ Extension<void>(0).foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo(1)''',
@@ -3703,7 +3914,9 @@ Extension<void>(0)?.foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo(1)''',
@@ -3746,8 +3959,10 @@ void _testExtensionMethodInvocation() {
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo(1)''',
@@ -3766,8 +3981,10 @@ Extension(0).foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo(1)''',
@@ -3786,8 +4003,10 @@ Extension(0)?.foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo(1)''',
@@ -3806,8 +4025,10 @@ Extension<void>(0).foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo(1)''',
@@ -3830,7 +4051,9 @@ Extension<void>(0)?.foo(1)''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo(1)''',
@@ -3874,6 +4097,7 @@ void _testExtensionPostIncDec() {
       isInc: true,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo++''',
@@ -3892,6 +4116,7 @@ Extension(0).foo++''',
       isInc: false,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo--''',
@@ -3910,6 +4135,7 @@ Extension(0)?.foo--''',
       isInc: false,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo--''',
@@ -3928,6 +4154,7 @@ Extension<void>(0).foo--''',
       isInc: true,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo++''',
@@ -3949,6 +4176,7 @@ Extension<void>(0)?.foo++''',
       forEffect: false,
       isPost: true,
       isInc: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo++''',
@@ -3967,6 +4195,7 @@ Extension<void>(0)?.foo++''',
       isInc: true,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 ++Extension(0).foo''',
@@ -3985,6 +4214,7 @@ Extension<void>(0)?.foo++''',
       isInc: false,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 --Extension(0)?.foo''',
@@ -4003,6 +4233,7 @@ Extension<void>(0)?.foo++''',
       isInc: false,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 --Extension<void>(0).foo''',
@@ -4021,6 +4252,7 @@ Extension<void>(0)?.foo++''',
       isInc: true,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 ++Extension<void>(0)?.foo''',
@@ -4042,6 +4274,7 @@ Extension<void>(0)?.foo++''',
       forEffect: false,
       isPost: false,
       isInc: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 ++0.foo''',
@@ -4076,6 +4309,7 @@ void _testExtensionSet() {
       isNullAware: false,
       forEffect: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo = 1''',
@@ -4092,6 +4326,7 @@ Extension(0).foo = 1''',
       isNullAware: true,
       forEffect: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo = 1''',
@@ -4108,6 +4343,7 @@ Extension(0)?.foo = 1''',
       isNullAware: false,
       forEffect: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo = 1''',
@@ -4124,6 +4360,7 @@ Extension<void>(0).foo = 1''',
       isNullAware: true,
       forEffect: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo = 1''',
@@ -4143,6 +4380,7 @@ Extension<void>(0)?.foo = 1''',
       setter: setter,
       value: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       forEffect: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo = 1''',
@@ -4177,6 +4415,7 @@ void _testExtensionTearOff() {
       tearOff: tearOff,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0).foo''',
@@ -4191,6 +4430,7 @@ Extension(0).foo''',
       tearOff: tearOff,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension(0)?.foo''',
@@ -4205,6 +4445,7 @@ Extension(0)?.foo''',
       tearOff: tearOff,
       isNullAware: false,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0).foo''',
@@ -4219,6 +4460,7 @@ Extension<void>(0).foo''',
       tearOff: tearOff,
       isNullAware: true,
       extensionTypeArgumentOffset: -1,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 Extension<void>(0)?.foo''',
@@ -4236,6 +4478,7 @@ Extension<void>(0)?.foo''',
       thisAccess: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       name: name,
       tearOff: tearOff,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0.foo''',
@@ -4248,20 +4491,22 @@ void _testEqualsExpression() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNot: false,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) == (1)''',
+0 == 1''',
   );
   testExpression(
     new EqualsExpression(
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       isNot: true,
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) != (1)''',
+0 != 1''',
   );
 }
 
@@ -4271,10 +4516,11 @@ void _testBinaryExpression() {
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       new Name('+'),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) + (1)''',
+0 + 1''',
   );
   testExpression(
     new BinaryExpression(
@@ -4282,17 +4528,20 @@ void _testBinaryExpression() {
         new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
         new Name('-'),
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
       new Name('+'),
       new BinaryExpression(
         new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
         new Name('-'),
         new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) - (1) + (2) - (3)''',
+0 - 1 + 2 - 3''',
   );
   testExpression(
     new BinaryExpression(
@@ -4300,17 +4549,20 @@ void _testBinaryExpression() {
         new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
         new Name('*'),
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
       new Name('+'),
       new BinaryExpression(
         new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
         new Name('/'),
         new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) * (1) + (2) / (3)''',
+0 * 1 + 2 / 3''',
   );
   testExpression(
     new BinaryExpression(
@@ -4318,17 +4570,20 @@ void _testBinaryExpression() {
         new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
         new Name('+'),
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
       new Name('*'),
       new BinaryExpression(
         new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
         new Name('-'),
         new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-((0) + (1)) * ((2) - (3))''',
+0 + 1 * 2 - 3''',
   );
 }
 
@@ -4337,19 +4592,21 @@ void _testUnaryExpression() {
     new UnaryExpression(
       new Name('unary-'),
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
--(0)''',
+-0''',
   );
   testExpression(
     new UnaryExpression(
       new Name('~'),
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-~(0)''',
+~0''',
   );
 
   testExpression(
@@ -4359,11 +4616,13 @@ void _testUnaryExpression() {
         new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
         new Name('+'),
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
--((0) + (1))''',
+-0 + 1''',
   );
 }
 
@@ -4371,6 +4630,7 @@ void _testParenthesizedExpression() {
   testExpression(
     new ParenthesizedExpression(
       new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 (0)''',
@@ -4378,18 +4638,20 @@ void _testParenthesizedExpression() {
 }
 
 void _testSpreadElement() {
-  testExpression(
+  testElement(
     new SpreadElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       isNullAware: false,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 ...0''',
   );
-  testExpression(
+  testElement(
     new SpreadElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       isNullAware: true,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 ...?0''',
@@ -4397,20 +4659,43 @@ void _testSpreadElement() {
 }
 
 void _testIfElement() {
-  testExpression(
+  testElement(
     new IfElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      null,
+      condition: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      then: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
+      otherwise: null,
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 if (0) 1''',
   );
-  testExpression(
+  testElement(
     new IfElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      condition: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      then: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
+      otherwise: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          2,
+          '2',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 if (0) 1 else 2''',
@@ -4431,40 +4716,69 @@ void _testForInMapEntry() {}
 
 void _testExpressionMatcher() {
   testPattern(
-    new ConstantPattern(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalConstantPattern(
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0''',
   );
 
-  testPattern(new ConstantPattern(new BoolLiteral(true)), '''
-true''');
+  testPattern(
+    new InternalConstantPattern(
+      expression: new InternalBoolLiteral(true, fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+true''',
+  );
 }
 
 void _testBinaryMatcher() {
   testPattern(
-    new AndPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalAndPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 && 1''',
   );
 
   testPattern(
-    new OrPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalOrPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
       orPatternJointVariables: [],
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 || 1''',
@@ -4473,11 +4787,17 @@ void _testBinaryMatcher() {
 
 void _testCastMatcher() {
   testPattern(
-    new CastPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalCastPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
       const DynamicType(),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 as dynamic''',
@@ -4486,10 +4806,16 @@ void _testCastMatcher() {
 
 void _testNullAssertMatcher() {
   testPattern(
-    new NullAssertPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalNullAssertPattern(
+      pattern: new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0!''',
@@ -4498,10 +4824,16 @@ void _testNullAssertMatcher() {
 
 void _testNullCheckMatcher() {
   testPattern(
-    new NullCheckPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalNullCheckPattern(
+      pattern: new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0?''',
@@ -4510,14 +4842,28 @@ void _testNullCheckMatcher() {
 
 void _testListMatcher() {
   testPattern(
-    new ListPattern(const DynamicType(), [
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      ),
-    ]),
+    new InternalListPattern(
+      typeArgument: const DynamicType(),
+      patterns: [
+        new InternalConstantPattern(
+          expression: new InternalIntLiteral(
+            0,
+            '0',
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalConstantPattern(
+          expression: new InternalIntLiteral(
+            1,
+            '1',
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 <dynamic>[0, 1]''',
   );
@@ -4525,25 +4871,28 @@ void _testListMatcher() {
 
 void _testRelationalMatcher() {
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.equals,
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.equals,
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 == 0''',
   );
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.notEquals,
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.notEquals,
+      expression: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 != 1''',
   );
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.lessThan,
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.lessThan,
+      expression: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 < 2''',
@@ -4551,37 +4900,81 @@ void _testRelationalMatcher() {
 }
 
 void _testMapMatcher() {
-  testPattern(new MapPattern(null, null, []), '''
-{}''');
-  testPattern(new MapPattern(const DynamicType(), const DynamicType(), []), '''
-<dynamic, dynamic>{}''');
   testPattern(
-    new MapPattern(null, null, [
-      new MapPatternEntry(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [],
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+{}''',
+  );
+  testPattern(
+    new InternalMapPattern(
+      keyType: const DynamicType(),
+      valueType: const DynamicType(),
+      entries: [],
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+<dynamic, dynamic>{}''',
+  );
+  testPattern(
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              1,
+              '1',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-    ]),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 {0: 1}''',
   );
   testPattern(
-    new MapPattern(null, null, [
-      new MapPatternEntry(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              1,
+              '1',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-      new MapPatternEntry(
-        new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              3,
+              '3',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-    ]),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 {0: 1, 2: 3}''',
   );
@@ -4783,7 +5176,7 @@ void _testExtensionTypeRedirectingInitializer() {
   testInitializer(
     new ExtensionTypeRedirectingInitializer(
       unnamedTarget,
-      new ActualArguments.empty(),
+      _emptyArguments,
       fileOffset: TreeNode.noOffset,
     ),
     '''
@@ -4803,6 +5196,7 @@ this()''',
         argumentList: [new PositionalArgument(positionalArgument)],
         hasNamedBeforePositional: false,
         positionalCount: 1,
+        fileOffset: TreeNode.noOffset,
       ),
       fileOffset: TreeNode.noOffset,
     ),
@@ -4810,3 +5204,10 @@ this()''',
 this.named(0)''',
   );
 }
+
+ActualArguments _emptyArguments = new ActualArguments(
+  argumentList: [],
+  hasNamedBeforePositional: false,
+  positionalCount: 0,
+  fileOffset: TreeNode.noOffset,
+);

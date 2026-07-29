@@ -14,19 +14,19 @@ void main() {
         summaryModules: {'/flutter.dill': 'flutter_web'},
         bootstrapCode: 'void main() => {{entrypoint}}.main();',
         flutterSdkPath: '/flutter/sdk',
+        trackCreationLocations: true,
       );
 
       final json = config.toJson();
       final decoded = DartPadConfig.fromJson(json);
 
       check(decoded.dartSdkPath).equals('/sdk/path');
-      check(
-        decoded.summaryModules,
-      ).deepEquals({'/flutter.dill': 'flutter_web'});
-      check(
-        decoded.bootstrapCode,
-      ).equals('void main() => {{entrypoint}}.main();');
+      check(decoded.summaryModules)
+          .deepEquals({'/flutter.dill': 'flutter_web'});
+      check(decoded.bootstrapCode)
+          .equals('void main() => {{entrypoint}}.main();');
       check(decoded.flutterSdkPath).equals('/flutter/sdk');
+      check(decoded.trackCreationLocations).isTrue();
     });
 
     test('.fromJson({})', () {
@@ -36,6 +36,7 @@ void main() {
       check(config.summaryModules).isEmpty();
       check(config.bootstrapCode).isNull();
       check(config.flutterSdkPath).isNull();
+      check(config.trackCreationLocations).isFalse();
     });
 
     test('.copyWith()', () {

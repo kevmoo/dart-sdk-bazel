@@ -39,9 +39,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_function_abstract_language305() {
+  test_function_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 abstract void foo() {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
@@ -72,6 +72,31 @@ augment void foo() {}
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment
+  returnType: NamedType
+    name: void
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
+  }
+
+  test_function_augment_beforeAugmentations() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+// %before-language-feature: augmentations
+augment void foo() {}
+// [diag.missingConstFinalVarOrType][column 1][length 7] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken][column 1][length 7] Expected to find ';'.
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -129,31 +154,6 @@ FunctionDeclaration
 ''');
   }
 
-  test_function_augment_language305() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
-augment void foo() {}
-// [diag.missingConstFinalVarOrType][column 1][length 7] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// [diag.expectedToken][column 1][length 7] Expected to find ';'.
-''');
-
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    assertParsedNodeText(node, r'''
-FunctionDeclaration
-  returnType: NamedType
-    name: void
-  name: foo
-  functionExpression: FunctionExpression
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
-''');
-  }
-
   test_function_body_empty() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void foo();
@@ -174,9 +174,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_function_body_empty_language305() {
+  test_function_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 void foo();
 //        ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -242,9 +242,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_getter_abstract_language305() {
+  test_getter_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 abstract int get foo {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
@@ -280,7 +280,29 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
+        literal: 0
+      semicolon: ;
+''');
+  }
+
+  test_getter_augment_beforeAugmentations() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+// %before-language-feature: augmentations
+augment int get foo => 0;
+//      ^^^
+// [diag.expectedToken] Expected to find ';'.
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  propertyKeyword: get
+  name: foo
+  functionExpression: FunctionExpression
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression2: IntegerLiteral
         literal: 0
       semicolon: ;
 ''');
@@ -325,28 +347,6 @@ FunctionDeclaration
 ''');
   }
 
-  test_getter_augment_language305() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
-augment int get foo => 0;
-//      ^^^
-// [diag.expectedToken] Expected to find ';'.
-''');
-
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    assertParsedNodeText(node, r'''
-FunctionDeclaration
-  propertyKeyword: get
-  name: foo
-  functionExpression: FunctionExpression
-    body: ExpressionFunctionBody
-      functionDefinition: =>
-      expression: IntegerLiteral
-        literal: 0
-      semicolon: ;
-''');
-  }
-
   test_getter_body_empty() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 int get foo;
@@ -365,9 +365,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_getter_body_empty_language305() {
+  test_getter_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 int get foo;
 //         ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -425,7 +425,7 @@ FunctionDeclaration
           next: T5 |http|
         statements
           ExpressionStatement
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: T5 http @15
                   previous: T4 |{|
@@ -461,6 +461,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -473,9 +481,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_setter_abstract_language305() {
+  test_setter_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 abstract set foo(int _) {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
@@ -487,6 +495,14 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -514,6 +530,50 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+''');
+  }
+
+  test_setter_augment_beforeAugmentations() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+// %before-language-feature: augmentations
+augment set foo(int _) {}
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: augment
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -540,6 +600,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -565,6 +633,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -572,34 +648,6 @@ FunctionDeclaration
       rightParenthesis: )
     body: EmptyFunctionBody
       semicolon: ;
-''');
-  }
-
-  test_setter_augment_language305() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
-augment set foo(int _) {}
-''');
-
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    assertParsedNodeText(node, r'''
-FunctionDeclaration
-  returnType: NamedType
-    name: augment
-  propertyKeyword: set
-  name: foo
-  functionExpression: FunctionExpression
-    parameters: FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: _
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
 ''');
   }
 
@@ -616,6 +664,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -626,9 +682,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_setter_body_empty_language305() {
+  test_setter_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 set foo(int _);
 //            ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -641,6 +697,14 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -667,6 +731,12 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @8 <synthetic>
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8 <synthetic>
+    parameters(v1): FormalParameterList
+      leftParenthesis: ( @8 <synthetic>
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>
       rightParenthesis: ) @8 <synthetic>
@@ -691,6 +761,12 @@ FunctionDeclaration
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: ( @7
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: a @9
+      rightParenthesis: ) @11
+    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
@@ -717,6 +793,12 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: a @9
+      rightParenthesis: ) @11
+    parameters(v1): FormalParameterList
+      leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
       rightParenthesis: ) @11
@@ -742,6 +824,12 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: a @8
+      rightParenthesis: ) @15
+    parameters(v1): FormalParameterList
+      leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @8
       rightParenthesis: ) @15
@@ -766,6 +854,12 @@ FunctionDeclaration
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: ( @7
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8
+    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>

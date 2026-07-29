@@ -30,27 +30,25 @@ class Sdk {
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
-  String get dart => _executablePathFor(
-    path.basename(Platform.executable),
-  );
+  String get dart => _executablePathFor(path.basename(Platform.executable));
 
-  String get dartvm => _executablePathFor(
-    'dartvm',
-  );
+  String get dartvm => _executablePathFor('dartvm');
 
-  String dartAotRuntimeFor({
-    String? sanitizer,
-  }) {
+  String dartAotRuntimeFor({String? sanitizer}) {
     final name = sanitizer != null && sanitizer != 'none'
         ? 'dartaotruntime_$sanitizer'
         : 'dartaotruntime';
-    return _executablePathFor(
-      name,
-      forceProductInBuildRoot: true,
-    );
+    return _executablePathFor(name, forceProductInBuildRoot: true);
   }
 
   String get dartAotRuntime => dartAotRuntimeFor();
+
+  String dartCliRuntimeFor({String? sanitizer}) {
+    final name = sanitizer != null && sanitizer != 'none'
+        ? 'dartcliruntime_$sanitizer'
+        : 'dartcliruntime';
+    return _executablePathFor(name, forceProductInBuildRoot: true);
+  }
 
   String get genSnapshot => _executablePathFor(
     'gen_snapshot',
@@ -58,77 +56,44 @@ class Sdk {
     sdkRelativePath: 'utils',
   );
 
-  String get genKernelSnapshot => _snapshotPathFor(
-    'gen_kernel_aot.dart.snapshot',
-  );
+  String get genKernelSnapshot =>
+      _snapshotPathFor('gen_kernel_aot.dart.snapshot');
 
-  String get analysisServerAotSnapshot => _snapshotPathFor(
-    'analysis_server_aot.dart.snapshot',
-  );
+  String get analysisServerAotSnapshot =>
+      _snapshotPathFor('analysis_server_aot.dart.snapshot');
 
-  String get analysisServerSnapshot => _snapshotPathFor(
-    'analysis_server.dart.snapshot',
-  );
+  String get analysisServerSnapshot =>
+      _snapshotPathFor('analysis_server.dart.snapshot');
 
   String get ddcAotSnapshot => runFromBuildRoot
-      ? _snapshotPathFor(
-          'dartdevc_aot_product.dart.snapshot',
-        )
-      : _snapshotPathFor(
-          'dartdevc_aot.dart.snapshot',
-        );
+      ? _snapshotPathFor('dartdevc_aot_product.dart.snapshot')
+      : _snapshotPathFor('dartdevc_aot.dart.snapshot');
 
   String get dart2jsAotSnapshot => runFromBuildRoot
-      ? _snapshotPathFor(
-          'dart2js_aot_product.dart.snapshot',
-        )
-      : _snapshotPathFor(
-          'dart2js_aot.dart.snapshot',
-        );
+      ? _snapshotPathFor('dart2js_aot_product.dart.snapshot')
+      : _snapshotPathFor('dart2js_aot.dart.snapshot');
 
-  String get dart2wasmSnapshot => _snapshotPathFor(
-    'dart2wasm_product.snapshot',
-  );
+  String get dart2wasmSnapshot =>
+      _snapshotPathFor('dart2wasm_product.snapshot');
 
-  String get ddsAotSnapshot => _snapshotPathFor(
-    'dds_aot.dart.snapshot',
-  );
+  String get ddsAotSnapshot => _snapshotPathFor('dds_aot.dart.snapshot');
 
   String get frontendServerAotSnapshot => runFromBuildRoot
-      ? _snapshotPathFor(
-          'frontend_server_aot_product.dart.snapshot',
-        )
-      : _snapshotPathFor(
-          'frontend_server_aot.dart.snapshot',
-        );
+      ? _snapshotPathFor('frontend_server_aot_product.dart.snapshot')
+      : _snapshotPathFor('frontend_server_aot.dart.snapshot');
 
-  String get dtdAotSnapshot => _snapshotPathFor(
-    'dart_tooling_daemon_aot.dart.snapshot',
-  );
+  String get dtdAotSnapshot =>
+      _snapshotPathFor('dart_tooling_daemon_aot.dart.snapshot');
 
-  String get mcpServerSnapshot => _snapshotPathFor(
-    'mcp_server.dart.snapshot',
-  );
+  String get mcpServerSnapshot => _snapshotPathFor('mcp_server.dart.snapshot');
 
   String get devToolsBinaries => path.absolute(
-    runFromBuildRoot
-        ? sdkPath
-        : path.absolute(
-            sdkPath,
-            'bin',
-            'resources',
-          ),
+    runFromBuildRoot ? sdkPath : path.absolute(sdkPath, 'bin', 'resources'),
     'devtools',
   );
 
   String get wasmOpt => path.absolute(
-    runFromBuildRoot
-        ? sdkPath
-        : path.absolute(
-            sdkPath,
-            'bin',
-            'utils',
-          ),
+    runFromBuildRoot ? sdkPath : path.absolute(sdkPath, 'bin', 'utils'),
     Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt',
   );
 
@@ -136,30 +101,17 @@ class Sdk {
   // non-SDK build targets.
   String get librariesJson => path.absolute(sdkPath, 'lib', 'libraries.json');
 
-  String get vmPlatformDill => _dillPathFor(
-    'vm_platform.dill',
-  );
+  String get vmPlatformDill => _dillPathFor('vm_platform.dill');
 
-  String get vmPlatformProductDill => _dillPathFor(
-    'vm_platform_product.dill',
-  );
+  String get vmPlatformProductDill => _dillPathFor('vm_platform_product.dill');
 
-  String get wasmPlatformDill => _dillPathFor(
-    'dart2wasm_platform.dill',
-  );
+  String get wasmPlatformDill => _dillPathFor('dart2wasm_platform.dill');
 
-  String get wasmStandalonePlatformDill => _dillPathFor(
-    'dart2wasm_standalone_platform.dill',
-  );
+  String get wasmStandalonePlatformDill =>
+      _dillPathFor('dart2wasm_standalone_platform.dill');
 
   String _dillPathFor(String dillName) => path.absolute(
-    runFromBuildRoot
-        ? sdkPath
-        : path.join(
-            sdkPath,
-            'lib',
-            '_internal',
-          ),
+    runFromBuildRoot ? sdkPath : path.join(sdkPath, 'lib', '_internal'),
     dillName,
   );
 
@@ -183,23 +135,13 @@ class Sdk {
     return path.absolute(
       runFromBuildRoot
           ? sdkPath
-          : path.absolute(
-              sdkPath,
-              'bin',
-              sdkRelativePath,
-            ),
+          : path.absolute(sdkPath, 'bin', sdkRelativePath),
       executableName,
     );
   }
 
   String _snapshotPathFor(String snapshotName) => path.absolute(
-    runFromBuildRoot
-        ? sdkPath
-        : path.absolute(
-            sdkPath,
-            'bin',
-            'snapshots',
-          ),
+    runFromBuildRoot ? sdkPath : path.absolute(sdkPath, 'bin', 'snapshots'),
     snapshotName,
   );
 

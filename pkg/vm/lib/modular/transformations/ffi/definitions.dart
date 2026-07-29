@@ -14,6 +14,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/util/graph.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'abi.dart';
 import 'common.dart';
@@ -268,12 +269,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   @override
   visitClass(Class node) {
     if (_isUserAbiSpecificInteger(node)) {
-      final nativeTypeCfe =
-          NativeTypeCfe(
-                this,
-                node.getThisType(coreTypes, Nullability.nonNullable),
-              )
-              as AbiSpecificNativeTypeCfe;
+      final nativeTypeCfe = NativeTypeCfe(
+        this,
+        node.getThisType(coreTypes, Nullability.nonNullable),
+      ) as AbiSpecificNativeTypeCfe;
       if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(
@@ -313,7 +312,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         node.addAnnotation(
           ConstantExpression(
             InstanceConstant(pragmaClass.reference, [], {
-              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+              pragmaName.fieldReference: StringConstant(
+                vmDeeplyImmutablePragmaName,
+              ),
               pragmaOptions.fieldReference: NullConstant(),
             }),
           ),
@@ -975,16 +976,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
           pragmaName.fieldReference: StringConstant(vmFfiStructFields),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiStructLayoutClass.reference, [], {
-                ffiStructLayoutTypesField.fieldReference: ListConstant(
-                  InterfaceType(typeClass, Nullability.nonNullable),
-                  constants,
-                ),
-                ffiStructLayoutPackingField.fieldReference: packing == null
-                    ? NullConstant()
-                    : IntConstant(packing),
-              }),
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiStructLayoutClass.reference,
+            [],
+            {
+              ffiStructLayoutTypesField.fieldReference: ListConstant(
+                InterfaceType(typeClass, Nullability.nonNullable),
+                constants,
+              ),
+              ffiStructLayoutPackingField.fieldReference: packing == null
+                  ? NullConstant()
+                  : IntConstant(packing),
+            },
+          ),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
       ),
@@ -1006,14 +1010,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ConstantExpression(
         InstanceConstant(pragmaClass.reference, [], {
           pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiAbiSpecificMappingClass.reference, [], {
-                ffiAbiSpecificMappingNativeTypesField.fieldReference:
-                    ListConstant(
-                      InterfaceType(typeClass, Nullability.nullable),
-                      constants,
-                    ),
-              }),
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiAbiSpecificMappingClass.reference,
+            [],
+            {
+              ffiAbiSpecificMappingNativeTypesField.fieldReference:
+                  ListConstant(
+                    InterfaceType(typeClass, Nullability.nullable),
+                    constants,
+                  ),
+            },
+          ),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
       ),
