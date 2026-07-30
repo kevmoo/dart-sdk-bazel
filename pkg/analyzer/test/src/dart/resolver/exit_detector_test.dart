@@ -128,9 +128,9 @@ void f() { // ref
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
-    var expression = statement.expression;
+    var expression = statement.expression2;
 
-    var actual = ExitDetector.exits(expression);
+    var actual = ExitDetector.exits2(expression);
     expect(actual, expected);
   }
 
@@ -343,6 +343,14 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
 
   test_conditionalCall_rhs2() async {
     _assertFalse('null?.b(throw 42);');
+  }
+
+  test_constructorInvocation() async {
+    _assertFalse('new A(b);');
+  }
+
+  test_constructorInvocation_argumentThrows() async {
+    _assertTrue('new A(throw 42);');
   }
 
   test_doStatement_break_and_throw() async {
@@ -597,14 +605,6 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
 
   test_indexExpression_target() async {
     _assertTrue("(throw 42)[b];");
-  }
-
-  test_instanceCreationExpression() async {
-    _assertFalse('new A(b);');
-  }
-
-  test_instanceCreationExpression_argumentThrows() async {
-    _assertTrue('new A(throw 42);');
   }
 
   test_isExpression() async {
@@ -930,7 +930,7 @@ void f() { // ref
     var block = findNode.block('{ // ref');
     var statement = block.statements.single;
 
-    var actual = ExitDetector.exits(statement);
+    var actual = ExitDetector.exits2(statement);
     expect(actual, expected);
   }
 
@@ -1222,7 +1222,7 @@ void f() sync* {
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
-    expect(ExitDetector.exits(statement), expected);
+    expect(ExitDetector.exits2(statement), expected);
   }
 
   /// Assert that the [n]th statement in the last function declaration of

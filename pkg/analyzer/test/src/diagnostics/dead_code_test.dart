@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -340,7 +341,7 @@ test() => doNotReturn().hashCode;
 @reflectiveTest
 class DeadCodeTest_AnonymousMethodsExperiment extends PubPackageResolutionTest {
   @override
-  List<String> get experiments => ['anonymous-methods'];
+  List<Feature> get experimentalFeatures => [Feature.anonymous_methods];
 
   test_cascaded_deadCode() async {
     await resolveTestCodeWithDiagnostics(r'''
@@ -1211,19 +1212,19 @@ f() => [for (var i = 0;; i > 1 ? i : i) throw ''];
 ''');
   }
 
-  test_flowEnd_forElementParts_updaters_indexExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
-f(List<int> values) => [for (;; values[0]) throw ''];
-//                              ^^^^^^^^^
-// [diag.deadCode] Dead code.
-''');
-  }
-
-  test_flowEnd_forElementParts_updaters_instanceCreationExpression() async {
+  test_flowEnd_forElementParts_updaters_constructorInvocation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {}
 f() => [for (;; C()) throw ''];
 //              ^^^
+// [diag.deadCode] Dead code.
+''');
+  }
+
+  test_flowEnd_forElementParts_updaters_indexExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(List<int> values) => [for (;; values[0]) throw ''];
+//                              ^^^^^^^^^
 // [diag.deadCode] Dead code.
 ''');
   }
@@ -1370,11 +1371,12 @@ void f() {
 ''');
   }
 
-  test_flowEnd_forParts_updaters_indexExpression() async {
+  test_flowEnd_forParts_updaters_constructorInvocation() async {
     await resolveTestCodeWithDiagnostics(r'''
-void f(List<int> values) {
-  for (;; values[0]) {
-//        ^^^^^^^^^
+class C {}
+void f() {
+  for (;; C()) {
+//        ^^^
 // [diag.deadCode] Dead code.
     return;
   }
@@ -1382,12 +1384,11 @@ void f(List<int> values) {
 ''');
   }
 
-  test_flowEnd_forParts_updaters_instanceCreationExpression() async {
+  test_flowEnd_forParts_updaters_indexExpression() async {
     await resolveTestCodeWithDiagnostics(r'''
-class C {}
-void f() {
-  for (;; C()) {
-//        ^^^
+void f(List<int> values) {
+  for (;; values[0]) {
+//        ^^^^^^^^^
 // [diag.deadCode] Dead code.
     return;
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:mirrors';
-
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -22,10 +20,8 @@ import 'analysis_options_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsParserTest);
-    defineReflectiveTests(ErrorCodeValuesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
 
-    // TODO(srawlins): add tests for multiple includes.
     // TODO(srawlins): add tests with duplicate legacy plugin names.
     // https://github.com/dart-lang/sdk/issues/50980
   });
@@ -465,6 +461,33 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_include_sharedTransitiveIncludeAppliedPerPath() {
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include:
+  - first_options.yaml
+  - shared_options.yaml
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+include: shared_options.yaml
+analyzer:
+  errors:
+    invalid_assignment: error
+''',
+      getFile('$testPackageRootPath/shared_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+''',
+    });
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_assignment: warning
+''');
+  }
+
   test_analyzer_errors_include_subsequentIncludeWins() {
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
@@ -716,25 +739,56 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_exclude_include_merged() {
-    var options = parseAnalysisOptionsFilesWithDiagnostics({
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
-include: other_options.yaml
+include: ../other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
 ''',
-      getFile('$testPackageRootPath/other_options.yaml'): '''
+      getFile('/home/other_options.yaml'): '''
 analyzer:
   exclude:
-    - toplevelexclude.dart
+    - test/toplevelexclude.dart
 ''',
     });
 
-    assertAnalysisOptionsText(options, r'''
+    assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    toplevelexclude.dart
-    lowlevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: test/toplevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: lowlevelexclude.dart
+''');
+  }
+
+  test_analyzer_exclude_include_samePatternDifferentFiles() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: ../other_options.yaml
+analyzer:
+  exclude:
+    - generated/**
+''',
+      getFile('/home/other_options.yaml'): '''
+analyzer:
+  exclude:
+    - generated/**
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: generated/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: generated/**
 ''');
   }
 
@@ -768,7 +822,9 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    included.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/included.yaml
+      pattern: included.dart
 ''');
   }
 
@@ -786,8 +842,12 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
@@ -802,8 +862,12 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
@@ -817,7 +881,9 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    test/_data/p4/lib/lib1.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/_data/p4/lib/lib1.dart
 ''');
   }
 
@@ -1204,8 +1270,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1226,8 +1296,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     plugin_two:
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1249,8 +1323,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins: plugin_two
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 //         ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
 ''');
@@ -1273,8 +1351,12 @@ include: more_options.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1302,6 +1384,8 @@ analyzer:
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
 ''');
 
@@ -1316,6 +1400,8 @@ AnalysisOptionsImpl
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 ''',
       getFile('$testPackageRootPath/other_options.yaml'): '''
 analyzer:
@@ -1337,6 +1423,8 @@ AnalysisOptionsImpl
       analysisOptionsFile: r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 // [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(44..53): Multiple plugins can't be enabled.
 // [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(61..70): Multiple plugins can't be enabled.
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
@@ -1344,6 +1432,8 @@ include: other_options.yaml
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(88..97): Multiple plugins can't be enabled.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_fff
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1384,6 +1474,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - angular2
     - intl
 //    ^^^^
@@ -1401,6 +1493,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_one
     - plugin_one
 ''');
@@ -1416,6 +1510,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_one
     - plugin_two
 //    ^^^^^^^^^^
@@ -1436,6 +1532,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_one
     - 7
 ''');
@@ -1451,6 +1549,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - 7
     - plugin_one
 ''');
@@ -1468,6 +1568,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     angular2:
       enabled: true
 ''');
@@ -1498,6 +1600,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     plugin_one: yes
     plugin_two: sure
 //  ^^^^^^^^^^
@@ -1515,6 +1619,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     angular2
 ''');
 
@@ -5102,51 +5208,6 @@ class DeprecatedSince3Lint extends TestLintRule {
         name: 'deprecated_since_3_lint',
         state: RuleState.deprecated(since: dart3),
       );
-}
-
-@reflectiveTest
-class ErrorCodeValuesTest {
-  test_errorCodes() {
-    // Now that we're using unique names for comparison, the only reason to
-    // split the codes by class is to find all of the classes that need to be
-    // checked against `errorCodeValues`.
-    var errorTypeMap = <Type, List<DiagnosticCode>>{};
-    for (DiagnosticCode code in diagnosticCodeValues) {
-      Type type = code.runtimeType;
-      errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
-    }
-
-    StringBuffer missingCodes = StringBuffer();
-    errorTypeMap.forEach((Type errorType, List<DiagnosticCode> codes) {
-      var listedNames = codes
-          .map((DiagnosticCode code) => code.lowerCaseUniqueName)
-          .toSet();
-
-      var declaredNames = reflectClass(errorType).declarations.values
-          .map((DeclarationMirror declarationMirror) {
-            String name = declarationMirror.simpleName.toString();
-            // TODO(danrubel): find a better way to extract the text from the symbol
-            assert(name.startsWith('Symbol("') && name.endsWith('")'));
-            return '$errorType.${name.substring(8, name.length - 2)}';
-          })
-          .where((String name) {
-            return name == name.toUpperCase();
-          })
-          .toList();
-
-      // Assert that all declared names are in errorCodeValues.
-
-      for (String declaredName in declaredNames) {
-        if (!listedNames.contains(declaredName)) {
-          missingCodes.writeln();
-          missingCodes.write('  $declaredName');
-        }
-      }
-    });
-    if (missingCodes.isNotEmpty) {
-      fail('Missing error codes:$missingCodes');
-    }
-  }
 }
 
 class ReplacingLint extends TestLintRule {

@@ -111,12 +111,10 @@ class _ResolverContext {
   ///
   /// Returns a list of the inferred annotations.
   List<Expression> _inferAnnotations({
-    required Annotatable annotatable,
-    required List<Expression> annotations,
+    required List<InternalExpression> annotations,
   }) {
     return typeInferrer.inferMetadata(
       fileUri: fileUri,
-      annotatable: annotatable,
       annotations: annotations,
     );
   }
@@ -124,11 +122,12 @@ class _ResolverContext {
   List<Expression> inferSingleTargetAnnotation({
     required SingleTargetAnnotations singleTarget,
   }) {
-    Annotatable target = singleTarget.target;
-    return _inferAnnotations(
-      annotatable: target,
+    InternalAnnotatable target = singleTarget.target;
+    List<Expression> annotations = _inferAnnotations(
       annotations: singleTarget.annotations,
     );
+    target.registerAnnotations(annotations);
+    return annotations;
   }
 
   void _inferPendingAnnotations({required PendingAnnotations annotations}) {
@@ -146,17 +145,20 @@ class _ResolverContext {
     if (multiTargetAnnotations != null) {
       for (int i = 0; i < multiTargetAnnotations.length; i++) {
         MultiTargetAnnotations multiTarget = multiTargetAnnotations[i];
-        List<Annotatable> targets = multiTarget.targets;
-        Annotatable firstTarget = targets.first;
+        List<InternalAnnotatable> targets = multiTarget.targets;
         List<Expression> annotations = _inferAnnotations(
-          annotatable: firstTarget,
           annotations: multiTarget.annotations,
         );
-        for (int i = 1; i < targets.length; i++) {
-          Annotatable target = targets[i];
-          for (int i = 0; i < annotations.length; i++) {
-            target.addAnnotation(_simpleCloner.cloneInContext(annotations[i]));
-          }
+        InternalAnnotatable firstTarget = targets.first;
+        firstTarget.registerAnnotations(annotations);
+        for (int targetIndex = 1; targetIndex < targets.length; targetIndex++) {
+          InternalAnnotatable target = targets[targetIndex];
+          target.registerAnnotations(
+            new List.generate(
+              annotations.length,
+              (index) => _simpleCloner.cloneInContext(annotations[index]),
+            ),
+          );
         }
       }
     }
@@ -280,11 +282,11 @@ class _InitializerBuilder {
               intern.createVariableGet(
                 formals[0].variable,
                 fileOffset: formals[0].fileOffset,
-              )..parent = initializer.arguments,
+              ),
               intern.createVariableGet(
                 formals[1].variable,
                 fileOffset: formals[1].fileOffset,
-              )..parent = initializer.arguments,
+              ),
             ];
             arguments.prependArguments([
               new PositionalArgument(enumSyntheticArguments[0]),
@@ -647,7 +649,7 @@ class _InitializerBuilder {
         if (length == 0) {
           length = _bodyBuilderContext.className.length;
         }
-        initializer = intern.createInvalidInitializer2(
+        initializer = intern.createInvalidInitializerFromErrorText(
           LookupResult.createDuplicateErrorText(
             result,
             context: _compilerContext,

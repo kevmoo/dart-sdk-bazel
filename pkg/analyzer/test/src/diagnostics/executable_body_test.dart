@@ -28,9 +28,9 @@ class C {
 ''');
   }
 
-  test_class_getter_instance_external_hasBody_blockBody_language305() async {
+  test_class_getter_instance_external_hasBody_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external int get foo {
 //                     ^
@@ -51,9 +51,9 @@ class C {
 ''');
   }
 
-  test_class_getter_instance_external_hasBody_expressionBody_language305() async {
+  test_class_getter_instance_external_hasBody_expressionBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external int get foo => 0;
 //                     ^^
@@ -70,9 +70,9 @@ class C {
 ''');
   }
 
-  test_class_getter_instance_external_noBody_language305() async {
+  test_class_getter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external int get foo;
 }
@@ -120,9 +120,9 @@ class A {
 ''');
   }
 
-  test_class_getter_static_external_noBody_language305() async {
+  test_class_getter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   external static int get foo;
 }
@@ -150,9 +150,9 @@ class A {
 ''');
   }
 
-  test_class_getter_static_hasBody_language305() async {
+  test_class_getter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int get foo => 0;
 }
@@ -169,9 +169,9 @@ class A {
 ''');
   }
 
-  test_class_getter_static_noBody_language305() async {
+  test_class_getter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int get foo;
 //                  ^
@@ -278,6 +278,17 @@ class A {
 ''');
   }
 
+  test_class_method_instance_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+  augment void foo();
+}
+''');
+  }
+
   test_class_method_instance_external_hasBody_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -288,9 +299,9 @@ class C {
 ''');
   }
 
-  test_class_method_instance_external_hasBody_blockBody_language305() async {
+  test_class_method_instance_external_hasBody_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external void foo() {}
 //                    ^
@@ -309,9 +320,9 @@ class C {
 ''');
   }
 
-  test_class_method_instance_external_hasBody_expressionBody_language305() async {
+  test_class_method_instance_external_hasBody_expressionBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external void foo() => null;
 //                    ^^
@@ -328,9 +339,9 @@ class C {
 ''');
   }
 
-  test_class_method_instance_external_noBody_language305() async {
+  test_class_method_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external void foo();
 }
@@ -387,9 +398,9 @@ class A {
 ''');
   }
 
-  test_class_method_static_external_noBody_language305() async {
+  test_class_method_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   external static void foo();
 }
@@ -417,9 +428,9 @@ class A {
 ''');
   }
 
-  test_class_method_static_hasBody_language305() async {
+  test_class_method_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static void foo() {}
 }
@@ -436,9 +447,9 @@ class A {
 ''');
   }
 
-  test_class_method_static_noBody_language305() async {
+  test_class_method_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static void foo();
 //                 ^
@@ -459,9 +470,9 @@ class C {
 ''');
   }
 
-  test_class_operator_instance_external_hasBody_blockBody_language305() async {
+  test_class_operator_instance_external_hasBody_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external int operator +(int other) {
 //                                   ^
@@ -480,9 +491,9 @@ class C {
 ''');
   }
 
-  test_class_operator_instance_external_noBody_language305() async {
+  test_class_operator_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external int operator +(int other);
 }
@@ -512,9 +523,9 @@ class C {
 ''');
   }
 
-  test_class_setter_instance_external_hasBody_blockBody_language305() async {
+  test_class_setter_instance_external_hasBody_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external void set foo(int v) {}
 //                             ^
@@ -531,9 +542,9 @@ class C {
 ''');
   }
 
-  test_class_setter_instance_external_noBody_language305() async {
+  test_class_setter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   external void set foo(int v);
 }
@@ -581,9 +592,9 @@ class A {
 ''');
   }
 
-  test_class_setter_static_external_noBody_language305() async {
+  test_class_setter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   external static set foo(int _);
 }
@@ -611,9 +622,9 @@ class A {
 ''');
   }
 
-  test_class_setter_static_hasBody_language305() async {
+  test_class_setter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static set foo(int _) {}
 }
@@ -630,9 +641,9 @@ class A {
 ''');
   }
 
-  test_class_setter_static_noBody_language305() async {
+  test_class_setter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static set foo(int _);
 //                     ^
@@ -648,6 +659,17 @@ class A {
 //                    ^^^
 // [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
 // [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_class_staticField_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {
+  static abstract int foo;
+//       ^^^^^^^^
+// [diag.abstractStaticField] Static fields can't be declared 'abstract'.
 }
 ''');
   }
@@ -680,17 +702,6 @@ class A {
 //                    ^^^
 // [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
   augment static int get foo => 0;
-}
-''');
-  }
-
-  test_class_staticField_abstract_language305() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-class A {
-  static abstract int foo;
-//       ^^^^^^^^
-// [diag.abstractStaticField] Static fields can't be declared 'abstract'.
 }
 ''');
   }
@@ -854,9 +865,9 @@ enum E {
 ''');
   }
 
-  test_enum_getter_static_external_noBody_language305() async {
+  test_enum_getter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   external static int get foo;
@@ -873,9 +884,9 @@ enum E {
 ''');
   }
 
-  test_enum_getter_static_hasBody_language305() async {
+  test_enum_getter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static int get foo => 0;
@@ -894,14 +905,51 @@ enum E {
 ''');
   }
 
-  test_enum_getter_static_noBody_language305() async {
+  test_enum_getter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static int get foo;
 //                  ^
 // [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceField_abstract_augmentation_instanceGetter_hasBody_instanceSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo => 0;
+  augment void set foo(int _);
+}
+''');
+  }
+
+  test_enum_instanceField_abstractFinal_augmentation_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment abstract final int foo;
+}
+''');
+  }
+
+  test_enum_instanceField_abstractFinal_augmentation_instanceGetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo;
 }
 ''');
   }
@@ -937,9 +985,9 @@ enum E {
 ''');
   }
 
-  test_enum_method_static_external_noBody_language305() async {
+  test_enum_method_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   external static void foo();
@@ -956,9 +1004,9 @@ enum E {
 ''');
   }
 
-  test_enum_method_static_hasBody_language305() async {
+  test_enum_method_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static void foo() {}
@@ -977,9 +1025,9 @@ enum E {
 ''');
   }
 
-  test_enum_method_static_noBody_language305() async {
+  test_enum_method_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static void foo();
@@ -1020,9 +1068,9 @@ enum E {
 ''');
   }
 
-  test_enum_setter_static_external_noBody_language305() async {
+  test_enum_setter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   external static set foo(int _);
@@ -1039,9 +1087,9 @@ enum E {
 ''');
   }
 
-  test_enum_setter_static_hasBody_language305() async {
+  test_enum_setter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static set foo(int _) {}
@@ -1060,9 +1108,9 @@ enum E {
 ''');
   }
 
-  test_enum_setter_static_noBody_language305() async {
+  test_enum_setter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 enum E {
   v;
   static set foo(int _);
@@ -1100,9 +1148,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_instance_external_noBody_language305() async {
+  test_extension_getter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external int get foo;
 }
@@ -1117,9 +1165,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_instance_hasBody_language305() async {
+  test_extension_getter_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   int get foo => 0;
 }
@@ -1136,9 +1184,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_instance_noBody_language305() async {
+  test_extension_getter_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   int get foo;
 //        ^^^
@@ -1175,9 +1223,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_static_external_noBody_language305() async {
+  test_extension_getter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external static int get foo;
 }
@@ -1192,9 +1240,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_static_hasBody_language305() async {
+  test_extension_getter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static int get foo => 0;
 }
@@ -1211,9 +1259,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_getter_static_noBody_language305() async {
+  test_extension_getter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static int get foo;
 //                  ^
@@ -1250,9 +1298,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_instance_external_noBody_language305() async {
+  test_extension_method_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external void foo();
 }
@@ -1267,9 +1315,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_instance_hasBody_language305() async {
+  test_extension_method_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   void foo() {}
 }
@@ -1286,9 +1334,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_instance_noBody_language305() async {
+  test_extension_method_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   void foo();
 //     ^^^
@@ -1325,9 +1373,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_static_external_noBody_language305() async {
+  test_extension_method_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external static void foo();
 }
@@ -1342,9 +1390,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_static_hasBody_language305() async {
+  test_extension_method_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static void foo() {}
 }
@@ -1361,9 +1409,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_method_static_noBody_language305() async {
+  test_extension_method_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static void foo();
 //                 ^
@@ -1393,9 +1441,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_operator_instance_noBody_language305() async {
+  test_extension_operator_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   int operator -(int _);
 //             ^
@@ -1432,9 +1480,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_instance_external_noBody_language305() async {
+  test_extension_setter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external set foo(int _);
 }
@@ -1449,9 +1497,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_instance_hasBody_language305() async {
+  test_extension_setter_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   set foo(int _) {}
 }
@@ -1468,9 +1516,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_instance_noBody_language305() async {
+  test_extension_setter_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   set foo(int _);
 //    ^^^
@@ -1507,9 +1555,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_static_external_noBody_language305() async {
+  test_extension_setter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   external static set foo(int _);
 }
@@ -1524,9 +1572,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_static_hasBody_language305() async {
+  test_extension_setter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static set foo(int _) {}
 }
@@ -1543,9 +1591,9 @@ extension E on int {
 ''');
   }
 
-  test_extension_setter_static_noBody_language305() async {
+  test_extension_setter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension E on int {
   static set foo(int _);
 //                     ^
@@ -1582,9 +1630,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_instance_external_noBody_language305() async {
+  test_extensionType_getter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external int get foo;
 }
@@ -1599,9 +1647,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_instance_hasBody_language305() async {
+  test_extensionType_getter_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   int get foo => 0;
 }
@@ -1618,9 +1666,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_instance_noBody_language305() async {
+  test_extensionType_getter_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   int get foo;
 //^^^^^^^^^^^^
@@ -1657,9 +1705,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_static_external_noBody_language305() async {
+  test_extensionType_getter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external static int get foo;
 }
@@ -1674,9 +1722,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_static_hasBody_language305() async {
+  test_extensionType_getter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static int get foo => 0;
 }
@@ -1693,9 +1741,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_getter_static_noBody_language305() async {
+  test_extensionType_getter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static int get foo;
 //                  ^
@@ -1732,9 +1780,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_instance_external_noBody_language305() async {
+  test_extensionType_method_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external void foo();
 }
@@ -1749,9 +1797,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_instance_hasBody_language305() async {
+  test_extensionType_method_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   void foo() {}
 }
@@ -1768,9 +1816,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_instance_noBody_language305() async {
+  test_extensionType_method_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   void foo();
 //^^^^^^^^^^^
@@ -1807,9 +1855,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_static_external_noBody_language305() async {
+  test_extensionType_method_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external static void foo();
 }
@@ -1824,9 +1872,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_static_hasBody_language305() async {
+  test_extensionType_method_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static void foo() {}
 }
@@ -1843,9 +1891,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_method_static_noBody_language305() async {
+  test_extensionType_method_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static void foo();
 //                 ^
@@ -1882,9 +1930,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_instance_external_noBody_language305() async {
+  test_extensionType_setter_instance_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external set foo(int _);
 }
@@ -1899,9 +1947,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_instance_hasBody_language305() async {
+  test_extensionType_setter_instance_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   set foo(int _) {}
 }
@@ -1918,9 +1966,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_instance_noBody_language305() async {
+  test_extensionType_setter_instance_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   set foo(int _);
 //^^^^^^^^^^^^^^^
@@ -1957,9 +2005,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_static_external_noBody_language305() async {
+  test_extensionType_setter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   external static set foo(int _);
 }
@@ -1974,9 +2022,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_static_hasBody_language305() async {
+  test_extensionType_setter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static set foo(int _) {}
 }
@@ -1993,9 +2041,9 @@ extension type E(int i) {
 ''');
   }
 
-  test_extensionType_setter_static_noBody_language305() async {
+  test_extensionType_setter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 extension type E(int i) {
   static set foo(int _);
 //                     ^
@@ -2041,9 +2089,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_getter_static_external_noBody_language305() async {
+  test_mixin_getter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   external static int get foo;
 }
@@ -2058,9 +2106,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_getter_static_hasBody_language305() async {
+  test_mixin_getter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static int get foo => 0;
 }
@@ -2077,9 +2125,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_getter_static_noBody_language305() async {
+  test_mixin_getter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static int get foo;
 //                  ^
@@ -2116,9 +2164,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_method_static_external_noBody_language305() async {
+  test_mixin_method_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   external static void foo();
 }
@@ -2133,9 +2181,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_method_static_hasBody_language305() async {
+  test_mixin_method_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static void foo() {}
 }
@@ -2152,9 +2200,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_method_static_noBody_language305() async {
+  test_mixin_method_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static void foo();
 //                 ^
@@ -2191,9 +2239,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_setter_static_external_noBody_language305() async {
+  test_mixin_setter_static_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   external static set foo(int _);
 }
@@ -2208,9 +2256,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_setter_static_hasBody_language305() async {
+  test_mixin_setter_static_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static set foo(int _) {}
 }
@@ -2227,9 +2275,9 @@ mixin M {
 ''');
   }
 
-  test_mixin_setter_static_noBody_language305() async {
+  test_mixin_setter_static_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {
   static set foo(int _);
 //                     ^
@@ -2262,9 +2310,9 @@ external void foo() {}
 ''');
   }
 
-  test_topLevel_function_external_hasBody_blockBody_language305() async {
+  test_topLevel_function_external_hasBody_blockBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 external void foo() {}
 //                  ^
 // [diag.externalMethodWithBody] An external or native method can't have a body.
@@ -2279,9 +2327,9 @@ external void foo() => null;
 ''');
   }
 
-  test_topLevel_function_external_hasBody_expressionBody_language305() async {
+  test_topLevel_function_external_hasBody_expressionBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 external void foo() => null;
 //                  ^^
 // [diag.externalMethodWithBody] An external or native method can't have a body.
@@ -2294,9 +2342,9 @@ external void foo();
 ''');
   }
 
-  test_topLevel_function_external_noBody_language305() async {
+  test_topLevel_function_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 external void foo();
 ''');
   }
@@ -2317,9 +2365,9 @@ augment void foo() {}
 ''');
   }
 
-  test_topLevel_function_hasBody_language305() async {
+  test_topLevel_function_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 void foo() {}
 ''');
   }
@@ -2332,9 +2380,9 @@ void foo();
 ''');
   }
 
-  test_topLevel_function_noBody_language305() async {
+  test_topLevel_function_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 void foo();
 //        ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -2363,9 +2411,9 @@ external int get foo;
 ''');
   }
 
-  test_topLevel_getter_external_noBody_language305() async {
+  test_topLevel_getter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 external int get foo;
 ''');
   }
@@ -2417,9 +2465,9 @@ augment final int foo = 1;
 ''');
   }
 
-  test_topLevel_getter_hasBody_language305() async {
+  test_topLevel_getter_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 int get foo => 0;
 ''');
   }
@@ -2462,9 +2510,9 @@ augment final int foo = 1;
 ''');
   }
 
-  test_topLevel_getter_noBody_language305() async {
+  test_topLevel_getter_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 int get foo;
 //         ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -2501,9 +2549,9 @@ external set foo(int _);
 ''');
   }
 
-  test_topLevel_setter_external_noBody_language305() async {
+  test_topLevel_setter_external_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 external set foo(int _);
 ''');
   }
@@ -2537,9 +2585,9 @@ augment int foo = 1;
 ''');
   }
 
-  test_topLevel_setter_hasBody_language305() async {
+  test_topLevel_setter_hasBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 set foo(int _) {}
 ''');
   }
@@ -2552,9 +2600,9 @@ set foo(int _);
 ''');
   }
 
-  test_topLevel_setter_noBody_language305() async {
+  test_topLevel_setter_noBody_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 set foo(int _);
 //            ^
 // [diag.missingFunctionBody] A function body must be provided.
@@ -2567,6 +2615,14 @@ abstract int foo;
 //           ^^^
 // [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
 // [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+''');
+  }
+
+  test_topLevel_variable_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+abstract int foo;
+// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
   }
 
@@ -2593,14 +2649,6 @@ abstract int foo;
 //           ^^^
 // [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
 augment int get foo => 0;
-''');
-  }
-
-  test_topLevel_variable_abstract_language305() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-abstract int foo;
-// [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
   }
 
