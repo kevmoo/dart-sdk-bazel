@@ -84,6 +84,8 @@ def _packages_repo_impl(ctx):
     sentinel = workspace_dir.get_child("third_party").get_child("pkg").get_child(".cloned_sentinel")
     if sentinel.exists:
         ctx.read(sentinel)
+    for meta_file in ["@dart_sdk//tools:VERSION", "@dart_sdk//:DEPS", "@dart_sdk//:pubspec.yaml"]:
+        ctx.watch(ctx.path(Label(meta_file)))
 
     # Check if we have a local third-party checkout in the workspace (developer mode).
     # We use 'third_party/pkg/core' as a representative check.
