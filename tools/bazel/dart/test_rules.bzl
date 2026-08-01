@@ -31,6 +31,8 @@ def _dynamic_test_repo_impl(repository_ctx):
     repository_ctx.watch(generator_path)
     config_path = repository_ctx.path(Label("@//tools/bazel/dart:suite_config.json"))
     repository_ctx.watch(config_path)
+    for meta_file in ["@//tools:VERSION", "@//:DEPS", "@//:pubspec.yaml"]:
+        repository_ctx.watch(repository_ctx.path(Label(meta_file)))
 
     # The embedded script's "/external/" is runfiles-path string matching, not
     # a fragile external-repo dependency (newer buildifiers flag string contents).
