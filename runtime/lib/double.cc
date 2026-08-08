@@ -124,6 +124,32 @@ DEFINE_NATIVE_ENTRY(Double_parse, 0, 3) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Double_parseUtf8, 0, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TypedData, value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, startValue, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, endValue, arguments->NativeArgAt(2));
+
+  const intptr_t start = startValue.Value();
+  const intptr_t end = endValue.Value();
+  const intptr_t len = value.LengthInBytes();
+
+  // Indices should be inside the array, and 0 <= start <= end <= len.
+  if (0 <= start && start <= end && end <= len) {
+    const intptr_t length = end - start;
+    double double_value;
+    bool success;
+    {
+      NoSafepointScope no_safepoint;
+      const uint8_t* startChar = reinterpret_cast<const uint8_t*>(value.DataAddr(start));
+      success = CStringToDouble(reinterpret_cast<const char*>(startChar), length, &double_value);
+    }
+    if (success) {
+      return Double::New(double_value);
+    }
+  }
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(Double_toString, 0, 1) {
   const Number& number = Number::CheckedHandle(zone, arguments->NativeArgAt(0));
   return number.ToString(Heap::kNew);

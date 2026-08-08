@@ -259,4 +259,24 @@ abstract final class double extends num {
   /// value = double.tryParse(double.infinity.toString()); // Infinity
   /// ```
   external static double? tryParse(String source);
+
+  /// Parse [source] as a double literal and return its value.
+  ///
+  /// Like [parse], but parses the UTF-8 bytes from [source] directly without
+  /// allocating a `String`.
+  ///
+  /// The [start] and [end] indices can be provided to parse a substring.
+  external static double parseUtf8(Uint8List source, [int start = 0, int? end]);
+
+  /// Parse [source] as a double literal and return its value.
+  ///
+  /// Like [tryParse], but parses the UTF-8 bytes from [source] directly without
+  /// allocating a `String`.
+  ///
+  /// The [start] and [end] indices can be provided to parse a substring.
+  external static double? tryParseUtf8(
+    Uint8List source, [
+    int start = 0,
+    int? end,
+  ]);
 }

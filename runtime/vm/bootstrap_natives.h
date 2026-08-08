@@ -98,6 +98,7 @@ namespace dart {
   V(Double_equal, 2)                                                           \
   V(Double_doubleFromInteger, 1)                                               \
   V(Double_parse, 3)                                                           \
+  V(Double_parseUtf8, 3)                                                       \
   V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \

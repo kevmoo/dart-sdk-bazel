@@ -115,4 +115,130 @@ class double {
 
   @patch
   static double? tryParse(String source) => _parse(source);
+  @pragma("vm:external-name", "Double_parseUtf8")
+  external static double? _nativeParseUtf8(Uint8List str, int start, int end);
+
+  static bool _isUtf8Whitespace(int codeUnit) {
+    return codeUnit <= 32 &&
+        (codeUnit == 32 || (codeUnit <= 13 && codeUnit >= 9));
+  }
+
+  static double? _tryParseUtf8Double(Uint8List str, int start, int end) {
+    assert(start < end);
+    const int _DOT = 0x2e; // '.'
+    const int _ZERO = 0x30; // '0'
+    const int _MINUS = 0x2d; // '-'
+    const int _N = 0x4e; // 'N'
+    const int _a = 0x61; // 'a'
+    const int _I = 0x49; // 'I'
+    const int _e = 0x65; // 'e'
+    int exponent = 0;
+    bool digitsSeen = false;
+    int exponentDelta = 0;
+    double doubleValue = 0.0;
+    double sign = 1.0;
+    int firstChar = str[start];
+    if (firstChar == _MINUS) {
+      sign = -1.0;
+      start++;
+      if (start == end) return null;
+      firstChar = str[start];
+    }
+    if (firstChar == _I) {
+      if (end == start + 8 &&
+          str[start + 1] == 0x6e &&
+          str[start + 2] == 0x66 &&
+          str[start + 3] == 0x69 &&
+          str[start + 4] == 0x6e &&
+          str[start + 5] == 0x69 &&
+          str[start + 6] == 0x74 &&
+          str[start + 7] == 0x79) {
+        return sign * double.infinity;
+      }
+      return null;
+    }
+    if (firstChar == _N) {
+      if (end == start + 3 && str[start + 1] == _a && str[start + 2] == _N) {
+        return double.nan;
+      }
+      return null;
+    }
+
+    int firstDigit = firstChar ^ _ZERO;
+    if (firstDigit <= 9) {
+      start++;
+      doubleValue = firstDigit.toDouble();
+      digitsSeen = true;
+    }
+    for (int i = start; i < end; i++) {
+      int c = str[i];
+      int digit = c ^ _ZERO;
+      if (digit <= 9) {
+        doubleValue = 10.0 * doubleValue + digit;
+        const double MAX_EXACT_DOUBLE = 9007199254740992.0;
+        if (doubleValue >= MAX_EXACT_DOUBLE) return null;
+        exponent += exponentDelta;
+        digitsSeen = true;
+      } else if (c == _DOT && exponentDelta == 0) {
+        exponentDelta = -1;
+      } else if ((c | 0x20) == _e) {
+        i++;
+        if (i == end) return null;
+        final int? expPart = int._tryParseUtf8Smi(str, i, end);
+        if (expPart == null) return null;
+        exponent += expPart;
+        break;
+      } else {
+        return null;
+      }
+    }
+    if (!digitsSeen) return null;
+    if (exponent == 0) return sign * doubleValue;
+    const P10 = POWERS_OF_TEN;
+    if (exponent < 0) {
+      int negExponent = -exponent;
+      if (negExponent >= P10.length) return null;
+      return sign * (doubleValue / P10[negExponent]);
+    }
+    if (exponent >= P10.length) return null;
+    return sign * (doubleValue * P10[exponent]);
+  }
+
+  static double? _parseUtf8(Uint8List str, int start, int end) {
+    int actualEnd = end;
+    if (start == actualEnd) return null;
+    while (start < actualEnd && _isUtf8Whitespace(str[start])) {
+      start++;
+    }
+    while (start < actualEnd && _isUtf8Whitespace(str[actualEnd - 1])) {
+      actualEnd--;
+    }
+    if (start == actualEnd) return null;
+
+    var result = _tryParseUtf8Double(str, start, actualEnd);
+    if (result != null) return result;
+    return _nativeParseUtf8(str, start, actualEnd);
+  }
+
+  @patch
+  static double parseUtf8(Uint8List source, [int start = 0, int? end]) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    var result = _parseUtf8(source, start, actualEnd);
+    if (result == null) {
+      throw FormatException("Invalid double");
+    }
+    return result;
+  }
+
+  @patch
+  static double? tryParseUtf8(Uint8List source, [int start = 0, int? end]) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    return _parseUtf8(source, start, actualEnd);
+  }
 }

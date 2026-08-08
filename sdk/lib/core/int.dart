@@ -489,4 +489,30 @@ abstract final class int extends num {
   /// print(int.tryParse('z1', radix: 36)); // 1261 == 35 * 36 + 1
   /// ```
   external static int? tryParse(String source, {int? radix});
+
+  /// Parse [source] as a, possibly signed, integer literal and return its value.
+  ///
+  /// Like [parse], but parses the UTF-8 bytes from [source] directly without
+  /// allocating a `String`.
+  ///
+  /// The [start] and [end] indices can be provided to parse a substring.
+  external static int parseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  });
+
+  /// Parse [source] as a, possibly signed, integer literal and return its value.
+  ///
+  /// Like [tryParse], but parses the UTF-8 bytes from [source] directly without
+  /// allocating a `String`.
+  ///
+  /// The [start] and [end] indices can be provided to parse a substring.
+  external static int? tryParseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  });
 }

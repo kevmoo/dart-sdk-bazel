@@ -4,7 +4,7 @@
 
 import "dart:_internal" show has63BitSmis, patch, unsafeCast;
 
-import "dart:typed_data" show Int64List;
+import "dart:typed_data" show Int64List, Uint8List;
 
 /// VM implementation of int.
 @patch
@@ -484,4 +484,248 @@ class int {
     0x46, -0x46,   0x23010a4a7fffff,   0x23010a4a800000,
     // dart format on
   ];
+  static bool _isUtf8Whitespace(int codeUnit) {
+    return codeUnit <= 32 &&
+        (codeUnit == 32 || (codeUnit <= 13 && codeUnit >= 9));
+  }
+
+  @patch
+  static int parseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    if (source.isEmpty) {
+      throw FormatException("Invalid number");
+    }
+    int? result = tryParseUtf8(source, start: start, end: end, radix: radix);
+    if (result != null) return result;
+    throw FormatException("Invalid number");
+  }
+
+  @patch
+  static int? tryParseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    if (start == actualEnd) return null;
+
+    // Trim ASCII whitespace
+    while (start < actualEnd && _isUtf8Whitespace(source[start])) {
+      start++;
+    }
+    while (start < actualEnd && _isUtf8Whitespace(source[actualEnd - 1])) {
+      actualEnd--;
+    }
+    if (start == actualEnd) return null;
+
+    if (radix == null || radix == 10) {
+      int? result = _tryParseUtf8Smi(source, start, actualEnd);
+      if (result != null) return result;
+    } else if (radix < 2 || radix > 36) {
+      throw RangeError("Radix $radix not in range 2..36");
+    }
+
+    return _parseUtf8(source, radix, start, actualEnd);
+  }
+
+  static int? _parseUtf8(Uint8List source, int? radix, int start, int end) {
+    int first = source[start];
+    int sign = 1;
+    if (first == 0x2b /* + */ || first == 0x2d /* - */ ) {
+      sign = 0x2c - first; // -1 if '-', +1 if '+'.
+      start++;
+      if (start == end) {
+        return null;
+      }
+      first = source[start];
+    }
+    if (radix == null) {
+      if (first == 0x30 /* 0 */ ) {
+        start++;
+        if (start == end) return 0;
+        first = source[start];
+        if ((first | 0x20) == 0x78 /* x */ ) {
+          start++;
+          if (start == end) {
+            return null;
+          }
+          return _parseRadixUtf8(source, 16, start, end, sign, sign > 0);
+        }
+      }
+      radix = 10;
+    }
+    return _parseRadixUtf8(source, radix, start, end, sign, false);
+  }
+
+  static int? _tryParseUtf8Smi(Uint8List source, int start, int end) {
+    int index = start;
+    int sign = 1;
+    int char = source[index];
+    if (0x2b == char || 0x2d == char) {
+      index++;
+      sign = 0x2c - char; // -1 for '-', +1 for '+'.
+      if (index == end) {
+        return null; // No digits after sign.
+      }
+      char = source[index];
+    }
+    while (0x30 == char) {
+      index++;
+      if (index == end) return 0;
+      char = source[index];
+    }
+    int smiLimit = has63BitSmis ? 18 : 9;
+    if (end - index <= smiLimit) {
+      int result = 0;
+      while (true) {
+        int digit = 0x30 ^ char;
+        if (9 >= digit) {
+          result += digit;
+          index++;
+          if (index < end) {
+            result *= 10;
+            char = source[index];
+          } else {
+            return sign * result;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
+  static int? _parseRadixUtf8(
+    Uint8List source,
+    int radix,
+    int start,
+    int end,
+    int sign,
+    bool allowU64,
+  ) {
+    while (start < end && source[start] == 0x30) {
+      start++;
+    }
+    int length = end - start;
+    if (length == 0) return 0;
+    List<int> parseBlockSizeTable = has63BitSmis
+        ? _parseLimits64
+        : _parseLimits32;
+    int tableIndex = (radix - 2) * 2;
+    int blockSize = parseBlockSizeTable[tableIndex];
+    if (length <= blockSize) {
+      _Smi? smi = _parseBlockUtf8(source, radix, start, end);
+      if (smi != null) {
+        return sign * smi;
+      }
+      return null;
+    }
+
+    int result = 0;
+    int smallBlockSize = length;
+    while (true) {
+      int smallerBlockSize = smallBlockSize - blockSize;
+      if (smallerBlockSize >= 0) {
+        smallBlockSize = smallerBlockSize;
+      } else {
+        break;
+      }
+    }
+    while (smallBlockSize >= blockSize) smallBlockSize -= blockSize;
+    if (smallBlockSize > 0) {
+      int blockEnd = start + smallBlockSize;
+      int? smi = _parseBlockUtf8(source, radix, start, blockEnd);
+      if (smi == null) {
+        return null;
+      }
+      result = sign * smi;
+      start = blockEnd;
+    }
+
+    int multiplier = parseBlockSizeTable[tableIndex + 1];
+
+    List<int> overflowLimits = has63BitSmis
+        ? _overflowLimits64
+        : _overflowLimits32;
+    tableIndex <<= 1;
+    int positiveOverflowLimit = overflowLimits[tableIndex + 0];
+    int negativeOverflowLimit = overflowLimits[tableIndex + 1];
+    int blockEnd = start + blockSize;
+    do {
+      int? smi = _parseBlockUtf8(source, radix, start, blockEnd);
+      if (smi != null) {
+        if (result >= positiveOverflowLimit) {
+          if ((result > positiveOverflowLimit) ||
+              (smi > overflowLimits[tableIndex + 2])) {
+            if (allowU64) {
+              assert(radix == 16 && sign > 0);
+              int unsignedLimit = has63BitSmis ? 0xF : 0xFFFFFFFFF;
+              if (blockEnd == end && result <= unsignedLimit) {
+                return (result * multiplier) + smi;
+              }
+            }
+            return null;
+          }
+        } else if (result <= negativeOverflowLimit) {
+          if ((result < negativeOverflowLimit) ||
+              (smi > overflowLimits[tableIndex + 3])) {
+            return null;
+          }
+        }
+        result = (result * multiplier) + (sign * smi);
+        start = blockEnd;
+        blockEnd = start + blockSize;
+      } else {
+        return null;
+      }
+    } while (blockEnd <= end);
+    return result;
+  }
+
+  static _Smi? _parseBlockUtf8(
+    Uint8List source,
+    int radix,
+    int start,
+    int end,
+  ) {
+    _Smi result = unsafeCast<_Smi>(0);
+    if (radix <= 10) {
+      for (int i = start; i < end; i++) {
+        int digit = source[i] ^ 0x30;
+        if (digit < radix) {
+          result = unsafeCast<_Smi>(radix * result + digit);
+        } else {
+          return null;
+        }
+      }
+    } else {
+      for (int i = start; i < end; i++) {
+        int char = source[i];
+        int digit = char ^ 0x30;
+        if (digit <= 9) {
+          result = unsafeCast<_Smi>(radix * result + digit);
+        } else {
+          char |= 0x20;
+          if (char >= 0x61 && char <= 0x7a) {
+            digit = char - (0x61 - 10);
+            if (digit < radix) {
+              result = unsafeCast<_Smi>(radix * result + digit);
+              continue;
+            }
+          }
+          return null;
+        }
+      }
+    }
+    return result;
+  }
 }
