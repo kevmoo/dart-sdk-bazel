@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data' show Uint8List;
 import "dart:_internal" show patch, unsafeCast;
 import "dart:_string" show StringUncheckedOperations;
 import "dart:_string_helper" show skipLeadingWhitespace, skipTrailingWhitespace;
@@ -10,6 +11,36 @@ import "dart:_error_utils";
 
 @patch
 class int {
+  @patch
+  static int parseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    int? value = tryParseUtf8(source, start: start, end: end, radix: radix);
+    if (value != null) return value;
+    throw FormatException("Invalid number");
+  }
+
+  @patch
+  static int? tryParseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    if (start == actualEnd) return null;
+    return tryParse(
+      String.fromCharCodes(source, start, actualEnd),
+      radix: radix,
+    );
+  }
+
   @patch
   static int? tryParse(String source, {int? radix}) {
     if (source.isEmpty) {

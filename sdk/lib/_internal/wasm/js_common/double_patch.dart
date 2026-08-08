@@ -2,12 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data' show Uint8List;
 import "dart:_internal" show patch;
 import 'dart:_js_helper' show JS;
 import 'dart:_js_helper';
 
 @patch
 class double {
+  @patch
+  static double parseUtf8(Uint8List source, {int start = 0, int? end}) {
+    double? value = tryParseUtf8(source, start: start, end: end);
+    if (value != null) return value;
+    throw FormatException("Invalid double");
+  }
+
+  @patch
+  static double? tryParseUtf8(Uint8List source, {int start = 0, int? end}) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    if (start == actualEnd) return null;
+    return tryParse(String.fromCharCodes(source, start, actualEnd));
+  }
+
   @patch
   static double parse(String source) {
     double? result = tryParse(source);

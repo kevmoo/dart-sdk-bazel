@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
+import 'dart:typed_data' show Uint8List;
 import 'dart:_internal' hide Symbol, LinkedList, LinkedListEntry;
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_interceptors';
@@ -236,6 +237,36 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
 @patch
 class int {
   @patch
+  static int parseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    int? value = tryParseUtf8(source, start: start, end: end, radix: radix);
+    if (value != null) return value;
+    throw FormatException("Invalid number");
+  }
+
+  @patch
+  static int? tryParseUtf8(
+    Uint8List source, {
+    int start = 0,
+    int? end,
+    int? radix,
+  }) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    if (start == actualEnd) return null;
+    return tryParse(
+      String.fromCharCodes(source, start, actualEnd),
+      radix: radix,
+    );
+  }
+
+  @patch
   static int parse(
     String source, {
     int? radix,
@@ -255,6 +286,23 @@ class int {
 
 @patch
 class double {
+  @patch
+  static double parseUtf8(Uint8List source, {int start = 0, int? end}) {
+    double? value = tryParseUtf8(source, start: start, end: end);
+    if (value != null) return value;
+    throw FormatException("Invalid double");
+  }
+
+  @patch
+  static double? tryParseUtf8(Uint8List source, {int start = 0, int? end}) {
+    int actualEnd = end ?? source.length;
+    if (start < 0 || start > actualEnd || actualEnd > source.length) {
+      throw RangeError.range(start, 0, actualEnd);
+    }
+    if (start == actualEnd) return null;
+    return tryParse(String.fromCharCodes(source, start, actualEnd));
+  }
+
   @patch
   static double parse(
     String source, [
