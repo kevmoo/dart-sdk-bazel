@@ -391,9 +391,12 @@ class TFADevirtualization extends Devirtualization {
             callSite.isNullableReceiver,
           );
         } else if (!isArtificialNode(singleTarget)) {
+          final bool checkReceiverForNull =
+              callSite.isNullableReceiver &&
+              singleTarget.enclosingClass != coreTypes.objectClass;
           return DirectCallMetadata.targetMember(
             singleTarget,
-            callSite.isNullableReceiver,
+            checkReceiverForNull,
           );
         }
       }
@@ -1070,26 +1073,12 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.concreteForwardingStubTarget != null) {
+        if (m.stubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.concreteForwardingStubTarget,
+            m.stubTarget,
             isSetter: m.isSetter,
           );
-          addUsedMember(m.concreteForwardingStubTarget!);
-        }
-        if (m.abstractForwardingStubTarget != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.abstractForwardingStubTarget,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.abstractForwardingStubTarget!);
-        }
-        if (m.memberSignatureOrigin != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.memberSignatureOrigin,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.memberSignatureOrigin!);
+          addUsedMember(m.stubTarget!);
         }
       } else if (m is Constructor) {
         func = m.function;
@@ -1202,7 +1191,7 @@ class FieldMorpher {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
           new PositionalParameter(
-              cosmeticName: 'value',
+              parameterName: 'value',
               type: field.type,
               isSynthesized: true,
             )

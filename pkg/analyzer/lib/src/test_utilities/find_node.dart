@@ -10,9 +10,17 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 class FindNode extends _FindNodeBase {
   FindNode(super.content, super.unit);
 
+  BinaryExpression get firstBinaryExpression => _first();
+
+  BinaryExpression get singleBinaryExpression => _single();
+
   ConstructorName get singleConstructorName => _single();
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
+
+  BinaryExpression binary(String search) {
+    return _node(search, (node) => node is BinaryExpression);
+  }
 
   ConstructorName constructorName(String search) {
     return _node(search, (n) => n is ConstructorName);
@@ -20,6 +28,10 @@ class FindNode extends _FindNodeBase {
 
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (node) => node is InstanceCreationExpression);
+  }
+
+  PostfixExpression postfixExpression(String search) {
+    return _node(search, (node) => node is PostfixExpression);
   }
 
   @override
@@ -46,9 +58,58 @@ class FindNode extends _FindNodeBase {
 class FindNode2 extends _FindNodeBase {
   FindNode2(super.content, super.unit);
 
+  BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
+
+  @override
+  AssignmentExpression get singleAssignmentExpression {
+    var nodes = _nodes<AstNode>().where(
+      (node) => node is AssignmentExpression || node is DirectAssignment,
+    );
+    return _toAssignmentExpression(nodes.single);
+  }
+
+  BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
+
+  CompoundAssignment get singleCompoundAssignment => _single();
+
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
+
+  DirectAssignment get singleDirectAssignment => _single();
+
+  IfNull get singleIfNull => _single();
+
+  IfNullAssignment get singleIfNullAssignment => _single();
+
+  LogicalAnd get singleLogicalAnd => _single();
+
+  LogicalNot get singleLogicalNot => _single();
+
+  LogicalOr get singleLogicalOr => _single();
+
+  NullAssertionExpression get singleNullAssertionExpression => _single();
+
+  TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
+
+  UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
+  @override
+  AssignmentExpression assignment(String search) {
+    var node = _node<AstNode>(
+      search,
+      (node) => node is AssignmentExpression || node is AssignmentExpression2,
+    );
+    return _toAssignmentExpression(node);
+  }
+
+  BinaryOperatorInvocation binaryOperatorInvocation(String search) {
+    return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CompoundAssignment compoundAssignment(String search) {
+    return _node(search, (node) => node is CompoundAssignment);
+  }
 
   ConstructorInvocation constructorInvocation(String search) {
     return _node(search, (node) => node is ConstructorInvocation);
@@ -56,6 +117,64 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff constructorTearOff(String search) {
     return _node(search, (node) => node is ConstructorTearOff);
+  }
+
+  DirectAssignment directAssignment(String search) {
+    return _node(search, (node) => node is DirectAssignment);
+  }
+
+  IfNull ifNull(String search) {
+    return _node(search, (node) => node is IfNull);
+  }
+
+  IfNullAssignment ifNullAssignment(String search) {
+    return _node(search, (node) => node is IfNullAssignment);
+  }
+
+  LogicalAnd logicalAnd(String search) {
+    return _node(search, (node) => node is LogicalAnd);
+  }
+
+  LogicalNot logicalNot(String search) {
+    return _node(search, (node) => node is LogicalNot);
+  }
+
+  LogicalOr logicalOr(String search) {
+    return _node(search, (node) => node is LogicalOr);
+  }
+
+  NullAssertionExpression nullAssertion(String search) {
+    return _node(search, (node) => node is NullAssertionExpression);
+  }
+
+  PostfixDecrement postfixDecrement(String search) {
+    return _node(search, (node) => node is PostfixDecrement);
+  }
+
+  PostfixIncrement postfixIncrement(String search) {
+    return _node(search, (node) => node is PostfixIncrement);
+  }
+
+  PrefixDecrement prefixDecrement(String search) {
+    return _node(search, (node) => node is PrefixDecrement);
+  }
+
+  PrefixIncrement prefixIncrement(String search) {
+    return _node(search, (node) => node is PrefixIncrement);
+  }
+
+  TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
+    return _node(search, (node) => node is TopLevelGetterDeclaration);
+  }
+
+  UnaryOperatorInvocation unaryOperatorInvocation(String search) {
+    return _node(search, (node) => node is UnaryOperatorInvocation);
+  }
+
+  UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (node) => node is UnqualifiedNameAssignmentTarget);
   }
 
   @override
@@ -77,6 +196,16 @@ class FindNode2 extends _FindNodeBase {
   ) {
     return node.thisOrAncestorMatching2(predicate);
   }
+
+  AssignmentExpression _toAssignmentExpression(AstNode node) {
+    return switch (node) {
+      AssignmentExpression node => node,
+      CompoundAssignmentImpl node => node.assignmentExpression,
+      DirectAssignmentImpl node => node.assignmentExpression,
+      IfNullAssignmentImpl node => node.assignmentExpression,
+      _ => throw StateError('Not an assignment expression: $node'),
+    };
+  }
 }
 
 abstract class _FindNodeBase {
@@ -84,8 +213,6 @@ abstract class _FindNodeBase {
   final CompilationUnit unit;
 
   _FindNodeBase(this.content, this.unit);
-
-  BinaryExpression get firstBinaryExpression => _first();
 
   Block get firstBlock => _first();
 
@@ -115,8 +242,6 @@ abstract class _FindNodeBase {
 
   AwaitExpression get singleAwaitExpression => _single();
 
-  BinaryExpression get singleBinaryExpression => _single();
-
   Block get singleBlock => _single();
 
   BlockClassBody get singleBlockClassBody => _single();
@@ -128,6 +253,18 @@ abstract class _FindNodeBase {
   BreakStatement get singleBreakStatement => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
+
+  CascadeIndexAssignmentTarget get singleCascadeIndexAssignmentTarget =>
+      _single();
+
+  CascadeIndexExpression get singleCascadeIndexExpression => _single();
+
+  CascadePropertyAssignmentTarget get singleCascadePropertyAssignmentTarget =>
+      _single();
+
+  CascadePropertyExtraction get singleCascadePropertyExtraction => _single();
+
+  CascadeSection get singleCascadeSection => _single();
 
   CastPattern get singleCastPattern => _single();
 
@@ -249,6 +386,8 @@ abstract class _FindNodeBase {
 
   IndexExpression get singleIndexExpression => _single();
 
+  IndexExpression2 get singleIndexExpression2 => _single();
+
   IntegerLiteral get singleIntegerLiteral => _single();
 
   InterpolationExpression get singleInterpolationExpression => _single();
@@ -316,11 +455,15 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PostfixExpression get singlePostfixExpression => _single();
+  PostfixDecrement get singlePostfixDecrement => _single();
+
+  PostfixIncrement get singlePostfixIncrement => _single();
+
+  PrefixDecrement get singlePrefixDecrement => _single();
 
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
 
-  PrefixExpression get singlePrefixExpression => _single();
+  PrefixIncrement get singlePrefixIncrement => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
@@ -328,6 +471,8 @@ abstract class _FindNodeBase {
       _single();
 
   PropertyAccess get singlePropertyAccess => _single();
+
+  ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
 
@@ -448,10 +593,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is AwaitExpression);
   }
 
-  BinaryExpression binary(String search) {
-    return _node(search, (n) => n is BinaryExpression);
-  }
-
   BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
     return node.declaredFragment!.element;
@@ -475,6 +616,28 @@ abstract class _FindNodeBase {
 
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
+  }
+
+  CascadeIndexAssignmentTarget cascadeIndexAssignmentTarget(String search) {
+    return _node(search, (n) => n is CascadeIndexAssignmentTarget);
+  }
+
+  CascadeIndexExpression cascadeIndexExpression(String search) {
+    return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (n) => n is CascadePropertyAssignmentTarget);
+  }
+
+  CascadePropertyExtraction cascadePropertyExtraction(String search) {
+    return _node(search, (n) => n is CascadePropertyExtraction);
+  }
+
+  CascadeSection cascadeSection(String search) {
+    return _node(search, (n) => n is CascadeSection);
   }
 
   CaseClause caseClause(String search) {
@@ -760,6 +923,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is IndexExpression);
   }
 
+  IndexExpression2 indexExpression2(String search) {
+    return _node(search, (n) => n is IndexExpression2);
+  }
+
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
   }
@@ -919,10 +1086,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is PatternVariableDeclarationStatement);
   }
 
-  PostfixExpression postfix(String search) {
-    return _node(search, (n) => n is PostfixExpression);
-  }
-
   PrefixExpression prefix(String search) {
     return _node(search, (n) => n is PrefixExpression);
   }
@@ -937,6 +1100,10 @@ abstract class _FindNodeBase {
 
   PropertyAccess propertyAccess(String search) {
     return _node(search, (n) => n is PropertyAccess);
+  }
+
+  ReceiverPropertyExtraction receiverPropertyExtraction(String search) {
+    return _node(search, (n) => n is ReceiverPropertyExtraction);
   }
 
   RecordLiteral recordLiteral(String search) {
@@ -1062,7 +1229,7 @@ abstract class _FindNodeBase {
   }
 
   VariableDeclaration topVariableDeclarationByName(String name) {
-    for (var declaration in unit.declarations) {
+    for (var declaration in unit.declarations2) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           if (variable.name.lexeme == name) {
@@ -1197,8 +1364,7 @@ class _TypedNodeVisitor<T extends AstNode>
   }
 }
 
-class _TypedNodeVisitor2<T extends AstNode>
-    extends GeneralizingAstVisitor2<void> {
+class _TypedNodeVisitor2<T extends AstNode> extends UnifyingAstVisitor2<void> {
   final List<T> nodes = [];
 
   @override

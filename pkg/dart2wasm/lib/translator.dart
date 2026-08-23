@@ -74,7 +74,6 @@ class TranslatorOptions {
   bool enableProtobufMixinTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;
@@ -289,14 +288,6 @@ class Translator with KernelNodes {
   late final w.RefType stackTraceTypeNullable = stackTraceType.withNullability(
     true,
   );
-
-  // The wasm type used to hold values of `Type`
-  late final w.RefType runtimeTypeType =
-      translateType(coreTypes.typeNonNullableRawType) as w.RefType;
-
-  // The wasm type used to hold values of `Type?`
-  late final w.RefType runtimeTypeTypeNullable = runtimeTypeType
-      .withNullability(true);
 
   // The wasm type used to hold values of `String`
   late final w.RefType stringType =
@@ -2040,7 +2031,11 @@ class Translator with KernelNodes {
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  DartType typeOfParameterVariable(Variable node, bool isRequired) {
+  DartType typeOfParameterVariable(
+    Variable node,
+    bool isRequired, {
+    bool isNoSuchMethodForwarder = false,
+  }) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2064,7 +2059,22 @@ class Translator with KernelNodes {
       return coreTypes.objectNullableRawType;
     }
 
-    return node.type;
+    // Special case for NSM forwarders: A method with a non-nullable optional
+    // parameter requires an implementation to (normally) have a default value,
+    // in case a call site didn't pass the optional parameter.
+    //
+    // Though an implementation may be done via defining a `noSuchMethod`
+    // method, which will make CFE auto generate all unimplemented methods via
+    // no-such-method forwarder functions. Those may not have a sensible
+    // default. To make this still work we use `null` as default which will then
+    // be in the `Invocation` object passed to the `noSuchMethod` call.
+    //
+    // See
+    //   * https://github.com/dart-lang/language/issues/3331
+    //   * https://github.com/dart-lang/sdk/issues/63958
+    return (!isRequired && isNoSuchMethodForwarder)
+        ? node.type.withDeclaredNullability(Nullability.nullable)
+        : node.type;
   }
 
   // The type to use assuming the argument was already checked (in case a
@@ -2089,8 +2099,19 @@ class Translator with KernelNodes {
     return _inferredTypeOfField(node) ?? node.type;
   }
 
-  w.ValueType translateTypeOfParameter(Variable node, bool isRequired) {
-    return translateType(typeOfParameterVariable(node, isRequired));
+  w.ValueType translateTypeOfParameter(
+    Variable node,
+    bool isRequired,
+    Member member,
+  ) {
+    return translateType(
+      typeOfParameterVariable(
+        node,
+        isRequired,
+        isNoSuchMethodForwarder:
+            member is Procedure && member.isNoSuchMethodForwarder,
+      ),
+    );
   }
 
   w.ValueType translateTypeOfField(Field node) {
@@ -2873,13 +2894,11 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(argNameIndex == argNames.length);
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(trampoline.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(trampoline.type.outputs),
+    );
     b.end();
   }
 }
@@ -3070,13 +3089,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(function.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(function.type.outputs),
+    );
 
     b.end(); // end function
   }
@@ -3925,6 +3942,9 @@ void instantiateDummyValue(
       break;
     case w.NumType.f64:
       b.f64_const(0);
+      break;
+    case w.NumType.v128:
+      b.v128_const_i32x4(0, 0, 0, 0);
       break;
     default:
       if (type is w.RefType) {

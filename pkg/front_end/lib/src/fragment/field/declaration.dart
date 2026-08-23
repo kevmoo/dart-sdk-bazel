@@ -287,8 +287,8 @@ class RegularFieldDeclaration
 
   @override
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
@@ -367,8 +367,8 @@ class RegularFieldDeclaration
         if (hasInitializerBeenComputed) {
           buildBody(
             classHierarchy.coreTypes,
-            cachedFieldInitializer,
-            scopeProviderInfo: null,
+            initializer: cachedFieldInitializer,
+            scopeProviderInfo: _scopeProviderInfoCache,
           );
         } else {
           var (
@@ -385,7 +385,7 @@ class RegularFieldDeclaration
           );
           buildBody(
             classHierarchy.coreTypes,
-            initializer,
+            initializer: initializer,
             scopeProviderInfo: scopeProviderInfo,
           );
         }
@@ -856,7 +856,7 @@ mixin FieldDeclarationMixin
         var (
           DartType inferredType,
           Expression? initializer,
-          ScopeProviderInfo? _,
+          ScopeProviderInfo? scopeProviderInfo,
         ) = implicitFieldType.computeType(
           hierarchy,
         );
@@ -885,7 +885,7 @@ mixin FieldDeclarationMixin
               setCovariantByClassInternal();
             }
           }
-          cacheFieldInitializer(initializer);
+          cacheFieldInitializer(initializer, scopeProviderInfo);
         }
         return fieldType;
       },
@@ -895,8 +895,8 @@ mixin FieldDeclarationMixin
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
@@ -905,7 +905,10 @@ mixin FieldDeclarationMixin
   /// The field initializer is included in the outline if the field is constant,
   /// or an instance field in a class with a const constructor. Otherwise, the
   /// field added to the body during full compilation.
-  void cacheFieldInitializer(Expression? initializer);
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -970,12 +973,13 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
 
   bool _hasInitializerBeenComputed = false;
   Expression? _fieldInitializerCache;
+  ScopeProviderInfo? _scopeProviderInfoCache;
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(
-    CoreTypes coreType,
-    Expression? initializer, {
+    CoreTypes coreType, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
@@ -984,8 +988,12 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   /// The field initializer is included in the outline if the field is constant,
   /// or an instance field in a class with a const constructor. Otherwise, the
   /// field added to the body during full compilation.
-  void cacheFieldInitializer(Expression? initializer) {
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     _fieldInitializerCache = initializer;
+    _scopeProviderInfoCache = scopeProviderInfo;
     _hasInitializerBeenComputed = true;
   }
 
@@ -1003,7 +1011,11 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
   }) {
     if (_fieldInitializerCache != null) {
       if (!hasBodyBeenBuilt) {
-        buildBody(coreTypes, _fieldInitializerCache, scopeProviderInfo: null);
+        buildBody(
+          coreTypes,
+          initializer: _fieldInitializerCache,
+          scopeProviderInfo: _scopeProviderInfoCache,
+        );
       }
     } else if (initializer != null) {
       if (!hasBodyBeenBuilt) {
@@ -1020,13 +1032,13 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
         _hasInitializerBeenComputed = true;
         buildBody(
           coreTypes,
-          inferredInitializer,
+          initializer: inferredInitializer,
           scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
         );
       }
     } else if (!hasBodyBeenBuilt) {
       _hasInitializerBeenComputed = true;
-      buildBody(coreTypes, null, scopeProviderInfo: null);
+      buildBody(coreTypes, initializer: null, scopeProviderInfo: null);
     }
   }
 }

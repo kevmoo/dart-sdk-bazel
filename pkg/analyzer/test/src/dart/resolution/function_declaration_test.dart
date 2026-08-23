@@ -369,8 +369,37 @@ int get foo(double a) => 0;
 // [diag.getterWithParameters] Getters must be declared without a parameter list.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelGetterDeclaration;
     assertResolvedNodeText(node, r'''
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  recoveryFormalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: double
+          element: dart:core::@class::double
+          type: double
+        name: a
+        declaredFragment: <testLibraryFragment> a@19
+          element: isPublic
+            type: double
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function(double)
 FunctionDeclaration
   returnType: NamedType
     name: int
@@ -380,19 +409,6 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: double
-            element: dart:core::@class::double
-            type: double
-          name: a
-          declaredFragment: <testLibraryFragment> a@19
-            element: isPublic
-              type: double
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -406,7 +422,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -545,10 +561,9 @@ FunctionDeclaration
 ''');
   }
 
-  test_wildCardFunction_preWildCards() async {
+  test_wildCardFunction_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
@@ -566,11 +581,11 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredFragment: <testLibraryFragment> _@44
+    declaredFragment: <testLibraryFragment> _@16
       element: <testLibrary>::@function::_
         type: dynamic Function()
     staticType: dynamic Function()
-  declaredFragment: <testLibraryFragment> _@44
+  declaredFragment: <testLibraryFragment> _@16
     element: <testLibrary>::@function::_
       type: dynamic Function()
 ''');

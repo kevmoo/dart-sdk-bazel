@@ -128,6 +128,10 @@ class ValueKinds {
       const SingleValueKind<type.FunctionTypeParameterBuilder>();
   static const ValueKind FunctionTypeParameterBuilderList =
       const SingleValueKind<List<type.FunctionTypeParameterBuilder>>();
+  static const ValueKind FunctionTypeParameterBuilderListOrNull =
+      const SingleValueKind<List<type.FunctionTypeParameterBuilder>>(
+        NullValues.FormalParameters,
+      );
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
@@ -259,8 +263,8 @@ class ValueKinds {
       const SingleValueKind<List<type.NominalParameterBuilder>>(
         NullValues.NominalParameters,
       );
-  static const ValueKind InternalDeclaredVariableListOrNull =
-      const SingleValueKind<List<type.InternalDeclaredVariable>>(
+  static const ValueKind JointVariableListOrNull =
+      const SingleValueKind<List<type.JointVariable>>(
         NullValues.VariableDeclarationList,
       );
 }

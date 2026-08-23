@@ -20,6 +20,7 @@ import 'package:native_compiler/back_end/code_generator.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/names.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
@@ -30,7 +31,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   late final CFunction _asyncStarStreamControllerAdd = functionRegistry
       .getFunction(
-        GlobalContext.instance.coreTypes.index.getProcedure(
+        GlobalContext.instance.coreLibraries.getProcedure(
           'dart:async',
           '_AsyncStarStreamController',
           'add',
@@ -38,7 +39,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
   late final CFunction _asyncStarStreamControllerAddStream = functionRegistry
       .getFunction(
-        GlobalContext.instance.coreTypes.index.getProcedure(
+        GlobalContext.instance.coreLibraries.getProcedure(
           'dart:async',
           '_AsyncStarStreamController',
           'addStream',
@@ -46,7 +47,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
 
   late final CField _syncStarIteratorCurrent = CField(
-    GlobalContext.instance.coreTypes.index.getField(
+    GlobalContext.instance.coreLibraries.getField(
       'dart:async',
       '_SyncStarIterator',
       '_current',
@@ -54,14 +55,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
   );
 
   late final CField _syncStarIteratorYieldStarIterable = CField(
-    GlobalContext.instance.coreTypes.index.getField(
+    GlobalContext.instance.coreLibraries.getField(
       'dart:async',
       '_SyncStarIterator',
       '_yieldStarIterable',
     ),
   );
 
-  Arm64CodeGenerator(super.backEndState, this.functionRegistry);
+  Arm64CodeGenerator(
+    super.backEndState,
+    super.asmIntrinsics,
+    this.functionRegistry,
+  );
 
   @override
   Assembler createAssembler() => _asm = Arm64Assembler(
@@ -417,7 +422,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case ComparisonOpcode.intLessOrEqual:
       case ComparisonOpcode.intGreater:
       case ComparisonOpcode.intGreaterOrEqual:
-        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        final (operand, negated) = _generateAddSubRightOperand(
+          instr,
+          right,
+          isUnboxed: instr.op.isIntComparison,
+        );
         if (negated) {
           _asm.cmn(left, operand);
         } else {
@@ -440,11 +449,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   (Operand, bool negated) _generateAddSubRightOperand(
     Instruction instr,
-    Definition right,
-  ) {
+    Definition right, {
+    required bool isUnboxed,
+  }) {
     if (right is Constant) {
       if (right.value.isInt) {
-        final value = right.value.intValue;
+        int value = right.value.intValue;
+        if (!isUnboxed) {
+          value = value << smiShift;
+        }
         if (value == 0) {
           return (ZR, false);
         } else if (_asm.canEncodeImm12(value)) {
@@ -517,7 +530,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .intGreater:
       case .intGreaterOrEqual:
         final left = inputReg(instr, 0);
-        final (operand, negated) = _generateAddSubRightOperand(instr, right);
+        final (operand, negated) = _generateAddSubRightOperand(
+          instr,
+          right,
+          isUnboxed: instr.op.isIntComparison,
+        );
         if (negated) {
           _asm.cmn(left, operand);
         } else {
@@ -545,13 +562,69 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .identical:
       case .notIdentical:
-        _asm.unimplemented(
-          'Unimplemented: code generation for Comparison ${instr.op}',
-        );
+        _generateIdentical(instr);
+        break;
     }
     _asm.loadConstant(result, ConstantValue.fromBool(true));
     _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
     _asm.csel(result, result, tempReg, instr.op.conditionCode);
+  }
+
+  void _generateIdentical(Comparison instr) {
+    assert((instr.op == .identical) || (instr.op == .notIdentical));
+    final leftReg = inputReg(instr, 0);
+    final rightReg = inputReg(instr, 1);
+    final scratch1Reg = temporaryReg(instr, 0);
+    final scratch2Reg = temporaryReg(instr, 1);
+    final done = Label();
+    final notDouble = Label();
+    final compareValues = Label();
+
+    // Same value => identical.
+    _asm.cmp(leftReg, rightReg);
+    _asm.b(done, .equal); // Z is set.
+
+    // Any Smi => not identical.
+    _asm.and(tempReg, leftReg, rightReg);
+    _asm.tbz(tempReg, smiBit, done); // Z is not set (from previous cmp).
+
+    _asm.loadClassId(scratch1Reg, leftReg);
+    _asm.loadClassId(scratch2Reg, rightReg);
+
+    // Different class ids => not identical.
+    _asm.cmp(scratch1Reg, scratch2Reg);
+    _asm.b(done, .notEqual); // Z is not set.
+
+    _asm.cmpImmediate(scratch1Reg, ClassId.DoubleCid.index);
+    _asm.b(notDouble, .notEqual);
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.fieldAddress(leftReg, vmOffsets.Double_value_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.fieldAddress(rightReg, vmOffsets.Double_value_offset),
+    );
+    _asm.b(compareValues);
+
+    _asm.bind(notDouble);
+    _asm.cmpImmediate(scratch1Reg, ClassId.MintCid.index);
+    _asm.b(done, .notEqual); // Z is not set.
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.fieldAddress(leftReg, vmOffsets.Mint_value_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.fieldAddress(rightReg, vmOffsets.Mint_value_offset),
+    );
+
+    _asm.bind(compareValues);
+    _asm.cmp(scratch1Reg, scratch2Reg);
+
+    _asm.bind(done);
   }
 
   @override
@@ -695,6 +768,32 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    _passArguments(instr);
+    // ExternalCall instruction takes an extra `null` input to reserve
+    // slot for the return value in the stack frame.
+    final numArgs = instr.inputCount - 1;
+    assert(numArgs < (1 << vmOffsets.NativeArguments_kArgcBitsSize));
+    final argcTag =
+        (numArgs << vmOffsets.NativeArguments_kArgcBitsPos) |
+        (instr.target.hasFunctionTypeParameters
+            ? (1 << vmOffsets.NativeArguments_kGenericFunctionBitPos)
+            : 0);
+    _asm.addImmediate(
+      CallBootstrapNativeStub.firstArgPointerReg,
+      stackPointerReg,
+      (1 /* slot for result */ + numArgs - 1) * wordSize,
+    );
+    _asm.loadImmediate(CallBootstrapNativeStub.argcTagReg, argcTag);
+    _asm.loadFromPool(
+      CallBootstrapNativeStub.nativeFunctionReg,
+      NativeFunction(instr.target),
+    );
+    _asm.callVmStub(StubCode.CallBootstrapNative);
+    _asm.ldr(returnReg, _asm.address(stackPointerReg, 0));
+  }
+
+  @override
   void visitClosureCall(ClosureCall instr) {
     _passArguments(instr);
     _asm.loadFromPool(argumentsDescriptorReg, instr.argumentsShape);
@@ -744,6 +843,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitLoadInstanceField(LoadInstanceField instr) {
     final objectReg = inputReg(instr, 0);
     final valueReg = outputReg(instr);
+    if (instr.field == objectLayout.Object_classId) {
+      _asm.loadClassId(valueReg, objectReg);
+      return;
+    }
     if (instr.checkInitialized) {
       // TODO: initialized check for late fields.
       _asm.unimplemented(
@@ -751,11 +854,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
       return;
     }
-    // TODO: unboxed fields
-    _asm.ldr(
-      valueReg,
-      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+    switch (memoryOrder) {
+      case .relaxed:
+        // TODO: compressed pointers, unboxed fields
+        _asm.ldr(
+          valueReg,
+          _asm.fieldAddress(
+            objectReg,
+            objectLayout.getFieldOffset(instr.field),
+          ),
+        );
+      case .acquireRelease:
+        _asm.addImmediate(
+          tempReg,
+          objectReg,
+          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
+        );
+        _asm.ldar(valueReg, tempReg);
+    }
   }
 
   bool _canSkipWriteBarrier(Definition objectDef, Definition valueDef) =>
@@ -845,11 +962,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
       return;
     }
-    // TODO: unboxed fields
-    _asm.str(
-      valueReg,
-      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+    switch (memoryOrder) {
+      case .relaxed:
+        // TODO: compressed pointers, unboxed fields
+        _asm.str(
+          valueReg,
+          _asm.fieldAddress(
+            objectReg,
+            objectLayout.getFieldOffset(instr.field),
+          ),
+        );
+      case .acquireRelease:
+        _asm.addImmediate(
+          tempReg,
+          objectReg,
+          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
+        );
+        _asm.stlr(valueReg, tempReg);
+    }
     if (!_canSkipWriteBarrier(instr.object, instr.value)) {
       _writeBarrier(
         objectReg,
@@ -987,6 +1118,96 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitLoadExternalField(LoadExternalField instr) {
+    final valueReg = outputReg(instr);
+    final objectReg = instr.hasObject ? inputReg(instr, 0) : threadReg;
+    _asm.ldr(
+      valueReg,
+      _asm.address(objectReg, objectLayout.getFieldOffset(instr.field)),
+    );
+  }
+
+  @override
+  void visitLoadArrayElement(LoadArrayElement instr) {
+    OperandSize sz = instr.kind.elementSize(objectLayout);
+    int offset = instr.kind.dataOffset(vmOffsets);
+    Register baseReg = inputReg(instr, 0);
+    final index = instr.index;
+    if (index is Constant) {
+      offset += index.value.intValue << sz.log2sizeInBytes;
+    } else {
+      final indexReg = inputReg(instr, 1);
+      _asm.add(
+        tempReg,
+        baseReg,
+        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
+      );
+      baseReg = tempReg;
+    }
+    final resultReg = outputReg(instr);
+    _asm.ldr(resultReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+  }
+
+  @override
+  void visitStoreArrayElement(StoreArrayElement instr) {
+    OperandSize sz = instr.kind.elementSize(objectLayout);
+    int offset = instr.kind.dataOffset(vmOffsets);
+    final Register arrayReg = inputReg(instr, 0);
+    Register valueReg = inputReg(instr, 2);
+
+    if (instr.kind == .uint8ClampedList) {
+      // Clamp value to [0, 0xff] range.
+      final scratchReg = temporaryReg(instr, 0);
+      _asm.cmpImmediate(valueReg, 0xff);
+      // x = value > 0xff ? 0xff : 0
+      _asm.csetm(scratchReg, .greater);
+      // y = value in range ? value : x
+      _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
+      valueReg = scratchReg;
+    }
+
+    var baseReg = arrayReg;
+    final index = instr.index;
+    if (index is Constant) {
+      offset += index.value.intValue << sz.log2sizeInBytes;
+    } else {
+      final indexReg = inputReg(instr, 1);
+      _asm.add(
+        tempReg,
+        baseReg,
+        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
+      );
+      baseReg = tempReg;
+    }
+    _asm.str(valueReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+
+    if (instr.kind == .fixedLengthList &&
+        !_canSkipWriteBarrier(instr.array, instr.value)) {
+      // TODO: array-specific write barrier.
+      final scratch1Reg = temporaryReg(instr, 0);
+      final scratch2Reg = temporaryReg(instr, 1);
+      _writeBarrier(
+        arrayReg,
+        valueReg,
+        scratch1Reg,
+        scratch2Reg,
+        valueCanBeSmi: _canBeSmi(instr.value),
+      );
+    }
+  }
+
+  @override
+  void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
+    final arrayReg = inputReg(instr, 0);
+    final indexReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    _asm.ldr(
+      resultReg,
+      RegExtRegAddress(arrayReg, indexReg, .UXTX, scaled: true),
+    );
+  }
+
+  @override
   void visitThrow(Throw instr) {
     switch (instr.kind) {
       case .exception:
@@ -1033,6 +1254,63 @@ final class Arm64CodeGenerator extends CodeGenerator {
     });
     _asm.cmp(resultReg, nullReg);
     _asm.b(slowPath, .equal);
+  }
+
+  @override
+  void visitIndexCheck(IndexCheck instr) {
+    final indexReg = inputReg(instr, 0);
+    final lengthReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    final Label slowPath = addSlowPath(() {
+      assert(stackFrame.maxArgumentsStackSlots >= 1);
+      _asm.stp(indexReg, lengthReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 2 * wordSize),
+      );
+      _callRuntime(RuntimeEntry.RangeError, 2);
+      _asm.breakpoint();
+    });
+    _asm.cmp(indexReg, lengthReg);
+    _asm.b(slowPath, .unsignedGreaterOrEqual);
+    if (indexReg != resultReg) {
+      _asm.mov(resultReg, indexReg);
+    }
+  }
+
+  @override
+  void visitSubtypeCheck(SubtypeCheck instr) {
+    final temp0Reg = temporaryReg(instr, 0);
+    final temp1Reg = temporaryReg(instr, 1);
+    // The arrangement of arguments on the stack for runtime call:
+    //     args[0]  instantiator type args
+    //     args[1]  function type args
+    //     args[2]  sub_type
+    //     args[3]  super_type
+    //     args[4]  name
+    //   no return value, but slot is still allocated for it
+    const nArguments = 5;
+    const nArgumentsPlusReturnResult = nArguments + 1;
+    // Order of inputs is determined by _referencedTypeParameters in ast_to_ir.dart.
+    final instantiatorTypeReg = inputReg(instr, 0);
+    final functionTypeReg = inputReg(instr, 1);
+
+    _asm.loadFromPool(temp0Reg, instr.name);
+    _asm.loadFromPool(temp1Reg, instr.bound.dartType);
+    assert(stackFrame.maxArgumentsStackSlots >= nArgumentsPlusReturnResult);
+    _asm.stp(temp0Reg, temp1Reg, RegOffsetAddress(stackPointerReg, 0));
+    _asm.loadFromPool(temp0Reg, instr.type.dartType);
+    _asm.stp(
+      temp0Reg,
+      functionTypeReg,
+      RegOffsetAddress(stackPointerReg, 2 * wordSize),
+    );
+    _asm.stp(
+      instantiatorTypeReg,
+      nullReg,
+      RegOffsetAddress(stackPointerReg, 4 * wordSize),
+    );
+    _callRuntime(RuntimeEntry.SubtypeCheck, nArguments);
   }
 
   int _getNumberOfInputsForSubtypeTestCache(
@@ -1580,88 +1858,192 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {
+  void visitAllocateArray(AllocateArray instr) {
+    final arrayKind = instr.kind;
+    final elemSize = arrayKind.elementSize(objectLayout);
+    final headerSize = arrayKind.dataOffset(vmOffsets);
+    final maxElements = arrayKind.maxNewSpaceElements(objectLayout);
+    final classId = arrayKind.classId;
+    final alignment = objectAlignment(wordSize);
     final tagsReg = temporaryReg(instr, 0);
     final scratch1Reg = temporaryReg(instr, 1);
     final scratch2Reg = temporaryReg(instr, 2);
+    final instanceSizeReg = temporaryReg(instr, 3);
     final resultReg = outputReg(instr);
-    // TODO: support AllocateList with non-constant length
-    final length = (instr.length as Constant).value.intValue;
-    assert(objectLayout.isSmi(length));
-    final instanceSize = roundUp(
-      vmOffsets.Array_data_offset + length * objectLayout.compressedWordSize,
-      objectAlignment(wordSize),
-    );
-    assert(outputReg(instr) == resultReg);
+    final typeArgsReg = instr.hasTypeArguments ? inputReg(instr, 0) : nullReg;
+
+    final lengthDef = instr.length;
+    var lengthReg = invalidReg;
+    var length = -1;
+    var instanceSize = 0;
+    if (lengthDef is Constant) {
+      length = lengthDef.value.intValue;
+      if (0 <= length && length <= maxElements) {
+        instanceSize = roundUp(
+          headerSize + (length << elemSize.log2sizeInBytes),
+          alignment,
+        );
+      } else {
+        lengthReg = tempReg;
+        _asm.loadConstant(lengthReg, lengthDef.value);
+      }
+    } else {
+      lengthReg = inputReg(instr, instr.hasTypeArguments ? 1 : 0);
+    }
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      assert(stackFrame.maxArgumentsStackSlots >= 3);
-      _asm.loadImmediate(tempReg, length << smiShift);
-      _asm.stp(
-        nullReg, // Type arguments.
-        tempReg, // Array length.
-        RegOffsetAddress(stackPointerReg, 0),
-      );
-      _asm.str(
-        nullReg, // Space for result.
-        RegOffsetAddress(stackPointerReg, 2 * wordSize),
-      );
-      _callRuntime(RuntimeEntry.AllocateArray, 2);
-      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+      if (lengthReg == invalidReg) {
+        lengthReg = tempReg;
+        _asm.loadConstant(lengthReg, (lengthDef as Constant).value);
+      }
+      switch (arrayKind) {
+        case .fixedLengthList:
+          assert(stackFrame.maxArgumentsStackSlots >= 3);
+          _asm.stp(
+            typeArgsReg, // Type arguments.
+            lengthReg, // Array length.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.str(
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _callRuntime(RuntimeEntry.AllocateArray, 2);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+          break;
+        case .oneByteString:
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.stp(
+            lengthReg, // Array length.
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.AllocateOneByteString, 1);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, wordSize));
+          break;
+        case .twoByteString:
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.stp(
+            lengthReg, // Array length.
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.AllocateTwoByteString, 1);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, wordSize));
+          break;
+        case .int8List ||
+            .uint8List ||
+            .uint8ClampedList ||
+            .int16List ||
+            .uint16List ||
+            .int32List ||
+            .uint32List ||
+            .int64List ||
+            .uint64List:
+          assert(stackFrame.maxArgumentsStackSlots >= 3);
+          _asm.loadImmediate(scratch1Reg, classId.index << smiShift);
+          _asm.stp(
+            lengthReg, // Array length.
+            scratch1Reg, // Class ID.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.str(
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _callRuntime(RuntimeEntry.AllocateTypedData, 2);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+          break;
+      }
       _asm.b(done);
     });
 
     _asm.loadImmediate(
       tagsReg,
-      vmOffsets.computeNewObjectTags(
-        ClassId.ArrayCid,
-        instanceSize,
-        log2wordSize,
-      ),
-    );
-    _asm.inlineAllocation(
-      resultReg,
-      tagsReg,
-      scratch1Reg,
-      scratch2Reg,
-      instanceSize,
-      slowPath,
-      initializeFields: true,
+      vmOffsets.computeNewObjectTags(classId, instanceSize, log2wordSize),
     );
 
-    _asm.loadImmediate(scratch1Reg, length << smiShift);
-    _asm.str(
-      scratch1Reg,
-      _asm.fieldAddress(resultReg, vmOffsets.Array_length_offset),
-    );
-    _asm.bind(done);
-  }
-
-  @override
-  void visitSetListElement(SetListElement instr) {
-    final listReg = inputReg(instr, 0);
-    final valueReg = inputReg(instr, 2);
-    final scratch1Reg = temporaryReg(instr, 0);
-    final scratch2Reg = temporaryReg(instr, 1);
-    // TODO: support SetListElement with non-constant index
-    final index = (instr.index as Constant).value.intValue;
-    _asm.str(
-      valueReg,
-      _asm.fieldAddress(
-        listReg,
-        vmOffsets.Array_data_offset + index * objectLayout.compressedWordSize,
-      ),
-    );
-    if (!_canSkipWriteBarrier(instr.list, instr.value)) {
-      _writeBarrier(
-        listReg,
-        valueReg,
+    if (lengthReg == invalidReg) {
+      _asm.inlineAllocation(
+        resultReg,
+        tagsReg,
         scratch1Reg,
         scratch2Reg,
-        valueCanBeSmi: _canBeSmi(instr.value),
+        instanceSize,
+        slowPath,
+        initializeFields: true,
+        initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
+      );
+
+      _asm.loadImmediate(tempReg, length << smiShift);
+      _asm.str(
+        tempReg,
+        _asm.fieldAddress(resultReg, arrayKind.lengthFieldOffset(vmOffsets)),
+      );
+
+      final dataFieldOffset = arrayKind.dataFieldOffset(vmOffsets);
+      if (dataFieldOffset != null) {
+        _asm.addImmediate(tempReg, resultReg, headerSize - heapObjectTag);
+        _asm.str(tempReg, _asm.fieldAddress(resultReg, dataFieldOffset));
+      }
+    } else {
+      // Make sure length is a Smi and between 0 and maxElements.
+      _asm.tbnz(lengthReg, smiBit, slowPath);
+      _asm.cmpImmediate(lengthReg, maxElements << smiShift);
+      _asm.b(slowPath, .unsignedGreater);
+
+      // Compute instance size.
+      final shift = elemSize.log2sizeInBytes - smiShift;
+      if (shift < 0) {
+        _asm.lsr(instanceSizeReg, lengthReg, -shift);
+      } else {
+        _asm.lsl(instanceSizeReg, lengthReg, shift);
+      }
+      _asm.addImmediate(
+        instanceSizeReg,
+        instanceSizeReg,
+        headerSize + alignment - 1,
+      );
+      _asm.andImmediate(instanceSizeReg, instanceSizeReg, ~(alignment - 1));
+
+      // Combine tags and size.
+      final log2alignment = log2objectAlignment(log2wordSize);
+      _asm.cmpImmediate(
+        instanceSizeReg,
+        (1 << (vmOffsets.UntaggedObject_kSizeTagSize + log2alignment)),
+      );
+      _asm.lsl(
+        tempReg,
+        instanceSizeReg,
+        vmOffsets.UntaggedObject_kSizeTagPos - log2alignment,
+      );
+      _asm.csel(tempReg, ZR, tempReg, .unsignedGreaterOrEqual);
+      _asm.orr(tagsReg, tagsReg, tempReg);
+
+      _asm.inlineArrayAllocation(
+        resultReg,
+        tagsReg,
+        instanceSizeReg,
+        lengthReg,
+        scratch1Reg,
+        scratch2Reg,
+        slowPath,
+        initializeFields: true,
+        lengthFieldOffset: arrayKind.lengthFieldOffset(vmOffsets),
+        dataFieldOffset: arrayKind.dataFieldOffset(vmOffsets),
+        headerSize: headerSize,
+        initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
       );
     }
+    if (instr.hasTypeArguments) {
+      assert(arrayKind == .fixedLengthList);
+      _asm.str(
+        typeArgsReg,
+        _asm.fieldAddress(resultReg, vmOffsets.Array_type_arguments_offset),
+      );
+    }
+    _asm.bind(done);
   }
 
   @override
@@ -1845,6 +2227,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         final (rightOperand, negated) = _generateAddSubRightOperand(
           instr,
           right,
+          isUnboxed: true,
         );
         if ((instr.op == .sub) == negated) {
           _asm.add(resultReg, leftReg, rightOperand);
@@ -1954,6 +2337,29 @@ final class Arm64CodeGenerator extends CodeGenerator {
         break;
       case .toDouble:
         _asm.scvtf(outputFPReg(instr), operandReg);
+        break;
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        _asm.loadImmediate(scratch, 0x2d51);
+        _asm.mul(tempReg, operandReg, scratch);
+        _asm.umulh(resultReg, operandReg, scratch);
+        _asm.eor(resultReg, resultReg, tempReg);
+        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+        _asm.ubfm(resultReg, resultReg, 63, 29);
+        break;
+      case .bitLength:
+        final resultReg = outputReg(instr);
+        // XOR with sign bit to complement bits if value is negative.
+        _asm.eor(
+          resultReg,
+          operandReg,
+          ShiftedRegOperand(operandReg, .ASR, 63),
+        );
+        _asm.clz(resultReg, resultReg);
+        _asm.loadImmediate(tempReg, 64);
+        _asm.sub(resultReg, tempReg, resultReg);
+        break;
       default:
         _asm.unimplemented(
           'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
@@ -2180,5 +2586,92 @@ extension on ComparisonOpcode {
     .doubleLessOrEqual => Condition.unsignedLessOrEqual, // LS
     .doubleGreater => Condition.greater, // GT
     .doubleGreaterOrEqual => Condition.greaterOrEqual, // GE
+  };
+}
+
+extension on ArrayKind {
+  OperandSize elementSize(ObjectLayout objectLayout) => switch (this) {
+    .fixedLengthList =>
+      (objectLayout.compressedWordSize == 8
+          ? .s64
+          : ((objectLayout.compressedWordSize == 4)
+                ? .s32
+                : (throw 'Unexpected compressedWordSize ${objectLayout.compressedWordSize}'))),
+    .oneByteString => .u8,
+    .twoByteString => .u16,
+    .int8List => .s8,
+    .uint8List || .uint8ClampedList => .u8,
+    .int16List => .s16,
+    .uint16List => .u16,
+    .int32List => .s32,
+    .uint32List => .u32,
+    .int64List => .s64,
+    .uint64List => .u64,
+  };
+
+  int dataOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList => vmOffsets.Array_data_offset,
+    .oneByteString => vmOffsets.OneByteString_data_offset,
+    .twoByteString => vmOffsets.TwoByteString_data_offset,
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.TypedData_payload_offset,
+  };
+
+  int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList => vmOffsets.Array_length_offset,
+    .oneByteString || .twoByteString => vmOffsets.String_length_offset,
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.TypedDataBase_length_offset,
+  };
+
+  int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString => null, // No 'data' field.
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List => vmOffsets.PointerBase_data_offset,
+  };
+
+  int maxNewSpaceElements(ObjectLayout objectLayout) {
+    final vmOffsets = objectLayout.vmOffsets;
+    final elemSize = elementSize(objectLayout);
+    return (vmOffsets.Heap_kNewAllocatableSize - dataOffset(vmOffsets)) >>
+        elemSize.log2sizeInBytes;
+  }
+
+  ClassId get classId => switch (this) {
+    .fixedLengthList => ClassId.ArrayCid,
+    .oneByteString => ClassId.OneByteStringCid,
+    .twoByteString => ClassId.TwoByteStringCid,
+    .int8List => ClassId.TypedDataInt8ArrayCid,
+    .uint8List => ClassId.TypedDataUint8ArrayCid,
+    .uint8ClampedList => ClassId.TypedDataUint8ClampedArrayCid,
+    .int16List => ClassId.TypedDataInt16ArrayCid,
+    .uint16List => ClassId.TypedDataUint16ArrayCid,
+    .int32List => ClassId.TypedDataInt32ArrayCid,
+    .uint32List => ClassId.TypedDataUint32ArrayCid,
+    .int64List => ClassId.TypedDataInt64ArrayCid,
+    .uint64List => ClassId.TypedDataUint64ArrayCid,
   };
 }

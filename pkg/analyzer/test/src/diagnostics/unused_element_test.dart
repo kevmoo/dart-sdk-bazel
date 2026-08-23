@@ -2151,6 +2151,7 @@ typedef A = E;
 ''');
   }
 
+  // TODO(fshcheglov): Think why on constructor, not extension type as a whole?
   test_extensionTypePrivate_publicConstructor() async {
     await resolveTestCodeWithDiagnostics('''
 extension type _E(int i) {
@@ -2209,6 +2210,17 @@ main() {
   print(() {});
 }
 print(x) {}
+''');
+  }
+
+  test_functionLocal_isUsed_invalidAssignment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+main() {
+  f(int value) {}
+  f = 0;
+//^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
 ''');
   }
 
@@ -2297,6 +2309,18 @@ typedef _F(a, b);
 //      ^^
 // [diag.unusedElement] The declaration '_F' isn't referenced.
 main() {
+}
+''');
+  }
+
+  test_getter_isUsed_invalidAssignment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int get _g => 0;
+
+void f() {
+  _g = 1;
+//^^
+// [diag.assignmentToFinal] '_g' can't be used as a setter because it's final.
 }
 ''');
   }
@@ -2467,10 +2491,9 @@ m() {
 ''');
   }
 
-  test_localFunction_inFunction_wildcard_preWildCards() async {
+  test_localFunction_inFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 main() {
   _(){}
@@ -2504,10 +2527,9 @@ class C {
 ''');
   }
 
-  test_localFunction_inMethod_wildcard_preWildCards() async {
+  test_localFunction_inMethod_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class C {
   m() {
@@ -2812,6 +2834,30 @@ extension _A on bool {
 }
 void main() {
   false[3];
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_indexOperators_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] += 1;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_indexOperators_ifNull() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int? operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] ??= 1;
 }
 ''');
   }

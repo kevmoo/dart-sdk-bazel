@@ -3669,7 +3669,8 @@ library
           firstFragment: #F8
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @41
+              fieldName(v1): SimpleIdentifier
                 token: x @41
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
@@ -3677,6 +3678,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @45
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -3827,7 +3829,8 @@ library
               element: dart:core::@class::Deprecated::@constructor::new
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: y @60
+              fieldName(v1): SimpleIdentifier
                 token: y @60
                 element: <testLibrary>::@enum::E::@field::y
                 staticType: null
@@ -3835,6 +3838,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @64
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::y
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -4401,13 +4405,25 @@ library
             AssertInitializer
               assertKeyword: assert @34
               leftParenthesis: ( @40
-              condition2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+              condition2: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: x @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @43
-                rightOperand2: IntegerLiteral
+                rightOperand: IntegerLiteral
+                  literal: 0 @45
+                  staticType: int
+                binaryOperator: greaterThan
+                element: dart:core::@class::num::@method::>
+                staticType: bool
+              condition(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: x @41
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
+                  staticType: int
+                operator: > @43
+                rightOperand: IntegerLiteral
                   literal: 0 @45
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -5398,7 +5414,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::B::@getter::values
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@enum::B::@field::foo
           firstFragment: #F10
           type: int
@@ -7342,7 +7358,8 @@ library
           firstFragment: #F9
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @70
+              fieldName(v1): SimpleIdentifier
                 token: f @70
                 element: <testLibrary>::@enum::A::@field::f
                 staticType: null
@@ -7350,6 +7367,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @74
                 staticType: int
+              fieldElement: <testLibrary>::@enum::A::@field::f
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -8118,16 +8136,16 @@ library
                 #F9 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:46) (firstTokenOffset:41) (offset:46)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
-                    BinaryExpression
-                      leftOperand2: IntegerLiteral
+                    BinaryOperatorInvocation
+                      leftOperand: IntegerLiteral
                         literal: 1 @50
                         staticType: int
                       operator: + @52
-                      rightOperand2: IntegerLiteral
+                      rightOperand: IntegerLiteral
                         literal: 2 @54
                         staticType: int
+                      binaryOperator: add
                       element: dart:core::@class::num::@method::+
-                      staticInvokeType: num Function(num)
                       staticType: int
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
@@ -9071,7 +9089,8 @@ library
                 staticType: bool
               rightParenthesis: ) @64
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @67
+              fieldName(v1): SimpleIdentifier
                 token: x @67
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
@@ -9079,6 +9098,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @71
                 staticType: int
+              fieldElement: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -9760,9 +9780,9 @@ library
 ''');
   }
 
-  test_constructor_secondary_typeName_named_language310() async {
+  test_constructor_secondary_typeName_named_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v.named();
 
@@ -9864,9 +9884,9 @@ library
 ''');
   }
 
-  test_constructor_secondary_typeName_unnamed_language310() async {
+  test_constructor_secondary_typeName_unnamed_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E {
   v;
 
@@ -11181,9 +11201,9 @@ library
 ''');
   }
 
-  test_enum_emptyBody_language310() async {
+  test_enum_emptyBody_beforePrimaryConstructors() async {
     var library = await buildLibrary(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E;
 ''');
     checkElementText(library, r'''
@@ -16259,7 +16279,8 @@ library
           firstFragment: #F7
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @28
+              fieldName(v1): SimpleIdentifier
                 token: foo @28
                 element: <testLibrary>::@enum::A::@field::foo
                 staticType: null
@@ -16267,6 +16288,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @34
                 staticType: int
+              fieldElement: <testLibrary>::@enum::A::@field::foo
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -21414,13 +21436,25 @@ library
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 ConditionalExpression
-                  condition2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  condition2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: foo @42
                       element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                       staticType: int?
                     operator: != @46
-                    rightOperand2: NullLiteral
+                    rightOperand: NullLiteral
+                      literal: null @49
+                      staticType: Null
+                    binaryOperator: notEqual
+                    element: dart:core::@class::num::@method::==
+                    staticType: bool
+                  condition(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: foo @42
+                      element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
+                      staticType: int?
+                    operator: != @46
+                    rightOperand: NullLiteral
                       literal: null @49
                       staticType: Null
                     element: dart:core::@class::num::@method::==

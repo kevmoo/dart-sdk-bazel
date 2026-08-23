@@ -61,6 +61,28 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
+    checkUsage(node.element, node);
+  }
+
+  void cascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
+  void cascadePropertyExtraction(CascadePropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, node);
+    }
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -118,6 +140,10 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is PropertyAssignmentTarget) {
+      errorEntity = node.propertyName;
+    } else if (node is PropertyExtraction) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -275,8 +301,61 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }
 
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    checkUsage(node.element, node);
+  }
+
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
@@ -296,14 +375,14 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void postfixExpression(PostfixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
     checkUsage(node.element, node);
   }
 
   void prefixExpression(PrefixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
+    checkUsage(node.readElement, node.operand);
+    checkUsage(node.writeElement, node.operand);
     checkUsage(node.element, node);
   }
 
@@ -360,6 +439,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     if (element is SuperFormalParameterElement) {
       checkUsage(element.superConstructorParameter, node);
     }
+  }
+
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {
@@ -493,8 +576,20 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
-  void binaryExpression(BinaryExpression node) {
+  void binaryOperatorInvocation(BinaryOperatorInvocation node) {
     checkUsage(node.element, node);
+  }
+
+  void cascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
@@ -554,6 +649,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is PropertyAssignmentTarget) {
+      errorEntity = node.propertyName;
+    } else if (node is PropertyExtraction) {
+      errorEntity = node.propertyName;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -609,6 +708,59 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
+  void combinatorName(CombinatorName node) {
+    if (node.parent2 is HideCombinator) {
+      return;
+    }
+
+    var element = node.element ?? node.setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    checkUsage(element, node);
+  }
+
+  void compoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    checkUsage(node.element, node);
+  }
+
   void constructorDeclaration(ConstructorDeclaration node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:
@@ -638,6 +790,28 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void constructorTearOff(ConstructorTearOff node) {
     checkUsage(node.typeReference.element, node.typeReference);
     checkUsage(node.element, node);
+  }
+
+  void directAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
   }
 
   void dotShorthandConstructorInvocation(
@@ -677,6 +851,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent2 case ConstructorDeclaration constructor) {
@@ -712,12 +896,97 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
+  void ifNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
+        checkUsage(element, target);
+      }
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
+        checkUsage(element, target);
+      }
+    }
+  }
+
   void importDirective(ImportDirective node) {
     checkUsage(node.libraryImport?.importedLibrary, node);
   }
 
+  void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    checkUsage(node.element, node);
+  }
+
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   void methodInvocation(MethodInvocation node) {
@@ -732,16 +1001,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
-  void postfixExpression(PostfixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
-    checkUsage(node.element, node);
-  }
-
-  void prefixExpression(PrefixExpression node) {
-    checkUsage(node.readElement, node.operand2);
-    checkUsage(node.writeElement, node.operand2);
-    checkUsage(node.element, node);
+  void propertyExtraction(PropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, node);
+    }
   }
 
   void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {
@@ -792,6 +1055,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (element is SuperFormalParameterElement) {
       checkUsage(element.superConstructorParameter, node);
     }
+  }
+
+  void unaryOperatorInvocation(UnaryOperatorInvocation node) {
+    checkUsage(node.element, node);
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {

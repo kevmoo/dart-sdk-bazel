@@ -5350,6 +5350,9 @@ class EquivalenceStrategy {
     )) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkPatternSwitchCase_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkPatternSwitchCase_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6338,9 +6341,6 @@ class EquivalenceStrategy {
     if (other is! PositionalParameter) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkPositionalParameter_cosmeticName(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkPositionalParameter_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6351,6 +6351,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_fileEqualsOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkPositionalParameter_parameterName(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkPositionalParameter_defaultValue(visitor, node, other)) {
@@ -6376,9 +6379,6 @@ class EquivalenceStrategy {
     if (other is! NamedParameter) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkNamedParameter_parameterName(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkNamedParameter_type(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6389,6 +6389,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkNamedParameter_fileEqualsOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkNamedParameter_parameterName(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkNamedParameter_defaultValue(visitor, node, other)) {
@@ -12572,6 +12575,15 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkPatternSwitchCase_scope(
+    EquivalenceVisitor visitor,
+    PatternSwitchCase node,
+    PatternSwitchCase other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
+  }
+
   bool checkPatternSwitchCase_fileOffset(
     EquivalenceVisitor visitor,
     PatternSwitchCase node,
@@ -14110,18 +14122,6 @@ class EquivalenceStrategy {
     return checkVariable_fileOffset(visitor, node, other);
   }
 
-  bool checkPositionalParameter_cosmeticName(
-    EquivalenceVisitor visitor,
-    PositionalParameter node,
-    PositionalParameter other,
-  ) {
-    return visitor.checkValues(
-      node.cosmeticName,
-      other.cosmeticName,
-      'cosmeticName',
-    );
-  }
-
   bool checkPositionalParameter_type(
     EquivalenceVisitor visitor,
     PositionalParameter node,
@@ -14165,6 +14165,26 @@ class EquivalenceStrategy {
       other.fileEqualsOffset,
       'fileEqualsOffset',
     );
+  }
+
+  bool checkFunctionParameter_parameterName(
+    EquivalenceVisitor visitor,
+    FunctionParameter node,
+    FunctionParameter other,
+  ) {
+    return visitor.checkValues(
+      node.parameterName,
+      other.parameterName,
+      'parameterName',
+    );
+  }
+
+  bool checkPositionalParameter_parameterName(
+    EquivalenceVisitor visitor,
+    PositionalParameter node,
+    PositionalParameter other,
+  ) {
+    return checkFunctionParameter_parameterName(visitor, node, other);
   }
 
   bool checkFunctionParameter_defaultValue(
@@ -14219,18 +14239,6 @@ class EquivalenceStrategy {
     return checkFunctionParameter_fileOffset(visitor, node, other);
   }
 
-  bool checkNamedParameter_parameterName(
-    EquivalenceVisitor visitor,
-    NamedParameter node,
-    NamedParameter other,
-  ) {
-    return visitor.checkValues(
-      node.parameterName,
-      other.parameterName,
-      'parameterName',
-    );
-  }
-
   bool checkNamedParameter_type(
     EquivalenceVisitor visitor,
     NamedParameter node,
@@ -14274,6 +14282,14 @@ class EquivalenceStrategy {
       other.fileEqualsOffset,
       'fileEqualsOffset',
     );
+  }
+
+  bool checkNamedParameter_parameterName(
+    EquivalenceVisitor visitor,
+    NamedParameter node,
+    NamedParameter other,
+  ) {
+    return checkFunctionParameter_parameterName(visitor, node, other);
   }
 
   bool checkNamedParameter_defaultValue(

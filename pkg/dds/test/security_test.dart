@@ -12,101 +12,119 @@ import 'common/test_helper.dart';
 void main() {
   group('DDS Security', () {
     late Process process;
-    late DartDevelopmentService dds;
 
-    setUp(() async {
+    setUpAll(() async {
       process = await spawnDartProcess('smoke.dart');
     });
 
-    tearDown(() async {
-      await dds.shutdown();
+    tearDownAll(() async {
       process.kill();
     });
 
-    test('Host and Origin validation', () async {
-      dds = await DartDevelopmentService.startDartDevelopmentService(
-        remoteVmServiceUri,
+    group('Host and Origin validation (Enabled by default)', () {
+      late DartDevelopmentService dds;
+      late HttpClient client;
+
+      setUpAll(() async {
+        dds = await DartDevelopmentService.startDartDevelopmentService(
+          remoteVmServiceUri,
+        );
+        client = HttpClient();
+      });
+
+      tearDownAll(() async {
+        await dds.shutdown();
+        client.close();
+      });
+
+      test(
+        'allows legitimate GET request to DDS-handled path (should return 404 '
+        'Not Found, but NOT 403)',
+        () async {
+          final request = await client.getUrl(dds.uri!.resolve('devtools'));
+          final response = await request.close();
+          expect(response.statusCode, HttpStatus.notFound);
+          await response.drain();
+        },
       );
-      expect(dds.isRunning, true);
 
-      final client = HttpClient();
-
-      // 1. Legitimate GET request to DDS-handled path (should return 404 Not Found, but NOT 403)
-      {
-        final request = await client.getUrl(dds.uri!.resolve('devtools'));
-        final response = await request.close();
-        expect(response.statusCode, HttpStatus.notFound);
-        await response.drain();
-      }
-
-      // 2. Bad Host Header (should be blocked with 403)
-      {
+      test('forbids GET request with bad Host Header', () async {
         final request = await client.getUrl(dds.uri!.resolve('devtools'));
         request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
         final response = await request.close();
         expect(response.statusCode, HttpStatus.forbidden);
         await response.drain();
-      }
+      });
 
-      // 3. Bad Origin Header (should be blocked with 403)
-      {
+      test('forbids GET request with bad Origin Header', () async {
         final request = await client.getUrl(dds.uri!.resolve('devtools'));
         request.headers.set('Origin', 'http://evil.example.com');
         final response = await request.close();
         expect(response.statusCode, HttpStatus.forbidden);
         await response.drain();
-      }
+      });
 
-      // 4. WebSocket with bad Host header (should be blocked)
-      expect(
-        () async => await WebSocket.connect(
-          dds.wsUri.toString(),
-          headers: {
-            HttpHeaders.hostHeader: 'evil.example.com',
-          },
-        ),
-        throwsA(isA<WebSocketException>()),
-      );
+      test('forbids WebSocket connection with bad Host header', () async {
+        expect(
+          () async => await WebSocket.connect(
+            dds.wsUri.toString(),
+            headers: {
+              HttpHeaders.hostHeader: 'evil.example.com',
+            },
+          ),
+          throwsA(isA<WebSocketException>()),
+        );
+      });
 
-      // 5. WebSocket with bad Origin header (should be blocked)
-      expect(
-        () async => await WebSocket.connect(
-          dds.wsUri.toString(),
-          headers: {
-            'Origin': 'http://evil.example.com',
-          },
-        ),
-        throwsA(isA<WebSocketException>()),
-      );
+      test('forbids WebSocket connection with bad Origin header', () async {
+        expect(
+          () async => await WebSocket.connect(
+            dds.wsUri.toString(),
+            headers: {
+              'Origin': 'http://evil.example.com',
+            },
+          ),
+          throwsA(isA<WebSocketException>()),
+        );
+      });
     });
 
-    test('Disable Origin Check', () async {
-      // Start DDS with origin check disabled
-      dds = await DartDevelopmentService.startDartDevelopmentService(
-        remoteVmServiceUri,
-        disableServiceOriginCheck: true,
+    group('Disable Origin Check', () {
+      late DartDevelopmentService dds;
+      late HttpClient client;
+
+      setUpAll(() async {
+        dds = await DartDevelopmentService.startDartDevelopmentService(
+          remoteVmServiceUri,
+          disableServiceOriginCheck: true,
+        );
+        client = HttpClient();
+      });
+
+      tearDownAll(() async {
+        await dds.shutdown();
+        client.close();
+      });
+
+      test(
+        'allows bad Host Header (should be ALLOWED -> 404 because DevTools not '
+        'served, but not 403)',
+        () async {
+          final request = await client.getUrl(dds.uri!.resolve('devtools'));
+          request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
+          final response = await request.close();
+          expect(response.statusCode, HttpStatus.notFound);
+          await response.drain();
+        },
       );
-      expect(dds.isRunning, true);
 
-      final client = HttpClient();
-
-      // Bad Host Header (should be ALLOWED -> 404 because DevTools not served, but not 403)
-      {
-        final request = await client.getUrl(dds.uri!.resolve('devtools'));
-        request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
-        final response = await request.close();
-        expect(response.statusCode, HttpStatus.notFound);
-        await response.drain();
-      }
-
-      // Bad Origin Header (should be ALLOWED -> 404)
-      {
+      test('allows bad Origin Header', () async {
         final request = await client.getUrl(dds.uri!.resolve('devtools'));
         request.headers.set('Origin', 'http://evil.example.com');
         final response = await request.close();
         expect(response.statusCode, HttpStatus.notFound);
         await response.drain();
-      }
+      });
     });
   });
 }

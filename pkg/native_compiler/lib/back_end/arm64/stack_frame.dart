@@ -90,8 +90,14 @@ final class Arm64StackFrame extends StackFrame {
         return 4; // Result + 3 arguments for AllocateClosure runtime call.
       case AllocateContext():
         return 2; // Result + 1 argument for AllocateContext runtime call.
-      case AllocateList():
-        return 3; // Result + 2 arguments for AllocateList runtime call.
+      case AllocateArray():
+        switch (instr.kind) {
+          case .oneByteString:
+          case .twoByteString:
+            return 2; // Result + 1 argument for AllocateOneByteString/AllocateTwoByteString runtime call.
+          default:
+            return 3; // Result + 2 arguments for AllocateList/AllocateTypedData runtime call.
+        }
       case AllocateRecord():
         return 2; // Result + 1 argument for AllocateRecord runtime call.
       case TypeLiteral():
@@ -108,6 +114,10 @@ final class Arm64StackFrame extends StackFrame {
         return 4; // Result + 3 argument for ReThrow runtime call.
       case NullCheck():
         return 1; // Result + 0 arguments for NullCastError runtime call.
+      case IndexCheck():
+        return 3; // Result + 2 arguments for RangeError runtime call.
+      case SubtypeCheck():
+        return 6; // Result + 5 arguments for SubtypeCheck call.
       default:
         return 0;
     }

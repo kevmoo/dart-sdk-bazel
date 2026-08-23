@@ -40,6 +40,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -52,6 +55,7 @@ LinterLintCode:
       doesn't have a return type:
 
       ```dart
+      %ignore=strict_top_level_inference
       [!f!]() {}
       ```
 
@@ -273,6 +277,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -303,6 +310,7 @@ LinterLintCode:
       the parameter `p` lacks a type annotation:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f([!p!]) {}
       ```
 
@@ -893,6 +901,8 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, style]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because the only suggested fix inherently violates the lint.
     documentation: |-
       #### Description
 
@@ -914,6 +924,7 @@ LinterLintCode:
       Remove the `dynamic` type annotation:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f(p) {}
       ```
     deprecatedDetails: |-
@@ -1433,6 +1444,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, errorProne]
     hasPublishedDocs: true
+    # In the documentation, the `curly_braces_in_flow_control_structures` and
+    # `empty_statements` diagnostics are being ignored because they can't be
+    # fixed without also fixing the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -1448,6 +1462,7 @@ LinterLintCode:
       following the `else` is an empty statement:
 
       ```dart
+      %ignore=curly_braces_in_flow_control_structures,empty_statements
       void f(int x, int y) {
         if (x > y) {
           print('1');
@@ -3161,6 +3176,9 @@ LinterLintCode:
     correctionMessage: "Try changing the type parameter name to not match an existing type."
     categories: [unintentional]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because the example only works for both fixes if there's no type
+    # name separate from the parameter name.
     documentation: |-
       #### Description
 
@@ -3186,6 +3204,7 @@ LinterLintCode:
       parameter named `int`, which shadows the type `int` from `dart:core`:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f([!int!]) {}
       ```
 
@@ -3201,6 +3220,7 @@ LinterLintCode:
       rename the parameter so that it doesn't shadow the name of any visible type:
 
       ```dart
+      %ignore=strict_top_level_inference
       void f(int_) {}
       ```
     deprecatedDetails: |-
@@ -5535,7 +5555,7 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5766,7 +5786,7 @@ LinterLintCode:
     state:
       stable: "3.14"
     categories: [nonPerformant]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5801,7 +5821,7 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      Future<int> f() => Future.value(1);
+      Future<int> f() => Future.syncValue(1);
       ```
   hashAndEquals:
     type: lint
@@ -7001,6 +7021,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_library_name` diagnostic is ignored
+    # because the diagnostic being documented requires the existance of a
+    # library name.
     documentation: |-
       #### Description
 
@@ -7013,6 +7036,7 @@ LinterLintCode:
       `libraryName` isn't a lower_case_with_underscores identifier:
 
       ```dart
+      %ignore=unnecessary_library_name
       library [!libraryName!];
       ```
 
@@ -7028,6 +7052,7 @@ LinterLintCode:
       lower_case_with_underscores naming convention:
 
       ```dart
+      %ignore=unnecessary_library_name
       library library_name;
       ```
     deprecatedDetails: |-
@@ -7644,6 +7669,10 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_adjacent_string_concatenation`
+    # diagnostic is ignored because even though the use of `+` isn't a
+    # recommended solution, it is a valid way to avoid this lint. We should
+    # consider allowing the use of `+` in list literals.
     documentation: |-
       #### Description
 
@@ -7684,6 +7713,7 @@ LinterLintCode:
       Or use the `+` operator to concatenate the strings:
 
       ```dart
+      %ignore=prefer_adjacent_string_concatenation
       List<String> list = ['a' + 'b', 'c'];
       ```
     deprecatedDetails: |-
@@ -7716,7 +7746,7 @@ LinterLintCode:
     state:
       experimental: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7968,8 +7998,8 @@ LinterLintCode:
   noLeadingUnderscoresForLibraryPrefixes:
     type: lint
     parameters:
-      Object p0: undocumented
-    problemMessage: "The library prefix '#p0' starts with an underscore."
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
     correctionMessage: "Try renaming the prefix to not start with an underscore."
     state:
       stable: "2.16"
@@ -8015,11 +8045,20 @@ LinterLintCode:
       ```dart
       import 'dart:core' as core;
       ```
+  noLeadingUnderscoresForLibraryPrefixesShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLibraryPrefixes
+    parameters:
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
+    correctionMessage: "Try renaming the prefix to not start with an underscore."
+    hasPublishedDocs: true
   noLeadingUnderscoresForLocalIdentifiers:
     type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
     parameters:
-      Object p0: undocumented
-    problemMessage: "The local variable '#p0' starts with an underscore."
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
     correctionMessage: "Try renaming the variable to not start with an underscore."
     state:
       stable: "2.16"
@@ -8085,6 +8124,14 @@ LinterLintCode:
       ```dart
       [1,2,3].map((_) => print('Hello'));
       ```
+  noLeadingUnderscoresForLocalIdentifiersShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
+    parameters:
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
+    correctionMessage: "Try renaming the variable to not start with an underscore."
+    hasPublishedDocs: true
   noLiteralBoolComparisons:
     type: lint
     parameters: none
@@ -11088,7 +11135,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11941,7 +11988,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -13540,6 +13587,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [errorProne]
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -13552,6 +13602,7 @@ LinterLintCode:
       tested:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int f;
 
@@ -13569,6 +13620,7 @@ LinterLintCode:
       Perform an `is` test as part of computing the return value:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int f;
 
@@ -13799,6 +13851,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [effectiveDart, publicInterface]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       #### Description
 
@@ -13812,6 +13867,7 @@ LinterLintCode:
       have explicit types:
 
       ```dart
+      %ignore=strict_top_level_inference
       [!f!](x, y) => '';
       ```
 
@@ -14641,7 +14697,7 @@ LinterLintCode:
       ```dart
       enum [!const!] E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
@@ -14666,7 +14722,7 @@ LinterLintCode:
       ```dart
       enum E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
@@ -15002,6 +15058,11 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `avoid_function_literals_in_foreach_calls`
+    # diagnostic is ignored because it's a bi-product of the choice of example.
+    # The documentation is more clear if we use a familiar method that taked a
+    # function as a parameter, and `forEach` is a reasonable choice. We could
+    # remove the ignore by choosing a different method.
     documentation: |-
       #### Description
 
@@ -15015,6 +15076,7 @@ LinterLintCode:
       parameter of the closure:
 
       ```dart
+      %ignore=avoid_function_literals_in_foreach_calls
       void f(List<String> strings) {
         strings.forEach([!(string) {
           print(string);
@@ -16309,7 +16371,7 @@ LinterLintCode:
       **GOOD:**
       ```dart
       class C {
-        new ();
+        new();
         new name();
       }
       ```
@@ -16439,7 +16501,7 @@ LinterLintCode:
     state:
       stable: "2.19"
     categories: [unusedCode]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17151,6 +17213,9 @@ LinterLintCode:
       stable: "3.13"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_initializing_formals` diagnostic is
+    # ignored because not using an initializing formal shows a more dramatic
+    # improvement in the code.
     documentation: |-
       #### Description
 
@@ -17164,6 +17229,7 @@ LinterLintCode:
       assigns the parameter `i` to the field `i`:
 
       ```dart
+      %ignore=prefer_initializing_formals
       class C(int [!i!]) {
         final int i;
 
@@ -17484,7 +17550,7 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18362,6 +18428,9 @@ LinterLintCode:
       experimental: "3.12"
     categories: [languageFeatureUsage]
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because it flags a superset of the cases that this diagnostic
+    # handles.
     documentation: |-
       NOTE: This rule is removed in Dart 3.13.0; it is no longer functional.
 
@@ -18382,6 +18451,7 @@ LinterLintCode:
       parameter `x` is declared with `var`:
 
       ```dart
+      %ignore=strict_top_level_inference
       // @dart=3.12
       void f([!var!] x) {
         print(x);

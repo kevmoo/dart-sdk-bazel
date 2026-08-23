@@ -97,6 +97,7 @@ linter:
   /// Verify that plugins are correctly started up and can produce diagnostics
   /// when `workspaceAnalysisComplete()` is called after the normal
   /// `initialize()` delay.
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugins() async {
     failTestOnErrorDiagnostic = false;
 
@@ -114,6 +115,7 @@ linter:
 
   /// Verify that plugins are correctly started up and can produce diagnostics
   /// when `workspaceAnalysisComplete()` is called with no delay.
+  @TestTimeout(Timeout.factor(5)) // Plugins can be slow on bots.
   Future<void> test_plugins2() async {
     failTestOnErrorDiagnostic = false;
 

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -128,20 +127,41 @@ class _Collector {
       return collect(node.fieldExpression2);
     }
 
-    if (node is BinaryExpression) {
-      collect(node.leftOperand2);
-      collect(node.rightOperand2);
+    if (node is BinaryOperatorInvocation) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
       return;
     }
 
-    if (node is PrefixExpression) {
-      var operator = node.operator.type;
-      if (operator == TokenType.BANG ||
-          operator == TokenType.MINUS ||
-          operator == TokenType.TILDE) {
-        collect(node.operand2);
-        return;
-      }
+    if (node is IfNull) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
+      return;
+    }
+
+    if (node is LogicalAnd) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
+      return;
+    }
+
+    if (node is LogicalNot) {
+      collect(node.operand);
+      return;
+    }
+
+    if (node is LogicalOr) {
+      collect(node.leftOperand);
+      collect(node.rightOperand);
+      return;
+    }
+
+    if (node is UnaryOperatorInvocation) {
+      collect(node.operand as Expression);
+      return;
+    }
+
+    if (node is IncrementOrDecrementExpression) {
       nodes.add(node);
       return;
     }
@@ -155,6 +175,10 @@ class _Collector {
 
     if (node is PropertyAccess) {
       return _propertyAccess(node);
+    }
+
+    if (node is ReceiverPropertyExtraction) {
+      return _receiverPropertyExtraction(node);
     }
 
     if (node is AsExpression) {
@@ -342,6 +366,15 @@ class _Collector {
         }
         return;
       }
+    }
+
+    nodes.add(node);
+  }
+
+  void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (node.propertyName.lexeme == 'length') {
+      collect(node.receiver);
+      return;
     }
 
     nodes.add(node);

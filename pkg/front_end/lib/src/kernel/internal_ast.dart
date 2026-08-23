@@ -34,6 +34,7 @@ import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../source/source_library_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/element_inference.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
@@ -1246,7 +1247,7 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
   LocalFunctionVariable get astVariable => _astVariable;
 
   @override
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.name;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1491,7 +1492,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
         fileOffset: fileOffset,
       );
       PositionalParameter setterParameter = extern.createPositionalParameter(
-        cosmeticName: "${name}#param",
+        parameterName: "${name}#param",
         type: type,
         isSynthesized: false,
         fileOffset: fileOffset,
@@ -1652,7 +1653,7 @@ sealed class InternalFunctionParameter extends InternalVariable
   bool get isStaticLate => false;
 
   @override
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.parameterName;
 
   @override
   @Deprecated('Use InternalFunctionParameter.hasDeclaredDefaultValue instead.')
@@ -1965,6 +1966,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
        )..fileOffset = fileOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isStaticLate => false;
 
   @override
@@ -1974,6 +1976,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   String? get cosmeticName => _astVariable.cosmeticName;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
 
   @override
@@ -1983,9 +1986,11 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isConst => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isFinal => _astVariable.isFinal;
 
   @override
@@ -2003,6 +2008,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable {
     if (isFinal) return false;
     return true;
@@ -7236,9 +7242,33 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
   @override
   final List<Label>? labels;
 
-  final List<InternalDeclaredVariable> jointVariables;
+  final List<JointVariable> jointVariables;
 
   final List<int>? jointVariableFirstUseOffsets;
+
+  /// Scope information for the body of the pattern switch case.
+  ///
+  /// See the documentation for [switchCaseScopeProviderInfo].
+  ScopeProviderInfo? switchCaseBodyScopeProviderInfo;
+
+  /// Scope information for the overall pattern switch case.
+  ///
+  /// Consider the following example:
+  ///
+  ///   switch (x) {
+  ///     case int y:
+  ///     case String(length: int y):
+  ///       return () => y;
+  ///     default:
+  ///       return () => 0;
+  ///   }
+  ///
+  /// The first switch case has two heads, both of which declare the joint
+  /// variable 'y'. The joint variable 'y' is assigned the value of one of the
+  /// temporary variables 'y' from either of the two case heads. The temporary
+  /// variables are declared in the scope of [switchCaseScopeProviderInfo], and
+  /// the joint variable 'y' is declared in [switchCaseBodyScopeProviderInfo].
+  ScopeProviderInfo? switchCaseScopeProviderInfo;
 
   new({
     required this.caseOffsets,
@@ -7677,6 +7707,42 @@ class InternalForStatement extends InternalLoopStatement {
         initializer: variables[index].initializer,
       );
     }
+    printer.write('; ');
+    if (condition != null) {
+      condition!.toTextInternal(printer);
+    }
+    printer.write('; ');
+    updates.toTextInternal(printer);
+    printer.write(') ');
+    body.toTextInternal(printer);
+  }
+}
+
+class InternalPatternForStatement extends InternalLoopStatement {
+  final InternalPatternVariableDeclaration patternVariableDeclaration;
+  final InternalExpression? condition; // May be null.
+  final List<InternalExpression> updates; // May be empty, but not null.
+
+  final InternalStatement body;
+
+  new(
+    this.patternVariableDeclaration,
+    this.condition,
+    this.updates,
+    this.body, {
+    required super.fileOffset,
+  });
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalPatternForStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('; ');
     if (condition != null) {
       condition!.toTextInternal(printer);
@@ -9017,3 +9083,70 @@ class DelegatingAnnotatable(final Annotatable annotatable)
     }
   }
 }
+
+class JointVariable extends InternalDeclaredVariable {
+  final SyntheticVariable _astVariable;
+
+  final String name;
+
+  new({required this.name, required bool isFinal, required super.fileOffset})
+    : _astVariable = new SyntheticVariable(
+        cosmeticName: name,
+        isFinal: isFinal,
+        isLowered: false,
+        isSynthesized: false,
+      )..fileOffset = fileOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isImplicitlyTyped => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isStaticLate => false;
+
+  @override
+  SyntheticVariable get astVariable => _astVariable;
+
+  @override
+  @Deprecated('Use JointVariable.name instead.')
+  String? get cosmeticName => _astVariable.cosmeticName;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    _astVariable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isFinal => _astVariable.isFinal;
+
+  @override
+  bool get isLate => false;
+
+  @override
+  bool get isWildcard => _astVariable.isWildcard;
+
+  @override
+  DartType get type => _astVariable.type;
+
+  @override
+  void set type(DartType value) {
+    _astVariable.type = value;
+  }
+
+  @override
+  bool get isAssignable {
+    if (isFinal) return false;
+    return true;
+  }
+}
+
+class PatternForLoopVariable {}

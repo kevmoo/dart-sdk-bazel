@@ -27,7 +27,7 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   return ExpressionStatementImpl(
     expression2: CascadeExpressionImpl(
       target2: newTarget,
-      cascadeSections2: cascadeExpression.cascadeSections2,
+      sections: cascadeExpression.sections,
     ),
     semicolon: expressionStatement.semicolon,
   );
@@ -38,9 +38,11 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
 ExpressionImpl insertCascadeTargetIntoExpression({
   required Expression expression,
   required Expression cascadeTarget,
+  Token? cascadeOperator,
 }) {
   expression as ExpressionImpl;
   cascadeTarget as ExpressionImpl;
+  cascadeOperator ??= _cascadeOperator(expression);
 
   // Base case: We've recursed as deep as possible.
   if (expression == cascadeTarget) return cascadeTarget;
@@ -51,9 +53,51 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       leftHandSide2: insertCascadeTargetIntoExpression(
         expression: expression.leftHandSide2,
         cascadeTarget: cascadeTarget,
+        cascadeOperator: cascadeOperator,
       ),
       operator: expression.operator,
       rightHandSide2: expression.rightHandSide2,
+    );
+  } else if (expression is CascadeIndexExpressionImpl) {
+    return IndexExpression2Impl(
+      receiver: cascadeTarget,
+      question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+          ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
+          : null,
+      leftBracket: expression.leftBracket,
+      index: expression.index,
+      rightBracket: expression.rightBracket,
+    );
+  } else if (expression is CascadePropertyExtractionImpl) {
+    return ReceiverPropertyExtractionImpl(
+      receiver: cascadeTarget,
+      operator: _synthesizeToken(
+        cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+            ? TokenType.QUESTION_PERIOD
+            : TokenType.PERIOD,
+        cascadeOperator!,
+      ),
+      propertyName: expression.propertyName,
+    );
+  } else if (expression is ReceiverPropertyExtractionImpl) {
+    return ReceiverPropertyExtractionImpl(
+      receiver: insertCascadeTargetIntoExpression(
+        expression: expression.receiver,
+        cascadeTarget: cascadeTarget,
+      ),
+      operator: expression.operator,
+      propertyName: expression.propertyName,
+    );
+  } else if (expression is IndexExpression2Impl) {
+    return IndexExpression2Impl(
+      receiver: insertCascadeTargetIntoExpression(
+        expression: expression.receiver,
+        cascadeTarget: cascadeTarget,
+      ),
+      question: expression.question,
+      leftBracket: expression.leftBracket,
+      index: expression.index,
+      rightBracket: expression.rightBracket,
     );
   } else if (expression is IndexExpressionImpl) {
     var expressionTarget = expression.realTarget;
@@ -77,7 +121,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       rightBracket: expression.rightBracket,
     );
   } else if (expression is MethodInvocationImpl) {
-    var expressionTarget = expression.realTarget!;
+    var expressionTarget = expression.realTarget2!;
     return MethodInvocationImpl(
       target2: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
@@ -90,6 +134,72 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       methodName: expression.methodName,
       typeArguments: expression.typeArguments,
       argumentList: expression.argumentList,
+    );
+  } else if (expression is DirectAssignmentImpl) {
+    var target = expression.target;
+    if (target is CascadeIndexAssignmentTargetImpl) {
+      return DirectAssignmentImpl(
+        target: IndexAssignmentTargetImpl(
+          receiver: cascadeTarget,
+          question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+              ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
+              : null,
+          leftBracket: target.leftBracket,
+          index: target.index,
+          rightBracket: target.rightBracket,
+        ),
+        operator: expression.operator,
+        value: expression.value,
+      );
+    }
+    if (target is CascadePropertyAssignmentTargetImpl) {
+      return DirectAssignmentImpl(
+        target: ReceiverPropertyAssignmentTargetImpl(
+          receiver: cascadeTarget,
+          operator: _synthesizeToken(
+            cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+                ? TokenType.QUESTION_PERIOD
+                : TokenType.PERIOD,
+            cascadeOperator!,
+          ),
+          propertyName: target.propertyName,
+        ),
+        operator: expression.operator,
+        value: expression.value,
+      );
+    }
+    if (target is IndexAssignmentTargetImpl) {
+      return DirectAssignmentImpl(
+        target: IndexAssignmentTargetImpl(
+          receiver: insertCascadeTargetIntoExpression(
+            expression: target.receiver,
+            cascadeTarget: cascadeTarget,
+          ),
+          question: target.question,
+          leftBracket: target.leftBracket,
+          index: target.index,
+          rightBracket: target.rightBracket,
+        ),
+        operator: expression.operator,
+        value: expression.value,
+      );
+    }
+    if (target is! ReceiverPropertyAssignmentTargetImpl) {
+      throw UnimplementedError(
+        'Unhandled ${target.runtimeType} in $expression',
+      );
+    }
+    return DirectAssignmentImpl(
+      target: ReceiverPropertyAssignmentTargetImpl(
+        receiver: insertCascadeTargetIntoExpression(
+          expression: target.receiver,
+          cascadeTarget: cascadeTarget,
+        ),
+        operator: target.operator,
+        propertyName: target.propertyName,
+      ),
+      operator: expression.operator,
+      value: expression.value,
     );
   } else if (expression is PropertyAccessImpl) {
     var expressionTarget = expression.realTarget;
@@ -109,6 +219,27 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     'Unhandled ${expression.runtimeType}'
     '($expression)',
   );
+}
+
+Token? _cascadeOperator(AstNodeImpl node) {
+  for (
+    AstNodeImpl? ancestor = node;
+    ancestor != null;
+    ancestor = ancestor.parentInPrimaryView
+  ) {
+    if (ancestor is CascadeSectionImpl) return ancestor.operator;
+    var operator = switch (ancestor) {
+      IndexExpression(:var period) => period,
+      MethodInvocation(:var operator) => operator,
+      PropertyAccess(:var operator) => operator,
+      _ => null,
+    };
+    if (operator?.type
+        case TokenType.PERIOD_PERIOD || TokenType.QUESTION_PERIOD_PERIOD) {
+      return operator;
+    }
+  }
+  return null;
 }
 
 /// Synthesize a token with [type] to replace the given [operator].

@@ -35,7 +35,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     types?.forEach(addSubtypedName);
   }
 
-  for (CompilationUnitMember declaration in unit.declarations) {
+  for (var declaration in unit.declarations2) {
     if (declaration is ClassDeclaration) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
@@ -156,25 +156,27 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forUnit(CompilationUnit node) {
+  factory _LocalNameScope.forUnit(CompilationUnitImpl node) {
     _LocalNameScope scope = _LocalNameScope(null);
-    for (CompilationUnitMember declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclaration():
+        case ClassDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclaration():
+        case EnumDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclaration():
+        case ExtensionDeclarationImpl():
           scope.add(declaration.name);
-        case ExtensionTypeDeclaration():
+        case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case FunctionDeclaration():
+        case FunctionDeclarationImpl():
           scope.add(declaration.name);
-        case MixinDeclaration():
+        case MixinDeclarationImpl():
           scope.add(declaration.name);
-        case TopLevelVariableDeclaration():
+        case TopLevelVariableDeclarationImpl():
           scope.addVariableNames(declaration.variables);
-        case TypeAlias():
+        case TopLevelGetterDeclarationImpl():
+          scope.add(declaration.name);
+        case TypeAliasImpl():
           scope.add(declaration.name);
       }
     }
@@ -218,7 +220,7 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
+class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
@@ -230,6 +232,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   });
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addCompoundAssignmentOperator(node.operator);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -238,6 +246,11 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    names.add(node.propertyName.lexeme);
   }
 
   @override
@@ -263,9 +276,15 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
     localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _addCompoundAssignmentOperator(node.operator);
+    super.visitCompoundAssignment(node);
   }
 
   @override
@@ -330,9 +349,9 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var prefix = node.prefix;
-    if (prefix != null) {
-      importPrefixNames.add(prefix.name);
+    var prefixName = node.prefixName;
+    if (prefixName != null) {
+      importPrefixNames.add(prefixName.lexeme);
     }
     super.visitImportDirective(node);
   }
@@ -376,14 +395,47 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitPostfixDecrement(PostfixDecrement node) {
+    names.add('-');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    names.add('+');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    names.add('-');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    names.add('+');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    names.add(node.propertyName.lexeme);
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    names.add(node.propertyName.lexeme);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
-      return;
-    }
-    // Ignore class names references from constructors.
-    var parent = node.parent2!;
-    if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }
     // Prepare name.
@@ -418,6 +470,20 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   void visitSuperFormalParameter(SuperFormalParameter node) {
     names.add(node.name.lexeme);
     super.visitSuperFormalParameter(node);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  void _addCompoundAssignmentOperator(Token operator) {
+    var lexeme = operator.lexeme;
+    if (lexeme != '=' && lexeme != '??=') {
+      names.add(lexeme.substring(0, lexeme.length - 1));
+    }
   }
 
   /// Adds [token] if it is not shadowed by a local element.

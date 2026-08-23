@@ -2502,7 +2502,6 @@
     "lib/src/common/elements.dart",
     "lib/src/constants/values.dart",
     "lib/src/elements/entities.dart",
-    "lib/src/io/source_information.dart",
     "lib/src/js_backend/annotations.dart",
     "lib/src/js_model/element_map.dart",
     "lib/src/serialization/serialization.dart"
@@ -4942,6 +4941,9 @@
   "test/serialization/data/deferred.dart": [
     "test/serialization/libs/deferred_lib1.dart",
     "test/serialization/libs/deferred_lib2.dart"
+  ],
+  "test/serialization/data/strings.dart": [
+    "test/serialization/libs/strings_deferred.dart"
   ],
   "test/serialization/in_memory_split_test.dart": [
     "lib/src/serialization/strategies.dart",

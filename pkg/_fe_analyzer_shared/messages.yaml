@@ -1542,7 +1542,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([[!this!].x = 0]) {}
+      void m([[!this!].x = 0]) {}
     }
     ```
 
@@ -1555,7 +1555,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([int x = 0]) {
+      void m([int x = 0]) {
         this.x = x;
       }
     }
@@ -1722,6 +1722,18 @@ extensionAugmentationHasOnClause:
   hasPublishedDocs: false
   script: |
     augment extension E on int {}
+  comment: No parameters.
+
+extensionAugmentationWithoutName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension augmentation must have a name."
+  correctionMessage: "Try adding the name of the extension to augment."
+  analyzerCode: extensionAugmentationWithoutName
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension {}
   comment: No parameters.
 
 extensionTypeAugmentationSpecifiesRepresentationField:

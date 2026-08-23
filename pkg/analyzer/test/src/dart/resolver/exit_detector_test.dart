@@ -15,7 +15,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
-    defineReflectiveTests(ExitDetectorResolvedStatementTest_Language219);
+    defineReflectiveTests(ExitDetectorResolvedStatementTest_BeforePatterns);
     defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -128,10 +128,7 @@ void f() { // ref
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
-    var expression = statement.expression2;
-
-    var actual = ExitDetector.exits2(expression);
-    expect(actual, expected);
+    expect(ExitDetector.exits(statement.expression), expected);
   }
 
   void _assertTrue(String expressionCode) {
@@ -655,6 +652,21 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertTrue("(throw 42).b(c);");
   }
 
+  test_nullAssertion_v1() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f(Object? x) { // ref
+  x!;
+}
+''');
+    var block = parseResult.findNode.block('{ // ref');
+    var statement = block.statements.single as ExpressionStatement;
+
+    var expression = statement.expression;
+
+    expect(expression, isA<PostfixExpression>());
+    expect(ExitDetector.exits(expression), isFalse);
+  }
+
   test_parenthesizedExpression() async {
     _assertFalse('(a);');
   }
@@ -930,8 +942,7 @@ void f() { // ref
     var block = findNode.block('{ // ref');
     var statement = block.statements.single;
 
-    var actual = ExitDetector.exits2(statement);
-    expect(actual, expected);
+    expect(ExitDetector.exits(statement), expected);
   }
 
   void _assertTrue(String code) {
@@ -944,9 +955,9 @@ class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
     with ExitDetectorResolvedStatementTestCases {}
 
 @reflectiveTest
-class ExitDetectorResolvedStatementTest_Language219
+class ExitDetectorResolvedStatementTest_BeforePatterns
     extends PubPackageResolutionTest
-    with WithLanguage219Mixin, ExitDetectorResolvedStatementTestCases {}
+    with BeforePatternsMixin, ExitDetectorResolvedStatementTestCases {}
 
 /// Tests for the [ExitDetector] that require that the AST be resolved.
 ///
@@ -1222,7 +1233,7 @@ void f() sync* {
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
-    expect(ExitDetector.exits2(statement), expected);
+    expect(ExitDetector.exits(statement), expected);
   }
 
   /// Assert that the [n]th statement in the last function declaration of

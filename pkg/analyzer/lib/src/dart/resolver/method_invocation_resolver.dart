@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -91,7 +92,7 @@ class MethodInvocationResolver with ScopeHelpers {
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
 
-    var receiver = node.realTarget;
+    var receiver = node.realTarget2;
 
     if (receiver == null) {
       return _resolveReceiverNull(
@@ -286,15 +287,20 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
       );
     }
-
-    _resolver.diagnosticReporter.report(
-      diag.dotShorthandUndefinedInvocation
-          .withArguments(
-            name: node.memberName.name,
-            contextType: contextType.getDisplayString(),
-          )
-          .at(node.memberName),
-    );
+    if (dotShorthandContextType is UnknownInferredType) {
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandMissingContext.at(node),
+      );
+    } else {
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandUndefinedInvocation
+            .withArguments(
+              name: node.memberName.name,
+              contextType: contextType.getDisplayString(),
+            )
+            .at(node.memberName),
+      );
+    }
     _setInvalidTypeResolutionForDotShorthand(
       node,
       setNameTypeToDynamic: false,
@@ -509,36 +515,40 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var getter = extension.getGetter(name);
-    if (getter != null) {
-      nameNode.element = getter;
-      _reportStaticAccessToInstanceMember(getter, nameNode);
-      _rewriteAsFunctionExpressionInvocation(
-        node,
-        node.target2,
-        node.operator,
-        node.methodName,
-        node.typeArguments,
-        node.argumentList,
-        getter.returnType,
-        isCascaded: node.isCascaded,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    var method = extension.getMethod(name);
-    if (method != null) {
-      nameNode.element = method;
-      _reportStaticAccessToInstanceMember(method, nameNode);
-      _setResolution(
-        node,
-        method.type,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        target: InvocationTargetExecutableElement(method),
-      );
+    InternalExecutableElement? element = extension.getGetter(name);
+    element ??= extension.getMethod(name);
+    if (element != null) {
+      nameNode.element = element;
+      if (!element.isStatic) {
+        _reportStaticAccessToInstanceMember(element, nameNode);
+        _setInvalidTypeResolutionForInstanceMember(
+          node,
+          element,
+          whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      } else if (element is InternalPropertyAccessorElement) {
+        _rewriteAsFunctionExpressionInvocation(
+          node,
+          node.target2,
+          node.operator,
+          node.methodName,
+          node.typeArguments,
+          node.argumentList,
+          element.returnType,
+          isCascaded: node.isCascaded,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      } else {
+        _setResolution(
+          node,
+          element.type,
+          whyNotPromotedArguments,
+          contextType: contextType,
+          target: InvocationTargetExecutableElement(element),
+        );
+      }
       return;
     }
 
@@ -1225,7 +1235,14 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element != null) {
       if (element is InternalExecutableElement) {
         nameNode.element = element;
-        if (element is InternalPropertyAccessorElement) {
+        if (!element.isStatic) {
+          _setInvalidTypeResolutionForInstanceMember(
+            node,
+            element,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+        } else if (element is InternalPropertyAccessorElement) {
           _rewriteAsFunctionExpressionInvocation(
             node,
             node.target2,
@@ -1238,15 +1255,15 @@ class MethodInvocationResolver with ScopeHelpers {
             whyNotPromotedArguments: whyNotPromotedArguments,
             contextType: contextType,
           );
-          return;
+        } else {
+          _setResolution(
+            node,
+            element.type,
+            whyNotPromotedArguments,
+            contextType: contextType,
+            target: InvocationTargetExecutableElement(element),
+          );
         }
-        _setResolution(
-          node,
-          element.type,
-          whyNotPromotedArguments,
-          contextType: contextType,
-          target: InvocationTargetExecutableElement(element),
-        );
       } else {
         _setInvalidTypeResolution(
           node,
@@ -1437,6 +1454,9 @@ class MethodInvocationResolver with ScopeHelpers {
     }
     inferenceLogWriter?.enterFunctionExpressionInvocationTarget(methodName);
     methodName.recordStaticType(targetType, resolver: _resolver);
+    if (targetType.isBottom) {
+      _resolver.flowAnalysis.flow?.handleExit();
+    }
     inferenceLogWriter?.exitExpression(methodName);
 
     if (functionExpression != methodName) {
@@ -1547,6 +1567,30 @@ class MethodInvocationResolver with ScopeHelpers {
       whyNotPromotedArguments,
       contextType: contextType,
     );
+    node.staticInvokeType = InvalidTypeImpl.instance;
+    node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+  }
+
+  void _setInvalidTypeResolutionForInstanceMember(
+    MethodInvocationImpl node,
+    InternalExecutableElement element,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
+    // Resolve the arguments against the recovered member so that independent
+    // argument diagnostics are preserved. Do not expose the member's type: it
+    // can contain enclosing type parameters that are invalid at this access.
+    var recoveryType = element is InternalPropertyAccessorElement
+        ? element.returnType
+        : element.type;
+    _setResolution(
+      node,
+      recoveryType,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      target: InvocationTargetExecutableElement(element),
+    );
+    node.methodName.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
     node.staticInvokeType = InvalidTypeImpl.instance;
     node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
   }

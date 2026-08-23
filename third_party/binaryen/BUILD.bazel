@@ -9,17 +9,72 @@ package(default_visibility = ["//visibility:public"])
 # Export the generator script so it can be used by the external @binaryen repository
 exports_files(["generate_needed_files.py"])
 
-alias(name = "binaryen_sources", actual = "@binaryen//:binaryen_sources")
-alias(name = "binaryen_tools", actual = "@binaryen//:binaryen_tools")
-alias(name = "generate_needed_files", actual = "@binaryen//:generate_needed_files")
-alias(name = "wasm_intrinsics_lib", actual = "@binaryen//:wasm_intrinsics_lib")
-alias(name = "wasm-as", actual = "@binaryen//:wasm-as")
-alias(name = "wasm-ctor-eval", actual = "@binaryen//:wasm-ctor-eval")
-alias(name = "wasm-dis", actual = "@binaryen//:wasm-dis")
-alias(name = "wasm-emscripten-finalize", actual = "@binaryen//:wasm-emscripten-finalize")
-alias(name = "wasm-fuzz-types", actual = "@binaryen//:wasm-fuzz-types")
-alias(name = "wasm-metadce", actual = "@binaryen//:wasm-metadce")
-alias(name = "wasm-opt", actual = "@binaryen//:wasm-opt")
-alias(name = "wasm-reduce", actual = "@binaryen//:wasm-reduce")
-alias(name = "wasm-shell", actual = "@binaryen//:wasm-shell")
-alias(name = "wasm2js", actual = "@binaryen//:wasm2js")
+alias(
+    name = "binaryen_sources",
+    actual = "@binaryen//:binaryen_sources",
+)
+
+alias(
+    name = "binaryen_tools",
+    actual = "@binaryen//:binaryen_tools",
+)
+
+alias(
+    name = "generate_needed_files",
+    actual = "@binaryen//:generate_needed_files",
+)
+
+alias(
+    name = "wasm_intrinsics_lib",
+    actual = "@binaryen//:wasm_intrinsics_lib",
+)
+
+alias(
+    name = "wasm-as",
+    actual = "@binaryen//:wasm-as",
+)
+
+alias(
+    name = "wasm-ctor-eval",
+    actual = "@binaryen//:wasm-ctor-eval",
+)
+
+alias(
+    name = "wasm-dis",
+    actual = "@binaryen//:wasm-dis",
+)
+
+alias(
+    name = "wasm-emscripten-finalize",
+    actual = "@binaryen//:wasm-emscripten-finalize",
+)
+
+alias(
+    name = "wasm-fuzz-types",
+    actual = "@binaryen//:wasm-fuzz-types",
+)
+
+alias(
+    name = "wasm-metadce",
+    actual = "@binaryen//:wasm-metadce",
+)
+
+alias(
+    name = "wasm-opt",
+    actual = "@binaryen//:wasm-opt",
+)
+
+alias(
+    name = "wasm-reduce",
+    actual = "@binaryen//:wasm-reduce",
+)
+
+alias(
+    name = "wasm-shell",
+    actual = "@binaryen//:wasm-shell",
+)
+
+alias(
+    name = "wasm2js",
+    actual = "@binaryen//:wasm2js",
+)

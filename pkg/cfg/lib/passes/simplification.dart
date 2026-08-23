@@ -139,6 +139,14 @@ final class Simplification extends Pass
         default:
       }
     }
+    // Simplify identical to equal/intEqual.
+    if (instr.op == .identical || instr.op == .notIdentical) {
+      if (!left.type.canBeNum || !right.type.canBeNum) {
+        instr.op = instr.op == .identical ? .equal : .notEqual;
+      } else if (left.type is IntType && right.type is IntType) {
+        instr.op = instr.op == .identical ? .intEqual : .intNotEqual;
+      }
+    }
     return instr;
   }
 
@@ -175,6 +183,9 @@ final class Simplification extends Pass
   Instruction visitDynamicCall(DynamicCall instr) => instr;
 
   @override
+  Instruction visitExternalCall(ExternalCall instr) => instr;
+
+  @override
   Instruction visitParameter(Parameter instr) => instr;
 
   @override
@@ -196,6 +207,19 @@ final class Simplification extends Pass
   Instruction visitStoreStaticField(StoreStaticField instr) => instr;
 
   @override
+  Instruction visitLoadExternalField(LoadExternalField instr) => instr;
+
+  @override
+  Instruction visitLoadArrayElement(LoadArrayElement instr) => instr;
+
+  @override
+  Instruction visitStoreArrayElement(StoreArrayElement instr) => instr;
+
+  @override
+  Instruction visitLoadExternalArrayElement(LoadExternalArrayElement instr) =>
+      instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override
@@ -206,6 +230,23 @@ final class Simplification extends Pass
     }
     return instr;
   }
+
+  @override
+  Instruction visitIndexCheck(IndexCheck instr) {
+    final index = instr.index;
+    final length = instr.length;
+    if (index is Constant && length is Constant) {
+      final indexValue = index.value.intValue;
+      final lengthValue = length.value.intValue;
+      if (0 <= indexValue && indexValue < lengthValue) {
+        return index;
+      }
+    }
+    return instr;
+  }
+
+  @override
+  Instruction visitSubtypeCheck(SubtypeCheck instr) => instr;
 
   @override
   Instruction visitTypeParameters(TypeParameters instr) => instr;
@@ -297,10 +338,7 @@ final class Simplification extends Pass
   Instruction visitSuspend(Suspend instr) => instr;
 
   @override
-  Instruction visitAllocateList(AllocateList instr) => instr;
-
-  @override
-  Instruction visitSetListElement(SetListElement instr) => instr;
+  Instruction visitAllocateArray(AllocateArray instr) => instr;
 
   @override
   Instruction visitAllocateRecord(AllocateRecord instr) => instr;

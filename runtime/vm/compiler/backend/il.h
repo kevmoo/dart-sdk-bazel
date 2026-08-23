@@ -479,6 +479,7 @@ struct InstrAttrs {
   M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
+  M(UnaryInt32Op, kNoGC)                                                       \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
   M(SmiToDouble, kNoGC)                                                        \
@@ -7452,17 +7453,10 @@ class AllocationInstr : public Definition {
   // or if the input is not stored in the object.
   virtual const Slot* SlotForInput(intptr_t pos) { return nullptr; }
 
-  // Returns the input index that has a corresponding slot which is identical to
-  // the given slot. Returns a negative index if no such input found.
-  intptr_t InputForSlot(const Slot& slot) {
-    for (intptr_t i = 0; i < InputCount(); i++) {
-      auto* const input_slot = SlotForInput(i);
-      if (input_slot != nullptr && input_slot->IsIdentical(slot)) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  // Returns a definition carrying the initial value of the field
+  // corresponding to the given slot in the allocated object and
+  // nullptr if such definition can't be computed.
+  virtual Definition* InitialValueForSlot(FlowGraph* graph, const Slot& slot);
 
   // Returns whether the allocated object has initialized fields and/or payload
   // elements. Override for any subclass that returns an uninitialized object.
@@ -7661,6 +7655,8 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         return TemplateAllocation::SlotForInput(pos);
     }
   }
+
+  virtual Definition* InitialValueForSlot(FlowGraph* graph, const Slot& slot);
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -9297,6 +9293,34 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
+};
+
+class UnaryInt32OpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryInt32OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(IsSupported(op_kind));
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedInt32;
+  }
+
+  static bool IsSupported(Token::Kind op_kind) {
+    return op_kind == Token::kBIT_NOT;
+  }
+
+  DECLARE_INSTRUCTION(UnaryInt32Op)
+
+  DECLARE_EMPTY_SERIALIZATION(UnaryInt32OpInstr, UnaryIntegerOpInstr)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnaryInt32OpInstr);
 };
 
 class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
@@ -11224,6 +11248,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float64x2Negate, (Float64x2), Float64x2)                             \
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
+  M(1, _, Int32x4Not, (Int32x4), Int32x4)                                      \
   M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
   M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \

@@ -31,7 +31,7 @@ class C<@Foo.bar(const [], const [1], const {"": r""}, 0xFF + 2, .3, 4.5) T> {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -75,11 +75,46 @@ CompilationUnit
                               literal: r""
                         rightBracket: }
                         isMap: false
-                      BinaryExpression
-                        leftOperand2: IntegerLiteral
+                      BinaryOperatorInvocation
+                        leftOperand: IntegerLiteral
                           literal: 0xFF
                         operator: +
-                        rightOperand2: IntegerLiteral
+                        rightOperand: IntegerLiteral
+                          literal: 2
+                        binaryOperator: add
+                      DoubleLiteral
+                        literal: .3
+                      DoubleLiteral
+                        literal: 4.5
+                    arguments(v1)
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        rightBracket: ]
+                      ListLiteral
+                        constKeyword: const
+                        leftBracket: [
+                        elements
+                          IntegerLiteral
+                            literal: 1
+                        rightBracket: ]
+                      SetOrMapLiteral
+                        constKeyword: const
+                        leftBracket: {
+                        elements
+                          MapLiteralEntry
+                            key: SimpleStringLiteral
+                              literal: ""
+                            separator: :
+                            value: SimpleStringLiteral
+                              literal: r""
+                        rightBracket: }
+                        isMap: false
+                      BinaryExpression
+                        leftOperand: IntegerLiteral
+                          literal: 0xFF
+                        operator: +
+                        rightOperand: IntegerLiteral
                           literal: 2
                       DoubleLiteral
                         literal: .3
@@ -108,7 +143,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -117,7 +152,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -152,7 +188,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -161,7 +197,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -169,11 +206,17 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: <empty> <synthetic>
+                fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PropertyAccess
-                  target2: ThisExpression
+                expression2: ReceiverPropertyExtraction
+                  receiver: ThisExpression
+                    thisKeyword: this
+                  operator: .
+                  propertyName: <empty> <synthetic>
+                expression(v1): PropertyAccess
+                  target: ThisExpression
                     thisKeyword: this
                   operator: .
                   propertyName: SimpleIdentifier
@@ -204,7 +247,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -547,14 +590,15 @@ var v = m(a < b, p.q.c > (d));
 ArgumentList
   leftParenthesis: (
   arguments2
-    BinaryExpression
-      leftOperand2: SimpleIdentifier
+    BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: a
       operator: <
-      rightOperand2: SimpleIdentifier
+      rightOperand: SimpleIdentifier
         token: b
-    BinaryExpression
-      leftOperand2: PropertyAccess
+      binaryOperator: lessThan
+    BinaryOperatorInvocation
+      leftOperand: PropertyAccess
         target2: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: p
@@ -565,9 +609,34 @@ ArgumentList
         propertyName: SimpleIdentifier
           token: c
       operator: >
-      rightOperand2: ParenthesizedExpression
+      rightOperand: ParenthesizedExpression
         leftParenthesis: (
         expression2: SimpleIdentifier
+          token: d
+        rightParenthesis: )
+      binaryOperator: greaterThan
+  arguments(v1)
+    BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: a
+      operator: <
+      rightOperand: SimpleIdentifier
+        token: b
+    BinaryExpression
+      leftOperand: PropertyAccess
+        target: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: p
+          period: .
+          identifier: SimpleIdentifier
+            token: q
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+      operator: >
+      rightOperand: ParenthesizedExpression
+        leftParenthesis: (
+        expression: SimpleIdentifier
           token: d
         rightParenthesis: )
   rightParenthesis: )
@@ -620,6 +689,9 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
@@ -640,11 +712,17 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: b
       shownNames
         SimpleIdentifier
           token: b
@@ -665,21 +743,33 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: a
       hiddenNames
         SimpleIdentifier
           token: a
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: b
       shownNames
         SimpleIdentifier
           token: b
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: c
       hiddenNames
         SimpleIdentifier
           token: c
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: d
       shownNames
         SimpleIdentifier
           token: d
@@ -700,6 +790,9 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
       shownNames
         SimpleIdentifier
           token: a
@@ -715,7 +808,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -739,7 +832,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -769,7 +862,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -802,7 +895,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -833,7 +926,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       metadata
         Annotation
@@ -859,7 +952,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -893,7 +986,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -929,7 +1022,7 @@ class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -957,7 +1050,7 @@ class B {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -984,7 +1077,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1013,7 +1106,7 @@ class D {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1038,7 +1131,7 @@ class E {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1063,7 +1156,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       metadata
         Annotation
@@ -1096,7 +1189,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1116,7 +1209,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1313,7 +1406,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1335,7 +1428,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         references
@@ -1362,7 +1455,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       documentationComment: Comment
         tokens
@@ -1465,7 +1558,7 @@ void f() ;
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1489,7 +1582,7 @@ void f() ;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1547,6 +1640,13 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
+        CombinatorName
+          name: b
+        CombinatorName
+          name: c
       shownNames
         SimpleIdentifier
           token: a
@@ -1571,6 +1671,9 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: a
       shownNames
         SimpleIdentifier
           token: a
@@ -1631,7 +1734,7 @@ var c = new Future<int>.sync(() => 3).then<int>((e) => e);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1732,7 +1835,7 @@ var c = Future<int>.sync(() => 3).then<int>((e) => e);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1831,7 +1934,7 @@ f() => C<E>.n();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1883,7 +1986,7 @@ f() => C<E>.n<B>();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1925,7 +2028,7 @@ f() => p.C<E>.n();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1987,7 +2090,7 @@ void main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2079,7 +2182,7 @@ library <myLibId>;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: library
       functionExpression: FunctionExpression
@@ -3048,7 +3151,7 @@ class C<A, B extends C, D> {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3085,7 +3188,7 @@ class C<A extends B<E>>= {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -3129,7 +3232,7 @@ class C<A extends B<E /* foo */ >>= {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -3178,7 +3281,7 @@ class C<<A> {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3208,7 +3311,7 @@ class C<A>= {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -3468,7 +3571,7 @@ typedef K=Function(<>($
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: K
@@ -3530,7 +3633,7 @@ typedef T=Function(<S>());
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T

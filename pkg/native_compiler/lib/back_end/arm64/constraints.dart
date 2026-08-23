@@ -131,13 +131,23 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitComparison(Comparison instr) =>
-      InstructionConstraints(
+  InstructionConstraints? visitComparison(Comparison instr) {
+    final op = instr.op;
+    if (op == .identical || op == .notIdentical) {
+      return const InstructionConstraints(
         anyCpuRegister,
-        instr.op.isDoubleComparison
+        [anyCpuRegister, anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister],
+      );
+    } else {
+      return InstructionConstraints(
+        anyCpuRegister,
+        op.isDoubleComparison
             ? [anyFpuRegister, anyFpuRegisterOrZero(instr.right)]
             : [anyCpuRegister, anyRegisterOrImmediate(instr.right)],
       );
+    }
+  }
 
   @override
   InstructionConstraints? visitReturn(Return instr) =>
@@ -162,6 +172,10 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitDynamicCall(DynamicCall instr) =>
+      callConstraints(instr);
+
+  @override
+  InstructionConstraints? visitExternalCall(ExternalCall instr) =>
       callConstraints(instr);
 
   @override
@@ -226,6 +240,45 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
+  InstructionConstraints? visitLoadExternalField(LoadExternalField instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        if (instr.hasObject) anyCpuRegister,
+      ]);
+
+  @override
+  InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        anyCpuRegister,
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      ]);
+
+  @override
+  InstructionConstraints? visitStoreArrayElement(StoreArrayElement instr) {
+    if (instr.kind == .fixedLengthList) {
+      return InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+        Safepoint(), // For write barrier.
+      );
+    } else {
+      return InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        [if (instr.kind == .uint8ClampedList) anyCpuRegister],
+      );
+    }
+  }
+
+  @override
+  InstructionConstraints? visitLoadExternalArrayElement(
+    LoadExternalArrayElement instr,
+  ) => const InstructionConstraints(anyCpuRegister, [
+    anyCpuRegister,
+    anyCpuRegister,
+  ]);
+
+  @override
   InstructionConstraints? visitThrow(Throw instr) {
     final inputs = allocatableRegisters.take(instr.inputCount).toList();
     return InstructionConstraints(
@@ -239,6 +292,27 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitNullCheck(NullCheck instr) =>
       InstructionConstraints(anyCpuRegister, [anyCpuRegister], [], Safepoint());
+
+  @override
+  InstructionConstraints? visitIndexCheck(IndexCheck instr) =>
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyCpuRegister, anyCpuRegister],
+        [],
+        Safepoint(),
+      );
+
+  @override
+  InstructionConstraints? visitSubtypeCheck(SubtypeCheck instr) {
+    final inputs = allocatableRegisters.take(instr.inputCount).toList();
+
+    return InstructionConstraints(
+      null,
+      inputs,
+      allRegistersExcept(null, inputs),
+      Safepoint(),
+    );
+  }
 
   @override
   InstructionConstraints? visitTypeCast(TypeCast instr) {
@@ -393,25 +467,19 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitAllocateList(AllocateList instr) {
-    assert(instr.length is Constant);
+  InstructionConstraints? visitAllocateArray(AllocateArray instr) {
+    final inputs = [
+      if (instr.hasTypeArguments) AllocationStub.typeArgumentsReg,
+      registerOrImmediate(AllocationStub.lengthReg, instr.length),
+    ];
     return InstructionConstraints(
       AllocationStub.resultReg,
-      [null],
+      inputs,
       // TODO: save registers on slow path
-      allRegistersExcept(AllocationStub.resultReg, []),
+      allRegistersExcept(AllocationStub.resultReg, inputs),
       Safepoint(),
     );
   }
-
-  @override
-  InstructionConstraints? visitSetListElement(SetListElement instr) =>
-      InstructionConstraints(
-        null,
-        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        const [anyCpuRegister, anyCpuRegister],
-        Safepoint(), // For write barrier.
-      );
 
   @override
   InstructionConstraints? visitAllocateRecord(AllocateRecord instr) =>
@@ -458,8 +526,12 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryIntOp(UnaryIntOp instr) =>
       switch (instr.op) {
-        UnaryIntOpcode.toDouble => const InstructionConstraints(
-          anyFpuRegister,
+        .toDouble => const InstructionConstraints(anyFpuRegister, [
+          anyCpuRegister,
+        ]),
+        .hash => const InstructionConstraints(
+          anyCpuRegister,
+          [anyCpuRegister],
           [anyCpuRegister],
         ),
         _ => const InstructionConstraints(anyCpuRegister, [anyCpuRegister]),

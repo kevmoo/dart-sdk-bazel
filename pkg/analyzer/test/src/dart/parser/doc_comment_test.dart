@@ -696,9 +696,10 @@ Comment
         uri: SimpleStringLiteral
           literal: 'dart:html'
         asKeyword: as
+        prefixName: html
+        semicolon: ;
         prefix: SimpleIdentifier
           token: html
-        semicolon: ;
 ''');
   }
 
@@ -723,6 +724,11 @@ Comment
         combinators
           ShowCombinator
             keyword: show
+            names
+              CombinatorName
+                name: Element
+              CombinatorName
+                name: HtmlElement
             shownNames
               SimpleIdentifier
                 token: Element

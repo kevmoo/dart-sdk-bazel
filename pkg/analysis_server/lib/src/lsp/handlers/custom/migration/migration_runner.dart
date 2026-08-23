@@ -11,11 +11,13 @@ import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_regi
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/utilities/package_config.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -40,12 +42,6 @@ class MigrationRunner({
   required AnalysisServer server,
   required final List<PubspecTarget> pubspecTargets,
   required final MigrationSummaryBuilder summaryBuilder,
-
-  /// Whether to apply the migration edits to the files.
-  ///
-  /// If `false`, the migration is run as a dry run (previewing changes in the
-  /// summary without applying them to the workspace).
-  required final bool apply,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
@@ -71,18 +67,45 @@ class MigrationRunner({
     );
   }
 
-  void _applyAndRecordEdits(ChangeBuilder builder) {
+  Future<void> _applyAndRecordEdits(ChangeBuilder builder) async {
     for (var fileEdit in builder.sourceChange.edits) {
-      if (apply) {
-        // Record the edit to be returned to the client at the end of the entire
-        // migration.
-        _fileEdits.add(fileEdit);
-      }
+      // Record the edit to be returned to the client at the end of the entire
+      // migration.
+      _fileEdits.add(fileEdit);
       // Apply the edit to the in-memory overlays so that subsequent analysis
       // (like the clean up step or other packages in the workspace) sees the
       // updated code.
       applyTemporaryOverlayEdits(fileEdit);
     }
+    await applyOverlays();
+  }
+
+  /// Adds a temporary overlay for `package_config.json` with the updated
+  /// language version so that subsequent analysis (such as the cleanup step)
+  /// evaluates code using the target language version.
+  bool _bumpPackageConfig(
+    File pubspecFile,
+    String packageName,
+    PubspecEdit versionBumpEdit,
+  ) {
+    var packageConfigPath = server.resourceProvider.pathContext.join(
+      pubspecFile.parent.path,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    var packageConfigFile = server.resourceProvider.getFile(packageConfigPath);
+    if (!packageConfigFile.exists) return false;
+
+    var packageConfigJson = packageConfigFile.readAsStringSync();
+    var updatedJson = updatePackageLanguageVersion(
+      packageConfigJson,
+      packageName: packageName,
+      languageVersion: versionBumpEdit.targetVersion,
+    );
+    if (updatedJson == null) return false;
+
+    applyTemporaryOverlay(packageConfigPath, updatedJson, packageConfigJson);
+    return true;
   }
 
   /// Applies the pubspec SDK constraint bump edit.
@@ -186,7 +209,7 @@ class MigrationRunner({
     }
 
     summaryBuilder.recordCleanUpChanges(cleanUpFixDetails, pubspec);
-    _applyAndRecordEdits(targetVersionChangeBuilder);
+    await _applyAndRecordEdits(targetVersionChangeBuilder);
 
     return ExecutionOutcome.success;
   }
@@ -219,46 +242,58 @@ class MigrationRunner({
 
     // Run preparatory fixes.
     var builder = await _createBuilder();
-    if (runPrepare || runBump) {
-      // If we are preparing, we write the edits to the main builder.
-      // If we are bumping without preparing, we only check for edits without
-      // applying them, so we write them to a separate temporary builder to
-      // discard them.
-      var preparatoryStepBuilder = runPrepare
-          ? builder
-          : await _createBuilder();
-      var lintCodes =
-          preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
-      var preparatoryFixDetails = await _runMigrations(
-        context: context,
-        pubspec: pubspec,
-        lintCodes: lintCodes,
-        builder: preparatoryStepBuilder,
-        step: MigrationStep.Prepare,
+    // If we are preparing, we write the edits to the main builder.
+    // If we are bumping without preparing, we only check for edits without
+    // applying them, so we write them to a separate temporary builder to
+    // discard them.
+    var preparatoryStepBuilder = runPrepare ? builder : await _createBuilder();
+    var lintCodes =
+        preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
+    var preparatoryFixDetails = await _runMigrations(
+      context: context,
+      pubspec: pubspec,
+      lintCodes: lintCodes,
+      builder: preparatoryStepBuilder,
+      step: MigrationStep.Prepare,
+    );
+    if (preparatoryFixDetails == null) {
+      return ExecutionOutcome.exception;
+    }
+
+    // Prevent version bumps when the user needs to migrate their code.
+    if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
+      summaryBuilder.recordStepFailure(
+        pubspec,
+        MigrationStep.Bump,
+        'Package "${pubspec.displayName}" requires pre-bump fixes '
+        'before the SDK constraint can be bumped.',
       );
-      if (preparatoryFixDetails == null) {
-        return ExecutionOutcome.exception;
-      }
+      return ExecutionOutcome.exception;
+    }
 
-      // Prevent version bumps when the user needs to migrate their code.
-      if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
-        summaryBuilder.recordStepFailure(
-          pubspec,
-          MigrationStep.Bump,
-          'Package "${pubspec.displayName}" requires pre-bump fixes '
-          'before the SDK constraint can be bumped.',
-        );
-        return ExecutionOutcome.exception;
-      }
-
-      if (runPrepare) {
-        summaryBuilder.recordPreparatoryChanges(preparatoryFixDetails, pubspec);
-      }
+    if (runPrepare) {
+      summaryBuilder.recordPreparatoryChanges(preparatoryFixDetails, pubspec);
     }
 
     // Bump version constraint.
     if (runBump) {
       await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
+
+      var bumpSuccess = _bumpPackageConfig(
+        pubspecFile,
+        pubspec.displayName,
+        versionBumpEdit,
+      );
+      if (!bumpSuccess) {
+        summaryBuilder.recordStepFailure(
+          pubspec,
+          MigrationStep.Bump,
+          'Failed to update .dart_tool/package_config.json for '
+          '"${pubspec.displayName}". Try running "dart pub get" to update '
+          'the package configuration, then re-run the migration.',
+        );
+        return ExecutionOutcome.exception;
+      }
 
       summaryBuilder.recordBump(
         pubspec.displayName,
@@ -267,11 +302,7 @@ class MigrationRunner({
       );
     }
 
-    if (runPrepare || runBump) {
-      _applyAndRecordEdits(builder);
-      await applyOverlays();
-      await server.analysisDriverScheduler.waitForIdle();
-    }
+    await _applyAndRecordEdits(builder);
 
     return ExecutionOutcome.success;
   }

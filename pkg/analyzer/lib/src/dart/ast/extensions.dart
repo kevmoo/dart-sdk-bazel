@@ -40,13 +40,6 @@ Element? _readElement2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.readElement;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.readElement;
-  }
-
   if (parent is PrefixedIdentifier && parent.identifier == node) {
     return _readElement2(parent);
   }
@@ -86,13 +79,6 @@ Element? _writeElement2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeElement;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.writeElement;
-  }
-
   if (parent is PrefixedIdentifier && parent.identifier == node) {
     return _writeElement2(parent);
   }
@@ -132,13 +118,6 @@ DartType? _writeType2(AstNode node) {
   if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeType;
   }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeType;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.writeType;
-  }
-
   if (parent is PrefixedIdentifier && parent.identifier == node) {
     return _writeType2(parent);
   }

@@ -460,10 +460,10 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: ExtensionOverride
+IndexExpression2
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -479,7 +479,34 @@ IndexExpression
     staticType: null
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int?
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -500,11 +527,11 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.assignment('[0] =');
+    var node = result.findNode.directAssignment('[0] =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: ExtensionOverride
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -520,7 +547,41 @@ AssignmentExpression
       staticType: null
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            correspondingParameter: <null>
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: int?
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      staticType: null
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -528,7 +589,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -791,10 +852,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -809,7 +870,30 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
+  leftOperand: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -830,10 +914,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -858,7 +942,40 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
+  leftOperand: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -878,15 +995,18 @@ extension E on int {
 f(){
   E(0).v++;
 //     ^
-// [diag.undefinedExtensionSetter] The setter 'v' isn't defined for the extension 'E'.
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+  ++E(0).v;
+//       ^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
 }
 ''');
 
-    var node = result.findNode.postfix('++;');
+    var node = result.findNode.postfixIncrement('++;');
     assertResolvedNodeText(node, r'''
-PostfixExpression
-  operand2: PropertyAccess
-    target2: ExtensionOverride
+PostfixIncrement
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -898,7 +1018,36 @@ PostfixExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
+      staticType: int
+    operator: .
+    propertyName: v
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::v
+      type: dynamic Function()
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@extension::E::@method::v
+      recovery: <null>
+  operator: ++
+  element: <null>
+  operatorResultType: dynamic
+  staticType: dynamic Function()
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      staticType: int
     operator: .
     propertyName: SimpleIdentifier
       token: v
@@ -907,11 +1056,11 @@ PostfixExpression
     staticType: null
   operator: ++
   readElement: <testLibrary>::@extension::E::@method::v
-  readType: InvalidType
-  writeElement: <null>
+  readType: dynamic Function()
+  writeElement: <testLibrary>::@extension::E::@method::v
   writeType: InvalidType
   element: <null>
-  staticType: InvalidType
+  staticType: dynamic Function()
 ''');
   }
 
@@ -929,10 +1078,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -951,7 +1100,34 @@ BinaryExpression
     extendedType: A
     staticType: null
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
+  leftOperand: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
@@ -975,10 +1151,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.binary('(a)');
+    var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: ExtensionOverride
+BinaryOperatorInvocation
+  leftOperand: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1007,7 +1183,44 @@ BinaryExpression
     typeArgumentTypes
       int
   operator: +
-  rightOperand2: IntegerLiteral
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
+    staticType: int
+  binaryOperator: add
+  element: package:test/lib.dart::@extension::E::@method::+
+  staticType: void
+V1: BinaryExpression
+  leftOperand: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: +
+  rightOperand: IntegerLiteral
     literal: 1
     correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int

@@ -3092,7 +3092,8 @@ class Function : public Object {
   ClassPtr Owner() const { return Owner(ptr()); }
   static ClassPtr Owner(FunctionPtr function);
   void set_owner(const Object& value) const;
-  ScriptPtr script() const;
+  ScriptPtr script() const { return script(ptr()); }
+  static ScriptPtr script(FunctionPtr function);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
@@ -4294,14 +4295,22 @@ class Function : public Object {
                             UntaggedFunction::Kind,
                             0,
                             UntaggedFunction::kKindBitSize>;
+  static constexpr intptr_t kKindBitsPos = KindBits::shift();
+  static constexpr intptr_t kKindBitsSize = KindBits::bitsize();
+
   using RecognizedBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                   MethodRecognizer::Kind,
                                   KindBits::kNextBit,
                                   MethodRecognizer::kKindBitSize>;
+  static constexpr intptr_t kRecognizedBitsPos = RecognizedBits::shift();
+  static constexpr intptr_t kRecognizedBitsSize = RecognizedBits::bitsize();
+
   using ModifierBits = BitField<decltype(UntaggedFunction::kind_tag_),
                                 UntaggedFunction::AsyncModifier,
                                 RecognizedBits::kNextBit,
                                 UntaggedFunction::kAsyncModifierBitSize>;
+  static constexpr intptr_t kModifierBitsPos = ModifierBits::shift();
+  static constexpr intptr_t kModifierBitsSize = ModifierBits::bitsize();
 
   enum KindTagBits {
 // Single bit sized fields start here.
@@ -4313,7 +4322,8 @@ class Function : public Object {
 
 #define DEFINE_BIT(name, _)                                                    \
   using name##Bit = BitField<decltype(UntaggedFunction::kind_tag_), bool,      \
-                             ModifierBits::kNextBit + k##name##Bit>;
+                             ModifierBits::kNextBit + k##name##Bit>;           \
+  static constexpr intptr_t k##name##BitPos = name##Bit::shift();
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
@@ -4616,7 +4626,8 @@ class Field : public Object {
   inline void set_field_id_unsafe(intptr_t field_id) const;
 
   ClassPtr Owner() const;
-  ScriptPtr Script() const;
+  ScriptPtr Script() const { return Script(ptr()); }
+  static ScriptPtr Script(FieldPtr field);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
@@ -7079,8 +7090,7 @@ class Code : public Object {
 #else
     auto instr = InstructionsOf(code);
     if (instr == Instructions::null()) {
-      // TODO(alexmarkov): keep size in the Code objects.
-      return 0;
+      return code->untag()->instructions_length_;
     }
     return Instructions::Size(instr);
 #endif

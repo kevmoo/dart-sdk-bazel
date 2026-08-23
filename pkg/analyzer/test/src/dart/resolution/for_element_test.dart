@@ -100,7 +100,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
@@ -109,6 +110,9 @@ ForElement
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body2: SimpleIdentifier
     token: v
@@ -136,7 +140,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: x
+    identifier(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@class::C::@setter::x
       staticType: int
@@ -153,6 +158,9 @@ ForElement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::x
+      acceptedType: int
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -177,7 +185,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: x
+    identifier(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@setter::x
       staticType: int
@@ -194,6 +203,9 @@ ForElement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: int
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -213,7 +225,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
@@ -222,6 +235,9 @@ ForElement
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body2: SimpleIdentifier
     token: v
@@ -246,7 +262,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
@@ -254,6 +271,9 @@ ForElement
     iterable2: SuperExpression
       superKeyword: super
       staticType: A
+    write: VariableWriteResolution
+      element: <testLibrary>::@class::A::@method::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -275,7 +295,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@setter::v
       staticType: int
@@ -294,6 +315,9 @@ ForElement
           staticType: int
       rightBracket: ]
       staticType: List<int>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::v
+      acceptedType: int
   rightParenthesis: )
   body2: SimpleIdentifier
     token: v
@@ -315,7 +339,8 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier: SimpleIdentifier
+    identifier2: v
+    identifier(v1): SimpleIdentifier
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
@@ -324,6 +349,9 @@ ForElement
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      acceptedType: dynamic
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -1063,13 +1091,26 @@ ForElement
             element: hasImplicitType isPublic
               type: dynamic
     leftSeparator: ;
-    condition: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: i
         element: i@28
         staticType: dynamic
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+      binaryOperator: lessThan
+      element: <null>
+      staticType: dynamic
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: i
+        element: i@28
+        staticType: dynamic
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 1
         correspondingParameter: <null>
         staticType: int
@@ -1078,8 +1119,22 @@ ForElement
       staticType: dynamic
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@28
+            type: dynamic
+          write: VariableWriteResolution
+            element: i@28
+            acceptedType: dynamic
+        operator: ++
+        element: <null>
+        operatorResultType: dynamic
+        staticType: dynamic
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i
           element: i@28
           staticType: null
@@ -1125,13 +1180,26 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: i2
         element: i2@28
         staticType: int
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 10
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: i2
+        element: i2@28
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -1140,9 +1208,23 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PrefixIncrement
+        operator: ++
+        target: UnqualifiedNameAssignmentTarget
+          name: i2
+          read: VariableReadResolution
+            element: i2@28
+            type: int
+          write: VariableWriteResolution
+            element: i2@28
+            acceptedType: int
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PrefixExpression
         operator: ++
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: i2
           element: i2@28
           staticType: null
@@ -1196,13 +1278,26 @@ ForElement
             element: hasImplicitType isPublic
               type: int
     leftSeparator: ;
-    condition: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    condition2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: j
         element: j@30
         staticType: int
       operator: <
-      rightOperand2: IntegerLiteral
+      rightOperand: IntegerLiteral
+        literal: 1
+        correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
+        staticType: int
+      binaryOperator: lessThan
+      element: dart:core::@class::num::@method::<
+      staticType: bool
+    condition(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: j
+        element: j@30
+        staticType: int
+      operator: <
+      rightOperand: IntegerLiteral
         literal: 1
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -1211,8 +1306,22 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixIncrement
+        target: UnqualifiedNameAssignmentTarget
+          name: j
+          read: VariableReadResolution
+            element: j@30
+            type: int
+          write: VariableWriteResolution
+            element: j@30
+            acceptedType: int
+        operator: ++
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: j
           element: j@30
           staticType: null
@@ -1351,14 +1460,28 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: int
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: int
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1420,14 +1543,28 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: int
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: int
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1488,14 +1625,28 @@ ForElement
         staticType: InvalidType
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@40
       staticType: InvalidType
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: InvalidType
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: InvalidType
+        operator: --
+        element: <null>
+        operatorResultType: dynamic
+        staticType: InvalidType
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a
           element: a@37
           staticType: null
@@ -1556,14 +1707,28 @@ ForElement
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;
-    condition: SimpleIdentifier
+    condition2: SimpleIdentifier
       token: b
       element: b@41
       staticType: bool
     rightSeparator: ;
     updaters2
+      PostfixDecrement
+        target: UnqualifiedNameAssignmentTarget
+          name: a2
+          read: VariableReadResolution
+            element: a2@37
+            type: int
+          write: VariableWriteResolution
+            element: a2@37
+            acceptedType: int
+        operator: --
+        element: dart:core::@class::num::@method::-
+        operatorResultType: int
+        staticType: int
+    updaters(v1)
       PostfixExpression
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
           token: a2
           element: a2@37
           staticType: null

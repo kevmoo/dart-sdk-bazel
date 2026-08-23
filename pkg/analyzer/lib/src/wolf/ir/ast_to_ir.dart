@@ -9,6 +9,17 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show
+        AssignmentTargetImpl,
+        CascadeIndexAssignmentTargetImpl,
+        CascadePropertyAssignmentTargetImpl,
+        GetterInvocationResolutionImpl,
+        IndexAssignmentTargetImpl,
+        InvalidExpressionAssignmentTargetImpl,
+        ReceiverPropertyAssignmentTargetImpl,
+        ReceiverPropertyExtractionImpl,
+        UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -107,9 +118,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   final Map<VariableElement, int> locals = {};
   late final oneArgument = ir.encodeArgumentNames([null]);
   late final twoArguments = ir.encodeArgumentNames([null, null]);
+  late final threeArguments = ir.encodeArgumentNames([null, null, null]);
   late final null_ = ir.encodeLiteral(null);
   late final one = ir.encodeLiteral(1);
+  late final stackIndices0101 = ir.encodeStackIndices(const [0, 1, 0, 1]);
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
+  late final stackIndices2012 = ir.encodeStackIndices(const [2, 0, 1, 2]);
 
   _AstToIRVisitor({
     required this.typeProvider,
@@ -118,9 +132,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     required this.eventListener,
   }) : coreLibrary = typeProvider.objectElement.library;
 
-  /// If [node] is used as the target of a [CompoundAssignmentExpression],
-  /// returns the [CompoundAssignmentExpression].
-  CompoundAssignmentExpression? assignmentTargeting(AstNode node) {
+  /// If [node] is used as a read-write target, returns the elements selected
+  /// for its implicit read and write.
+  ({Element? readElement, Element? writeElement})? assignmentTargeting(
+    AstNode node,
+  ) {
     while (true) {
       var parent = node.parent2!;
       switch (parent) {
@@ -128,18 +144,32 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         case PropertyAccess() when identical(node, parent.propertyName):
           node = parent;
         case AssignmentExpression() when identical(node, parent.leftHandSide2):
-          return parent;
-        case PostfixExpression(operator: Token(:var type))
-            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
-          return parent;
-        case PrefixExpression(operator: Token(:var type))
-            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
-          return parent;
+          return (
+            readElement: parent.readElement,
+            writeElement: parent.writeElement,
+          );
+        case AssignmentTarget():
+          return null;
         case dynamic(:var runtimeType):
           throw UnimplementedError('TODO(paulberry): $runtimeType');
       }
     }
   }
+
+  _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
+      switch (target) {
+        IndexAssignmentTarget() => _indexAssignmentTarget(target),
+        ReceiverPropertyAssignmentTarget() => _receiverPropertyAssignmentTarget(
+          target,
+        ),
+        UnqualifiedNameAssignmentTarget() => _unqualifiedNameAssignmentTarget(
+          target,
+        ),
+        InvalidExpressionAssignmentTarget(:var expression) => dispatchLValue(
+          expression,
+        ),
+        _ => throw UnimplementedError('TODO(paulberry): ${target.runtimeType}'),
+      };
 
   /// Visits L-value [node] and returns the templates for reading/writing it.
   _LValueTemplates dispatchLValue(Expression node) => node.accept2(this)!;
@@ -366,102 +396,46 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitBinaryExpression(BinaryExpression node) {
-    var tokenType = node.operator.type;
-    switch (tokenType) {
-      case TokenType.EQ_EQ:
-        dispatchNode(node.leftOperand2);
+  Null visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    switch (node.binaryOperator) {
+      case BinaryOperator.equal:
+        dispatchNode(node.leftOperand);
         // Stack: lhs
-        dispatchNode(node.rightOperand2);
+        dispatchNode(node.rightOperand);
         // Stack: lhs rhs
         ir.eq();
       // Stack: (lhs == rhs)
-      case TokenType.BANG_EQ:
-        dispatchNode(node.leftOperand2);
+      case BinaryOperator.notEqual:
+        dispatchNode(node.leftOperand);
         // Stack: lhs
-        dispatchNode(node.rightOperand2);
+        dispatchNode(node.rightOperand);
         // Stack: lhs rhs
         ir.eq();
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
-      case TokenType.AMPERSAND_AMPERSAND:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.not();
-        // Stack: BLOCK(1) lhs !lhs
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
-      case TokenType.BAR_BAR:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
-      case TokenType.QUESTION_QUESTION:
-        ir.block(0, 1);
-        // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand2);
-        // Stack: BLOCK(1) lhs
-        ir.dup();
-        // Stack: BLOCK(1) lhs lhs
-        ir.literal(null_);
-        // Stack: BLOCK(1) lhs lhs null
-        ir.eq();
-        // Stack: BLOCK(1) lhs (lhs == null)
-        ir.not();
-        // Stack: BLOCK(1) lhs (lhs != null)
-        ir.brIf(0);
-        // Stack: BLOCK(1) lhs
-        ir.drop();
-        // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand2);
-        // Stack: BLOCK(1) rhs
-        ir.end();
-      // Stack: result
-      case TokenType.AMPERSAND:
-      case TokenType.BAR:
-      case TokenType.CARET:
-      case TokenType.GT:
-      case TokenType.GT_EQ:
-      case TokenType.GT_GT:
-      case TokenType.GT_GT_GT:
-      case TokenType.LT:
-      case TokenType.LT_EQ:
-      case TokenType.LT_LT:
-      case TokenType.MINUS:
-      case TokenType.PERCENT:
-      case TokenType.PLUS:
-      case TokenType.SLASH:
-      case TokenType.STAR:
-      case TokenType.TILDE_SLASH:
-        dispatchNode(node.leftOperand2);
+      case BinaryOperator.add:
+      case BinaryOperator.bitwiseAnd:
+      case BinaryOperator.bitwiseOr:
+      case BinaryOperator.bitwiseXor:
+      case BinaryOperator.divide:
+      case BinaryOperator.greaterThan:
+      case BinaryOperator.greaterThanOrEqual:
+      case BinaryOperator.lessThan:
+      case BinaryOperator.lessThanOrEqual:
+      case BinaryOperator.modulo:
+      case BinaryOperator.multiply:
+      case BinaryOperator.shiftLeft:
+      case BinaryOperator.shiftRight:
+      case BinaryOperator.subtract:
+      case BinaryOperator.truncatingDivide:
+      case BinaryOperator.unsignedShiftRight:
+        dispatchNode(node.leftOperand);
         // Stack: lhs
-        dispatchNode(node.rightOperand2);
+        dispatchNode(node.rightOperand);
         // Stack: lhs rhs
-        instanceCall(node.element, tokenType.lexeme, [], twoArguments);
+        instanceCall(node.element, node.operator.lexeme, [], twoArguments);
       // Stack: result
-      default:
-        throw UnimplementedError('TODO(paulberry): $node');
     }
   }
 
@@ -496,6 +470,44 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
+      case CascadePropertyAssignmentTargetImpl():
+        throw UnimplementedError('Cascade property assignment target');
+      case IndexAssignmentTargetImpl():
+        lValueTemplates = _indexAssignmentTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case ReceiverPropertyAssignmentTargetImpl():
+        lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    dispatchNode(node.value);
+    // Stack: lValue oldValue rhs
+    var lexeme = node.operator.lexeme;
+    assert(lexeme.endsWith('='));
+    instanceCall(
+      node.element,
+      lexeme.substring(0, lexeme.length - 1),
+      const [],
+      twoArguments,
+    );
+    // Stack: lValue newValue
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: newValue
+    eventListener.onExitNode();
+    // Stack: result
+  }
+
+  @override
   Null visitConditionalExpression(ConditionalExpression node) {
     ir.block(0, 1);
     // Stack: BLOCK(1)
@@ -525,6 +537,33 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       throw UnimplementedError('TODO(paulberry)');
     }
     ir.br(ir.nestingLevel - continueStack.last);
+  }
+
+  @override
+  Null visitDirectAssignment(DirectAssignment node) {
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
+      case CascadePropertyAssignmentTargetImpl():
+        throw UnimplementedError('Cascade property assignment target');
+      case IndexAssignmentTargetImpl():
+        lValueTemplates = _indexAssignmentTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case ReceiverPropertyAssignmentTargetImpl():
+        lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
+    dispatchNode(node.value);
+    // Stack: lValue rhs
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: rhs
+    eventListener.onExitNode();
+    // Stack: result
   }
 
   @override
@@ -578,7 +617,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitForStatement(ForStatement node) {
     switch (node.forLoopParts) {
-      case ForParts(:var condition, :var updaters2) && var forParts:
+      case ForParts(condition2: var condition, :var updaters2) && var forParts:
         switch (forParts) {
           case ForPartsWithDeclarations(:var variables):
             dispatchNode(variables);
@@ -665,6 +704,69 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitIfNull(IfNull node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.literal(null_);
+    // Stack: BLOCK(1) lhs lhs null
+    ir.eq();
+    // Stack: BLOCK(1) lhs (lhs == null)
+    ir.not();
+    // Stack: BLOCK(1) lhs (lhs != null)
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
+  }
+
+  @override
+  Null visitIfNullAssignment(IfNullAssignment node) {
+    var previousNestingLevel = ir.nestingLevel;
+    var target = node.target as AssignmentTargetImpl;
+    late _LValueTemplates lValueTemplates;
+    switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
+      case CascadePropertyAssignmentTargetImpl():
+        throw UnimplementedError('Cascade property assignment target');
+      case IndexAssignmentTargetImpl():
+        lValueTemplates = _indexAssignmentTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        throw UnimplementedError('Invalid expression assignment target');
+      case ReceiverPropertyAssignmentTargetImpl():
+        lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case UnqualifiedNameAssignmentTargetImpl():
+        lValueTemplates = _unqualifiedNameAssignmentTarget(target);
+    }
+    // Stack: lValue
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    nullShortingCheck(
+      previousNestingLevel: previousNestingLevel,
+      nonNull: true,
+      additionalDiscardDepth: lValueTemplates.subexpressionCount,
+    );
+    // Stack: BLOCK(1)? lValue oldValue
+    ir.drop();
+    // Stack: BLOCK(1)? lValue
+    dispatchNode(node.value);
+    // Stack: lValue rhs
+    eventListener.onEnterNode(target);
+    lValueTemplates.write(this);
+    // Stack: rhs
+    eventListener.onExitNode();
+    // Stack: result
+  }
+
+  @override
   Null visitIfStatement(IfStatement node) {
     if (node.caseClause != null) throw UnimplementedError('TODO(paulberry)');
     var elseStatement = node.elseStatement;
@@ -738,6 +840,52 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       ir.not();
       // Stack: (expression is! type)
     }
+  }
+
+  @override
+  Null visitLogicalAnd(LogicalAnd node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.not();
+    // Stack: BLOCK(1) lhs !lhs
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
+  }
+
+  @override
+  Null visitLogicalNot(LogicalNot node) {
+    dispatchNode(node.operand);
+    // Stack: operand
+    ir.not();
+    // Stack: !operand
+  }
+
+  @override
+  Null visitLogicalOr(LogicalOr node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    dispatchNode(node.leftOperand);
+    // Stack: BLOCK(1) lhs
+    ir.dup();
+    // Stack: BLOCK(1) lhs lhs
+    ir.brIf(0);
+    // Stack: BLOCK(1) lhs
+    ir.drop();
+    // Stack: BLOCK(1)
+    dispatchNode(node.rightOperand);
+    // Stack: BLOCK(1) rhs
+    ir.end();
+    // Stack: result
   }
 
   @override
@@ -835,27 +983,18 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitPostfixExpression(PostfixExpression node) {
-    switch (node.operator.type) {
-      case TokenType.PLUS_PLUS:
-      case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand2);
-        // Stack: lValue
-        eventListener.onEnterNode(node.operand2);
-        lValueTemplates.readForPostfixIncDec(this);
-        // Stack: oldValue lValue oldValue
-        eventListener.onExitNode();
-        ir.literal(one);
-        // Stack: oldValue lValue oldValue 1
-        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-        // Stack: oldValue lValue newValue
-        lValueTemplates.write(this);
-        // Stack: oldValue newValue
-        ir.drop();
-      // Stack: oldValue
-      default:
-        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
-    }
+  Null visitPostfixDecrement(PostfixDecrement node) {
+    _visitPostfixIncrementOrDecrement(node);
+  }
+
+  @override
+  Null visitPostfixIncrement(PostfixIncrement node) {
+    _visitPostfixIncrementOrDecrement(node);
+  }
+
+  @override
+  Null visitPrefixDecrement(PrefixDecrement node) {
+    _visitPrefixIncrementOrDecrement(node);
   }
 
   @override
@@ -876,30 +1015,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitPrefixExpression(PrefixExpression node) {
-    switch (node.operator.type) {
-      case TokenType.BANG:
-        dispatchNode(node.operand2);
-        // Stack: operand
-        ir.not();
-      // Stack: !operand
-      case TokenType.PLUS_PLUS:
-      case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand2);
-        // Stack: lValue
-        lValueTemplates.readForCompoundAssignment(this);
-        // Stack: lValue oldValue
-        ir.literal(one);
-        // Stack: lValue oldValue 1
-        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-        // Stack: lValue newValue
-        eventListener.onEnterNode(node.operand2);
-        lValueTemplates.write(this);
-        // Stack: newValue
-        eventListener.onExitNode();
-      default:
-        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
-    }
+  Null visitPrefixIncrement(PrefixIncrement node) {
+    _visitPrefixIncrementOrDecrement(node);
   }
 
   @override
@@ -913,6 +1030,24 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
     // Stack: BLOCK(1)? target
     return _PropertyAccessTemplates(node.propertyName);
+  }
+
+  @override
+  _LValueTemplates visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
+    return _PropertyAccessTemplates.direct(
+      name: node.propertyName.lexeme,
+      readElement: switch (node.resolution) {
+        GetterInvocationResolutionImpl(:var element) => element,
+        _ => null,
+      },
+    );
   }
 
   @override
@@ -1056,6 +1191,173 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       }
     }
   }
+
+  _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.question != null) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
+    dispatchNode(node.index);
+    var readElement = switch (node.read) {
+      MethodIndexReadResolution(:var element) => element,
+      DynamicIndexReadResolution() => null,
+      InvalidIndexReadResolution() => throw UnimplementedError(
+        'Invalid index assignment target read',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected index read resolution'),
+    };
+    var writeElement = switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      DynamicIndexWriteResolution() => null,
+      InvalidIndexWriteResolution() => throw UnimplementedError(
+        'Invalid index assignment target',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected index write resolution'),
+    };
+    return _IndexAssignmentTemplates(
+      readElement: readElement,
+      writeElement: writeElement,
+    );
+  }
+
+  _LValueTemplates _receiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
+    var readElement = switch (node.read) {
+      GetterInvocationResolution(:var element) => element,
+      DynamicPropertyReadResolution() => null,
+      InvalidNamedReadResolution() => throw UnimplementedError(
+        'Invalid property assignment target read',
+      ),
+      ExecutableTearOffResolution() || RecordFieldReadResolution() =>
+        throw UnimplementedError('Unsupported property assignment target read'),
+      null => null,
+      _ => throw StateError('Unexpected property read resolution'),
+    };
+    var writeElement = switch (node.write) {
+      SetterInvocationResolution(:var element) => element,
+      DynamicPropertyWriteResolution() => null,
+      InvalidNamedWriteResolution() => throw UnimplementedError(
+        'Invalid property assignment target',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected property write resolution'),
+    };
+    return _PropertyAccessTemplates.direct(
+      name: node.propertyName.lexeme,
+      readElement: readElement,
+      writeElement: writeElement,
+    );
+  }
+
+  _LValueTemplates _unqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var write = node.write;
+    if (write is! NamedWriteResolutionWithElement) {
+      throw UnimplementedError('TODO(paulberry): ${write.runtimeType}');
+    }
+    var element = write.element;
+    switch (element) {
+      case FormalParameterElement():
+      case LocalVariableElement():
+        return _LocalTemplates(locals[element]!);
+      case PropertyAccessorElement(isStatic: false):
+        this_();
+        // Stack: this
+        return _PropertyAccessTemplates.direct(
+          name: node.name.lexeme,
+          readElement: switch (node.read) {
+            GetterInvocationResolution(:var element) => element,
+            _ => null,
+          },
+          writeElement: element,
+        );
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType: $element');
+    }
+  }
+
+  Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
+    var lValueTemplates = dispatchAssignmentTarget(node.target);
+    // Stack: lValue
+    eventListener.onEnterNode(node.target);
+    lValueTemplates.readForPostfixIncDec(this);
+    // Stack: oldValue lValue oldValue
+    eventListener.onExitNode();
+    ir.literal(one);
+    // Stack: oldValue lValue oldValue 1
+    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+    // Stack: oldValue lValue newValue
+    lValueTemplates.write(this);
+    // Stack: oldValue newValue
+    ir.drop();
+    // Stack: oldValue
+  }
+
+  Null _visitPrefixIncrementOrDecrement(IncrementOrDecrementExpression node) {
+    var lValueTemplates = dispatchAssignmentTarget(node.target);
+    // Stack: lValue
+    lValueTemplates.readForCompoundAssignment(this);
+    // Stack: lValue oldValue
+    ir.literal(one);
+    // Stack: lValue oldValue 1
+    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+    // Stack: lValue newValue
+    eventListener.onEnterNode(node.target);
+    lValueTemplates.write(this);
+    // Stack: newValue
+    eventListener.onExitNode();
+  }
+}
+
+/// Instruction templates for an indexed assignment target.
+class _IndexAssignmentTemplates extends _LValueTemplates {
+  final MethodElement? readElement;
+  final MethodElement? writeElement;
+
+  _IndexAssignmentTemplates({
+    required this.readElement,
+    required this.writeElement,
+  }) : super(subexpressionCount: 2);
+
+  @override
+  void readForCompoundAssignment(_AstToIRVisitor visitor) {
+    // Stack: receiver index
+    visitor.ir.shuffle(2, visitor.stackIndices0101);
+    // Stack: receiver index receiver index
+    visitor.instanceCall(readElement, '[]', [], visitor.twoArguments);
+    // Stack: receiver index value
+  }
+
+  @override
+  void readForPostfixIncDec(_AstToIRVisitor visitor) {
+    throw StateError('Index increment and decrement are not migrated.');
+  }
+
+  @override
+  void simpleRead(_AstToIRVisitor visitor) {
+    throw StateError('IndexAssignmentTarget cannot be read as an expression.');
+  }
+
+  @override
+  void write(_AstToIRVisitor visitor) {
+    // Stack: receiver index value
+    visitor.ir.shuffle(3, visitor.stackIndices2012);
+    // Stack: value receiver index value
+    visitor.instanceCall(writeElement, '[]=', [], visitor.threeArguments);
+    // Stack: value returnValue
+    visitor.ir.drop();
+    // Stack: value
+  }
 }
 
 /// Instruction templates for converting a local variable reference to IR.
@@ -1155,20 +1457,42 @@ sealed class _LValueTemplates {
 
 /// Instruction templates for converting a property access to IR.
 class _PropertyAccessTemplates extends _LValueTemplates {
-  final SimpleIdentifier property;
+  final String name;
+  final SimpleIdentifier? property;
+  final PropertyAccessorElement? readElement;
+  final PropertyAccessorElement? writeElement;
 
   /// Creates a property access template.
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates(this.property) : super(subexpressionCount: 1);
+  _PropertyAccessTemplates(SimpleIdentifier property)
+    : name = property.name,
+      property = property,
+      readElement = null,
+      writeElement = null,
+      super(subexpressionCount: 1);
+
+  _PropertyAccessTemplates.direct({
+    required this.name,
+    this.readElement,
+    this.writeElement,
+  }) : property = null,
+       super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
+    var property = this.property;
     visitor.instanceGet(
-      (property.element ?? visitor.assignmentTargeting(property)?.readElement)
-          as PropertyAccessorElement?,
-      property.name,
+      readElement ??
+          switch (property) {
+            var property? =>
+              (property.element ??
+                      visitor.assignmentTargeting(property)?.readElement)
+                  as PropertyAccessorElement?,
+            _ => null,
+          },
+      name,
     );
     // Stack: value
   }
@@ -1206,9 +1530,14 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
     visitor.instanceSet(
-      visitor.assignmentTargeting(property)!.writeElement
-          as PropertyAccessorElement?,
-      property.name,
+      writeElement ??
+          switch (property) {
+            var property? =>
+              visitor.assignmentTargeting(property)!.writeElement
+                  as PropertyAccessorElement?,
+            null => null,
+          },
+      name,
     );
     // Stack: value returnValue
     visitor.ir.drop();

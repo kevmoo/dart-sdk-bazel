@@ -89,6 +89,59 @@ MethodInvocation
 ''');
   }
 
+  test_cascade_propertyCall_argumentCount() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function<X extends int?>() Function();
+
+T id<T>() => throw 0;
+
+void consume(F Function() callback) {}
+
+void f() {
+  consume(() => id()..call.call(''));
+//                              ^^
+// [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
+}
+''');
+
+    var node = result.findNode.methodInvocation("call('')");
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: CascadePropertyExtraction
+    propertyName: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<X extends int?>() Function()
+        alias: <testLibrary>::@typeAlias::F
+      associatedFunctionType: void Function<X extends int?>() Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: void Function<X extends int?>() Function()
+      alias: <testLibrary>::@typeAlias::F
+  target(v1): PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<X extends int?>() Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: void Function<X extends int?>() Function()
+      alias: <testLibrary>::@typeAlias::F
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticInvokeType: void Function<X extends int?>() Function()
+    alias: <testLibrary>::@typeAlias::F
+  staticType: void Function<X extends int?>()
+''');
+  }
+
   test_cascadeExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -108,7 +161,32 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@method::foo
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+  cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
@@ -2027,6 +2105,109 @@ MethodInvocation
 ''');
   }
 
+  test_error_staticAccessToInstanceMember_class_genericGetter_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T Function() get foo => throw 0;
+}
+
+var x = A.foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_staticAccessToInstanceMember_class_genericMethod_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+var x = A.foo(a: 0);
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+//            ^
+// [diag.undefinedNamedParameter] The named parameter 'a' isn't defined.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NamedArgument
+        name: a
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 0
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_staticAccessToInstanceMember_extension_genericMethod_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E<T> on List<T> {
+  T foo() => throw 0;
+}
+
+var x = E.foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_error_undefinedFunction() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
@@ -3187,12 +3368,26 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
@@ -3637,12 +3832,16 @@ FunctionExpressionInvocation
   /// we should be aware that it is not a stand-alone identifier, but a
   /// cascade section.
   test_hasReceiver_instance_getter_cascade() async {
-    var result = await resolveTestCode(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   double Function(int) get foo => 0;
+//                                ^
+// [diag.returnOfInvalidTypeFromFunction] A value of type 'int' can't be returned from the function 'foo' because it has a return type of 'double Function(int)'.
 }
 
 var v = C()..foo(0) = 0;
+//         ^^^^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
     var node = result.findNode.functionExpressionInvocation('foo(0)');
@@ -6609,7 +6808,32 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ?..
+        methodName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@method::foo
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+  cascadeSections
     MethodInvocation
       operator: ?..
       methodName: SimpleIdentifier
@@ -6655,7 +6879,29 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ?..
+      body: CascadePropertyExtraction
+        propertyName: foo
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::A::@getter::foo
+          invokeType: int Function()
+          type: int
+        staticType: int
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+  cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
@@ -6715,9 +6961,33 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: int? Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: int? Function()
+          staticType: int?
+        operator: ?.
+        methodName: SimpleIdentifier
+          token: abs
+          element: dart:core::@class::int::@method::abs
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int?
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: foo
@@ -7179,11 +7449,34 @@ void main() {
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function2: PropertyAccess
-    target2: PropertyAccess
-      target2: ParenthesizedExpression
+    target2: ReceiverPropertyExtraction
+      receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: AsExpression
           expression2: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibrary>::@class::B
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
+      staticType: A
+    target(v1): PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
             literal: null
             staticType: Null
           asOperator: as
@@ -7442,12 +7735,35 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      BinaryExpression
-        leftOperand2: IntegerLiteral
+      BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
           literal: 1
           staticType: int
         operator: +
-        rightOperand2: IntegerLiteral
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        correspondingParameter: <null>
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        staticType: int
+      ListLiteral
+        leftBracket: [
+        elements2
+          IntegerLiteral
+            literal: 0
+            staticType: int
+        rightBracket: ]
+        correspondingParameter: <null>
+        staticType: List<int>
+    arguments(v1)
+      BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: +
+        rightOperand: IntegerLiteral
           literal: 2
           correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
           staticType: int
@@ -7457,7 +7773,7 @@ MethodInvocation
         staticType: int
       ListLiteral
         leftBracket: [
-        elements2
+        elements
           IntegerLiteral
             literal: 0
             staticType: int
@@ -7469,7 +7785,7 @@ MethodInvocation
   staticType: InvalidType
 ''');
 
-    assertType(result.findNode.binary('1 + 2'), 'int');
+    assertType(result.findNode.binaryOperatorInvocation('1 + 2'), 'int');
     assertType(result.findNode.listLiteral('[0]'), 'List<int>');
   }
 

@@ -469,6 +469,65 @@ void f() {
     await assertFixPubspec(content, expected);
   }
 
+  Future<void> test_existingDependencies_noTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_existingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_fileHasParts() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+
+    updateTestPubspecFile(content);
+    // Include a non-library file, testing whether the bulk fix processor chokes
+    // over the presense of a non-library file.
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+''');
+
+    await resolveTestCode('''
+import 'package:a/a.dart';
+''');
+
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_fix() async {
     var content = '''
 name: test
@@ -645,6 +704,34 @@ void bad() {
 }
 ''');
 
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_noTrailingNewline() async {
+    var content = 'name: test';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
     await assertFixPubspec(content, expected);
   }
 }

@@ -253,9 +253,9 @@ void f() {
     expect(breakStatement.target, same(switchStatement));
   }
 
-  test_breakTarget_unlabeledBreakFromSwitch_language219() async {
+  test_breakTarget_unlabeledBreakFromSwitch_beforePatterns() async {
     var result = await resolveTestCode(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   while (true) {
     switch (0) {
@@ -406,9 +406,9 @@ void f() {
     expect(continueStatement.target, same(whileStatement));
   }
 
-  test_continueTarget_unlabeledContinueSkipsSwitch_language219() async {
+  test_continueTarget_unlabeledContinueSkipsSwitch_beforePatterns() async {
     var result = await resolveTestCode(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   while (true) {
     switch (0) {
@@ -604,7 +604,7 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNode.simple('x;');
+    var node3 = result.findNodeV1.simple('x;');
     assertResolvedNodeText(node3, r'''
 SimpleIdentifier
   token: x
@@ -845,9 +845,9 @@ void doSwitch(int target) {
 }''');
   }
 
-  test_labels_switch_language219() async {
+  test_labels_switch_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void doSwitch(int target) {
   switch (target) {
     l0: case 0:

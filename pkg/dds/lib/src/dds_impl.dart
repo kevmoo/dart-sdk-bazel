@@ -346,8 +346,11 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     );
   }
 
-  /// Shelf middleware to validate Host and Origin headers to prevent
+  /// Returns a [Handler] that validates Host and Origin headers to prevent
   /// DNS-rebinding and CSRF attacks.
+  ///
+  /// If the [Request] headers are valid, the request is forwarded to
+  /// [innerHandler]. Otherwise, a forbidden response is returned.
   Handler _originCheckMiddleware(Handler innerHandler) => (Request request) {
         if (_disableServiceOriginCheck) {
           return innerHandler(request);
@@ -365,9 +368,10 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
         // Check the Origin header for cross-origin requests.
         final origin = request.headers['Origin'];
         if (origin == null) {
-          // No origin sent. This is a non-browser client or a same-origin request.
-          // Since we already validated the Host header, we know it's a legitimate
-          // local same-origin request (or a local non-browser tool).
+          // No origin sent. This is a non-browser client or a same-origin
+          // request. Since we already validated the Host header, we know it's
+          // a legitimate local same-origin request (or a local non-browser
+          // tool).
           return innerHandler(request);
         }
 

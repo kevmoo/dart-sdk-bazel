@@ -10,7 +10,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeLiteralResolutionTest);
-    defineReflectiveTests(TypeLiteralResolutionTest_WithoutConstructorTearoffs);
+    defineReflectiveTests(TypeLiteralResolutionTest_BeforeConstructorTearoffs);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -708,7 +708,6 @@ TypeLiteral
     name: C
     element: <testLibrary>::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -736,7 +735,6 @@ TypeLiteral
     name: C
     element: package:test/a.dart::@class::C
     type: C
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -5906,7 +5904,6 @@ TypeLiteral
     name: dynamic
     element: dynamic
     type: dynamic
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -6642,7 +6639,6 @@ TypeLiteral
     name: Never
     element: Never
     type: Never
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -7671,7 +7667,6 @@ TypeLiteral
     name: T
     element: #E0 T
     type: T
-  correspondingParameter: <null>
   staticType: Type
 ''');
   }
@@ -8020,9 +8015,9 @@ TypeLiteral
 }
 
 @reflectiveTest
-class TypeLiteralResolutionTest_WithoutConstructorTearoffs
+class TypeLiteralResolutionTest_BeforeConstructorTearoffs
     extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
+    with BeforeConstructorTearoffsMixin {
   test_class() async {
     await resolveTestCodeWithDiagnostics('''
 class C<T> {}

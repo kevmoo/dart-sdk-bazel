@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/expected_diagnostics.dart';
@@ -133,7 +133,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       elementPrinter: elementPrinter,
       configuration: ResolvedNodeTextConfiguration(),
       withResolution: false,
-    ).writeNode(node);
+    ).writeNodeWithV1Projection(node);
 
     var actual = buffer.toString();
     if (actual != expected) {
@@ -242,20 +242,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is AssignmentExpression) {
       return node.element;
-    } else if (node is BinaryExpression) {
+    } else if (node is BinaryOperatorInvocation) {
       return node.element;
     } else if (node is ConstructorTearOff) {
       return node.element;
-    } else if (node is Declaration) {
+    } else if (node is FragmentDeclaringNode) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
       return node.element;
-    } else if (node is FormalParameter) {
-      return node.declaredFragment?.element;
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {
-      var function = node.function2.unParenthesized;
+      var function = node.function2.unParenthesized2;
       if (function is Identifier) {
         return function.element;
       } else if (function is PropertyAccess) {
@@ -279,6 +277,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is PrefixExpression) {
       return node.element;
+    } else if (node is UnaryOperatorInvocation) {
+      return node.element;
     } else if (node is PropertyAccess) {
       return node.propertyName.element;
     } else if (node is NamedType) {
@@ -286,6 +286,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
+  }
+
+  File newFileWithLanguageFeatureDirective(String path, String content) {
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
+    return newFile(path, featureDirectiveLowering.loweredCode);
   }
 
   Future<ResolvedUnitResultImpl> resolveFile(File file);
@@ -399,21 +404,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    var printer = ResolvedAstPrinter(
+    ResolvedAstPrinter(
       sink: sink,
       elementPrinter: elementPrinter,
       configuration: nodeTextConfiguration,
-    );
-    printer.writeNode(node);
-
-    // Keep the V1 compatibility view visible when the requested V2 root has a
-    // distinct projection. Printing it as another root preserves its text.
-    if (node case ExpressionImpl expression) {
-      var v1 = V1Projection.toV1Expression(expression);
-      if (!identical(v1, expression)) {
-        printer.writeNode(v1);
-      }
-    }
+    ).writeNodeWithV1Projection(node);
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()
@@ -457,9 +452,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 final class TestResolvedUnitResult {
   final ResolvedUnitResultImpl analysisResult;
 
-  late final FindElement2 findElement = FindElement2(unit);
+  late final FindElement findElement = FindElement(unit);
 
   late final FindNode2 findNode = FindNode2(content, unit);
+
+  late final FindNode findNodeV1 = FindNode(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
 
@@ -525,12 +522,16 @@ class _DiagnosticTestFile {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
-  FindElement2 get findElement2 {
-    return FindElement2(unit);
+  FindElement get findElement {
+    return FindElement(unit);
   }
 
   FindNode2 get findNode {
     return FindNode2(content, unit);
+  }
+
+  FindNode get findNodeV1 {
+    return FindNode(content, unit);
   }
 
   InheritanceManager3 get inheritanceManager {

@@ -45,6 +45,8 @@ class FunctionReferenceResolver {
       _resolveSimpleIdentifierFunction(node, function);
     } else if (function is PrefixedIdentifierImpl) {
       _resolvePrefixedIdentifierFunction(node, function);
+    } else if (function is ReceiverPropertyExtractionImpl) {
+      _resolveReceiverPropertyExtractionFunction(node, function);
     } else if (function is PropertyAccessImpl) {
       _resolvePropertyAccessFunction(node, function);
     } else if (function is ConstructorTearOffImpl) {
@@ -288,7 +290,7 @@ class FunctionReferenceResolver {
   }
 
   void _resolveConstructorTearOff(FunctionReferenceImpl node) {
-    // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
+    // TODO(srawlins): Rewrite and resolve [node] as a constructor tear-off.
     node.function2.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
   }
@@ -484,7 +486,7 @@ class FunctionReferenceResolver {
       _resolveAsImplicitCallReference(node, callMethod);
       return;
     }
-    var target = function.realTarget;
+    var target = function.realTarget2;
 
     TypeImpl targetType;
     if (target is SuperExpressionImpl) {
@@ -546,7 +548,7 @@ class FunctionReferenceResolver {
 
     var propertyElement = _resolver.typePropertyResolver
         .resolve(
-          receiver: function.realTarget,
+          receiver: function.realTarget2,
           receiverType: targetType,
           name: function.propertyName.name,
           hasRead: true,
@@ -608,6 +610,54 @@ class FunctionReferenceResolver {
       'type alias, or executable element: $element (${element.runtimeType})',
     );
     node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+  }
+
+  void _resolveReceiverPropertyExtractionFunction(
+    FunctionReferenceImpl node,
+    ReceiverPropertyExtractionImpl function,
+  ) {
+    _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+    function = _resolver.popRewrite()! as ReceiverPropertyExtractionImpl;
+    var functionType = function.staticType;
+
+    if (functionType is FunctionTypeImpl) {
+      var target = switch (function.resolution) {
+        ExecutableTearOffResolutionImpl(:var element) =>
+          InvocationTargetExecutableElement(element),
+        _ => InvocationTargetFunctionTypedExpression(functionType),
+      };
+      _resolve(
+        node: node,
+        rawType: functionType,
+        name: function.propertyName.lexeme,
+        target: target,
+      );
+      return;
+    }
+
+    if (functionType is DynamicType) {
+      _diagnosticReporter.report(
+        diag.genericMethodTypeInstantiationOnDynamic.at(node),
+      );
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    if (functionType is InvalidType) {
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    var callMethod = _getCallMethod(node, functionType);
+    if (callMethod is MethodElement) {
+      _resolveAsImplicitCallReference(node, callMethod);
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.disallowedTypeInstantiationExpression.at(function.propertyName),
+    );
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 
   void _resolveSimpleIdentifierFunction(

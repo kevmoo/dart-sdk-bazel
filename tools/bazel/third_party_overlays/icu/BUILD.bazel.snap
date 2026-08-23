@@ -80,6 +80,7 @@ cc_library(
         "//third_party/icu/source/common:errorcode.cpp",
         "//third_party/icu/source/common:filteredbrk.cpp",
         "//third_party/icu/source/common:filterednormalizer2.cpp",
+        "//third_party/icu/source/common:fixedstring.cpp",
         "//third_party/icu/source/common:icudataver.cpp",
         "//third_party/icu/source/common:icuplug.cpp",
         "//third_party/icu/source/common:loadednormalizer2impl.cpp",

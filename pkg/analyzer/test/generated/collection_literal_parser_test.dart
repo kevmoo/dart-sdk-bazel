@@ -118,17 +118,29 @@ ListLiteral
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: x
           operator: <
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body2: SpreadElement
@@ -222,7 +234,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -304,7 +317,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -428,7 +442,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -471,7 +486,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -518,24 +534,42 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: AssignmentExpression
-          leftHandSide2: SimpleIdentifier
+        initialization2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x
+          operator: =
+          value: IntegerLiteral
+            literal: 0
+        initialization(v1): AssignmentExpression
+          leftHandSide: SimpleIdentifier
             token: x
           operator: =
-          rightHandSide2: IntegerLiteral
+          rightHandSide: IntegerLiteral
             literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: x
           operator: <
-          rightOperand2: IntegerLiteral
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
         updaters2
+          PrefixIncrement
+            operator: ++
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+        updaters(v1)
           PrefixExpression
             operator: ++
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: x
       rightParenthesis: )
       body2: SpreadElement
@@ -665,7 +699,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: c
+          identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -771,7 +806,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier

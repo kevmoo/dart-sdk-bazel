@@ -1316,6 +1316,26 @@ main() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_top_level_getter_invalidWrite() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+int get foo => 0;
+
+void f() {
+  foo = 1;
+}
+''');
+
+    await resolveFile(a);
+    var element = await _findElement(9, a);
+    var result = await fileResolver.findReferences(element);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(4, 3), 3, MatchKind.REFERENCE),
+      ]),
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
   test_findReferences_top_level_setter() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 int _foo;
@@ -2633,9 +2653,9 @@ void f(MyEnum myEnum) {
 ''');
   }
 
-  test_switchCase_implementsEquals_enum_language219() async {
+  test_switchCase_implementsEquals_enum_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 enum MyEnum {a, b, c}
 
 void f(MyEnum myEnum) {

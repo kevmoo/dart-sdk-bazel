@@ -215,6 +215,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
@@ -233,6 +234,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
@@ -995,7 +997,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
 // Clobbered:
 //   R3, R4, R8, R9
 void StubCodeCompiler::GenerateAllocateArrayStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1128,7 +1130,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1147,7 +1149,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1514,7 +1516,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 // Clobbered:
 //   Potentially any since is can go to runtime.
 void StubCodeCompiler::GenerateAllocateContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     GenerateAllocateContext(assembler, &slow_case);
@@ -1575,7 +1577,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 // Clobbered:
 //   Potentially any since it can go to runtime.
 void StubCodeCompiler::GenerateCloneContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -2023,8 +2025,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   __ LoadImmediate(kTagsReg, tags);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
-      !target::Class::TraceAllocation(cls) &&
+  if (UseInlineAllocation() && !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
     RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
@@ -3406,7 +3407,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label call_runtime;
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, R2));
     __ mov(R2, Operand(AllocateTypedDataArrayABI::kLengthReg));

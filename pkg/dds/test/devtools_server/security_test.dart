@@ -10,86 +10,87 @@ import 'utils/server_driver.dart';
 
 void main() {
   group('DevTools Server Security', () {
-    test('Host and Origin validation (Enabled by default)', () async {
-      final server = await DevToolsServerDriver.create();
-      try {
-        // Wait for server to start and get the port.
+    group('Host and Origin validation (Enabled by default)', () {
+      late DevToolsServerDriver server;
+      late Uri serverUri;
+      late HttpClient client;
+
+      setUpAll(() async {
+        server = await DevToolsServerDriver.create();
         final event = (await server.stdout.firstWhere(
           (map) => map!['event'] == 'server.started',
         ))!;
         final port = event['params']['port'] as int;
-        final serverUri = Uri.parse('http://127.0.0.1:$port/');
+        serverUri = Uri.parse('http://127.0.0.1:$port/');
+        client = HttpClient();
+      });
 
-        final client = HttpClient();
-
-        // 1. Legitimate GET request to /api/ping (should succeed)
-        {
-          final request = await client.getUrl(serverUri.resolve('api/ping'));
-          final response = await request.close();
-          expect(response.statusCode, HttpStatus.ok);
-          await response.drain();
-        }
-
-        // 2. Bad Host Header to /api/ping (should be blocked with 403)
-        {
-          final request = await client.getUrl(serverUri.resolve('api/ping'));
-          request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
-          final response = await request.close();
-          expect(response.statusCode, HttpStatus.forbidden);
-          await response.drain();
-        }
-
-        // 3. Bad Origin Header to /api/sse (should be blocked with 403)
-        {
-          final request = await client.getUrl(serverUri.resolve('api/sse'));
-          request.headers.set('Origin', 'http://evil.example.com');
-          final response = await request.close();
-          expect(response.statusCode, HttpStatus.forbidden);
-          await response.drain();
-        }
-
+      tearDownAll(() async {
         client.close();
-      } finally {
         server.kill();
-      }
-    }, timeout: const Timeout.factor(10));
+      });
 
-    test('Disable Origin Check', () async {
-      // Start server with origin check disabled
-      final server = await DevToolsServerDriver.create(
-        additionalArgs: ['--disable-service-origin-check'],
-      );
-      try {
+      test('allows legitimate GET request to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.ok);
+        await response.drain();
+      });
+
+      test('forbids GET request with bad Host Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain();
+      });
+
+      test('forbids GET request with bad Origin Header to /api/sse', () async {
+        final request = await client.getUrl(serverUri.resolve('api/sse'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain();
+      });
+    });
+
+    group('Disable Origin Check', () {
+      late DevToolsServerDriver server;
+      late Uri serverUri;
+      late HttpClient client;
+
+      setUpAll(() async {
+        server = await DevToolsServerDriver.create(
+          additionalArgs: ['--disable-service-origin-check'],
+        );
         final event = (await server.stdout.firstWhere(
           (map) => map!['event'] == 'server.started',
         ))!;
         final port = event['params']['port'] as int;
-        final serverUri = Uri.parse('http://127.0.0.1:$port/');
+        serverUri = Uri.parse('http://127.0.0.1:$port/');
+        client = HttpClient();
+      });
 
-        final client = HttpClient();
-
-        // Bad Host Header (should be ALLOWED -> 200 OK because checks are disabled)
-        {
-          final request = await client.getUrl(serverUri.resolve('api/ping'));
-          request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
-          final response = await request.close();
-          expect(response.statusCode, HttpStatus.ok);
-          await response.drain();
-        }
-
-        // Bad Origin Header to /api/sse (should be ALLOWED -> not 403, though it might fail with 400/404 because of invalid SSE handshake)
-        {
-          final request = await client.getUrl(serverUri.resolve('api/sse'));
-          request.headers.set('Origin', 'http://evil.example.com');
-          final response = await request.close();
-          expect(response.statusCode, isNot(HttpStatus.forbidden));
-          await response.drain();
-        }
-
+      tearDownAll(() async {
         client.close();
-      } finally {
         server.kill();
-      }
-    }, timeout: const Timeout.factor(10));
-  });
+      });
+
+      test('allows bad Host Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set(HttpHeaders.hostHeader, 'evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.ok);
+        await response.drain();
+      });
+
+      test('allows bad Origin Header to /api/sse', () async {
+        final request = await client.getUrl(serverUri.resolve('api/sse'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, isNot(HttpStatus.forbidden));
+        await response.drain();
+      });
+    });
+  }, timeout: const Timeout.factor(10));
 }

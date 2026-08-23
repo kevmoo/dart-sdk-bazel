@@ -11,15 +11,14 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(DeadCodeTest_Language219);
+    defineReflectiveTests(DeadCodeTest_BeforePatterns);
     defineReflectiveTests(DeadCodeTest_AnonymousMethodsExperiment);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class DeadCodeTest extends PubPackageResolutionTest
-    with DeadCodeTestCases_Language212 {
+class DeadCodeTest extends PubPackageResolutionTest with DeadCodeTestCases {
   test_asExpression_type() async {
     await resolveTestCodeWithDiagnostics(r'''
 Never doNotReturn() => throw 0;
@@ -235,10 +234,9 @@ void f() {
 ''');
   }
 
-  test_localFunction_wildcard_preWildcards() async {
+  test_localFunction_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f() {
   _(){}
@@ -281,7 +279,18 @@ void f(Null n, int i) {
 ''');
   }
 
-  test_nullAwarePropertyRead() async {
+  test_nullAwarePropertyRead_parenthesizedExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Null n) {
+  (n)?.p;
+//     ^
+// [diag.deadCode] Dead code.
+  print('reached');
+}
+''');
+  }
+
+  test_nullAwarePropertyRead_simpleIdentifier() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(Null n) {
   n?.p;
@@ -292,7 +301,18 @@ void f(Null n) {
 ''');
   }
 
-  test_nullAwarePropertyWrite() async {
+  test_nullAwarePropertyWrite_parenthesizedExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Null n, int i) {
+  (n)?.p = i;
+//     ^^^^^
+// [diag.deadCode] Dead code.
+  print('reached');
+}
+''');
+  }
+
+  test_nullAwarePropertyWrite_simpleIdentifier() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(Null n, int i) {
   n?.p = i;
@@ -433,8 +453,8 @@ Never get never => throw 0;
 }
 
 @reflectiveTest
-class DeadCodeTest_Language219 extends PubPackageResolutionTest
-    with WithLanguage219Mixin, DeadCodeTestCases_Language212 {
+class DeadCodeTest_BeforePatterns extends PubPackageResolutionTest
+    with BeforePatternsMixin, DeadCodeTestCases {
   @override
   test_lateWildCardVariable_initializer() async {
     await resolveTestCodeWithDiagnostics(r'''
@@ -446,7 +466,7 @@ f() {
   }
 }
 
-mixin DeadCodeTestCases_Language212 on PubPackageResolutionTest {
+mixin DeadCodeTestCases on PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
