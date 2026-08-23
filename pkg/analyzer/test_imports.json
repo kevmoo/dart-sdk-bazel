@@ -640,7 +640,6 @@
     "lib/src/error/todo_finder.dart",
     "lib/src/error/unicode_text_verifier.dart",
     "lib/src/error/unused_local_elements_verifier.dart",
-    "lib/src/generated/element_walker.dart",
     "lib/src/generated/error_verifier.dart",
     "lib/src/generated/ffi_verifier.dart",
     "lib/src/generated/resolver.dart",
@@ -799,6 +798,7 @@
     "lib/dart/ast/token.dart",
     "lib/dart/constant/value.dart",
     "lib/dart/element/element.dart",
+    "lib/dart/element/nullability_suffix.dart",
     "lib/dart/element/scope.dart",
     "lib/dart/element/type.dart",
     "lib/diagnostic/diagnostic.dart",
@@ -838,7 +838,8 @@
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/ast/ast.dart",
-    "lib/src/dart/ast/extensions.dart"
+    "lib/src/dart/ast/extensions.dart",
+    "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/dart/ast/extensions.dart": [
     "lib/dart/ast/syntactic_entity.dart",
@@ -854,7 +855,6 @@
   ],
   "lib/src/dart/ast/mixin_super_invoked_names.dart": [
     "lib/dart/ast/ast.dart",
-    "lib/dart/ast/token.dart",
     "lib/dart/ast/visitor.dart"
   ],
   "lib/src/dart/ast/to_source_visitor.dart": [
@@ -953,7 +953,6 @@
   "lib/src/dart/constant/potentially_constant.dart": [
     "lib/dart/analysis/features.dart",
     "lib/dart/ast/ast.dart",
-    "lib/dart/ast/token.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/ast/extensions.dart",
@@ -1389,11 +1388,13 @@
     "lib/source/line_info.dart",
     "lib/src/analysis_options/analysis_options.dart",
     "lib/src/analysis_options/analysis_options_parser.dart",
-    "lib/src/clients/build_resolvers/build_resolvers.dart",
+    "lib/src/context/packages.dart",
     "lib/src/dart/analysis/analysis_options_map.dart",
+    "lib/src/dart/analysis/byte_store.dart",
     "lib/src/dart/analysis/cache.dart",
     "lib/src/dart/analysis/context_root.dart",
     "lib/src/dart/analysis/driver.dart",
+    "lib/src/dart/analysis/experiments.dart",
     "lib/src/dart/analysis/feature_set_provider.dart",
     "lib/src/dart/analysis/file_state.dart",
     "lib/src/dart/analysis/library_analyzer.dart",
@@ -1485,7 +1486,6 @@
     "lib/dart/analysis/features.dart",
     "lib/dart/ast/syntactic_entity.dart",
     "lib/dart/ast/token.dart",
-    "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/ast/extensions.dart",
@@ -1549,7 +1549,6 @@
     "lib/dart/element/element.dart",
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/element/element.dart",
-    "lib/src/generated/element_walker.dart",
     "lib/src/utilities/extensions/collection.dart"
   ],
   "lib/src/dart/resolver/exit_detector.dart": [
@@ -1583,7 +1582,6 @@
   ],
   "lib/src/dart/resolver/flow_analysis_visitor.dart": [
     "lib/dart/ast/syntactic_entity.dart",
-    "lib/dart/ast/token.dart",
     "lib/dart/ast/visitor.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/nullability_suffix.dart",
@@ -1609,9 +1607,9 @@
     "lib/src/dart/element/type_schema.dart",
     "lib/src/dart/element/type_system.dart",
     "lib/src/dart/resolver/assignment_expression_resolver.dart",
+    "lib/src/dart/resolver/property_element_resolver.dart",
     "lib/src/dart/resolver/typed_literal_resolver.dart",
     "lib/src/diagnostic/diagnostic.dart",
-    "lib/src/generated/inference_log.dart",
     "lib/src/generated/resolver.dart"
   ],
   "lib/src/dart/resolver/function_expression_invocation_resolver.dart": [
@@ -1656,6 +1654,24 @@
     "lib/src/dart/type_instantiation_target.dart",
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/error/listener.dart",
+    "lib/src/generated/resolver.dart"
+  ],
+  "lib/src/dart/resolver/increment_or_decrement_resolver.dart": [
+    "lib/dart/ast/token.dart",
+    "lib/dart/element/element.dart",
+    "lib/dart/element/type.dart",
+    "lib/src/dart/ast/ast.dart",
+    "lib/src/dart/element/element.dart",
+    "lib/src/dart/element/type.dart",
+    "lib/src/dart/element/type_provider.dart",
+    "lib/src/dart/element/type_schema.dart",
+    "lib/src/dart/element/type_system.dart",
+    "lib/src/dart/resolver/assignment_expression_resolver.dart",
+    "lib/src/dart/resolver/invocation_inferrer.dart",
+    "lib/src/dart/resolver/type_property_resolver.dart",
+    "lib/src/diagnostic/diagnostic.dart",
+    "lib/src/error/listener.dart",
+    "lib/src/generated/error_detection_helpers.dart",
     "lib/src/generated/resolver.dart"
   ],
   "lib/src/dart/resolver/invocation_inference_helper.dart": [
@@ -1708,6 +1724,10 @@
     "lib/src/error/listener.dart",
     "lib/src/generated/resolver.dart"
   ],
+  "lib/src/dart/resolver/logical_not_resolver.dart": [
+    "lib/src/dart/ast/ast.dart",
+    "lib/src/generated/resolver.dart"
+  ],
   "lib/src/dart/resolver/method_invocation_resolver.dart": [
     "lib/dart/ast/token.dart",
     "lib/dart/element/element.dart",
@@ -1718,6 +1738,7 @@
     "lib/src/dart/element/element.dart",
     "lib/src/dart/element/inheritance_manager3.dart",
     "lib/src/dart/element/type.dart",
+    "lib/src/dart/element/type_schema.dart",
     "lib/src/dart/element/type_system.dart",
     "lib/src/dart/resolver/extension_member_resolver.dart",
     "lib/src/dart/resolver/invocation_inference_helper.dart",
@@ -1752,36 +1773,11 @@
     "lib/src/error/listener.dart",
     "lib/src/generated/scope_helpers.dart"
   ],
-  "lib/src/dart/resolver/postfix_expression_resolver.dart": [
-    "lib/dart/ast/token.dart",
-    "lib/dart/element/element.dart",
-    "lib/dart/element/type.dart",
+  "lib/src/dart/resolver/null_assertion_expression_resolver.dart": [
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/ast/extensions.dart",
-    "lib/src/dart/element/element.dart",
     "lib/src/dart/element/type.dart",
     "lib/src/dart/element/type_system.dart",
-    "lib/src/dart/resolver/assignment_expression_resolver.dart",
-    "lib/src/dart/resolver/invocation_inferrer.dart",
-    "lib/src/dart/resolver/type_property_resolver.dart",
-    "lib/src/diagnostic/diagnostic.dart",
-    "lib/src/error/listener.dart",
-    "lib/src/generated/resolver.dart"
-  ],
-  "lib/src/dart/resolver/prefix_expression_resolver.dart": [
-    "lib/dart/ast/token.dart",
-    "lib/dart/element/element.dart",
-    "lib/dart/element/type.dart",
-    "lib/src/dart/ast/ast.dart",
-    "lib/src/dart/ast/extensions.dart",
-    "lib/src/dart/element/element.dart",
-    "lib/src/dart/element/type.dart",
-    "lib/src/dart/element/type_provider.dart",
-    "lib/src/dart/element/type_schema.dart",
-    "lib/src/dart/element/type_system.dart",
-    "lib/src/dart/resolver/assignment_expression_resolver.dart",
-    "lib/src/dart/resolver/invocation_inferrer.dart",
-    "lib/src/dart/resolver/type_property_resolver.dart",
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/error/listener.dart",
     "lib/src/generated/resolver.dart"
@@ -1802,7 +1798,11 @@
   ],
   "lib/src/dart/resolver/property_element_resolver.dart": [
     "lib/dart/analysis/features.dart",
+    "lib/dart/ast/syntactic_entity.dart",
+    "lib/dart/ast/token.dart",
     "lib/dart/element/element.dart",
+    "lib/dart/element/nullability_suffix.dart",
+    "lib/dart/element/scope.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/ast/extensions.dart",
@@ -1815,6 +1815,7 @@
     "lib/src/dart/resolver/extension_member_resolver.dart",
     "lib/src/dart/resolver/lexical_lookup.dart",
     "lib/src/dart/resolver/resolution_result.dart",
+    "lib/src/dart/resolver/this_lookup.dart",
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/error/assignment_verifier.dart",
     "lib/src/error/codes.dart",
@@ -1856,6 +1857,7 @@
   ],
   "lib/src/dart/resolver/resolution_visitor.dart": [
     "lib/dart/analysis/features.dart",
+    "lib/dart/ast/syntactic_entity.dart",
     "lib/dart/ast/token.dart",
     "lib/dart/ast/visitor.dart",
     "lib/dart/element/element.dart",
@@ -1967,6 +1969,17 @@
     "lib/src/generated/resolver.dart",
     "lib/src/generated/utilities_dart.dart"
   ],
+  "lib/src/dart/resolver/unary_operator_invocation_resolver.dart": [
+    "lib/src/dart/ast/ast.dart",
+    "lib/src/dart/ast/extensions.dart",
+    "lib/src/dart/element/element.dart",
+    "lib/src/dart/element/type.dart",
+    "lib/src/dart/element/type_schema.dart",
+    "lib/src/dart/resolver/type_property_resolver.dart",
+    "lib/src/diagnostic/diagnostic.dart",
+    "lib/src/error/listener.dart",
+    "lib/src/generated/resolver.dart"
+  ],
   "lib/src/dart/resolver/variable_declaration_resolver.dart": [
     "lib/dart/element/element.dart",
     "lib/src/dart/ast/ast.dart",
@@ -2039,6 +2052,10 @@
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/diagnostic/diagnostic_code_values.g.dart"
   ],
+  "lib/src/diagnostic/diagnostic_data.dart": [
+    "lib/src/dart/element/type.dart",
+    "lib/src/diagnostic/diagnostic.dart"
+  ],
   "lib/src/diagnostic/diagnostic_factory.dart": [
     "lib/dart/ast/syntactic_entity.dart",
     "lib/dart/ast/token.dart",
@@ -2048,6 +2065,7 @@
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/element/element.dart",
     "lib/src/diagnostic/diagnostic.dart",
+    "lib/src/utilities/extensions/element.dart",
     "lib/src/utilities/extensions/string.dart"
   ],
   "lib/src/error/annotation_verifier.dart": [
@@ -2066,11 +2084,15 @@
   ],
   "lib/src/error/assignment_verifier.dart": [
     "lib/dart/ast/ast.dart",
+    "lib/dart/ast/syntactic_entity.dart",
+    "lib/dart/ast/token.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/element/element.dart",
     "lib/src/diagnostic/diagnostic.dart",
-    "lib/src/error/listener.dart"
+    "lib/src/diagnostic/diagnostic_factory.dart",
+    "lib/src/error/listener.dart",
+    "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/error/async_return_visitor.dart": [
     "lib/dart/ast/ast.dart",
@@ -2129,6 +2151,7 @@
     "lib/src/error/widget_preview_verifier.dart",
     "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/element.dart",
+    "lib/src/utilities/extensions/object.dart",
     "lib/src/workspace/workspace.dart"
   ],
   "lib/src/error/bool_expression_verifier.dart": [
@@ -2190,7 +2213,6 @@
     "lib/src/dart/element/type.dart",
     "lib/src/dart/element/type_system.dart",
     "lib/src/dart/resolver/flow_analysis_visitor.dart",
-    "lib/src/dart/resolver/scope.dart",
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/error/codes.dart",
     "lib/src/error/listener.dart"
@@ -2334,7 +2356,6 @@
     "lib/src/error/getter_setter_types_verifier.dart",
     "lib/src/error/inference_error.dart",
     "lib/src/error/listener.dart",
-    "lib/src/summary2/types_builder.dart",
     "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/error/language_version_override_verifier.dart": [
@@ -2383,7 +2404,6 @@
     "lib/src/diagnostic/diagnostic_factory.dart",
     "lib/src/error/listener.dart",
     "lib/src/generated/error_verifier.dart",
-    "lib/src/utilities/extensions/element.dart",
     "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/error/must_call_super_verifier.dart": [
@@ -2504,7 +2524,6 @@
     "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/error/use_result_verifier.dart": [
-    "lib/dart/ast/token.dart",
     "lib/dart/element/element.dart",
     "lib/src/dart/ast/ast.dart",
     "lib/src/diagnostic/diagnostic.dart",
@@ -2588,7 +2607,6 @@
     "lib/src/utilities/extensions/string.dart"
   ],
   "lib/src/fine/manifest_ast.dart": [
-    "lib/dart/ast/ast.dart",
     "lib/dart/ast/visitor.dart",
     "lib/dart/element/element.dart",
     "lib/src/binary/binary_reader.dart",
@@ -2677,9 +2695,6 @@
     "lib/src/generated/super_context.dart",
     "lib/src/utilities/extensions/object.dart"
   ],
-  "lib/src/generated/element_walker.dart": [
-    "lib/src/dart/element/element.dart"
-  ],
   "lib/src/generated/engine.dart": [
     "lib/dart/analysis/analysis_options.dart",
     "lib/dart/analysis/declared_variables.dart",
@@ -2733,6 +2748,7 @@
     "lib/src/dart/resolver/flow_analysis_visitor.dart",
     "lib/src/dart/resolver/scope.dart",
     "lib/src/diagnostic/diagnostic.dart",
+    "lib/src/diagnostic/diagnostic_data.dart",
     "lib/src/diagnostic/diagnostic_factory.dart",
     "lib/src/error/async_return_visitor.dart",
     "lib/src/error/codes.dart",
@@ -2751,11 +2767,9 @@
     "lib/src/error/use_result_verifier.dart",
     "lib/src/generated/error_detection_helpers.dart",
     "lib/src/generated/java_core.dart",
-    "lib/src/summary2/types_builder.dart",
     "lib/src/util/collection.dart",
     "lib/src/utilities/extensions/element.dart",
-    "lib/src/utilities/extensions/object.dart",
-    "lib/src/utilities/extensions/string.dart"
+    "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/generated/exhaustiveness.dart": [
     "lib/dart/analysis/features.dart",
@@ -2844,12 +2858,13 @@
     "lib/src/dart/resolver/function_expression_invocation_resolver.dart",
     "lib/src/dart/resolver/function_expression_resolver.dart",
     "lib/src/dart/resolver/function_reference_resolver.dart",
+    "lib/src/dart/resolver/increment_or_decrement_resolver.dart",
     "lib/src/dart/resolver/invocation_inference_helper.dart",
     "lib/src/dart/resolver/invocation_inferrer.dart",
     "lib/src/dart/resolver/lexical_lookup.dart",
     "lib/src/dart/resolver/list_pattern_resolver.dart",
-    "lib/src/dart/resolver/postfix_expression_resolver.dart",
-    "lib/src/dart/resolver/prefix_expression_resolver.dart",
+    "lib/src/dart/resolver/logical_not_resolver.dart",
+    "lib/src/dart/resolver/null_assertion_expression_resolver.dart",
     "lib/src/dart/resolver/prefixed_identifier_resolver.dart",
     "lib/src/dart/resolver/property_element_resolver.dart",
     "lib/src/dart/resolver/record_literal_resolver.dart",
@@ -2858,6 +2873,7 @@
     "lib/src/dart/resolver/this_lookup.dart",
     "lib/src/dart/resolver/type_property_resolver.dart",
     "lib/src/dart/resolver/typed_literal_resolver.dart",
+    "lib/src/dart/resolver/unary_operator_invocation_resolver.dart",
     "lib/src/dart/resolver/variable_declaration_resolver.dart",
     "lib/src/dart/resolver/yield_statement_resolver.dart",
     "lib/src/dart/type_instantiation_target.dart",
@@ -2932,18 +2948,19 @@
   ],
   "lib/src/generated/variable_type_provider.dart": [
     "lib/src/dart/ast/ast.dart",
+    "lib/src/dart/element/element.dart",
     "lib/src/dart/element/type.dart"
   ],
   "lib/src/hint/sdk_constraint_extractor.dart": [
     "lib/file_system/file_system.dart"
   ],
   "lib/src/hint/sdk_constraint_verifier.dart": [
-    "lib/dart/ast/ast.dart",
     "lib/dart/ast/syntactic_entity.dart",
     "lib/dart/ast/token.dart",
     "lib/dart/ast/visitor.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
+    "lib/src/dart/ast/ast.dart",
     "lib/src/diagnostic/diagnostic.dart",
     "lib/src/error/listener.dart",
     "lib/src/utilities/extensions/version.dart"
@@ -3198,7 +3215,6 @@
     "lib/src/summary2/informative_data.dart",
     "lib/src/summary2/linked_element_factory.dart",
     "lib/src/summary2/reference.dart",
-    "lib/src/utilities/extensions/element.dart",
     "lib/src/utilities/uri_cache.dart"
   ],
   "lib/src/summary2/bundle_writer.dart": [
@@ -3216,6 +3232,7 @@
     "lib/src/dart/element/type.dart",
     "lib/src/dart/element/type_algebra.dart",
     "lib/src/error/inference_error.dart",
+    "lib/src/generated/utilities_dart.dart",
     "lib/src/summary2/ast_binary_tag.dart",
     "lib/src/summary2/ast_binary_writer.dart",
     "lib/src/summary2/export.dart",
@@ -3340,7 +3357,8 @@
   "lib/src/summary2/interface_cycles.dart": [
     "lib/src/dart/ast/ast.dart",
     "lib/src/dart/element/element.dart",
-    "lib/src/summary2/link.dart"
+    "lib/src/summary2/link.dart",
+    "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/summary2/library_builder.dart": [
     "lib/dart/analysis/features.dart",
@@ -3364,8 +3382,7 @@
     "lib/src/summary2/reference_resolver.dart",
     "lib/src/summary2/types_builder.dart",
     "lib/src/util/performance/operation_performance.dart",
-    "lib/src/utilities/extensions/collection.dart",
-    "lib/src/utilities/extensions/element.dart"
+    "lib/src/utilities/extensions/collection.dart"
   ],
   "lib/src/summary2/link.dart": [
     "lib/dart/analysis/declared_variables.dart",
@@ -3536,8 +3553,7 @@
     "lib/src/summary2/interface_cycles.dart",
     "lib/src/summary2/link.dart",
     "lib/src/summary2/type_builder.dart",
-    "lib/src/utilities/extensions/collection.dart",
-    "lib/src/utilities/extensions/element.dart"
+    "lib/src/utilities/extensions/collection.dart"
   ],
   "lib/src/summary2/variance_builder.dart": [
     "lib/dart/element/element.dart",
@@ -3550,7 +3566,7 @@
     "lib/src/summary2/named_type_builder.dart",
     "lib/src/summary2/record_type_builder.dart"
   ],
-  "lib/src/test_utilities/find_element2.dart": [
+  "lib/src/test_utilities/find_element.dart": [
     "lib/dart/ast/ast.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
@@ -3606,6 +3622,7 @@
   ],
   "lib/src/util/ast_data_extractor.dart": [
     "lib/dart/ast/ast.dart",
+    "lib/dart/ast/token.dart",
     "lib/dart/ast/visitor.dart",
     "lib/dart/element/element.dart"
   ],
@@ -3654,7 +3671,6 @@
     "lib/dart/element/nullability_suffix.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/element/element.dart",
-    "lib/src/dart/element/member.dart",
     "lib/src/dart/element/type.dart",
     "lib/src/diagnostic/diagnostic.dart"
   ],
@@ -3686,6 +3702,7 @@
     "lib/dart/element/type.dart",
     "lib/dart/element/type_provider.dart",
     "lib/dart/element/type_system.dart",
+    "lib/src/dart/ast/ast.dart",
     "lib/src/dart/element/inheritance_manager3.dart",
     "lib/src/wolf/ir/call_descriptor.dart",
     "lib/src/wolf/ir/coded_ir.dart",
@@ -4288,15 +4305,16 @@
     "test/util/id_testing_helper.dart"
   ],
   "test/id_tests/type_promotion_test.dart": [
-    "lib/dart/ast/ast.dart",
     "lib/dart/element/element.dart",
     "lib/dart/element/type.dart",
     "lib/src/dart/analysis/testing_data.dart",
+    "lib/src/dart/ast/ast.dart",
     "lib/src/util/ast_data_extractor.dart",
     "test/util/id_testing_helper.dart"
   ],
   "test/id_tests/why_not_promoted_test.dart": [
     "lib/dart/ast/ast.dart",
+    "lib/dart/ast/token.dart",
     "lib/src/dart/analysis/testing_data.dart",
     "lib/src/dart/resolver/flow_analysis_visitor.dart",
     "lib/src/util/ast_data_extractor.dart",
@@ -4562,12 +4580,14 @@
     "lib/dart/element/element.dart",
     "lib/file_system/file_system.dart",
     "lib/src/dart/analysis/index.dart",
+    "lib/src/dart/analysis/session.dart",
     "lib/src/dart/element/element.dart",
     "lib/src/summary/idl.dart",
-    "lib/src/test_utilities/find_element2.dart",
+    "lib/src/test_utilities/find_element.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart",
-    "test/util/diff.dart"
+    "test/util/diff.dart",
+    "test/util/element_printer.dart"
   ],
   "test/src/dart/analysis/referenced_names_test.dart": [
     "lib/src/dart/analysis/referenced_names.dart",
@@ -4625,13 +4645,12 @@
     "lib/file_system/file_system.dart",
     "lib/src/dart/analysis/driver.dart",
     "lib/src/dart/analysis/search.dart",
-    "lib/src/test_utilities/find_element2.dart",
+    "lib/src/test_utilities/find_element.dart",
     "lib/src/util/performance/operation_performance.dart",
     "lib/src/utilities/cancellation.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart",
-    "test/util/diff.dart",
-    "test/util/element_printer.dart"
+    "test/util/diff.dart"
   ],
   "test/src/dart/analysis/session_helper_test.dart": [
     "lib/dart/ast/ast.dart",
@@ -4679,6 +4698,7 @@
   ],
   "test/src/dart/analysis/unlinked_api_signature_test.dart": [
     "lib/src/dart/analysis/unlinked_api_signature.dart",
+    "lib/src/dart/ast/ast.dart",
     "test/src/diagnostics/parser_diagnostics.dart"
   ],
   "test/src/dart/analysis/uri_converter_test.dart": [
@@ -4699,8 +4719,10 @@
     "lib/dart/ast/visitor.dart",
     "lib/source/source_range.dart",
     "lib/src/dart/ast/ast.dart",
+    "lib/src/test_utilities/find_node.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
-    "test/src/diagnostics/parser_diagnostics.dart"
+    "test/src/diagnostics/parser_diagnostics.dart",
+    "test/util/language_feature_directive_lowering.dart"
   ],
   "test/src/dart/ast/constant_evaluator_test.dart": [
     "lib/dart/ast/ast.dart",
@@ -4711,7 +4733,6 @@
   "test/src/dart/ast/element_locator_test.dart": [
     "lib/dart/element/element.dart",
     "lib/src/dart/ast/element_locator.dart",
-    "lib/src/test_utilities/find_node.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart",
     "test/util/diff.dart",
@@ -5153,6 +5174,7 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/dart/resolution/assignment_test.dart": [
+    "lib/dart/ast/ast.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5208,7 +5230,7 @@
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
-  "test/src/dart/resolution/constructor_reference_test.dart": [
+  "test/src/dart/resolution/constructor_tear_off_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5240,7 +5262,8 @@
     "test/src/dart/analysis/analyzer_state_printer.dart",
     "test/src/dart/resolution/node_text_expectations.dart",
     "test/src/dart/resolution/resolution.dart",
-    "test/util/diff.dart"
+    "test/util/diff.dart",
+    "test/util/language_feature_directive_lowering.dart"
   ],
   "test/src/dart/resolution/dart_object_printer.dart": [
     "lib/dart/element/type.dart",
@@ -5357,6 +5380,7 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/dart/resolution/index_expression_test.dart": [
+    "lib/dart/ast/ast.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5488,6 +5512,7 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/dart/resolution/parenthesized_expression_test.dart": [
+    "lib/dart/ast/ast.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5522,6 +5547,7 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/dart/resolution/property_access_test.dart": [
+    "lib/dart/ast/ast.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5563,7 +5589,7 @@
     "lib/src/dart/element/type_algebra.dart",
     "lib/src/dart/element/type_provider.dart",
     "lib/src/dart/element/type_system.dart",
-    "lib/src/test_utilities/find_element2.dart",
+    "lib/src/test_utilities/find_element.dart",
     "lib/src/test_utilities/find_node.dart",
     "test/src/dart/analysis/result_printer.dart",
     "test/src/dart/resolution/dart_object_printer.dart",
@@ -5592,7 +5618,7 @@
   ],
   "test/src/dart/resolution/super_formal_parameter_test.dart": [
     "lib/src/dart/element/member.dart",
-    "lib/src/test_utilities/find_element2.dart",
+    "lib/src/test_utilities/find_element.dart",
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -5621,7 +5647,7 @@
     "test/src/dart/resolution/constant_test.dart",
     "test/src/dart/resolution/constructor_field_initializer_test.dart",
     "test/src/dart/resolution/constructor_invocation_test.dart",
-    "test/src/dart/resolution/constructor_reference_test.dart",
+    "test/src/dart/resolution/constructor_tear_off_test.dart",
     "test/src/dart/resolution/constructor_test.dart",
     "test/src/dart/resolution/declared_variable_pattern_test.dart",
     "test/src/dart/resolution/dot_shorthand_constructor_invocation_test.dart",
@@ -5877,10 +5903,6 @@
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
-  "test/src/diagnostics/abstract_class_member_test.dart": [
-    "test/src/dart/resolution/context_collection_resolution.dart",
-    "test/src/dart/resolution/node_text_expectations.dart"
-  ],
   "test/src/diagnostics/abstract_field_constructor_initializer_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
@@ -6115,9 +6137,6 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/diagnostics/concrete_class_has_enum_superinterface_test.dart": [
-    "test/src/dart/resolution/context_collection_resolution.dart"
-  ],
-  "test/src/diagnostics/concrete_class_with_abstract_member_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/conflicting_constructor_and_static_field_test.dart": [
@@ -6358,6 +6377,9 @@
   "test/src/diagnostics/deprecated_subclass_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
+  "test/src/diagnostics/different_inherited_getter_and_setter_types_test.dart": [
+    "test/src/dart/resolution/context_collection_resolution.dart"
+  ],
   "test/src/diagnostics/doc_directive_argument_wrong_format_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
@@ -6451,9 +6473,6 @@
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/enum_mixin_with_instance_variable_test.dart": [
-    "test/src/dart/resolution/context_collection_resolution.dart"
-  ],
-  "test/src/diagnostics/enum_with_abstract_member_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/enum_with_name_values_test.dart": [
@@ -6609,6 +6628,9 @@
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/ffi_async_callback_test.dart": [
+    "test/src/dart/resolution/context_collection_resolution.dart"
+  ],
+  "test/src/diagnostics/ffi_from_function_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/ffi_leaf_call_must_not_use_handle_test.dart": [
@@ -6894,9 +6916,6 @@
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/invalid_modifier_on_constructor_test.dart": [
-    "test/src/dart/resolution/context_collection_resolution.dart"
-  ],
-  "test/src/diagnostics/invalid_modifier_on_setter_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart"
   ],
   "test/src/diagnostics/invalid_non_virtual_annotation_test.dart": [
@@ -7197,10 +7216,6 @@
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
   "test/src/diagnostics/native_clause_in_non_sdk_code_test.dart": [
-    "test/src/dart/resolution/context_collection_resolution.dart",
-    "test/src/dart/resolution/node_text_expectations.dart"
-  ],
-  "test/src/diagnostics/native_function_body_in_non_sdk_code_test.dart": [
     "test/src/dart/resolution/context_collection_resolution.dart",
     "test/src/dart/resolution/node_text_expectations.dart"
   ],
@@ -7830,7 +7845,6 @@
   "test/src/diagnostics/test_all.dart": [
     "test/src/dart/resolution/node_text_expectations.dart",
     "test/src/diagnostics/abi_specific_integer_mapping_test.dart",
-    "test/src/diagnostics/abstract_class_member_test.dart",
     "test/src/diagnostics/abstract_field_constructor_initializer_test.dart",
     "test/src/diagnostics/abstract_field_initializer_test.dart",
     "test/src/diagnostics/abstract_super_member_reference_test.dart",
@@ -7892,7 +7906,6 @@
     "test/src/diagnostics/class_used_as_mixin_declares_generative_constructor_test.dart",
     "test/src/diagnostics/class_used_as_mixin_test.dart",
     "test/src/diagnostics/concrete_class_has_enum_superinterface_test.dart",
-    "test/src/diagnostics/concrete_class_with_abstract_member_test.dart",
     "test/src/diagnostics/conflicting_constructor_and_static_field_test.dart",
     "test/src/diagnostics/conflicting_constructor_and_static_method_test.dart",
     "test/src/diagnostics/conflicting_field_and_method_test.dart",
@@ -7964,6 +7977,7 @@
     "test/src/diagnostics/deprecated_mixin_test.dart",
     "test/src/diagnostics/deprecated_optional_test.dart",
     "test/src/diagnostics/deprecated_subclass_test.dart",
+    "test/src/diagnostics/different_inherited_getter_and_setter_types_test.dart",
     "test/src/diagnostics/doc_directive_argument_wrong_format_test.dart",
     "test/src/diagnostics/doc_directive_has_extra_arguments_test.dart",
     "test/src/diagnostics/doc_directive_has_unexpected_named_argument_test.dart",
@@ -7994,7 +8008,6 @@
     "test/src/diagnostics/enum_constant_same_name_as_enclosing_test.dart",
     "test/src/diagnostics/enum_instantiated_to_bounds_is_not_well_bounded_test.dart",
     "test/src/diagnostics/enum_mixin_with_instance_variable_test.dart",
-    "test/src/diagnostics/enum_with_abstract_member_test.dart",
     "test/src/diagnostics/enum_with_name_values_test.dart",
     "test/src/diagnostics/enum_without_constants_test.dart",
     "test/src/diagnostics/equal_elements_in_const_set_test.dart",
@@ -8045,6 +8058,7 @@
     "test/src/diagnostics/ffi_address_of_cast_test.dart",
     "test/src/diagnostics/ffi_array_test.dart",
     "test/src/diagnostics/ffi_async_callback_test.dart",
+    "test/src/diagnostics/ffi_from_function_test.dart",
     "test/src/diagnostics/ffi_leaf_call_must_not_use_handle_test.dart",
     "test/src/diagnostics/ffi_native_test.dart",
     "test/src/diagnostics/field_initializer_factory_constructor_test.dart",
@@ -8135,7 +8149,6 @@
     "test/src/diagnostics/invalid_language_override_test.dart",
     "test/src/diagnostics/invalid_literal_annotation_test.dart",
     "test/src/diagnostics/invalid_modifier_on_constructor_test.dart",
-    "test/src/diagnostics/invalid_modifier_on_setter_test.dart",
     "test/src/diagnostics/invalid_non_virtual_annotation_test.dart",
     "test/src/diagnostics/invalid_null_aware_elements_error_test.dart",
     "test/src/diagnostics/invalid_null_aware_operator_test.dart",
@@ -8216,7 +8229,6 @@
     "test/src/diagnostics/must_be_immutable_test.dart",
     "test/src/diagnostics/must_call_super_test.dart",
     "test/src/diagnostics/native_clause_in_non_sdk_code_test.dart",
-    "test/src/diagnostics/native_function_body_in_non_sdk_code_test.dart",
     "test/src/diagnostics/new_with_non_type_test.dart",
     "test/src/diagnostics/new_with_undefined_constructor_test.dart",
     "test/src/diagnostics/no_annotation_constructor_arguments_test.dart",
