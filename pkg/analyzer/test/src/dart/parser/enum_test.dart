@@ -676,7 +676,8 @@ augment enum E {
 ConstructorDeclaration
   augmentKeyword: augment
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -700,7 +701,8 @@ enum E {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   period: .
   name: named
@@ -726,7 +728,8 @@ enum E {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -749,7 +752,8 @@ enum E {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   period: .
   name: named
@@ -772,7 +776,8 @@ enum E {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -848,9 +853,9 @@ EnumDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E;
 //    ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -1434,9 +1439,9 @@ EnumDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 enum const E {v}
 //   ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.

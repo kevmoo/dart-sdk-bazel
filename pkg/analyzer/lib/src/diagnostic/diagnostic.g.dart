@@ -3982,6 +3982,34 @@ deprecatedSubclass = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String fieldName: the name of the field whose type can't be inferred
+/// String getterType: the return type of the combined getter signature
+/// String setterType: the parameter type of the combined setter signature
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String fieldName,
+    required String getterType,
+    required String setterType,
+  })
+>
+differentInheritedGetterAndSetterTypes = DiagnosticWithArguments(
+  name: 'different_inherited_getter_and_setter_types',
+  problemMessage:
+      "Can't infer a type for '{0}' because the combined member signature of the "
+      "getter has return type '{1}', which is not the same as the parameter "
+      "type '{2}' of the combined member signature of the setter.",
+  correctionMessage: "Try adding an explicit type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'different_inherited_getter_and_setter_types',
+  withArguments: _withArgumentsDifferentInheritedGetterAndSetterTypes,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments directiveAfterDeclaration =
     DiagnosticWithoutArgumentsImpl(
@@ -4900,6 +4928,24 @@ const DiagnosticWithoutArguments equalKeysInMapPattern =
       expectedTypes: [],
     );
 
+/// A warning code indicating that an exclude glob pattern is invalid.
+///
+/// Parameters:
+/// String pattern: the glob pattern
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String pattern})
+>
+excludeInvalidGlob = DiagnosticWithArguments(
+  name: 'exclude_invalid_glob',
+  problemMessage:
+      "The exclude glob pattern '{0}' shouldn't start with a forward slash.",
+  correctionMessage: "Remove the leading forward slash.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'exclude_invalid_glob',
+  withArguments: _withArgumentsExcludeInvalidGlob,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments expectedCaseOrDefault =
     DiagnosticWithoutArgumentsImpl(
@@ -5479,6 +5525,19 @@ const DiagnosticWithoutArguments extensionAugmentationHasOnClause =
       correctionMessage: "Try removing the 'on' clause.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'extension_augmentation_has_on_clause',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+///
+/// No parameters.
+const DiagnosticWithoutArguments extensionAugmentationWithoutName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extension_augmentation_without_name',
+      problemMessage: "An extension augmentation must have a name.",
+      correctionMessage: "Try adding the name of the extension to augment.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'extension_augmentation_without_name',
       expectedTypes: [],
     );
 
@@ -14043,28 +14102,6 @@ const DiagnosticWithoutArguments platformValueDisallowed =
       expectedTypes: [],
     );
 
-/// An error code indicating plugins have been specified in an "inner"
-/// analysis options file.
-///
-/// Parameters:
-/// String contextRoot: the root of the analysis context
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String contextRoot})
->
-pluginsInInnerOptions = DiagnosticWithArguments(
-  name: 'plugins_in_inner_options',
-  problemMessage:
-      "Plugins can only be specified in the root of a pub workspace or the root "
-      "of a package that isn't in a workspace.",
-  correctionMessage:
-      "Try specifying plugins in an analysis options file at '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'plugins_in_inner_options',
-  withArguments: _withArgumentsPluginsInInnerOptions,
-  expectedTypes: [ExpectedType.string],
-);
-
 /// No parameters.
 const DiagnosticWithoutArguments positionalAfterNamedArgument =
     DiagnosticWithoutArgumentsImpl(
@@ -19627,6 +19664,18 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
 }
 
+LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
+  required String fieldName,
+  required String getterType,
+  required String setterType,
+}) {
+  return LocatableDiagnosticImpl(diag.differentInheritedGetterAndSetterTypes, [
+    fieldName,
+    getterType,
+    setterType,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
   required String argumentName,
   required String expectedFormat,
@@ -19809,6 +19858,12 @@ LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
     methodName,
     enclosingClass,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsExcludeInvalidGlob({
+  required String pattern,
+}) {
+  return LocatableDiagnosticImpl(diag.excludeInvalidGlob, [pattern]);
 }
 
 LocatableDiagnostic _withArgumentsExpectedInstead({required String expected}) {
@@ -21629,12 +21684,6 @@ LocatableDiagnostic _withArgumentsPermissionImpliesUnsupportedHardware({
   return LocatableDiagnosticImpl(diag.permissionImpliesUnsupportedHardware, [
     name,
   ]);
-}
-
-LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
-  required String contextRoot,
-}) {
-  return LocatableDiagnosticImpl(diag.pluginsInInnerOptions, [contextRoot]);
 }
 
 LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({

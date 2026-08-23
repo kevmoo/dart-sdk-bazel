@@ -66,7 +66,7 @@ foo Future<List<int>> bar() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -107,7 +107,7 @@ main() { C<@Foo T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -145,7 +145,7 @@ main() { C<@Foo.bar(1) T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -190,7 +190,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -677,7 +677,7 @@ main() { else return 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -755,7 +755,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -943,7 +944,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -971,7 +973,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -1186,11 +1189,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1217,11 +1227,18 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1248,16 +1265,28 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1284,16 +1313,28 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1319,21 +1360,37 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixExpression
-          operand2: SimpleIdentifier
+        initialization2: PostfixDecrement
+          target: UnqualifiedNameAssignmentTarget
+            name: i
+          operator: --
+        initialization(v1): PostfixExpression
+          operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1359,21 +1416,37 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixExpression
-          operand2: SimpleIdentifier
+        initialization2: PostfixDecrement
+          target: UnqualifiedNameAssignmentTarget
+            name: i
+          operator: --
+        initialization(v1): PostfixExpression
+          operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1550,11 +1623,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1589,11 +1669,18 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
       rightParenthesis: )
@@ -1628,16 +1715,28 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1672,16 +1771,28 @@ Block
               initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1722,20 +1833,36 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+          PostfixDecrement
+            target: UnqualifiedNameAssignmentTarget
+              name: j
+            operator: --
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: j
             operator: --
       rightParenthesis: )
@@ -1776,20 +1903,36 @@ Block
               initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: i
           operator: <
-          rightOperand2: SimpleIdentifier
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+          PostfixDecrement
+            target: UnqualifiedNameAssignmentTarget
+              name: j
+            operator: --
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: j
             operator: --
       rightParenthesis: )
@@ -1826,8 +1969,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1864,8 +2012,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1894,8 +2047,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1924,8 +2082,13 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
-            operand2: SimpleIdentifier
+            operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
@@ -1970,11 +2133,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2021,11 +2191,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2070,11 +2247,18 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryExpression
-              leftOperand2: SimpleIdentifier
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
                 token: p
               operator: *
-              rightOperand2: IntegerLiteral
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
                 literal: 2
             semicolon: ;
   rightBracket: }
@@ -2657,9 +2841,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: AssignmentExpression
-        leftHandSide2: IndexExpression
-          target2: FunctionExpression
+      expression2: DirectAssignment
+        target: IndexAssignmentTarget
+          receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
@@ -2668,11 +2852,28 @@ Block
                 leftBracket: {
                 rightBracket: }
           leftBracket: [
-          index2: IntegerLiteral
+          index: IntegerLiteral
             literal: 0
           rightBracket: ]
         operator: =
-        rightHandSide2: NullLiteral
+        value: NullLiteral
+          literal: null
+      expression(v1): AssignmentExpression
+        leftHandSide: IndexExpression
+          target: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        rightHandSide: NullLiteral
           literal: null
       semicolon: ;
   rightBracket: }
@@ -2735,11 +2936,18 @@ Block
               statements
                 ReturnStatement
                   returnKeyword: return
-                  expression2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  expression2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: a
                     operator: +
-                    rightOperand2: SimpleIdentifier
+                    rightOperand: SimpleIdentifier
+                      token: a
+                    binaryOperator: add
+                  expression(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
                       token: a
                   semicolon: ;
               rightBracket: }
@@ -4055,7 +4263,7 @@ main() { try {} catch (int e) { } }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -4718,7 +4926,7 @@ Block
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4748,7 +4956,7 @@ foo <bar<
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

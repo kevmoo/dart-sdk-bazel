@@ -33,7 +33,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     }
 
     if (element.metadata.hasMustBeConst) {
-      var target = node.realTarget;
+      var target = node.realTarget2;
       if (!_isConst(target)) {
         _diagnosticReporter.report(
           diag.nonConstArgumentForConstParameter
@@ -50,8 +50,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _check(arguments: [node.rightOperand2], errorNode: node.operator);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    _check(arguments: [node.rightOperand], errorNode: node.operator);
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
   }
 
   @override
@@ -69,6 +74,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.staticInvokeType is FunctionType) {
       _check(arguments: node.argumentList.arguments2, errorNode: node);
@@ -76,8 +86,18 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _check(arguments: [node.index2], errorNode: node.leftBracket);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    _check(arguments: [node.index], errorNode: node.leftBracket);
   }
 
   @override
@@ -93,6 +113,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _checkTearoff(node.propertyName, node.propertyName.element);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkTearoff(node, element);
   }
 
   @override

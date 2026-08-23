@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
@@ -212,7 +211,7 @@ class ManifestNode {
   }
 }
 
-class _ElementCollector extends GeneralizingAstVisitor2<void> {
+class _ElementCollector extends UnifyingAstVisitor2<void> {
   bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
@@ -252,13 +251,22 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     node.visitChildren2(this);
     _addElement(node.element);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {}
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _addElement(element);
+  }
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
@@ -268,6 +276,7 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     node.visitChildren2(this);
+    _addElement(node.fieldElement);
   }
 
   @override
@@ -300,6 +309,21 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   void visitDoubleLiteral(DoubleLiteral node) {}
 
   @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    node.visitChildren2(this);
+    switch (node.write) {
+      case InvalidNamedWriteResolution(:var candidates):
+        for (var element in candidates) {
+          _addElement(element);
+        }
+      case NamedWriteResolutionWithElement(:var element):
+        _addElement(element);
+      case null:
+      case DynamicPropertyWriteResolution():
+    }
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     node.visitChildren2(this);
   }
@@ -325,6 +349,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitIfNull(IfNull node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _addElement(node.element);
   }
@@ -347,6 +376,21 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLogicalAnd(LogicalAnd node) {
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLogicalNot(LogicalNot node) {
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLogicalOr(LogicalOr node) {
     node.visitChildren2(this);
   }
 
@@ -383,6 +427,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitNullAssertionExpression(NullAssertionExpression node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {}
 
   @override
@@ -397,14 +446,18 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitPropertyAccess(PropertyAccess node) {
     node.visitChildren2(this);
-    _addElement(node.element);
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _addElement(element);
   }
 
   @override
@@ -468,6 +521,12 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
   }
 
   void _addElement(Element? element) {

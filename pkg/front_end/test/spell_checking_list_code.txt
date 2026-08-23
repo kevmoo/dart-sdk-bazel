@@ -89,6 +89,7 @@ arising
 arity
 arm
 arms
+arrays
 artifact
 artifacts
 artificial
@@ -349,11 +350,13 @@ condensed
 config
 configs
 configured
+confuses
 confusing
 connecting
 connections
 connectivity
 consecutive
+consecutively
 considerable
 consideration
 considering
@@ -445,6 +448,7 @@ decl
 deconstruct
 decoupled
 decreases
+decreasing
 dedupe
 deduplication
 deemed
@@ -524,6 +528,7 @@ disagrees
 disallow
 disambiguating
 disambiguation
+disambiguations
 disambiguator
 discourage
 discovers
@@ -647,6 +652,7 @@ executables
 execute
 executor
 executors
+exercised
 exhaust
 exhausted
 exhaustively
@@ -1018,6 +1024,7 @@ kustermann
 kv
 k’s
 l
+label's
 lacks
 lags
 lang
@@ -1076,6 +1083,7 @@ locatable
 locationd
 logged
 logically
+logs
 lookahead
 loopback
 lots
@@ -1098,7 +1106,6 @@ m
 machinery
 macos
 macro
-macro's
 macros
 maintained
 maintaining
@@ -1207,6 +1214,7 @@ noise
 noisy
 nomenclature
 nominality
+nondecreasing
 nonetheless
 nonexistent
 nonimplementation
@@ -1231,6 +1239,7 @@ nullification
 nullify
 nullness
 nulls
+numbered
 numeral
 o
 oauth
@@ -1402,6 +1411,7 @@ printer
 printf
 println
 prioritization
+probe
 proc
 proceeds
 processes
@@ -1440,6 +1450,7 @@ pub's
 pulled
 pure
 purge
+purposefully
 puts
 pv
 q
@@ -1498,6 +1509,7 @@ reassigns
 rebased
 rebasing
 rebind
+rebindings
 rebuild
 rebuilds
 rebuilt
@@ -1677,6 +1689,7 @@ selectively
 selectors
 semantically
 semver
+sensible
 sensitive
 separation
 separators
@@ -1784,6 +1797,7 @@ spin
 spite
 splitting
 spots
+spurious
 spuriously
 sq
 sra
@@ -1793,6 +1807,7 @@ srujzs
 ssa
 st
 stability
+stably
 stacks
 stacktrace
 stacktraces
@@ -1819,6 +1834,7 @@ stopped
 storage
 story
 str
+straightforward
 strategies
 streak
 streaming
@@ -1947,6 +1963,7 @@ therein
 thereof
 they'll
 they've
+thorough
 thought
 thread
 thresh
@@ -2021,6 +2038,7 @@ truncation
 ts
 tty
 tuple
+tuples
 twos
 type's
 typebounds

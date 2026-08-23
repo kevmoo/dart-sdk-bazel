@@ -289,12 +289,30 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: S
+    rightParenthesis: )
+    staticType: S
+  operator: .
+  propertyName: test
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@getter::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: S
@@ -327,10 +345,10 @@ void f<S extends num>(S x) {
     var node = result.findNode.assignment('(x).test');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ParenthesizedExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: S
@@ -343,7 +361,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: MethodInvocation
+  rightHandSide: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

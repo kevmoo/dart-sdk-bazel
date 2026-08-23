@@ -12,9 +12,9 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
@@ -28,8 +28,7 @@ class ForResolver {
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body2.resolveElement(_resolver, context);
-      _resolver.popRewrite();
+      _resolver.dispatchCollectionElement(node.body2, context);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -126,21 +125,28 @@ class ForResolver {
   ) {
     ExpressionImpl iterable = forEachParts.iterable2;
     DeclaredIdentifierImpl? loopVariable;
-    SimpleIdentifierImpl? identifier;
+    ForEachPartsWithIdentifierImpl? identifierParts;
     Element? identifierElement;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
-      identifier = forEachParts.identifier;
-      // TODO(scheglov): replace with lexical lookup
-      inferenceLogWriter?.setExpressionVisitCodePath(
-        identifier,
-        ExpressionVisitCodePath.forEachIdentifier,
-      );
-      identifier.accept2(_resolver);
+      identifierParts = forEachParts;
+      var write = PropertyElementResolver(
+        _resolver,
+      ).resolveForEachPartsWithIdentifier(forEachParts);
+      forEachParts.write = write;
       AssignmentExpressionShared(
         resolver: _resolver,
-      ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
+      ).checkFinalForEachIdentifier(forEachParts);
+      identifierElement = forEachParts.writeElement;
+
+      var identifierStaticType = switch (write) {
+        VariableWriteResolutionImpl(:var element) =>
+          _resolver.localVariableTypeProvider.getWriteType(element),
+        SetterInvocationResolutionImpl(:var acceptedType) => acceptedType,
+        _ => InvalidTypeImpl.instance,
+      };
+      forEachParts.setIdentifierStaticType(identifierStaticType);
     }
 
     TypeImpl? valueType;
@@ -148,19 +154,12 @@ class ForResolver {
       var typeAnnotation = loopVariable.type;
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     }
-    if (identifier != null) {
-      identifierElement = identifier.element;
-      if (identifierElement is VariableElement) {
-        valueType = _resolver.localVariableTypeProvider.getType(
-          identifier,
-          isRead: false,
-        );
-      } else if (identifierElement is InternalSetterElement) {
-        var parameters = identifierElement.formalParameters;
-        if (parameters.isNotEmpty) {
-          valueType = parameters[0].type;
-        }
-      }
+    if (identifierParts?.write case VariableWriteResolutionImpl(:var element)) {
+      valueType = _resolver.localVariableTypeProvider.getWriteType(element);
+    } else if (identifierParts?.write case SetterInvocationResolutionImpl(
+      :var acceptedType,
+    )) {
+      valueType = acceptedType;
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
@@ -236,7 +235,7 @@ class ForResolver {
 
     _resolver.flowAnalysis.for_conditionBegin(node);
 
-    var condition = forParts.condition;
+    var condition = forParts.condition2;
     if (condition != null) {
       _resolver.analyzeExpression(
         condition,

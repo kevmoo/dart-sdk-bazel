@@ -117,7 +117,7 @@ class ParserDiagnosticsTest {
         ..withTokenPreviousNext = withTokenPreviousNext,
       withResolution: false,
       withOffsets: withOffsets,
-    ).writeNode(node);
+    ).writeNodeWithV1Projection(node);
     return buffer.toString();
   }
 }
@@ -125,5 +125,9 @@ class ParserDiagnosticsTest {
 extension ParseStringResultExtension on ParseStringResult {
   FindNode2 get findNode {
     return FindNode2(content, unit);
+  }
+
+  FindNode get findNodeV1 {
+    return FindNode(content, unit);
   }
 }

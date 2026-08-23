@@ -27,6 +27,7 @@ exports_files([
     "errorcode.cpp",
     "filteredbrk.cpp",
     "filterednormalizer2.cpp",
+    "fixedstring.cpp",
     "icudataver.cpp",
     "icuplug.cpp",
     "loadednormalizer2impl.cpp",

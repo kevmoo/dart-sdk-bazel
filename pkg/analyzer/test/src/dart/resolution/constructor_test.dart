@@ -63,7 +63,8 @@ class A {
     var node = result.findNode.constructorFieldInitializer('v = _');
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: v
+  fieldName(v1): SimpleIdentifier
     token: v
     element: <testLibrary>::@class::A::@field::v
     staticType: null
@@ -72,6 +73,7 @@ ConstructorFieldInitializer
     token: _
     element: <testLibrary>::@class::A::@getter::_
     staticType: dynamic
+  fieldElement: <testLibrary>::@class::A::@field::v
 ''');
   }
 
@@ -89,7 +91,8 @@ class B {
     var node = result.findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -151,7 +154,8 @@ class C {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: _y
+  fieldName(v1): SimpleIdentifier
     token: _y
     element: <testLibrary>::@class::C::@field::_y
     staticType: null
@@ -160,6 +164,7 @@ ConstructorFieldInitializer
     token: _x
     element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     staticType: int?
+  fieldElement: <testLibrary>::@class::C::@field::_y
 ''');
   }
 
@@ -176,7 +181,8 @@ class C {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -230,7 +236,8 @@ class C {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: C
+  typeName(v1): SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -289,7 +296,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -340,7 +348,8 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -415,7 +424,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -466,7 +476,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -511,7 +522,8 @@ class B<U> {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
@@ -578,7 +590,8 @@ class B {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: B
+  typeName(v1): SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null

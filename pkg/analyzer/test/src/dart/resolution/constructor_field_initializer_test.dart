@@ -35,7 +35,8 @@ augment class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: _foo
+  fieldName(v1): SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::A::@field::_foo
     staticType: null
@@ -43,6 +44,7 @@ ConstructorFieldInitializer
   expression2: IntegerLiteral
     literal: 0
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::_foo
 ''');
   }
 
@@ -57,7 +59,8 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@class::A::@field::f
     staticType: null
@@ -66,6 +69,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -80,7 +84,8 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
@@ -98,13 +103,26 @@ ConstructorFieldInitializer
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: a
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                     staticType: int
                   operator: +
-                  rightOperand2: IntegerLiteral
+                  rightOperand: IntegerLiteral
+                    literal: 1
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+                    staticType: int
+                  binaryOperator: add
+                  element: dart:core::@class::num::@method::+
+                  staticType: int
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    staticType: int
+                  operator: +
+                  rightOperand: IntegerLiteral
                     literal: 1
                     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
                     staticType: int
@@ -125,6 +143,7 @@ ConstructorFieldInitializer
     element: <null>
     staticInvokeType: int Function()
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -139,7 +158,8 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
@@ -153,13 +173,26 @@ ConstructorFieldInitializer
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: BinaryExpression
-            leftOperand2: SimpleIdentifier
+          expression2: BinaryOperatorInvocation
+            leftOperand: SimpleIdentifier
               token: a
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               staticType: int
             operator: +
-            rightOperand2: IntegerLiteral
+            rightOperand: IntegerLiteral
+              literal: 1
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+              staticType: int
+            binaryOperator: add
+            element: dart:core::@class::num::@method::+
+            staticType: int
+          expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+              staticType: int
+            operator: +
+            rightOperand: IntegerLiteral
               literal: 1
               correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
               staticType: int
@@ -178,6 +211,7 @@ ConstructorFieldInitializer
     element: <null>
     staticInvokeType: int Function()
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -195,7 +229,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
@@ -204,6 +239,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -221,7 +257,8 @@ class X {}
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: X
+  fieldName(v1): SimpleIdentifier
     token: X
     element: <null>
     staticType: null
@@ -230,6 +267,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -247,7 +285,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
@@ -256,6 +295,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -275,7 +315,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -284,6 +325,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -301,7 +343,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -310,6 +353,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -327,7 +371,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
@@ -336,6 +381,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -353,7 +399,8 @@ void x() {}
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -362,6 +409,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -379,7 +427,8 @@ var x = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -388,6 +437,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -404,7 +454,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: T
+  fieldName(v1): SimpleIdentifier
     token: T
     element: <null>
     staticType: null
@@ -413,6 +464,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -429,7 +481,8 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -438,6 +491,7 @@ ConstructorFieldInitializer
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 }

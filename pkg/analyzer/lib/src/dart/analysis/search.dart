@@ -938,18 +938,81 @@ class Search {
     }
     if (getter != null) {
       await _addResults(results, getter, const {
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
         IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
             SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
-        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.READ,
       });
     }
     if (setter != null) {
       await _addResults(results, setter, const {
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.WRITE,
       });
     }
-    return results;
+
+    // A non-invocation reference, such as an import combinator, can be
+    // recorded against both synthetic accessors of the field.
+    var uniqueResults = {
+      for (var result in results)
+        (
+          result.enclosingFragment,
+          result.kind,
+          result.offset,
+          result.length,
+          result.isResolved,
+          result.isQualified,
+        ): result,
+    }.values;
+
+    var resultsByLocation =
+        <(Fragment, int, int, bool, bool), List<SearchResult>>{};
+    for (var result in uniqueResults) {
+      var key = (
+        result.enclosingFragment,
+        result.offset,
+        result.length,
+        result.isResolved,
+        result.isQualified,
+      );
+      resultsByLocation.add(key, result);
+    }
+
+    var mergedResults = <SearchResult>[];
+    for (var locationResults in resultsByLocation.values) {
+      SearchResult? readResult;
+      SearchResult? writeResult;
+      for (var result in locationResults) {
+        switch (result.kind) {
+          case SearchResultKind.READ:
+            readResult = result;
+          case SearchResultKind.WRITE:
+            writeResult = result;
+          default:
+            mergedResults.add(result);
+        }
+      }
+      if (readResult != null && writeResult != null) {
+        mergedResults.add(
+          SearchResult._(
+            readResult.enclosingFragment,
+            SearchResultKind.READ_WRITE,
+            readResult.offset,
+            readResult.length,
+            readResult.isResolved,
+            readResult.isQualified,
+          ),
+        );
+      } else {
+        if (readResult != null) {
+          mergedResults.add(readResult);
+        }
+        if (writeResult != null) {
+          mergedResults.add(writeResult);
+        }
+      }
+    }
+    return mergedResults;
   }
 
   Future<List<SearchResult>> _searchReferences_Function(Element element) async {
@@ -1788,10 +1851,69 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResultImpl(node.propertyName, kind, isQualified: true);
+    }
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element,
+        SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element,
+        SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+    }
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     node.importPrefix?.accept2(this);
     node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    if (elements.contains(element)) {
+      _addResultImpl(
+        node.identifier2,
+        SearchResultKind.WRITE,
+        isQualified: false,
+      );
+    }
+    node.iterable2.accept2(this);
   }
 
   @override
@@ -1830,6 +1952,50 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResultImpl(node.propertyName, kind, isQualified: true);
+    }
+    node.receiver.accept2(this);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element,
+        SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element,
+        SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+    }
+    node.receiver.accept2(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -1857,6 +2023,39 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
           kind = SearchResultKind.WRITE;
         }
       }
+      _addResult(node, kind);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+
+    if (kind == null) {
+      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
+        if (candidates.any(_matches)) {
+          kind = SearchResultKind.REFERENCE;
+        }
+      }
+    }
+
+    if (kind != null) {
       _addResult(node, kind);
     }
   }
@@ -1890,6 +2089,10 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   void _addResultToken(Token token, SearchResultKind kind) {
     _addResultImpl(token, kind, isQualified: true);
   }
+
+  bool _matches(Element element) =>
+      elements.contains(element) ||
+      element is PropertyAccessorElement && elements.contains(element.variable);
 }
 
 /// The marker class that is thrown to stop adding declarations.

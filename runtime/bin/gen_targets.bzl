@@ -1264,5 +1264,3 @@ def gen_targets():
             "-lpthread",
         ],
     )
-
-

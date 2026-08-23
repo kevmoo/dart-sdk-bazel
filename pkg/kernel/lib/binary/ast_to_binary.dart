@@ -2636,7 +2636,26 @@ class BinaryPrinter
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);
     writeUInt30(node.flags);
-    writeStringReference(node.cosmeticName ?? '');
+    switch (node) {
+      case LocalVariable():
+        writeStringReference(node.name);
+      case LocalFunctionVariable():
+        writeStringReference(node.name);
+      case LateVariable():
+        writeStringReference(node.name);
+      case ConstVariable():
+        writeStringReference(node.name);
+      case CatchVariable():
+        writeStringReference(node.catchVariableName);
+      case ThisVariable():
+        writeStringReference('');
+      case SyntheticVariable():
+        writeStringReference(node.cosmeticName ?? '');
+      case PositionalParameter():
+        writeStringReference(node.parameterName);
+      case NamedParameter():
+        writeStringReference(node.parameterName);
+    }
     writeNode(node.type);
 
     writeOptionalNode(node is ThisVariable ? null : node.initializer);

@@ -256,7 +256,7 @@ static const char* ImageName(uword vm_instructions,
                              uword isolate_instructions,
                              uword pc,
                              intptr_t* offset) {
-  const Image isolate_image(isolate_instructions);
+  const TextImage isolate_image(isolate_instructions);
   if (isolate_image.contains(pc)) {
     *offset = pc - isolate_instructions;
     return kSnapshotTextAsmSymbol;
@@ -779,10 +779,6 @@ Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
 }
 
 // When the generated code calls an external reference we need to catch that in
@@ -882,14 +878,14 @@ uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }

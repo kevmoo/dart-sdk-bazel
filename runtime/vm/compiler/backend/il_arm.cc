@@ -1976,8 +1976,6 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
       result,
       compiler::Address(
           THR, compiler::target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      result, Symbols::kNullCharCodeSymbolOffset * compiler::target::kWordSize);
   __ ldr(result,
          compiler::Address(result, char_code, LSL, 1));  // Char code is a smi.
 }
@@ -3121,7 +3119,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label slow_path, done;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
         num_elements()->BindsToConstant() &&
         compiler::target::IsSmi(num_elements()->BoundConstant())) {
@@ -3197,7 +3195,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                         result,  // instance
                         temp0, temp1, temp2);
@@ -4870,6 +4868,9 @@ DEFINE_EMIT(Float32x4Sqrt,
 
 DEFINE_EMIT(Float32x4Unary, (QRegister result, QRegister left)) {
   switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4Not:
+      __ vmvnq(result, left);
+      break;
     case SimdOpInstr::kFloat32x4Negate:
       __ vnegqs(result, left);
       break;
@@ -5246,6 +5247,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
   SIMPLE(Float32x4Sqrt)                                                        \
+  CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \
   CASE(Float32x4Abs)                                                           \
   CASE(Float32x4Reciprocal)                                                    \
@@ -6883,6 +6885,27 @@ LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(left != out);
+
+  ASSERT(op_kind() == Token::kBIT_NOT);
+
+  __ mvn_(out, compiler::Operand(left));
+}
+
+LocationSummary* UnaryInt32OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void UnaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register out = locs()->out(0).reg();
   ASSERT(left != out);

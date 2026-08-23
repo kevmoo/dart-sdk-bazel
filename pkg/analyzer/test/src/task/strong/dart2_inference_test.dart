@@ -349,10 +349,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: MethodInvocation
+LogicalAnd
+  leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -365,7 +365,34 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand2: MethodInvocation
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
+V1: BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -393,10 +420,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: MethodInvocation
+LogicalOr
+  leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -409,7 +436,34 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand2: MethodInvocation
+  rightOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
+V1: BinaryExpression
+  leftOperand: MethodInvocation
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: bool Function()
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -446,9 +500,9 @@ void test(C<int> x) {
     assertType(node, 'C<int>');
   }
 
-  test_switchExpression_asContext_forCases_language219() async {
+  test_switchExpression_asContext_forCases_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class C<T> {
   const C();
 }

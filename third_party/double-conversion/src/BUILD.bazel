@@ -27,8 +27,8 @@ exports_files(glob(
 cc_library(
     name = "libdouble_conversion",
     srcs = [
-        "bignum-dtoa.cc",
         "bignum.cc",
+        "bignum-dtoa.cc",
         "cached-powers.cc",
         "double-to-string.cc",
         "fast-dtoa.cc",
@@ -37,8 +37,8 @@ cc_library(
         "strtod.cc",
     ],
     hdrs = [
-        "bignum-dtoa.h",
         "bignum.h",
+        "bignum-dtoa.h",
         "cached-powers.h",
         "diy-fp.h",
         "double-conversion.h",
@@ -50,8 +50,8 @@ cc_library(
         "strtod.h",
         "utils.h",
     ],
-    local_defines = [
-        "SUPPORT_PERFETTO",
+    conlyopts = [
+        "-std=c17",
     ],
     copts = [
         "-Ithird_party/double-conversion/src",
@@ -97,9 +97,6 @@ cc_library(
         "-fno-strict-vtable-pointers",
         "-O2",
     ],
-    conlyopts = [
-        "-std=c17",
-    ],
     cxxopts = [
         "-fvisibility-inlines-hidden",
         "-fno-omit-frame-pointer",
@@ -110,5 +107,8 @@ cc_library(
     linkopts = [
         "-ldl",
         "-lpthread",
+    ],
+    local_defines = [
+        "SUPPORT_PERFETTO",
     ],
 )

@@ -79,6 +79,7 @@ final class AllocationStub extends Arm64StubCodeGenerator {
   static const Register resultReg = R0;
   static const Register typeArgumentsReg = R1;
   static const Register tagsReg = R2;
+  static const Register lengthReg = R5;
 
   static const Register scratch1Reg = R3;
   static const Register scratch2Reg = R4;
@@ -198,6 +199,16 @@ final class InitSuspendableFunctionStub {
 final class SuspendStub {
   static const Register argumentReg = R0;
   static const Register typeArgsReg = R1;
+}
+
+final class CloneSuspendStateStub {
+  static const Register sourceReg = R0;
+}
+
+final class CallBootstrapNativeStub {
+  static const Register argcTagReg = R1;
+  static const Register firstArgPointerReg = R2;
+  static const Register nativeFunctionReg = R5;
 }
 
 final class Arm64StubFactory extends StubFactory {

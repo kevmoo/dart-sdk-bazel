@@ -114,6 +114,16 @@ final class IrToText extends VoidInstructionVisitor {
       case TypeLiteral():
         _buffer.write(instr.uninstantiatedType.getDisplayString());
         _buffer.write(', ');
+      case SubtypeCheck():
+        _buffer.write('type: ');
+        _buffer.write(instr.type);
+        _buffer.write(', bound: ');
+        _buffer.write(instr.bound);
+        _buffer.write(', name:');
+        _buffer.write(instr.name);
+        if (instr.inputCount > 0) {
+          _buffer.write(', ');
+        }
       case _:
     }
     for (int i = 0, n = instr.inputCount; i < n; ++i) {
@@ -183,6 +193,7 @@ final class IrToText extends VoidInstructionVisitor {
         DynamicCallKind.getter => 'get ',
         DynamicCallKind.setter => 'set ',
       }}${instr.selector}',
+    ExternalCall() => 'ExternalCall ${instr.target}',
     AllocateObject() => 'AllocateObject ${instr.type}',
     Suspend() => 'Suspend ${instr.op.name}',
     BinaryIntOp() => 'BinaryIntOp ${instr.op.token}',
@@ -191,6 +202,7 @@ final class IrToText extends VoidInstructionVisitor {
     UnaryDoubleOp() => 'UnaryDoubleOp ${instr.op.token}',
     UnaryBoolOp() => 'UnaryBoolOp ${instr.op.token}',
     ParallelMove() => 'ParallelMove ${instr.stage.name}',
+    AllocateArray() => 'AllocateArray ${instr.kind.name}',
     AllocateRecord() => 'AllocateRecord ${instr.type}',
     _ => instr.runtimeType.toString(),
   };

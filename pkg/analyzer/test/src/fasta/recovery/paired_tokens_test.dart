@@ -33,7 +33,7 @@ List<List<int>
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -66,7 +66,7 @@ List<List<int> f;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -102,7 +102,7 @@ Map<List<int, List<String>>
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -143,7 +143,7 @@ Map<List<int, List<String>> f;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -184,7 +184,7 @@ List<int double> f;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -216,7 +216,7 @@ List<int
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -243,7 +243,7 @@ List<int f;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -272,7 +272,7 @@ f<T>>() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -313,7 +313,7 @@ f<T extends Function()() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -350,7 +350,7 @@ f<T extends Function<X>()() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -392,7 +392,7 @@ f<T>=() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -422,7 +422,7 @@ f<T extends List<int>>=() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -462,7 +462,7 @@ f<T() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -493,7 +493,7 @@ f<T extends List<int>() => null;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -537,7 +537,7 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -559,11 +559,18 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: x
                   operator: !=
-                  rightOperand2: NullLiteral
+                  rightOperand: NullLiteral
+                    literal: null
+                  binaryOperator: notEqual
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: x
+                  operator: !=
+                  rightOperand: NullLiteral
                     literal: null
                 rightParenthesis: )
                 thenStatement: Block
@@ -584,7 +591,7 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -606,11 +613,18 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryExpression
-                  leftOperand2: SimpleIdentifier
+                expression2: BinaryOperatorInvocation
+                  leftOperand: SimpleIdentifier
                     token: x
                   operator: !=
-                  rightOperand2: NullLiteral
+                  rightOperand: NullLiteral
+                    literal: null
+                  binaryOperator: notEqual
+                expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: x
+                  operator: !=
+                  rightOperand: NullLiteral
                     literal: null
                 rightParenthesis: )
                 thenStatement: Block
@@ -619,11 +633,18 @@ CompilationUnit
                     WhileStatement
                       whileKeyword: while
                       leftParenthesis: (
-                      condition2: BinaryExpression
-                        leftOperand2: SimpleIdentifier
+                      condition2: BinaryOperatorInvocation
+                        leftOperand: SimpleIdentifier
                           token: x
                         operator: ==
-                        rightOperand2: NullLiteral
+                        rightOperand: NullLiteral
+                          literal: null
+                        binaryOperator: equal
+                      condition(v1): BinaryExpression
+                        leftOperand: SimpleIdentifier
+                          token: x
+                        operator: ==
+                        rightOperand: NullLiteral
                           literal: null
                       rightParenthesis: )
                       body: Block
@@ -648,7 +669,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -691,7 +712,7 @@ g(y) => y;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -742,7 +763,7 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -773,7 +794,7 @@ int y = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -821,7 +842,7 @@ f(x) => l[x
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -838,11 +859,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IndexExpression
-            target2: SimpleIdentifier
+          expression2: IndexExpression2
+            receiver: SimpleIdentifier
               token: l
             leftBracket: [
-            index2: SimpleIdentifier
+            index: SimpleIdentifier
+              token: x
+            rightBracket: ] <synthetic>
+          expression(v1): IndexExpression
+            target: SimpleIdentifier
+              token: l
+            leftBracket: [
+            index: SimpleIdentifier
               token: x
             rightBracket: ] <synthetic>
           semicolon: ; <synthetic>
@@ -859,7 +887,7 @@ f(x) => l?[x
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -876,12 +904,20 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IndexExpression
-            target2: SimpleIdentifier
+          expression2: IndexExpression2
+            receiver: SimpleIdentifier
               token: l
             question: ?
             leftBracket: [
-            index2: SimpleIdentifier
+            index: SimpleIdentifier
+              token: x
+            rightBracket: ] <synthetic>
+          expression(v1): IndexExpression
+            target: SimpleIdentifier
+              token: l
+            question: ?
+            leftBracket: [
+            index: SimpleIdentifier
               token: x
             rightBracket: ] <synthetic>
           semicolon: ; <synthetic>
@@ -897,7 +933,7 @@ var x = [[0], [1];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -934,7 +970,7 @@ var x = [[0], [1, [2]];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -977,7 +1013,7 @@ var x = [0 1];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1007,7 +1043,7 @@ var x = [0, 1
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1044,7 +1080,7 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1089,7 +1125,7 @@ f(x) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1117,11 +1153,18 @@ CompilationUnit
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BinaryExpression
-                    leftOperand2: SimpleIdentifier
+                  condition2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
                       token: x
                     operator: !=
-                    rightOperand2: NullLiteral
+                    rightOperand: NullLiteral
+                      literal: null
+                    binaryOperator: notEqual
+                  condition(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: x
+                    operator: !=
+                    rightOperand: NullLiteral
                       literal: null
                   rightParenthesis: )
                   body: Block
@@ -1141,7 +1184,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1180,7 +1223,7 @@ f(x
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression

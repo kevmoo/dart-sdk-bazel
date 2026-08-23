@@ -4,13 +4,70 @@
 
 ### Libraries
 
+#### `dart:ffi`
+- Added `NativeFinalizer.callback`, which returns the finalization callback the
+  finalizer was created with.
+  For more details, see SDK issue [#63811][]
+
+[#63811]: https://github.com/dart-lang/sdk/issues/63811
+
+#### `dart:typed_data`
+
+- Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
+  of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
+
 #### `dart:js_interop`
+
 - The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
   verify if a value is an array; it is considered an array if either condition
   returns true.
   For more details, see SDK issue [#62699][]
 
+- Converting a `Future` to a `JSPromise` using `FutureOfJSAnyToJSPromise.toJS`
+  or `FutureOfVoidToJSPromise.toJS` now passes JavaScript error
+  values (`JSAny`) through directly to the rejected promise without
+  wrapping them. Only Dart errors are wrapped in a JS `Error`.
+  For more details, see SDK issue [#61353][].
+
+- Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
+  `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
+  `List<num>.toJS` (`ListOfNumberToJSArray`);
+  `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
+  `List<String>.toJS` (`ListOfStringToJSArray`);
+  `JSArray<JSBoolean>.toDartBoolList` (`JSArrayOfJSBooleanToList`);
+  `List<bool>.toJS` (`ListOfBoolToJSArray`);
+  `JSArray<JSNumber?>.toDartDoubleList` and `JSArray<JSNumber?>.toDartIntList`
+  (`JSArrayOfNullableJSNumberToList`); `List<num?>.toJS`
+  (`ListOfNullableNumberToJSArray`); `JSArray<JSString?>.toDartStringList`
+  (`JSArrayOfNullableJSStringToList`); `List<String?>.toJS`
+  (`ListOfNullableStringToJSArray`); `JSArray<JSBoolean?>.toDartBoolList`
+  (`JSArrayOfNullableJSBooleanToList`); and `List<bool?>.toJS`
+  (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
+  convert between JS and Dart arrays of primitives.
+
+[#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+
+### Tools
+
+#### Formatter
+
+The following bug fixes are *not* language versioned and apply also when
+formatting Dart 3.13 code:
+
+- Don't crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]).
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
 
 ## 3.13.0
 
@@ -298,6 +355,34 @@ or higher:
   `Dart_GetCurrentThreadOwnsIsolate` functions in `runtime/include/dart_api.h`
   (and `dart_api_dl.h`), allowing custom embedders to bind and query isolate
   thread ownership.
+
+## 3.12.2
+
+**Released on:** 2026-06-09
+
+This is a patch release that:
+
+- Fixes a crash bug in `dart format` if an `analysis_options.yaml` file has an
+  include that points to a non-existent file (issue [#1840][dart_style #1840]).
+
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+
+## 3.12.1
+
+**Released on:** 2026-05-26
+
+This is a patch release that:
+
+- Fixes a bug `ThreadLocal` which manifests as some static fields in `dart:*`
+  libraries being reset across suspension points, e.g. `print()` bypasses
+  an override specified by the current `Zone` after suspension.
+  (issue [#63408])
+- Fixes sporadic `dart analyze` crash on Windows ARM64, where analysis server
+  crashes on shutdown trying to delete perf_witness control socket.
+  (issue [#63343])
+
+[#63408]: https://github.com/dart-lang/sdk/issues/63408
+[#63343]: https://github.com/dart-lang/sdk/issues/63343
 
 ## 3.12.0
 

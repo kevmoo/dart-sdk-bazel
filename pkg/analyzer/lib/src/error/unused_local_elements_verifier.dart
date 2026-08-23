@@ -56,10 +56,30 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitCascadePropertyExtraction(node);
   }
 
   @override
@@ -99,8 +119,24 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?) {
+      if (typeName.lexeme == element.enclosingElement.name) {
+        _useIdentifierElement(element.enclosingElement);
+      }
+    }
+
     var factoryRedirectionTarget = node.factoryRedirectionTarget;
     if (factoryRedirectionTarget != null) {
       var redirectedElement = factoryRedirectionTarget.element;
@@ -142,6 +178,40 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _useAssignmentTargetElement(element);
+      super.visitDirectAssignment(node);
+      return;
+    }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case InvalidNamedWriteResolution(:var candidates)) {
+      for (var candidate in candidates) {
+        if (candidate is SubstitutedExecutableElementImpl) {
+          candidate = candidate.baseElement;
+        }
+        _useIdentifierElement(candidate);
+      }
+      super.visitDirectAssignment(node);
+      return;
+    }
+    if (write is! NamedWriteResolutionWithElement) {
+      super.visitDirectAssignment(node);
+      return;
+    }
+    _useAssignmentTargetElement(write.element);
+
+    super.visitDirectAssignment(node);
   }
 
   @override
@@ -219,10 +289,30 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _useReadWriteAssignmentTarget(node.target, readCountsAsUse: true);
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -273,17 +363,33 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPostfixDecrement(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPrefixExpression(node);
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPrefixDecrement(node);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPrefixIncrement(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -407,6 +513,23 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    usedElements.addMember(node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -437,6 +560,25 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _useAssignmentTargetElement(Element element) {
+    if (element is SubstitutedExecutableElementImpl) {
+      element = element.baseElement;
+    }
+
+    // A write alone does not make a local variable's value used.
+    if (element is LocalVariableElement) {
+      return;
+    }
+
+    _useIdentifierElement(element);
+    var enclosingElement = element.enclosingElement;
+    if ((enclosingElement is InterfaceElement ||
+            enclosingElement is ExtensionElement) &&
+        !identical(element, _enclosingExec)) {
+      usedElements.members.add(element);
+    }
+  }
+
   /// Marks the [element] as used in the library.
   void _useIdentifierElement(Element? element) {
     if (element == null) {
@@ -461,6 +603,106 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     usedElements.addElement(element);
   }
 
+  void _useNamedReadResolution(
+    NamedReadResolution? read, {
+    required bool readCountsAsUse,
+  }) {
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
+      if (element is PropertyAccessorElement &&
+          variable is TopLevelVariableElement) {
+        if (element.isOriginVariable) {
+          if (readCountsAsUse) {
+            usedElements.addElement(variable);
+          }
+        } else {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      } else if (element is LocalVariableElement) {
+        if (readCountsAsUse) {
+          usedElements.addElement(element);
+        }
+      } else if (readCountsAsUse ||
+          element is! PropertyAccessorElement ||
+          !element.isOriginVariable) {
+        _useIdentifierElement(element);
+        if (element is ExecutableElement) {
+          for (var parameter in element.formalParameters) {
+            usedElements.addElement(parameter);
+          }
+        }
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      }
+    }
+  }
+
+  void _useReadWriteAssignmentTarget(
+    AssignmentTarget target, {
+    required bool readCountsAsUse,
+  }) {
+    var indexResolutions = switch (target) {
+      CascadeIndexAssignmentTarget(:var read, :var write) => (read, write),
+      IndexAssignmentTarget(:var read, :var write) => (read, write),
+      _ => null,
+    };
+    if (indexResolutions case (var read, var write)) {
+      if (read case MethodIndexReadResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      if (write case MethodIndexWriteResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      return;
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+
+    _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
+
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      if (element is! LocalVariableElement) {
+        _useIdentifierElement(element);
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+        }
+      }
+    }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+  }
+
   /// Returns whether the value of [node] is _only_ being read at this position.
   ///
   /// Returns `false` if [node] is not a read access, or if [node] is a combined
@@ -474,7 +716,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     AstNode parent = node.parent2!;
 
     if (parent.parent2 is ExpressionStatement) {
-      if (parent is PrefixExpression || parent is PostfixExpression) {
+      if (parent is NullAssertionExpression ||
+          parent is LogicalNot ||
+          parent is IncrementOrDecrementExpression ||
+          parent is UnaryOperatorInvocation) {
         // v++;
         // ++v;
         return false;
@@ -817,6 +1062,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
         _visitTypeAliasElement(element);
       }
     }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   @override

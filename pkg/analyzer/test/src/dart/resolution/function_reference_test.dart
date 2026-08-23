@@ -14,7 +14,7 @@ main() {
       FunctionReferenceResolutionTest_genericFunctionInstantiation,
     );
     defineReflectiveTests(
-      FunctionReferenceResolutionTest_WithoutConstructorTearoffs,
+      FunctionReferenceResolutionTest_BeforeConstructorTearoffs,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -140,7 +140,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference() async {
+  test_constructorTearOff() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
   A.foo() {}
@@ -195,7 +195,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference_prefixed() async {
+  test_constructorTearOff_prefixed() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:async' as a;
 var x = a.Future.delayed<int>;
@@ -592,6 +592,68 @@ FunctionReference
 ''');
   }
 
+  test_extensionMethod_explicitReceiver_neverQ() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T> on T {
+  T foo<U>() => throw 0;
+}
+
+void f(Never? x) {
+  (x).foo<int>;
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Never?
+      rightParenthesis: )
+      staticType: Never?
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::E::@method::foo
+        substitution: {T: Never?, U: U}
+      type: Never? Function<U>()
+    staticType: Never? Function<U>()
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Never?
+      rightParenthesis: )
+      staticType: Never?
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::E::@method::foo
+        substitution: {T: Never?, U: U}
+      staticType: Never? Function<U>()
+    staticType: Never? Function<U>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: Never? Function()
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_extensionMethod_explicitReceiver_this() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -608,8 +670,18 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ThisExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -705,7 +777,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -1699,10 +1777,26 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::foo::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: f
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::f
+      invokeType: List<int> Function()
+      type: List<int>
+    staticType: List<int>
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::foo::@formalParameter::a
         staticType: A
@@ -1912,10 +2006,26 @@ void f(A a) {
     var node = result.findNode.functionReference('foo<double>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -1953,16 +2063,52 @@ void f(A? a, A b) {
     var node = result.findNode.functionReference('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: IfNull
+        leftOperand: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A?
         operator: ??
-        rightOperand2: SimpleIdentifier
+        rightOperand: SimpleIdentifier
+          token: b
+          element: <testLibrary>::@function::f::@formalParameter::b
+          staticType: A
+        staticType: A
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A?
+        operator: ??
+        rightOperand: SimpleIdentifier
+          token: b
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::b
+          staticType: A
+        element: <null>
+        staticInvokeType: null
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A?
+        operator: ??
+        rightOperand: SimpleIdentifier
           token: b
           correspondingParameter: <null>
           element: <testLibrary>::@function::f::@formalParameter::b
@@ -1990,6 +2136,23 @@ FunctionReference
   typeArgumentTypes
     int
 ''');
+  }
+
+  test_instanceMethod_explicitReceiver_otherExpression_tooManyTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo<T>(T a) {}
+}
+
+void f(A a) {
+  (a).foo<int, String>;
+//       ^^^^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The method 'foo' is declared with 1 type parameters, but 2 type arguments are given.
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int, String>');
+    assertType(node, 'void Function(dynamic)');
   }
 
   test_instanceMethod_explicitReceiver_parameter_promoted() async {
@@ -2067,14 +2230,29 @@ var a = [].foo.call<int>;
 ''');
 
     var node = result.findNode.functionReference('foo.call<int>;');
-    // TODO(srawlins): PropertyElementResolver does not return an element for
-    // `.call`. If we want `findElement.method('foo')` here, we must change the
-    // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: PropertyAccess
-      target2: ListLiteral
+  function2: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+        staticType: List<dynamic>
+      operator: .
+      propertyName: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@extension::#0::@method::foo
+        type: void Function<T>(T)
+      staticType: void Function<T>(T)
+    operator: .
+    propertyName: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: PropertyAccess
+      target: ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<dynamic>
@@ -2270,8 +2448,18 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ThisExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -2525,7 +2713,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -4409,6 +4603,44 @@ FunctionReference
 }
 
 @reflectiveTest
+class FunctionReferenceResolutionTest_BeforeConstructorTearoffs
+    extends PubPackageResolutionTest
+    with BeforeConstructorTearoffsMixin {
+  test_localVariable() async {
+    // This code includes a disallowed type instantiation (local variable),
+    // but in the case that the experiment is not enabled, we suppress the
+    // associated error.
+    var result = await resolveTestCodeWithDiagnostics('''
+void bar(void Function<T>(T a) foo) {
+  foo<int>;
+//   ^^^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::bar::@formalParameter::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+}
+
+@reflectiveTest
 class FunctionReferenceResolutionTest_genericFunctionInstantiation
     extends PubPackageResolutionTest {
   test_asExpression() async {
@@ -4502,13 +4734,27 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('g = f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  function2: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: g
+      read: <null>
+      write: SetterInvocationResolution
+        element: <testLibrary>::@setter::g
+        acceptedType: void Function<T>(T)
+    operator: =
+    value: SimpleIdentifier
+      token: f
+      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: g
       element: <null>
       staticType: null
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: f
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -4541,13 +4787,31 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f += 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  function2: CompoundAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
+    operator: +=
+    value: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
+      staticType: int
+    binaryOperator: add
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
     operator: +=
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
       staticType: int
@@ -4602,13 +4866,26 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('c + 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  function2: BinaryOperatorInvocation
+    leftOperand: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
     operator: +
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+      staticType: int
+    binaryOperator: add
+    element: <testLibrary>::@class::C::@method::+
+    staticType: void Function<T>(T)
+  function(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    operator: +
+    rightOperand: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
       staticType: int
@@ -4641,7 +4918,7 @@ FunctionReference
 ''');
   }
 
-  test_constructorReference() async {
+  test_constructorTearOff() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C<T> {
   C(T a);
@@ -4651,7 +4928,7 @@ C<int> Function(int) foo() {
 }
 ''');
 
-    // TODO(srawlins): Leave the constructor reference uninstantiated, then
+    // TODO(srawlins): Leave the constructor tear-off uninstantiated, then
     // perform generic function instantiation as a wrapping node.
     var node = result.findNode.constructorTearOff('C.new');
     assertResolvedNodeText(node, r'''
@@ -4667,7 +4944,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::C::@constructor::new
     substitution: {T: int}
   staticType: C<int> Function(int)
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C
@@ -4836,13 +5113,33 @@ void Function(int) foo(List<void Function<T>(T)> f) {
     var node = result.findNode.functionReference('f[0];');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: IndexExpression2
+    receiver: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: List<void Function<T>(T)>
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: void Function<T>(T)}
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::List::@method::[]
+        substitution: {E: void Function<T>(T)}
+      invokeType: void Function<T>(T) Function(int)
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: List<void Function<T>(T)>
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
@@ -4911,8 +5208,21 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f++');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PostfixExpression
-    operand2: SimpleIdentifier
+  function2: PostfixIncrement
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
+    operator: ++
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PostfixExpression
+    operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
@@ -4977,9 +5287,22 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('++f');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PrefixExpression
+  function2: PrefixIncrement
     operator: ++
-    operand2: SimpleIdentifier
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
+    element: <testLibrary>::@extension::#0::@method::+
+    operatorResultType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PrefixExpression
+    operator: ++
+    operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
@@ -5009,10 +5332,26 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('(c).f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+  function2: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: f
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::f
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
         staticType: C
@@ -5044,44 +5383,6 @@ FunctionReference
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
-  staticType: void Function(int)
-  typeArgumentTypes
-    int
-''');
-  }
-}
-
-@reflectiveTest
-class FunctionReferenceResolutionTest_WithoutConstructorTearoffs
-    extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
-  test_localVariable() async {
-    // This code includes a disallowed type instantiation (local variable),
-    // but in the case that the experiment is not enabled, we suppress the
-    // associated error.
-    var result = await resolveTestCodeWithDiagnostics('''
-void bar(void Function<T>(T a) foo) {
-  foo<int>;
-//   ^^^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
-}
-''');
-
-    var node = result.findNode.functionReference('foo<int>;');
-    assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::bar::@formalParameter::foo
-    staticType: void Function<T>(T)
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
   staticType: void Function(int)
   typeArgumentTypes
     int

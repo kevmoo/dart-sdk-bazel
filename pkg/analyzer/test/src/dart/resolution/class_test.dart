@@ -121,9 +121,9 @@ class A extends Function {}
     assertType(a.supertype, 'Object');
   }
 
-  test_element_typeFunction_extends_language219() async {
+  test_element_typeFunction_extends_beforeClassModifiers() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 class A extends Function {}
 //              ^^^^^^^^
 // [diag.deprecatedExtendsFunction] Extending 'Function' is deprecated.
@@ -144,9 +144,9 @@ class C extends Object with A, Function, B {}
     assertElementTypes(result.findElement.class_('C').mixins, ['A', 'B']);
   }
 
-  test_element_typeFunction_with_language219() async {
+  test_element_typeFunction_with_beforeClassModifiers() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
@@ -1407,9 +1407,16 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: PrefixExpression
+            condition2: LogicalNot
               operator: !
-              operand2: SimpleIdentifier
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -1421,9 +1428,16 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: PrefixExpression
+                expression2: LogicalNot
                   operator: !
-                  operand2: SimpleIdentifier
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  staticType: bool
+                expression(v1): PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                     staticType: bool

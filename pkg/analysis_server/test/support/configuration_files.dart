@@ -11,6 +11,9 @@ import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
+// TODO(srawlins): Remove this in favor of
+// `pkg/analyzer_testing/lib/configuration_files_mixin.dart` and migrate all
+// classes that mix this in.
 mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// Adds the 'flutter_localizations' package to the package config file for
   /// the package-under-test.
@@ -19,11 +22,17 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// imports to resolve.
   bool get addFlutterLocalizationsPackageDep => false;
 
+  /// Adds the 'flutter' package as a dependency to the package-under-test.
+  bool get addFlutterPackageDep => false;
+
   /// Adds the 'flutter_test' package to the package config file for the
   /// package-under-test.
   ///
   /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
   bool get addFlutterTestPackageDep => false;
+
+  /// Adds the 'meta' package as a dependency to the package-under-test.
+  bool get addMetaPackageDep => false;
 
   /// Adds the 'vector_math' package to the package config file for the
   /// package-under-test.
@@ -53,8 +62,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     String? packageName,
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
   }) {
     projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
@@ -72,17 +79,21 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     );
 
     // flutter_test also depends on meta for @isTestGroup / @isTest
-    if (meta || flutter || addFlutterTestPackageDep) {
-      var libFolder = addMeta();
-      config.add(name: 'meta', rootFolder: libFolder.parent);
+    if (addMetaPackageDep || addFlutterPackageDep || addFlutterTestPackageDep) {
+      if (!config.hasPackage('meta')) {
+        var libFolder = addMeta();
+        config.add(name: 'meta', rootFolder: libFolder.parent);
+      }
     }
 
-    if (flutter) {
-      var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
-      config.add(
-        name: 'sky_engine',
-        rootFolder: resourceProvider.getFolder(skyEnginePath),
-      );
+    if (addFlutterPackageDep) {
+      if (!config.hasPackage('sky_engine')) {
+        var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
+        config.add(
+          name: 'sky_engine',
+          rootFolder: resourceProvider.getFolder(skyEnginePath),
+        );
+      }
 
       var flutterLibFolder = addFlutter();
       config.add(name: 'flutter', rootFolder: flutterLibFolder.parent);
@@ -135,16 +146,12 @@ void main() {
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
       config: config,
       languageVersion: languageVersion,
       packageName: 'test',
-      flutter: flutter,
-      meta: meta,
     );
   }
 }

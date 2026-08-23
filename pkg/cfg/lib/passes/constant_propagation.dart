@@ -310,6 +310,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitExternalCall(ExternalCall instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitParameter(Parameter instr) {
     _setNonConstant(instr);
   }
@@ -339,6 +344,24 @@ final class ConstantPropagation extends Pass
   void visitStoreStaticField(StoreStaticField instr) {}
 
   @override
+  void visitLoadExternalField(LoadExternalField instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitLoadArrayElement(LoadArrayElement instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitStoreArrayElement(StoreArrayElement instr) {}
+
+  @override
+  void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override
@@ -356,6 +379,26 @@ final class ConstantPropagation extends Pass
       }
     }
   }
+
+  @override
+  void visitIndexCheck(IndexCheck instr) {
+    if (_isNonConstant(instr.index) || _isNonConstant(instr.length)) {
+      _setNonConstant(instr);
+      return;
+    }
+    ConstantValue? index = _getConstantValue(instr.index);
+    ConstantValue? length = _getConstantValue(instr.length);
+    if (index != null && length != null) {
+      if (0 <= index.intValue && index.intValue < length.intValue) {
+        _setResult(instr, index);
+      } else {
+        _setNonConstant(instr);
+      }
+    }
+  }
+
+  @override
+  void visitSubtypeCheck(SubtypeCheck instr) {}
 
   @override
   void visitTypeParameters(TypeParameters instr) {
@@ -589,12 +632,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {
+  void visitAllocateArray(AllocateArray instr) {
     _setNonConstant(instr);
   }
-
-  @override
-  void visitSetListElement(SetListElement instr) {}
 
   @override
   void visitAllocateRecord(AllocateRecord instr) {

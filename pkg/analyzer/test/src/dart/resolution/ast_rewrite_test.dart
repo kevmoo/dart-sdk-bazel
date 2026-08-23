@@ -41,14 +41,44 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: AssignmentExpression
-    leftHandSide2: IndexExpression
-      target2: SimpleIdentifier
+  expression2: DirectAssignment
+    target: IndexAssignmentTarget
+      receiver: SimpleIdentifier
         token: map
         element: map@83
         staticType: Map<int, C>
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
+          substitution: {K: int, V: C}
+        staticType: int
+      rightBracket: ]
+      read: <null>
+      write: MethodIndexWriteResolution
+        element: SubstitutedMethodElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=
+          substitution: {K: int, V: C}
+        invokeType: void Function(int, C)
+        acceptedType: C
+    operator: =
+    value: SimpleIdentifier
+      token: c
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
+        substitution: {K: int, V: C}
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    staticType: C
+  expression(v1): AssignmentExpression
+    leftHandSide: IndexExpression
+      target: SimpleIdentifier
+        token: map
+        element: map@83
+        staticType: Map<int, C>
+      leftBracket: [
+      index: IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
@@ -58,7 +88,7 @@ ImplicitCallReference
       element: <null>
       staticType: null
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: c
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
@@ -192,15 +222,26 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     // `c` is on the LHS of an if-null expression, so implicit call tearoff
     // logic should not apply to it.
     // Therefore the type of `c ?? a` should be `A`.
-    var node = result.findNode.binary('c ?? a');
+    var node = result.findNode.ifNull('c ?? a');
     assertResolvedNodeText(node, r'''
-BinaryExpression
-  leftOperand2: SimpleIdentifier
+IfNull
+  leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: ??
-  rightOperand2: SimpleIdentifier
+  rightOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  staticType: A
+V1: BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: ??
+  rightOperand: SimpleIdentifier
     token: a
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -225,13 +266,24 @@ void Function(int) foo(C? c1, C c2) {
     var node = result.findNode.implicitCallReference('c1 ?? c2');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: BinaryExpression
-    leftOperand2: SimpleIdentifier
+  expression2: IfNull
+    leftOperand: SimpleIdentifier
       token: c1
       element: <testLibrary>::@function::foo::@formalParameter::c1
       staticType: C?
     operator: ??
-    rightOperand2: SimpleIdentifier
+    rightOperand: SimpleIdentifier
+      token: c2
+      element: <testLibrary>::@function::foo::@formalParameter::c2
+      staticType: C
+    staticType: C
+  expression(v1): BinaryExpression
+    leftOperand: SimpleIdentifier
+      token: c1
+      element: <testLibrary>::@function::foo::@formalParameter::c1
+      staticType: C?
+    operator: ??
+    rightOperand: SimpleIdentifier
       token: c2
       correspondingParameter: <null>
       element: <testLibrary>::@function::foo::@formalParameter::c2
@@ -364,7 +416,20 @@ ImplicitCallReference
         staticType: C
       rightParenthesis: )
       staticType: C
-    cascadeSections2
+    sections
+      CascadeSection
+        body: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: m
+            element: <testLibrary>::@class::C::@method::m
+            staticType: void Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: void Function()
+          staticType: void
+    cascadeSections
       MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
@@ -725,7 +790,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -892,7 +957,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
@@ -984,7 +1049,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1071,7 +1136,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1166,7 +1231,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1302,7 +1367,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1372,7 +1437,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1453,7 +1518,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1546,7 +1611,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1675,7 +1740,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1856,7 +1921,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
@@ -1889,7 +1954,7 @@ InstanceCreationExpression
 
 @reflectiveTest
 class AstRewritePrefixedIdentifierTest extends PubPackageResolutionTest {
-  test_constructorReference_inAssignment_onLeftSide() async {
+  test_constructorTearOff_inAssignment_onLeftSide() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
@@ -1909,7 +1974,7 @@ void f() {
     expect(identifier.element, isNull);
   }
 
-  test_constructorReference_inAssignment_onRightSide() async {
+  test_constructorTearOff_inAssignment_onRightSide() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 
@@ -1932,7 +1997,7 @@ ConstructorTearOff
   correspondingParameter: <testLibrary>::@setter::f::@formalParameter::value
   element: <testLibrary>::@class::C::@constructor::new
   staticType: C Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C

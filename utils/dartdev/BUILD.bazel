@@ -43,7 +43,7 @@ copy_tree(
     name = "_copy_prebuilt_devtools",
     srcs = ["//:prebuilt_devtools_files"],
     out_dir = "devtools",
-    src_dir = "third_party/devtools/web",
+    src_dir = "web",
 )
 
 cc_library(

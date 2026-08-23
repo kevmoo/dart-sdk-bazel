@@ -225,13 +225,10 @@ void f() {
   b = 1;
 }
 ''');
-    _assertReplacementForChildren<AssignmentExpression>(
-      destination: parseResult.findNode.assignment('a ='),
-      source: parseResult.findNode.assignment('b ='),
-      childAccessors: [
-        (node) => node.leftHandSide2,
-        (node) => node.rightHandSide2,
-      ],
+    _assertReplacementForChildren<DirectAssignment>(
+      destination: parseResult.findNode.directAssignment('a ='),
+      source: parseResult.findNode.directAssignment('b ='),
+      childAccessors: [(node) => node.target, (node) => node.value],
     );
   }
 
@@ -256,13 +253,10 @@ void f() {
   1 + 2;
 }
 ''');
-    _assertReplacementForChildren<BinaryExpression>(
-      destination: parseResult.findNode.binary('0 + 1'),
-      source: parseResult.findNode.binary('1 + 2'),
-      childAccessors: [
-        (node) => node.leftOperand2,
-        (node) => node.rightOperand2,
-      ],
+    _assertReplacementForChildren<BinaryOperatorInvocation>(
+      destination: parseResult.findNode.binaryOperatorInvocation('0 + 1'),
+      source: parseResult.findNode.binaryOperatorInvocation('1 + 2'),
+      childAccessors: [(node) => node.leftOperand, (node) => node.rightOperand],
     );
   }
 
@@ -324,8 +318,8 @@ void f() {
     var cascadeExpression = parseResult.findNode.cascade('0');
     _assertReplaceInList(
       destination: cascadeExpression,
-      child: cascadeExpression.cascadeSections2[0],
-      replacement: cascadeExpression.cascadeSections2[1],
+      child: cascadeExpression.sections[0],
+      replacement: cascadeExpression.sections[1],
     );
 
     _assertReplacementForChildren<CascadeExpression>(
@@ -510,7 +504,7 @@ class A {
     _assertReplacementForChildren<ConstructorFieldInitializer>(
       destination: parseResult.findNode.constructorFieldInitializer('a ='),
       source: parseResult.findNode.constructorFieldInitializer('b ='),
-      childAccessors: [(node) => node.fieldName, (node) => node.expression2],
+      childAccessors: [(node) => node.expression2],
     );
   }
 
@@ -822,7 +816,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
       destination: parseResult.findNode.forEachPartsWithIdentifier('a in'),
       source: parseResult.findNode.forEachPartsWithIdentifier('b in'),
-      childAccessors: [(node) => node.identifier, (node) => node.iterable2],
+      childAccessors: [(node) => node.iterable2],
     );
   }
 
@@ -881,7 +875,7 @@ void f() {
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
       source: parseResult.findNode.forPartsWithDeclarations('j = 0'),
-      childAccessors: [(node) => node.variables, (node) => node.condition!],
+      childAccessors: [(node) => node.variables, (node) => node.condition2!],
     );
   }
 
@@ -903,7 +897,7 @@ void f() {
       source: parseResult.findNode.forPartsWithExpression('j = 0'),
       childAccessors: [
         (node) => node.initialization2!,
-        (node) => node.condition!,
+        (node) => node.condition2!,
       ],
     );
   }
@@ -1079,8 +1073,8 @@ import '' hide A, B;
     var node = parseResult.findNode.hideCombinator('hide');
     _assertReplaceInList(
       destination: node,
-      child: node.hiddenNames[0],
-      replacement: node.hiddenNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 
@@ -1150,10 +1144,10 @@ void f() {
   b[1];
 }
 ''');
-    _assertReplacementForChildren<IndexExpression>(
-      destination: parseResult.findNode.index('[0]'),
-      source: parseResult.findNode.index('[1]'),
-      childAccessors: [(node) => node.target2!, (node) => node.index2],
+    _assertReplacementForChildren<IndexExpression2>(
+      destination: parseResult.findNode.indexExpression2('[0]'),
+      source: parseResult.findNode.indexExpression2('[1]'),
+      childAccessors: [(node) => node.receiver, (node) => node.index],
     );
   }
 
@@ -1448,17 +1442,17 @@ void f() {
     );
   }
 
-  void test_postfixExpression() {
+  void test_postfixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a++;
   b++;
 }
 ''');
-    _assertReplacementForChildren<PostfixExpression>(
-      destination: parseResult.findNode.postfix('a++'),
-      source: parseResult.findNode.postfix('b++'),
-      childAccessors: [(node) => node.operand2],
+    _assertReplacementForChildren<PostfixIncrement>(
+      destination: parseResult.findNode.postfixIncrement('a++'),
+      source: parseResult.findNode.postfixIncrement('b++'),
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -1476,17 +1470,17 @@ void f() {
     );
   }
 
-  void test_prefixExpression() {
+  void test_prefixIncrement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   ++a;
   ++b;
 }
 ''');
-    _assertReplacementForChildren<PrefixExpression>(
-      destination: parseResult.findNode.prefix('++a'),
-      source: parseResult.findNode.prefix('++b'),
-      childAccessors: [(node) => node.operand2],
+    _assertReplacementForChildren<PrefixIncrement>(
+      destination: parseResult.findNode.prefixIncrement('++a'),
+      source: parseResult.findNode.prefixIncrement('++b'),
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -1513,17 +1507,17 @@ class B<U>.b(double b) {}
     );
   }
 
-  void test_propertyAccess() {
+  void test_propertyExtraction() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   (a).foo;
   (b).bar;
 }
 ''');
-    _assertReplacementForChildren<PropertyAccess>(
-      destination: parseResult.findNode.propertyAccess('(a)'),
-      source: parseResult.findNode.propertyAccess('(b)'),
-      childAccessors: [(node) => node.target2!, (node) => node.propertyName],
+    _assertReplacementForChildren<ReceiverPropertyExtraction>(
+      destination: parseResult.findNode.receiverPropertyExtraction('(a)'),
+      source: parseResult.findNode.receiverPropertyExtraction('(b)'),
+      childAccessors: [(node) => node.receiver],
     );
   }
 
@@ -1652,8 +1646,8 @@ import '' show A, B;
     var node = parseResult.findNode.showCombinator('show');
     _assertReplaceInList(
       destination: node,
-      child: node.shownNames[0],
-      replacement: node.shownNames[1],
+      child: node.names[0],
+      replacement: node.names[1],
     );
   }
 
@@ -1745,9 +1739,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase_language219() {
+  void test_switchCase_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     foo: bar:
@@ -1776,9 +1770,9 @@ void f() {
     _assertSwitchMember(parseResult.findNode.switchDefault('default: 0'));
   }
 
-  void test_switchStatement_language219() {
+  void test_switchStatement_beforePatterns() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (0) {
     case 0: break;

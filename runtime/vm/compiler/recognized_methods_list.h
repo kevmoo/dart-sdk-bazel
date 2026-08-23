@@ -523,6 +523,7 @@ namespace dart {
     0x89c00421)                                                                \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \
+  V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xa87e0b04)                     \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
@@ -623,7 +624,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, _setLength, GrowableArraySetLength,            \
     0xcbfee1f6)                                                                \
   V(CoreLibrary, _GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, \
-    0x512deb6f)                                                                \
+    0x31281683)                                                                \
   V(CoreLibrary, _StringBase, get:length, StringBaseLength, 0x5833d8ab)        \
   V(CoreLibrary, _Smi, ~, Smi_bitNegate, 0x8237e11c)                           \
   V(CoreLibrary, _IntegerImplementation, +, Integer_add, 0x6ef842cb)           \

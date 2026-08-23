@@ -121,17 +121,13 @@ class AstBinaryReader {
   AssignmentExpression _readAssignmentExpression() {
     var leftHandSide = _readNode() as ExpressionImpl;
     var rightHandSide = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var node = AssignmentExpressionImpl(
       leftHandSide2: leftHandSide,
       operator: Tokens.fromType(operatorType),
       rightHandSide2: rightHandSide,
     );
     node.element = _reader.readElement() as InternalMethodElement?;
-    node.readElement = _reader.readElement();
-    node.readType = _reader.readType();
-    node.writeElement = _reader.readElement();
-    node.writeType = _reader.readType();
     _readExpressionResolution(node);
     return node;
   }
@@ -144,17 +140,16 @@ class AstBinaryReader {
     );
   }
 
-  BinaryExpression _readBinaryExpression() {
-    var leftOperand = _readNode() as ExpressionImpl;
+  BinaryOperatorInvocation _readBinaryOperatorInvocation() {
+    var leftOperand = _readNode() as InstanceReceiverImpl;
     var rightOperand = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = BinaryExpressionImpl(
-      leftOperand2: leftOperand,
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var node = BinaryOperatorInvocationImpl(
+      leftOperand: leftOperand,
       operator: Tokens.fromType(operatorType),
-      rightOperand2: rightOperand,
+      rightOperand: rightOperand,
     );
-    node.element = _reader.readElement() as MethodElement?;
-    node.staticInvokeType = _reader.readOptionalFunctionType();
+    node.element = _reader.readElement() as InternalMethodElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -175,12 +170,84 @@ class AstBinaryReader {
 
   CascadeExpression _readCascadeExpression() {
     var target = _readNode() as ExpressionImpl;
-    var sections = _readNodeList<ExpressionImpl>();
-    var node = CascadeExpressionImpl(
-      target2: target,
-      cascadeSections2: sections,
-    );
+    var sections = _readNodeList<CascadeSectionImpl>();
+    var node = CascadeExpressionImpl(target2: target, sections: sections);
     node.setPseudoExpressionStaticType(target.staticType);
+    return node;
+  }
+
+  CascadeIndexAssignmentTarget _readCascadeIndexAssignmentTarget() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexAssignmentTargetImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
+  }
+
+  CascadeIndexExpression _readCascadeIndexExpression() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexExpressionImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  CascadePropertyAssignmentTarget _readCascadePropertyAssignmentTarget() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyAssignmentTargetImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  CascadePropertyExtraction _readCascadePropertyExtraction() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyExtractionImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  CascadeSection _readCascadeSection() {
+    var isNullAware = _readByte() == 1;
+    var body = _readNode() as ExpressionImpl;
+    var operatorType = isNullAware
+        ? TokenType.QUESTION_PERIOD_PERIOD
+        : TokenType.PERIOD_PERIOD;
+    return CascadeSectionImpl(
+      operator: body.beginToken.type == operatorType
+          ? body.beginToken
+          : isNullAware
+          ? Tokens.questionPeriodPeriod()
+          : Tokens.periodPeriod(),
+      body: body,
+    );
+  }
+
+  CompoundAssignment _readCompoundAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var node = CompoundAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(operatorType),
+      value: value,
+    );
+    node.element = _reader.readElement() as InternalMethodElement?;
+    node.operatorResultType = _reader.readType();
+    _readExpressionResolution(node);
     return node;
   }
 
@@ -201,16 +268,17 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
     var flags = _readByte();
-    var fieldName = _readNode() as SimpleIdentifierImpl;
+    var fieldName = _readStringReference();
+    var fieldElement = _reader.readElement() as InternalFieldElement?;
     var expression = _readNode() as ExpressionImpl;
     var hasThis = AstBinaryFlags.hasThis(flags);
     return ConstructorFieldInitializerImpl(
       thisKeyword: hasThis ? Tokens.this_() : null,
       period: hasThis ? Tokens.period() : null,
-      fieldName: fieldName,
+      fieldName2: StringToken(TokenType.STRING, fieldName, -1),
       equals: Tokens.eq(),
       expression2: expression,
-    );
+    )..fieldElement = fieldElement;
   }
 
   ConstructorInvocation _readConstructorInvocation() {
@@ -326,6 +394,18 @@ class AstBinaryReader {
           ? Tokens.closeCurlyBracket()
           : Tokens.closeSquareBracket(),
     );
+  }
+
+  DirectAssignment _readDirectAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var node = DirectAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.EQ),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
   }
 
   DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
@@ -554,7 +634,7 @@ class AstBinaryReader {
     var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithDeclarationsImpl(
       variables: variables,
-      condition: condition,
+      condition2: condition,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
       updaters2: updaters,
@@ -566,7 +646,7 @@ class AstBinaryReader {
     var condition = _readOptionalNode() as ExpressionImpl?;
     var updaters = _readNodeList<ExpressionImpl>();
     return ForPartsWithExpressionImpl(
-      condition: condition,
+      condition2: condition,
       initialization2: initialization,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
@@ -647,6 +727,30 @@ class AstBinaryReader {
     );
   }
 
+  IfNull _readIfNull() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = IfNullImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.questionQuestion(),
+      rightOperand: rightOperand,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  IfNullAssignment _readIfNullAssignment() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var value = _readNode() as ExpressionImpl;
+    var node = IfNullAssignmentImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.QUESTION_QUESTION_EQ),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImplicitCallReference _readImplicitCallReference() {
     var expression = _readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
@@ -674,6 +778,30 @@ class AstBinaryReader {
     return node;
   }
 
+  void _readIncrementOrDecrementResolution(
+    IncrementOrDecrementExpressionImpl node,
+  ) {
+    node.element = _reader.readElement() as InternalMethodElement?;
+    node.operatorResultType = _reader.readType();
+    _readExpressionResolution(node);
+  }
+
+  IndexAssignmentTarget _readIndexAssignmentTarget() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexAssignmentTargetImpl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
+  }
+
   IndexExpression _readIndexExpression() {
     var flags = _readByte();
     var target = _readOptionalNode() as ExpressionImpl?;
@@ -689,6 +817,57 @@ class AstBinaryReader {
     node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
+  }
+
+  IndexExpression2 _readIndexExpression2() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexExpression2Impl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  IndexReadResolutionImpl _readIndexReadResolution() {
+    switch (_reader.readEnum(IndexReadResolutionTag.values)) {
+      case IndexReadResolutionTag.dynamic_:
+        return const DynamicIndexReadResolutionImpl();
+      case IndexReadResolutionTag.invalid:
+        return InvalidIndexReadResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexReadResolution() as MethodIndexReadResolutionImpl,
+          ),
+        );
+      case IndexReadResolutionTag.method:
+        return MethodIndexReadResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+          type: _reader.readType() as TypeImpl,
+        );
+    }
+  }
+
+  IndexWriteResolutionImpl _readIndexWriteResolution() {
+    switch (_reader.readEnum(IndexWriteResolutionTag.values)) {
+      case IndexWriteResolutionTag.dynamic_:
+        return const DynamicIndexWriteResolutionImpl();
+      case IndexWriteResolutionTag.invalid:
+        return InvalidIndexWriteResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexWriteResolution() as MethodIndexWriteResolutionImpl,
+          ),
+        );
+      case IndexWriteResolutionTag.method:
+        return MethodIndexWriteResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+        );
+    }
   }
 
   IntegerLiteral _readIntegerLiteralNegative() {
@@ -748,6 +927,12 @@ class AstBinaryReader {
     );
   }
 
+  InvalidExpressionAssignmentTarget _readInvalidExpressionAssignmentTarget() {
+    return InvalidExpressionAssignmentTargetImpl(
+      expression: _readNode() as ExpressionImpl,
+    );
+  }
+
   void _readInvocationExpression(InvocationExpressionImpl node) {
     node.staticInvokeType = _reader.readType();
     node.typeArgumentTypes = _reader.readOptionalTypeList();
@@ -779,6 +964,37 @@ class AstBinaryReader {
       leftBracket: Tokens.openSquareBracket(),
       elements2: elements,
       rightBracket: Tokens.closeSquareBracket(),
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  LogicalAnd _readLogicalAnd() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = LogicalAndImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.ampersandAmpersand(),
+      rightOperand: rightOperand,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  LogicalNot _readLogicalNot() {
+    var operand = _readNode() as ExpressionImpl;
+    var node = LogicalNotImpl(operator: Tokens.bang(), operand: operand);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  LogicalOr _readLogicalOr() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var node = LogicalOrImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.barBar(),
+      rightOperand: rightOperand,
     );
     _readExpressionResolution(node);
     return node;
@@ -841,6 +1057,51 @@ class AstBinaryReader {
     );
   }
 
+  NamedReadResolutionImpl _readNamedReadResolution() {
+    switch (_reader.readEnum(NamedReadResolutionTag.values)) {
+      case NamedReadResolutionTag.dynamicPropertyRead:
+        return DynamicPropertyReadResolutionImpl();
+      case NamedReadResolutionTag.executableTearOff:
+        return ExecutableTearOffResolutionImpl(
+          element: _reader.readElement() as InternalExecutableElement,
+        );
+      case NamedReadResolutionTag.functionCallTearOff:
+        return FunctionCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+          associatedFunctionType:
+              _reader.readRequiredType() as FunctionTypeImpl,
+        );
+      case NamedReadResolutionTag.functionInterfaceCallTearOff:
+        return FunctionInterfaceCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+        );
+      case NamedReadResolutionTag.getterInvocation:
+        return GetterInvocationResolutionImpl(
+          element: _reader.readElement() as InternalGetterElement,
+          type: _reader.readRequiredType(),
+        );
+      case NamedReadResolutionTag.invalid:
+        var type = _reader.readRequiredType();
+        var candidates = _reader.readElementList<Element>();
+        var recovery = _reader.readOptionalObject(() {
+          return _readNamedReadResolution()
+              as NamedReadResolutionWithElementImpl;
+        });
+        return InvalidNamedReadResolutionImpl(
+          candidates: candidates,
+          recovery: recovery,
+          type: type,
+        );
+      case NamedReadResolutionTag.recordFieldRead:
+        return RecordFieldReadResolutionImpl(type: _reader.readRequiredType());
+      case NamedReadResolutionTag.variableRead:
+        return VariableReadResolutionImpl(
+          element: _reader.readElement() as InternalVariableElement,
+          type: _reader.readRequiredType(),
+        );
+    }
+  }
+
   NamedType _readNamedType() {
     var flags = _readByte();
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
@@ -858,183 +1119,263 @@ class AstBinaryReader {
     return node;
   }
 
+  NamedWriteResolutionImpl _readNamedWriteResolution() {
+    switch (_reader.readEnum(NamedWriteResolutionTag.values)) {
+      case NamedWriteResolutionTag.invalid:
+        var acceptedType = _reader.readType()!;
+        var candidates = _reader.readElementList<Element>();
+        var recovery = _reader.readOptionalObject(() {
+          return _readNamedWriteResolution()
+              as NamedWriteResolutionWithElementImpl;
+        });
+        return InvalidNamedWriteResolutionImpl(
+          acceptedType: acceptedType,
+          candidates: candidates,
+          recovery: recovery,
+        );
+      case NamedWriteResolutionTag.setterInvocation:
+        return SetterInvocationResolutionImpl(
+          element: _reader.readElement() as InternalSetterElement,
+        );
+      case NamedWriteResolutionTag.variableWrite:
+        return VariableWriteResolutionImpl(
+          element: _reader.readElement() as InternalVariableElement,
+          acceptedType: _reader.readType()!,
+        );
+      case NamedWriteResolutionTag.dynamicPropertyWrite:
+        return const DynamicPropertyWriteResolutionImpl();
+    }
+  }
+
   AstNode _readNode() {
-    var tag = _readByte();
+    var tag = _reader.readEnum(AstNodeTag.values);
     switch (tag) {
-      case Tag.AdjacentStrings:
+      case AstNodeTag.AdjacentStrings:
         return _readAdjacentStrings();
-      case Tag.Annotation:
+      case AstNodeTag.Annotation:
         return _readAnnotation();
-      case Tag.ArgumentList:
+      case AstNodeTag.ArgumentList:
         return _readArgumentList();
-      case Tag.AsExpression:
+      case AstNodeTag.AsExpression:
         return _readAsExpression();
-      case Tag.AssertInitializer:
+      case AstNodeTag.AssertInitializer:
         return _readAssertInitializer();
-      case Tag.AssignmentExpression:
+      case AstNodeTag.AssignmentExpression:
         return _readAssignmentExpression();
-      case Tag.AwaitExpression:
+      case AstNodeTag.CompoundAssignment:
+        return _readCompoundAssignment();
+      case AstNodeTag.DirectAssignment:
+        return _readDirectAssignment();
+      case AstNodeTag.IfNullAssignment:
+        return _readIfNullAssignment();
+      case AstNodeTag.InvalidExpressionAssignmentTarget:
+        return _readInvalidExpressionAssignmentTarget();
+      case AstNodeTag.AwaitExpression:
         return _readAwaitExpression();
-      case Tag.BinaryExpression:
-        return _readBinaryExpression();
-      case Tag.BooleanLiteral:
+      case AstNodeTag.BinaryOperatorInvocation:
+        return _readBinaryOperatorInvocation();
+      case AstNodeTag.BooleanLiteral:
         return _readBooleanLiteral();
-      case Tag.CascadeExpression:
+      case AstNodeTag.CascadeExpression:
         return _readCascadeExpression();
-      case Tag.ConditionalExpression:
+      case AstNodeTag.CascadeIndexAssignmentTarget:
+        return _readCascadeIndexAssignmentTarget();
+      case AstNodeTag.CascadeIndexExpression:
+        return _readCascadeIndexExpression();
+      case AstNodeTag.CascadePropertyAssignmentTarget:
+        return _readCascadePropertyAssignmentTarget();
+      case AstNodeTag.CascadePropertyExtraction:
+        return _readCascadePropertyExtraction();
+      case AstNodeTag.CascadeSection:
+        return _readCascadeSection();
+      case AstNodeTag.ConditionalExpression:
         return _readConditionalExpression();
-      case Tag.ConstructorFieldInitializer:
+      case AstNodeTag.ConstructorFieldInitializer:
         return _readConstructorFieldInitializer();
-      case Tag.ConstructorTearOff:
+      case AstNodeTag.ConstructorTearOff:
         return _readConstructorTearOff();
-      case Tag.ConstructorReference2:
+      case AstNodeTag.ConstructorReference2:
         return _readConstructorReference2();
-      case Tag.ConstructorSelector:
+      case AstNodeTag.ConstructorSelector:
         return _readConstructorSelector();
-      case Tag.ConstructorTypeReference:
+      case AstNodeTag.ConstructorTypeReference:
         return _readConstructorTypeReference();
-      case Tag.DeclaredIdentifier:
+      case AstNodeTag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
-      case Tag.DelimitedFormalParameters:
+      case AstNodeTag.DelimitedFormalParameters:
         return _readDelimitedFormalParameters();
-      case Tag.DotShorthandConstructorInvocation:
+      case AstNodeTag.DotShorthandConstructorInvocation:
         return _readDotShorthandConstructorInvocation();
-      case Tag.DotShorthandInvocation:
+      case AstNodeTag.DotShorthandInvocation:
         return _readDotShorthandInvocation();
-      case Tag.DotShorthandPropertyAccess:
+      case AstNodeTag.DotShorthandPropertyAccess:
         return _readDotShorthandPropertyAccess();
-      case Tag.DottedName:
+      case AstNodeTag.DottedName:
         return _readDottedName();
-      case Tag.DoubleLiteral:
+      case AstNodeTag.DoubleLiteral:
         return _readDoubleLiteral();
-      case Tag.ExtensionOverride:
+      case AstNodeTag.ExtensionOverride:
         return _readExtensionOverride();
-      case Tag.ForEachPartsWithDeclaration:
+      case AstNodeTag.ForEachPartsWithDeclaration:
         return _readForEachPartsWithDeclaration();
-      case Tag.ForElement:
+      case AstNodeTag.ForElement:
         return _readForElement();
-      case Tag.ForPartsWithDeclarations:
+      case AstNodeTag.ForPartsWithDeclarations:
         return _readForPartsWithDeclarations();
-      case Tag.ForPartsWithExpression:
+      case AstNodeTag.ForPartsWithExpression:
         return _readForPartsWithExpression();
-      case Tag.FieldFormalParameter:
+      case AstNodeTag.FieldFormalParameter:
         return _readFieldFormalParameter();
-      case Tag.FormalParameterList:
+      case AstNodeTag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpressionInvocation:
+      case AstNodeTag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
-      case Tag.FunctionReference:
+      case AstNodeTag.FunctionReference:
         return _readFunctionReference();
-      case Tag.GenericFunctionType:
+      case AstNodeTag.GenericFunctionType:
         return _readGenericFunctionType();
-      case Tag.RegularFormalParameter:
+      case AstNodeTag.RegularFormalParameter:
         return _readRegularFormalParameter();
-      case Tag.IfElement:
+      case AstNodeTag.IfElement:
         return _readIfElement();
-      case Tag.ImplicitCallReference:
+      case AstNodeTag.ImplicitCallReference:
         return _readImplicitCallReference();
-      case Tag.ImportPrefixReference:
+      case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
-      case Tag.IndexExpression:
+      case AstNodeTag.IndexExpression:
         return _readIndexExpression();
-      case Tag.IntegerLiteralNegative1:
+      case AstNodeTag.IndexExpression2:
+        return _readIndexExpression2();
+      case AstNodeTag.IndexAssignmentTarget:
+        return _readIndexAssignmentTarget();
+      case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
-      case Tag.IntegerLiteralNull:
+      case AstNodeTag.IntegerLiteralNull:
         return _readIntegerLiteralNull();
-      case Tag.IntegerLiteralPositive1:
+      case AstNodeTag.IntegerLiteralPositive1:
         return _readIntegerLiteralPositive1();
-      case Tag.IntegerLiteralPositive:
+      case AstNodeTag.IntegerLiteralPositive:
         return _readIntegerLiteralPositive();
-      case Tag.IntegerLiteralNegative:
+      case AstNodeTag.IntegerLiteralNegative:
         return _readIntegerLiteralNegative();
-      case Tag.InterpolationExpression:
+      case AstNodeTag.InterpolationExpression:
         return _readInterpolationExpression();
-      case Tag.InterpolationString:
+      case AstNodeTag.InterpolationString:
         return _readInterpolationString();
-      case Tag.IsExpression:
+      case AstNodeTag.IsExpression:
         return _readIsExpression();
-      case Tag.ListLiteral:
+      case AstNodeTag.IfNull:
+        return _readIfNull();
+      case AstNodeTag.ListLiteral:
         return _readListLiteral();
-      case Tag.MapLiteralEntry:
+      case AstNodeTag.LogicalAnd:
+        return _readLogicalAnd();
+      case AstNodeTag.MapLiteralEntry:
         return _readMapLiteralEntry();
-      case Tag.MethodInvocation:
+      case AstNodeTag.MethodInvocation:
         return _readMethodInvocation();
-      case Tag.NamedArgument:
+      case AstNodeTag.LogicalNot:
+        return _readLogicalNot();
+      case AstNodeTag.LogicalOr:
+        return _readLogicalOr();
+      case AstNodeTag.NamedArgument:
         return _readNamedArgument();
-      case Tag.NullAwareElement:
+      case AstNodeTag.NullAwareElement:
         return _readNullAwareElement();
-      case Tag.NullLiteral:
+      case AstNodeTag.NullAssertionExpression:
+        return _readNullAssertionExpression();
+      case AstNodeTag.NullLiteral:
         return _readNullLiteral();
-      case Tag.ConstructorInvocation:
+      case AstNodeTag.ConstructorInvocation:
         return _readConstructorInvocation();
-      case Tag.ParenthesizedExpression:
+      case AstNodeTag.ParenthesizedExpression:
         return _readParenthesizedExpression();
-      case Tag.PostfixExpression:
-        return _readPostfixExpression();
-      case Tag.PrefixExpression:
-        return _readPrefixExpression();
-      case Tag.PrefixedIdentifier:
+      case AstNodeTag.PostfixDecrement:
+        return _readPostfixDecrement();
+      case AstNodeTag.PostfixIncrement:
+        return _readPostfixIncrement();
+      case AstNodeTag.PrefixDecrement:
+        return _readPrefixDecrement();
+      case AstNodeTag.PrefixIncrement:
+        return _readPrefixIncrement();
+      case AstNodeTag.PrefixedIdentifier:
         return _readPrefixedIdentifier();
-      case Tag.PropertyAccess:
+      case AstNodeTag.PropertyAccess:
         return _readPropertyAccess();
-      case Tag.RecordLiteral:
+      case AstNodeTag.ReceiverPropertyAssignmentTarget:
+        return _readReceiverPropertyAssignmentTarget();
+      case AstNodeTag.ReceiverPropertyExtraction:
+        return _readReceiverPropertyExtraction();
+      case AstNodeTag.RecordLiteral:
         return _readRecordLiteral();
-      case Tag.RecordLiteralNamedField:
+      case AstNodeTag.RecordLiteralNamedField:
         return _readRecordLiteralNamedField();
-      case Tag.RecordTypeAnnotation:
+      case AstNodeTag.RecordTypeAnnotation:
         return _readRecordTypeAnnotation();
-      case Tag.RecordTypeAnnotationNamedField:
+      case AstNodeTag.RecordTypeAnnotationNamedField:
         return _readRecordTypeAnnotationNamedField();
-      case Tag.RecordTypeAnnotationNamedFields:
+      case AstNodeTag.RecordTypeAnnotationNamedFields:
         return _readRecordTypeAnnotationNamedFields();
-      case Tag.RecordTypeAnnotationPositionalField:
+      case AstNodeTag.RecordTypeAnnotationPositionalField:
         return _readRecordTypeAnnotationPositionalField();
-      case Tag.RedirectingConstructorInvocation:
+      case AstNodeTag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
-      case Tag.SetOrMapLiteral:
+      case AstNodeTag.SetOrMapLiteral:
         return _readSetOrMapLiteral();
-      case Tag.SimpleIdentifier:
+      case AstNodeTag.SimpleIdentifier:
         return _readSimpleIdentifier();
-      case Tag.SimpleStringLiteral:
+      case AstNodeTag.SimpleStringLiteral:
         return _readSimpleStringLiteral();
-      case Tag.SpreadElement:
+      case AstNodeTag.SpreadElement:
         return _readSpreadElement();
-      case Tag.StringInterpolation:
+      case AstNodeTag.StringInterpolation:
         return _readStringInterpolation();
-      case Tag.SuperConstructorInvocation:
+      case AstNodeTag.SuperConstructorInvocation:
         return _readSuperConstructorInvocation();
-      case Tag.SuperExpression:
+      case AstNodeTag.SuperExpression:
         return _readSuperExpression();
-      case Tag.SuperFormalParameter:
+      case AstNodeTag.SuperFormalParameter:
         return _readSuperFormalParameter();
-      case Tag.SymbolLiteral:
+      case AstNodeTag.SymbolLiteral:
         return _readSymbolLiteral();
-      case Tag.ThisExpression:
+      case AstNodeTag.ThisExpression:
         return _readThisExpression();
-      case Tag.ThrowExpression:
+      case AstNodeTag.ThrowExpression:
         return _readThrowExpression();
-      case Tag.TypeArgumentList:
+      case AstNodeTag.TypeArgumentList:
         return _readTypeArgumentList();
-      case Tag.TypeLiteral:
+      case AstNodeTag.TypeLiteral:
         return _readTypeLiteral();
-      case Tag.NamedType:
+      case AstNodeTag.NamedType:
         return _readNamedType();
-      case Tag.TypeParameter:
+      case AstNodeTag.TypeParameter:
         return _readTypeParameter();
-      case Tag.TypeParameterList:
+      case AstNodeTag.TypeParameterList:
         return _readTypeParameterList();
-      case Tag.VariableDeclaration:
+      case AstNodeTag.UnqualifiedNameAssignmentTarget:
+        return _readUnqualifiedNameAssignmentTarget();
+      case AstNodeTag.UnaryOperatorInvocation:
+        return _readUnaryOperatorInvocation();
+      case AstNodeTag.VariableDeclaration:
         return _readVariableDeclaration();
-      case Tag.VariableDeclarationList:
+      case AstNodeTag.VariableDeclarationList:
         return _readVariableDeclarationList();
-      default:
-        throw UnimplementedError('Unexpected tag: $tag');
     }
   }
 
   List<T> _readNodeList<T>() {
     var length = _reader.readUint30();
     return List.generate(length, (_) => _readNode() as T);
+  }
+
+  NullAssertionExpression _readNullAssertionExpression() {
+    var operand = _readNode() as ExpressionImpl;
+    var node = NullAssertionExpressionImpl(
+      operand: operand,
+      operator: Tokens.bang(),
+    );
+    _readExpressionResolution(node);
+    return node;
   }
 
   NullAwareElement _readNullAwareElement() {
@@ -1053,22 +1394,7 @@ class AstBinaryReader {
   }
 
   AstNode? _readOptionalNode() {
-    if (_readOptionTag()) {
-      return _readNode();
-    } else {
-      return null;
-    }
-  }
-
-  bool _readOptionTag() {
-    var tag = _readByte();
-    if (tag == Tag.Nothing) {
-      return false;
-    } else if (tag == Tag.Something) {
-      return true;
-    } else {
-      throw UnimplementedError('Unexpected option tag: $tag');
-    }
+    return _reader.readOptionalObject(_readNode);
   }
 
   ParenthesizedExpression _readParenthesizedExpression() {
@@ -1082,21 +1408,33 @@ class AstBinaryReader {
     return node;
   }
 
-  PostfixExpression _readPostfixExpression() {
-    var operand = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
-    var node = PostfixExpressionImpl(
-      operand2: operand,
-      operator: Tokens.fromType(operatorType),
+  PostfixDecrement _readPostfixDecrement() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var node = PostfixDecrementImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
     );
-    node.element = _reader.readElement() as MethodElement?;
-    if (node.operator.type.isIncrementOperator) {
-      node.readElement = _reader.readElement();
-      node.readType = _reader.readType();
-      node.writeElement = _reader.readElement();
-      node.writeType = _reader.readType();
-    }
-    _readExpressionResolution(node);
+    _readIncrementOrDecrementResolution(node);
+    return node;
+  }
+
+  PostfixIncrement _readPostfixIncrement() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var node = PostfixIncrementImpl(
+      target: target,
+      operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
+    );
+    _readIncrementOrDecrementResolution(node);
+    return node;
+  }
+
+  PrefixDecrement _readPrefixDecrement() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var node = PrefixDecrementImpl(
+      operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
+      target: target,
+    );
+    _readIncrementOrDecrementResolution(node);
     return node;
   }
 
@@ -1112,21 +1450,13 @@ class AstBinaryReader {
     return node;
   }
 
-  PrefixExpression _readPrefixExpression() {
-    var operatorType = UnlinkedTokenType.values[_readByte()];
-    var operand = _readNode() as ExpressionImpl;
-    var node = PrefixExpressionImpl(
-      operator: Tokens.fromType(operatorType),
-      operand2: operand,
+  PrefixIncrement _readPrefixIncrement() {
+    var target = _readNode() as AssignmentTargetImpl;
+    var node = PrefixIncrementImpl(
+      operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
+      target: target,
     );
-    node.element = _reader.readElement() as MethodElement?;
-    if (node.operator.type.isIncrementOperator) {
-      node.readElement = _reader.readElement();
-      node.readType = _reader.readType();
-      node.writeElement = _reader.readElement();
-      node.writeType = _reader.readType();
-    }
-    _readExpressionResolution(node);
+    _readIncrementOrDecrementResolution(node);
     return node;
   }
 
@@ -1151,6 +1481,34 @@ class AstBinaryReader {
       operator: operator,
       propertyName: propertyName,
     );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var propertyName = _readStringReference();
+    var node = ReceiverPropertyAssignmentTargetImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var propertyName = _readStringReference();
+    var node = ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);
     return node;
   }
@@ -1519,6 +1877,28 @@ class AstBinaryReader {
 
   int _readUint32() {
     return _reader.readUint32();
+  }
+
+  UnaryOperatorInvocation _readUnaryOperatorInvocation() {
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operand = _readNode() as InstanceReceiverImpl;
+    var node = UnaryOperatorInvocationImpl(
+      operator: Tokens.fromType(operatorType),
+      operand: operand,
+    );
+    _readExpressionResolution(node);
+    node.element = _reader.readElement() as InternalMethodElement?;
+    return node;
+  }
+
+  UnqualifiedNameAssignmentTarget _readUnqualifiedNameAssignmentTarget() {
+    var name = _readStringReference();
+    var node = UnqualifiedNameAssignmentTargetImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
   }
 
   VariableDeclaration _readVariableDeclaration() {

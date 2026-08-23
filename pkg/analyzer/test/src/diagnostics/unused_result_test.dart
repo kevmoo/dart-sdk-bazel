@@ -788,10 +788,9 @@ void main() {
 ''');
   }
 
-  test_method_result_assigned_wildcard_unused_preWildcards() async {
+  test_method_result_assigned_wildcard_unused_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 import 'package:meta/meta.dart';
 
@@ -1034,6 +1033,26 @@ int f(A a) {
 ''');
   }
 
+  test_method_result_indexAssignmentTarget() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  void operator []=(int index, int value) {}
+}
+
+@useResult
+A receiver() => A();
+
+@useResult
+int index() => 0;
+
+void f() {
+  receiver()[index()] = 1;
+}
+''');
+  }
+
   test_method_result_indexExpression() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -1225,9 +1244,9 @@ void f(A a) {
 ''');
   }
 
-  test_method_result_switchCondition_language219() async {
+  test_method_result_switchCondition_beforePatterns() async {
     await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:meta/meta.dart';
 
 class A {
@@ -1265,6 +1284,21 @@ class A {
 
 void main() {
   A().foo().hashCode; // OK
+}
+''');
+  }
+
+  test_method_result_targetedProperty_parenthesized() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String foo() => '';
+}
+
+void main() {
+  (A().foo()).hashCode;
 }
 ''');
   }
@@ -1511,7 +1545,7 @@ class C {
 ''');
   }
 
-  test_topLevelFunction_prefixExpression_bang() async {
+  test_topLevelFunction_logicalNot() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
 

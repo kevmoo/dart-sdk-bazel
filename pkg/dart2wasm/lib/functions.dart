@@ -379,7 +379,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.cosmeticName;
+      final functionNodeName = lambdaNode.variable.name;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -747,15 +747,24 @@ List<w.ValueType> _getInputTypes(
     List<String> names = [
       for (var p in function.namedParameters) p.parameterName,
     ]..sort();
-    final typeForParam = translator.typeOfParameterVariable;
+    final isNoSuchMethodForwarder =
+        member is Procedure && member.isNoSuchMethodForwarder;
     Map<String, DartType> nameTypes = {
       for (var p in function.namedParameters)
-        p.parameterName: typeForParam(p, p.isRequired),
+        p.parameterName: translator.typeOfParameterVariable(
+          p,
+          p.isRequired,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
     };
     final positionals = function.positionalParameters;
     params = [
       for (int i = 0; i < positionals.length; ++i)
-        typeForParam(positionals[i], i < function.requiredParameterCount),
+        translator.typeOfParameterVariable(
+          positionals[i],
+          i < function.requiredParameterCount,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
       for (String name in names) nameTypes[name]!,
     ];
   }

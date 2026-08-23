@@ -24,7 +24,8 @@ bool isAllowedOrigin(
     //
     // Note: If origin doesn't start with a scheme, Uri.parse might not parse it
     // correctly as a URI with a host. However, Origin headers always have a
-    // scheme (http:// or https://), and we prepend one when validating Host headers.
+    // scheme (http:// or https://), and we prepend one when validating Host
+    // headers.
     uri = Uri.parse(origin);
   } catch (_) {
     return false;
@@ -62,7 +63,8 @@ bool isAllowedHost(
   int? allowedPort,
   List<Uri> allowedUris = const [],
 }) {
-  // Host header might not have a scheme, so prepend http:// to parse it as an origin.
+  // Host header might not have a scheme, so prepend http:// to parse it as
+  // an origin.
   return isAllowedOrigin(
     'http://$hostHeader',
     allowedHosts: allowedHosts,

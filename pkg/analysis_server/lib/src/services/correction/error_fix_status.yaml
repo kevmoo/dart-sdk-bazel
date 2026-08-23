@@ -78,6 +78,10 @@ deprecated_lint_with_replacement:
     We should be able to replace the deprecated lint rule with its replacement.
 duplicate_rule:
   status: hasFix
+exclude_invalid_glob:
+  status: needsFix
+  notes: |-
+    Remove the leading forward slash.
 include_file_not_found:
   status: noFix
   notes: |-
@@ -127,10 +131,6 @@ multiple_plugins:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-plugins_in_inner_options:
-  status: needsFix
-  notes: |-
-    The fix is to delete the 'plugins' section.
 recursive_include_file:
   status: noFix
   notes: |-
@@ -610,6 +610,8 @@ deferred_import_of_extension:
     Remove the `deferred` keyword from the import.
 definitely_unassigned_late_local_variable:
   status: noFix
+different_inherited_getter_and_setter_types:
+  status: needsEvaluation
 disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15
@@ -1400,7 +1402,7 @@ not_initialized_non_nullable_instance_field:
 not_initialized_non_nullable_instance_field_constructor:
   status: noFix
 not_initialized_non_nullable_variable:
-  status: noFix
+  status: hasFix
 not_instantiated_bound:
   status: noFix
 not_iterable_spread:
@@ -2317,8 +2319,14 @@ no_dynamic_casts:
   notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
+no_leading_underscores_for_library_prefixes_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_leading_underscores_for_local_identifiers:
   status: hasFix
+no_leading_underscores_for_local_identifiers_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
@@ -2948,6 +2956,8 @@ export_directive_after_part_directive:
     Move the directive to a valid place.
 extension_augmentation_has_on_clause:
   status: hasFix
+extension_augmentation_without_name:
+  status: needsEvaluation
 extension_declares_abstract_member:
   status: needsFix
   notes: |-
@@ -3736,12 +3746,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-

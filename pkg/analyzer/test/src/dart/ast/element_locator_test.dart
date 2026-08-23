@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -47,7 +46,7 @@ void main() {
   x += 1;
 }
 ''');
-    var node = result.findNode.assignment('+=');
+    var node = result.findNodeV1.assignment('+=');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -58,7 +57,7 @@ dart:core::@class::num::@method::+
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
 ''');
-    var node = result.findNode.binary('+');
+    var node = result.findNodeV1.binary('+');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -341,13 +340,13 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
+  test_locate_Identifier_constructor_unnamed_v1Projection() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
 ''');
-    var node = result.findNode.simple('A()');
+    var node = result.findNode.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -364,6 +363,33 @@ class A {
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_locate_Identifier_fieldName_constructorInitializer_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var initializer = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocator.locate(initializer.fieldName);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
+''');
+  }
+
+  test_locate_Identifier_forEachParts_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var parts = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocator.locate(parts.identifier);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
 ''');
   }
 
@@ -402,10 +428,7 @@ void f() {
   A.test();
 }
 ''');
-    var node = FindNode(
-      result.content,
-      result.unit,
-    ).singleConstructorName.name!;
+    var node = result.findNodeV1.singleConstructorName.name!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::test
@@ -420,7 +443,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.simple('length');
+    var node = result.findNodeV1.simple('length');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::String::@getter::length
@@ -447,7 +470,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNodeV1.index('[0]');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -464,10 +487,7 @@ void main() {
  new A();
 }
 ''');
-    var node = FindNode(
-      result.content,
-      result.unit,
-    ).instanceCreation('new A()');
+    var node = result.findNodeV1.instanceCreation('new A()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -485,7 +505,7 @@ void main() {
  new pref.A();
 }
 ''');
-    var node = FindNode(result.content, result.unit).instanceCreation('A();');
+    var node = result.findNodeV1.instanceCreation('A();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 package:test/a.dart::@class::A::@constructor::new
@@ -502,7 +522,7 @@ void main() {
  new A();
 }
 ''');
-    var node = FindNode(result.content, result.unit).instanceCreation('A();');
+    var node = result.findNodeV1.instanceCreation('A();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -662,7 +682,7 @@ dart:core::@class::int::@getter::isEven
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => x++;
 ''');
-    var node = result.findNode.postfix('x++');
+    var node = result.findNodeV1.postfixExpression('x++');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -712,7 +732,7 @@ void f(int a) {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => ++x;
 ''');
-    var node = result.findNode.prefix('++x');
+    var node = result.findNodeV1.prefix('++x');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -895,25 +915,11 @@ foo@17
 ''');
   }
 
-  test_locate_AssignmentExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-int x = 0;
-void main() {
-  x += 1;
-}
-''');
-    var node = result.findNode.assignment('+=');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-dart:core::@class::num::@method::+
-''');
-  }
-
   test_locate_BinaryExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
 ''');
-    var node = result.findNode.binary('+');
+    var node = result.findNode.binaryOperatorInvocation('+');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -951,6 +957,20 @@ class A {}
 ''');
   }
 
+  test_locate_CompoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int x = 0;
+void main() {
+  x += 1;
+}
+''');
+    var node = result.findNode.compoundAssignment('x += 1');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:core::@class::num::@method::+
+''');
+  }
+
   test_locate_ConstructorDeclaration_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -974,6 +994,20 @@ class A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorFieldInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var node = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -1084,6 +1118,20 @@ void f(Object? x) {
     _assertElement(element, r'''
 foo@37
 ''');
+  }
+
+  test_locate_DirectAssignment_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo() {}
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+    var node = result.findNode.directAssignment('foo = 0').target;
+    expect(ElementLocatorV2.locate(node), isNull);
   }
 
   test_locate_DotShorthandConstructorInvocation() async {
@@ -1198,6 +1246,19 @@ extension type A(int it) {}
 ''');
   }
 
+  test_locate_ForEachPartsWithIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
+''');
+  }
+
   test_locate_FunctionDeclaration_local() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
@@ -1276,19 +1337,6 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A();
-}
-''');
-    var node = result.findNode.simple('A()');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
-''');
-  }
-
   test_locate_Identifier_fieldName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1336,7 +1384,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.simple('length');
+    var node = result.findNode.receiverPropertyExtraction('length');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::String::@getter::length
@@ -1354,6 +1402,23 @@ dart:core
 ''');
   }
 
+  test_locate_IndexAssignmentTarget() async {
+    var result = await resolveTestCode(r'''
+class A {
+  void operator []=(int index, num value) {}
+}
+
+void f(A a) {
+  a[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
@@ -1363,7 +1428,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1525,7 +1590,7 @@ dart:core::@class::int::@getter::isEven
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => x++;
 ''');
-    var node = result.findNode.postfix('x++');
+    var node = result.findNode.postfixIncrement('x++');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -1575,7 +1640,7 @@ void f(int a) {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => ++x;
 ''');
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -1673,6 +1738,17 @@ import 'foo.dart';
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
+''');
+  }
+
+  test_locate_TopLevelGetterDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+''');
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@getter::x
 ''');
   }
 

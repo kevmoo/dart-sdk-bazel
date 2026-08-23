@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -47,6 +46,12 @@ class UseResultVerifier {
     }
 
     _check(node, element);
+  }
+
+  void checkPropertyExtraction(PropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
+      _check(node, element);
+    }
   }
 
   void checkSimpleIdentifier(SimpleIdentifier node) {
@@ -174,9 +179,9 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is PostfixExpression) {
-      // Null-checking a result is not a "use." Other uses, like `++`, do count.
-      return parent.operator.type == TokenType.BANG && _isUsed(parent);
+    // Null-checking a result is not a "use".
+    if (parent is NullAssertionExpression) {
+      return _isUsed(parent);
     }
 
     if (parent is AsExpression ||
@@ -184,16 +189,19 @@ class UseResultVerifier {
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||
+        parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixExpression ||
-        parent is SpreadElement) {
+        parent is PrefixIncrement ||
+        parent is PrefixDecrement ||
+        parent is SpreadElement ||
+        parent is UnaryOperatorInvocation) {
       return _isUsed(parent);
     }
 
     if (parent is ForParts) {
       // If [node] is the condition of a for-loop, it is used; if it is one of
       // the updaters, it is not.
-      return parent.condition == node;
+      return parent.condition2 == node;
     }
 
     return parent is ArgumentList ||
@@ -202,7 +210,10 @@ class UseResultVerifier {
         // Node should always be RHS so no need to check for a property
         // assignment.
         parent is AssignmentExpression ||
-        parent is BinaryExpression ||
+        parent is DirectAssignment ||
+        parent is IfNullAssignment ||
+        parent is BinaryOperatorInvocation ||
+        parent is IfNull ||
         parent is ConstructorFieldInitializer ||
         parent is DoStatement ||
         parent is ExpressionFunctionBody ||
@@ -210,7 +221,9 @@ class UseResultVerifier {
         parent is ForLoopParts ||
         parent is FunctionExpressionInvocation ||
         parent is IfStatement ||
+        parent is IndexAssignmentTarget ||
         parent is IndexExpression ||
+        parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
@@ -219,6 +232,7 @@ class UseResultVerifier {
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
+        parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
         parent is ReturnStatement ||

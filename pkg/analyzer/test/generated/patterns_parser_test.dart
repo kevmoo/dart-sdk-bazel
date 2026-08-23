@@ -3208,8 +3208,8 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: BinaryExpression
-        leftOperand2: SwitchExpression
+      expression2: BinaryOperatorInvocation
+        leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
           expression2: SimpleIdentifier
@@ -3218,13 +3218,32 @@ FunctionDeclaration
           leftBracket: {
           rightBracket: }
         operator: +
-        rightOperand2: FunctionExpression
+        rightOperand: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: IntegerLiteral
+              literal: 0
+        binaryOperator: add
+      expression(v1): BinaryExpression
+        leftOperand: SwitchExpression
+          switchKeyword: switch
+          leftParenthesis: (
+          expression: SimpleIdentifier
+            token: x
+          rightParenthesis: )
+          leftBracket: {
+          rightBracket: }
+        operator: +
+        rightOperand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3248,17 +3267,30 @@ IfElement
         name: _
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: y
           operator: +
-          rightOperand2: FunctionExpression
+          rightOperand: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: IntegerLiteral
+                literal: 0
+          binaryOperator: add
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: +
+          rightOperand: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
                 literal: 0
   rightParenthesis: )
   thenElement2: IntegerLiteral
@@ -3286,17 +3318,30 @@ IfStatement
         name: _
       whenClause: WhenClause
         whenKeyword: when
-        expression2: BinaryExpression
-          leftOperand2: SimpleIdentifier
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
             token: y
           operator: +
-          rightOperand2: FunctionExpression
+          rightOperand: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: IntegerLiteral
+                literal: 0
+          binaryOperator: add
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: y
+          operator: +
+          rightOperand: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
                 literal: 0
   rightParenthesis: )
   thenStatement: Block
@@ -3532,17 +3577,30 @@ SwitchPatternCase
       name: _
     whenClause: WhenClause
       whenKeyword: when
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
           token: y
         operator: +
-        rightOperand2: FunctionExpression
+        rightOperand: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: IntegerLiteral
+              literal: 0
+        binaryOperator: add
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: y
+        operator: +
+        rightOperand: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: IntegerLiteral
               literal: 0
   colon: :
   statements
@@ -3673,8 +3731,8 @@ SwitchExpressionCase
       name: _
     whenClause: WhenClause
       whenKeyword: when
-      expression2: BinaryExpression
-        leftOperand2: SwitchExpression
+      expression2: BinaryOperatorInvocation
+        leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
           expression2: SimpleIdentifier
@@ -3683,7 +3741,21 @@ SwitchExpressionCase
           leftBracket: {
           rightBracket: }
         operator: +
-        rightOperand2: RecordLiteral
+        rightOperand: RecordLiteral
+          leftParenthesis: (
+          rightParenthesis: )
+        binaryOperator: add
+      expression(v1): BinaryExpression
+        leftOperand: SwitchExpression
+          switchKeyword: switch
+          leftParenthesis: (
+          expression: SimpleIdentifier
+            token: x
+          rightParenthesis: )
+          leftBracket: {
+          rightBracket: }
+        operator: +
+        rightOperand: RecordLiteral
           leftParenthesis: (
           rightParenthesis: )
   arrow: =>
@@ -3704,11 +3776,19 @@ SwitchExpressionCase
       name: _
     whenClause: WhenClause
       whenKeyword: when
-      expression2: BinaryExpression
-        leftOperand2: SimpleIdentifier
+      expression2: BinaryOperatorInvocation
+        leftOperand: SimpleIdentifier
           token: y
         operator: +
-        rightOperand2: RecordLiteral
+        rightOperand: RecordLiteral
+          leftParenthesis: (
+          rightParenthesis: )
+        binaryOperator: add
+      expression(v1): BinaryExpression
+        leftOperand: SimpleIdentifier
+          token: y
+        operator: +
+        rightOperand: RecordLiteral
           leftParenthesis: (
           rightParenthesis: )
   arrow: =>
@@ -3786,9 +3866,13 @@ SwitchPatternCase
         token: foo
     whenClause: WhenClause
       whenKeyword: when
-      expression2: PrefixExpression
+      expression2: LogicalNot
         operator: !
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
+          token: flag
+      expression(v1): PrefixExpression
+        operator: !
+        operand: SimpleIdentifier
           token: flag
   colon: :
 ''');
@@ -7571,17 +7655,17 @@ void f() {
     var node = parseResult.findNode.assignment('v2 =');
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: v2
   operator: =
-  rightHandSide2: PatternAssignment
+  rightHandSide: PatternAssignment
     pattern: ParenthesizedPattern
       leftParenthesis: (
       pattern: AssignedVariablePattern
         name: v1
       rightParenthesis: )
     equals: =
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 2
 ''');
   }
@@ -7597,21 +7681,45 @@ void f() {
 CascadeExpression
   target2: SimpleIdentifier
     token: a
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: b
+        operator: =
+        value: PatternAssignment
+          pattern: ParenthesizedPattern
+            leftParenthesis: (
+            pattern: AssignedVariablePattern
+              name: v1
+            rightParenthesis: )
+          equals: =
+          expression2: SimpleIdentifier
+            token: c
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: b
       operator: =
-      rightHandSide2: PatternAssignment
+      rightHandSide: PatternAssignment
         pattern: ParenthesizedPattern
           leftParenthesis: (
           pattern: AssignedVariablePattern
             name: v1
           rightParenthesis: )
         equals: =
-        expression2: SimpleIdentifier
+        expression: SimpleIdentifier
           token: c
     MethodInvocation
       operator: ..
@@ -7668,7 +7776,16 @@ PatternAssignment
   expression2: CascadeExpression
     target2: SimpleIdentifier
       token: a
-    cascadeSections2
+    sections
+      CascadeSection
+        body: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: m
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    cascadeSections
       MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
@@ -7761,7 +7878,7 @@ var (a, b) = (0, 1);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -8423,9 +8540,13 @@ SwitchPatternCase
           token: value
     whenClause: WhenClause
       whenKeyword: when
-      expression2: PrefixExpression
+      expression2: LogicalNot
         operator: !
-        operand2: SimpleIdentifier
+        operand: SimpleIdentifier
+          token: flag
+      expression(v1): PrefixExpression
+        operator: !
+        operand: SimpleIdentifier
           token: flag
   colon: :
 ''');
@@ -10113,11 +10234,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: |
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 2
+    binaryOperator: bitwiseOr
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: |
+    rightOperand: IntegerLiteral
       literal: 2
 ''');
   }
@@ -10135,11 +10263,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: >
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: |
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 2
+    binaryOperator: bitwiseOr
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: |
+    rightOperand: IntegerLiteral
       literal: 2
 ''');
   }
@@ -10203,11 +10338,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -10225,11 +10367,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: >
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -10247,11 +10396,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: >=
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -10269,11 +10425,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: <
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -10291,11 +10454,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: <=
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -10313,11 +10483,18 @@ void f(x) {
     assertParsedNodeText(node, r'''
 RelationalPattern
   operator: !=
-  operand2: BinaryExpression
-    leftOperand2: IntegerLiteral
+  operand2: BinaryOperatorInvocation
+    leftOperand: IntegerLiteral
       literal: 1
     operator: <<
-    rightOperand2: IntegerLiteral
+    rightOperand: IntegerLiteral
+      literal: 1
+    binaryOperator: shiftLeft
+  operand(v1): BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+    operator: <<
+    rightOperand: IntegerLiteral
       literal: 1
 ''');
   }
@@ -11554,11 +11731,18 @@ GuardedPattern
       question: ?
   whenClause: WhenClause
     whenKeyword: when
-    expression2: BinaryExpression
-      leftOperand2: SimpleIdentifier
+    expression2: BinaryOperatorInvocation
+      leftOperand: SimpleIdentifier
         token: x
       operator: ==
-      rightOperand2: NullLiteral
+      rightOperand: NullLiteral
+        literal: null
+      binaryOperator: equal
+    expression(v1): BinaryExpression
+      leftOperand: SimpleIdentifier
+        token: x
+      operator: ==
+      rightOperand: NullLiteral
         literal: null
 ''');
   }

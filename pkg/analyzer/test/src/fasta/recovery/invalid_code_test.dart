@@ -26,7 +26,7 @@ List<String> fruits = cont <String>['apples', 'bananas', 'pears'];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -41,17 +41,37 @@ CompilationUnit
           VariableDeclaration
             name: fruits
             equals: =
-            initializer2: BinaryExpression
-              leftOperand2: BinaryExpression
-                leftOperand2: SimpleIdentifier
+            initializer2: BinaryOperatorInvocation
+              leftOperand: BinaryOperatorInvocation
+                leftOperand: SimpleIdentifier
                   token: cont
                 operator: <
-                rightOperand2: SimpleIdentifier
+                rightOperand: SimpleIdentifier
                   token: String
+                binaryOperator: lessThan
               operator: >
-              rightOperand2: ListLiteral
+              rightOperand: ListLiteral
                 leftBracket: [
                 elements2
+                  SimpleStringLiteral
+                    literal: 'apples'
+                  SimpleStringLiteral
+                    literal: 'bananas'
+                  SimpleStringLiteral
+                    literal: 'pears'
+                rightBracket: ]
+              binaryOperator: greaterThan
+            initializer(v1): BinaryExpression
+              leftOperand: BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: cont
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: String
+              operator: >
+              rightOperand: ListLiteral
+                leftBracket: [
+                elements
                   SimpleStringLiteral
                     literal: 'apples'
                   SimpleStringLiteral
@@ -72,7 +92,7 @@ const default = const Object();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -111,7 +131,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -156,7 +176,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -201,7 +221,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -247,7 +267,7 @@ g() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -295,7 +315,7 @@ f({int with: 0}) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -355,7 +375,7 @@ allValues.forEach((enum) {});
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
