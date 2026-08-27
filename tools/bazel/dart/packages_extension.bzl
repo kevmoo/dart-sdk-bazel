@@ -365,7 +365,16 @@ def _packages_repo_impl(ctx):
             "rootUri": root_uri,
         }
         if pkg.language_version:
-            pkg_entry["languageVersion"] = pkg.language_version
+            lang_ver = pkg.language_version
+
+            # Cap languageVersion at 3.13 for bootstrap compatibility with @prebuilt_dart_sdk
+            parts = lang_ver.split(".")
+            if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+                major = int(parts[0])
+                minor = int(parts[1])
+                if major > 3 or (major == 3 and minor > 13):
+                    lang_ver = "3.13"
+            pkg_entry["languageVersion"] = lang_ver
         packages_json.append(pkg_entry)
 
     # Generate .dart_tool/package_config.json file (standard Dart location)
@@ -418,4 +427,4 @@ dart_packages_extension = module_extension(
     implementation = _packages_ext_impl,
     environ = ["CI"],
 )
-# Force invalidation trigger: 8
+# Force invalidation trigger: 9
