@@ -32,6 +32,15 @@ def get_language_version(pubspec_path, default="3.13"):
                                                                    '').strip()
                     parts = val.split(' ')[0].split('.')
                     if len(parts) >= 2:
+                        try:
+                            major, minor = int(parts[0]), int(parts[1])
+                            def_major, def_minor = [
+                                int(x) for x in default.split('.')
+                            ]
+                            if (major, minor) > (def_major, def_minor):
+                                return default
+                        except ValueError:
+                            pass
                         return f"{parts[0]}.{parts[1]}"
     except Exception:
         pass
