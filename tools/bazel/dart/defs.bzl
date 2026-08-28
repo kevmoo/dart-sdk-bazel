@@ -461,8 +461,8 @@ def _dart_compile_dill_impl(ctx):
         mnemonic = "DartCompileDill",
         progress_message = "Compiling Dart kernel dill %{label}",
         execution_requirements = {
-            "supports-workers": "1",
             "requires-worker-protocol": "json",
+            "supports-workers": "1",
         },
     )
 
