@@ -32,14 +32,14 @@ def _impl(ctx):
         # Use clang++ as the "gcc" driver so cc_binary links auto-pull
         # libc++/libm (libstdc++ implicit deps); clang++ still compiles
         # .c files as C based on extension.
-        tool_path(name = "gcc", path = "bazel_clang_wrapper.py"),
-        tool_path(name = "ld", path = "bazel_clang_wrapper.py"),
-        tool_path(name = "ar", path = "bazel_ar_wrapper.py"),
+        tool_path(name = "gcc", path = "bazel_clang_wrapper.sh"),
+        tool_path(name = "ld", path = "bazel_clang_wrapper.sh"),
+        tool_path(name = "ar", path = "bazel_ar_wrapper.sh"),
         tool_path(name = "cpp", path = "bazel_cpp_wrapper.py"),
         tool_path(name = "gcov", path = "/bin/false"),
         tool_path(name = "nm", path = "bazel_nm_wrapper.py"),
         tool_path(name = "objdump", path = "bazel_objdump_wrapper.py"),
-        tool_path(name = "strip", path = "bazel_strip_wrapper.py"),
+        tool_path(name = "strip", path = "bazel_strip_wrapper.sh"),
         tool_path(name = "dwp", path = "/bin/false"),
         tool_path(name = "llvm-cov", path = "/bin/false"),
         tool_path(name = "llvm-profdata", path = "/bin/false"),
