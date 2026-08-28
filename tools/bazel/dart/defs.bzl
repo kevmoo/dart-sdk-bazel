@@ -409,20 +409,35 @@ def _dart_compile_dill_impl(ctx):
     out_file = ctx.outputs.out
     boot_file = ctx.file.gen_kernel_dill
 
-    # Dynamically choose executor and inputs based on whether the bootstrap
-    # compiler is a JIT (.dill) or an AOT (.snapshot) binary.
+    args = ctx.actions.args()
+    args.add("--packages=%s" % ctx.file.package_config.path)
+    args.add("--platform=%s" % ctx.file.platform_dill.path)
+    args.add_all(ctx.attr.mode_flags)
+    args.add("--output=%s" % out_file.path)
+    args.add("-Dsdk_hash=%s" % toolchain.sdk_hash)
+    args.add("-Ddart.vm.product=%s" % ("true" if ctx.attr.product else "false"))
+    args.add("-Ddart.vm.asan=false")
+    args.add("-Ddart.vm.msan=false")
+    args.add("-Ddart.vm.tsan=false")
+    args.add_all(ctx.attr.gen_kernel_args)
+    args.add(ctx.file.main.path)
+    args.use_param_file("@%s", use_always = True)
+    args.set_param_file_format("multiline")
+
     if boot_file.extension == "dill":
-        compiler_cmd = "{dart} -Dsdk_hash={hash} {boot}".format(
-            dart = toolchain.dart_executable.path,
-            hash = toolchain.sdk_hash,
-            boot = boot_file.path,
-        )
+        executable = toolchain.dart_executable
+        arguments = [
+            "-Dsdk_hash=" + toolchain.sdk_hash,
+            boot_file.path,
+            args,
+        ]
         extra_inputs = [toolchain.dart_executable]
     else:
-        compiler_cmd = "{dartaotruntime} {boot}".format(
-            dartaotruntime = ctx.executable._dartaotruntime.path,
-            boot = boot_file.path,
-        )
+        executable = ctx.executable._dartaotruntime
+        arguments = [
+            boot_file.path,
+            args,
+        ]
         extra_inputs = [ctx.executable._dartaotruntime]
 
     inputs = depset(
@@ -438,30 +453,17 @@ def _dart_compile_dill_impl(ctx):
         ],
     )
 
-    extra_args = " ".join(ctx.attr.gen_kernel_args)
-
-    ctx.actions.run_shell(
+    ctx.actions.run(
         outputs = [out_file],
         inputs = inputs,
-        command = (
-            "{compiler_cmd} " +
-            "--packages={pkg} --platform={plat} {mode_flags} --output={out} " +
-            "-Dsdk_hash={hash} -Ddart.vm.product={product} " +
-            "-Ddart.vm.asan=false -Ddart.vm.msan=false -Ddart.vm.tsan=false " +
-            "{extra} {main}"
-        ).format(
-            compiler_cmd = compiler_cmd,
-            pkg = ctx.file.package_config.path,
-            plat = ctx.file.platform_dill.path,
-            mode_flags = " ".join(ctx.attr.mode_flags),
-            out = out_file.path,
-            hash = toolchain.sdk_hash,
-            product = "true" if ctx.attr.product else "false",
-            extra = extra_args,
-            main = ctx.file.main.path,
-        ),
+        executable = executable,
+        arguments = arguments,
         mnemonic = "DartCompileDill",
         progress_message = "Compiling Dart kernel dill %{label}",
+        execution_requirements = {
+            "requires-worker-protocol": "json",
+            "supports-workers": "1",
+        },
     )
 
     return [DefaultInfo(files = depset([out_file]))]
