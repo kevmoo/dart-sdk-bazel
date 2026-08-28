@@ -29,6 +29,7 @@ build --nostamp
 
 # Fast Linker & Toolchain Tuning
 build --linkopt=-fuse-ld=lld
+build --fission=yes
 
 # Platform shorthand configurations for cross-compilation
 build:android_arm64   --platforms=//build/platforms:android_arm64

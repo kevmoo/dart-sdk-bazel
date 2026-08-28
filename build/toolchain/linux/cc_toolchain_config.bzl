@@ -256,6 +256,28 @@ def _impl(ctx):
         ],
     )
 
+    fission_feature = feature(
+        name = "per_object_debug_info",
+        enabled = False,
+        flag_sets = [
+            flag_set(
+                actions = [
+                    ACTION_NAMES.c_compile,
+                    ACTION_NAMES.cpp_compile,
+                    ACTION_NAMES.cpp_header_parsing,
+                    ACTION_NAMES.cpp_module_compile,
+                    ACTION_NAMES.cpp_module_codegen,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["-gsplit-dwarf"],
+                        expand_if_available = "per_object_debug_info_file",
+                    ),
+                ],
+            ),
+        ],
+    )
+
     # System include roots Bazel treats as toolchain-builtin (suppresses
     # the "absolute path inclusion(s) found" error from strict-includes).
     clang_repo_canonical = str(Label("@dart_linux_x64_clang//:dummy")).split("//")[0]
@@ -275,6 +297,7 @@ def _impl(ctx):
             force_c_language,
             target_arch_feature,
             pic_feature,
+            fission_feature,
             asan_feature,
             msan_feature,
             tsan_feature,
