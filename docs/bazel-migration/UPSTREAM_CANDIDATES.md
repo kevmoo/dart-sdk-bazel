@@ -69,3 +69,33 @@ For outstanding, unresolved SDK-internal issues and architectural debt surfaced 
 - **Files**: Over 25 test files under `tests/standalone/io/*.dart` (such as `process_check_arguments_test.dart`).
 - **Change**: Add `// OtherResources=...` companion resource file annotations to test files that spawn subprocess scripts.
 - **Why upstream**: Absolutely critical for hermetic sandboxed test execution (Bazel/RBE/Buildfarm) so the test runner knows to stage companion scripts in the sandbox runfiles tree.
+
+### 8. Platform: Defensive C++ Null Safety in Test Assertions
+- **File**: [assert.h](file:///usr/local/google/home/kevmoo/github/sdk/runtime/platform/assert.h#L271-L288)
+- **Change**: Add explicit `nullptr` checks to `Expect::IsSubstring` and `Expect::IsNotSubstring` before invoking `strstr()`.
+- **Why upstream**: Prevents C++ segmentation faults when unit tests pass null pointers into string assertions, failing cleanly with diagnostic assertion messages instead of crashing the process.
+- **Diff**:
+
+```cpp
+inline void Expect::IsSubstring(const char* needle, const char* haystack) {
++ if (haystack == nullptr || needle == nullptr) {
++   Fail("expected <\"%s\"> to be a substring of <\"%s\">",
++        needle != nullptr ? needle : "nullptr",
++        haystack != nullptr ? haystack : "nullptr");
++   return;
++ }
+  if (strstr(haystack, needle) != nullptr) return;
+  Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
+}
+```
+
+### 9. DDS & DTD: Service Origin Check Disable Option
+- **Files**: [dds.dart](file:///usr/local/google/home/kevmoo/github/sdk/pkg/dds/lib/dds.dart), [dds_cli_entrypoint.dart](file:///usr/local/google/home/kevmoo/github/sdk/pkg/dds/lib/src/dds_cli_entrypoint.dart), [dart_tooling_daemon.dart](file:///usr/local/google/home/kevmoo/github/sdk/pkg/dtd_impl/lib/src/dart_tooling_daemon.dart), and [vmservice_server.dart](file:///usr/local/google/home/kevmoo/github/sdk/sdk/lib/_internal/vm/bin/vmservice_server.dart)
+- **Change**: Add `disableServiceOriginCheck` parameter across Dart Development Service (DDS) and Dart Tooling Daemon (DTD) initialization APIs and `--disable-service-origin-check` CLI options.
+- **Why upstream**: Allows development tools running across containerized environments, cloud workspaces, or forwarded ports to communicate with DDS/DTD without rejecting requests due to CORS/origin header checks.
+
+### 10. Runtime: AOT and CFE Precompiled Runtime Decoupling
+- **Files**: [snapshot_utils.cc](file:///usr/local/google/home/kevmoo/github/sdk/runtime/bin/snapshot_utils.cc) and [snapshot_empty.cc](file:///usr/local/google/home/kevmoo/github/sdk/runtime/bin/snapshot_empty.cc)
+- **Change**: Switch macro guards from `EXCLUDE_CFE_AND_KERNEL_PLATFORM` to `DART_PRECOMPILED_RUNTIME` and add runtime checks `if (!dfe.CanUseDartFrontend())` before attempting to invoke the compiler frontend.
+- **Why upstream**: Ensures that precompiled AOT runtime builds cleanly handle configurations where the Compiler Frontend (CFE) is excluded, failing cleanly with descriptive runtime diagnostics rather than hitting compilation errors or unreachable code paths.
+
