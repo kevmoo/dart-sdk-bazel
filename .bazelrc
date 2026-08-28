@@ -20,6 +20,17 @@ build --remote_cache_async
 build:ci --guard_against_concurrent_changes=false
 build:ci --config=remote-cache
 
+# Local Single-Machine I/O, Sandboxing & Caching Optimizations
+build --reuse_sandbox_directories
+build --sandbox_base=/dev/shm
+build --nobuild_runfile_links
+test --nobuild_runfile_links
+build --incompatible_strict_action_env=true
+build --nostamp
+
+# Fast Linker & Toolchain Tuning
+build --linkopt=-fuse-ld=lld
+
 # Platform shorthand configurations for cross-compilation
 build:android_arm64   --platforms=//build/platforms:android_arm64
 build:android_x64     --platforms=//build/platforms:android_x64
