@@ -337,15 +337,21 @@ ddc_compile(
     package = "meta",
 )
 
-# rules_dart: compile stack_trace_mapper JS utility using prebuilt dart compile js.
+# rules_dart: compile stack_trace_mapper JS utility using prebuilt dart running dart2js.dart.
 # Ports utils/ddc/BUILD.gn:dart2js_compile("stack_trace_mapper").
 genrule(
     name = "stack_trace_mapper",
     srcs = [
         "//:pkg/dev_compiler/web/stack_trace_mapper.dart",
         "//:pkg/dev_compiler/web/source_map_stack_trace.dart",
+        "//sdk:sdk_library_sources",
+        "//utils/compiler:compile_dart2js_platform",
         "@dart_packages//:package_config_json",
+        "@dart_packages//pkg/_fe_analyzer_shared",
+        "@dart_packages//pkg/compiler",
+        "@dart_packages//pkg/front_end",
         "@dart_packages//pkg/js",
+        "@dart_packages//pkg/kernel",
         "@dart_packages//pkg/path",
         "@dart_packages//pkg/source_maps",
         "@dart_packages//pkg/source_span",
@@ -354,9 +360,14 @@ genrule(
         "@prebuilt_dart_sdk//:bin/dart",
     ],
     outs = ["dart_stack_trace_mapper.js"],
-    cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile js " +
-          "-O2 " +
+    cmd = "PLATFORM_DIR=$$(for f in $(locations //utils/compiler:compile_dart2js_platform); do dirname \"$$f\"; break; done) && " +
+          "$(location @prebuilt_dart_sdk//:bin/dart) " +
           "--packages=$(location @dart_packages//:package_config_json) " +
+          "$$(dirname $(location @dart_packages//:package_config_json))/../pkg/compiler/lib/src/dart2js.dart " +
+          "--packages=$(location @dart_packages//:package_config_json) " +
+          "--libraries-spec=$$(dirname $(location @dart_packages//:package_config_json))/../sdk/lib/libraries.json " +
+          "--platform-binaries=$$PLATFORM_DIR/ " +
+          "-m --no-source-maps " +
           "-o $(location dart_stack_trace_mapper.js) " +
           "$(location //:pkg/dev_compiler/web/stack_trace_mapper.dart)",
 )
