@@ -19,17 +19,20 @@ build --experimental_inmemory_dotd_files
 build:ci --guard_against_concurrent_changes=false
 build:ci --config=remote-cache
 
+# Automatically enable platform-specific configs (e.g. build:linux, build:macos)
+common --enable_platform_specific_config
+
 # Local Single-Machine I/O, Sandboxing & Caching Optimizations
 build --reuse_sandbox_directories
-build --sandbox_base=/dev/shm
+build:linux --sandbox_base=/dev/shm
 build --nobuild_runfile_links
 test --nobuild_runfile_links
 build --incompatible_strict_action_env=true
 build --nostamp
 
-# Fast Linker & Toolchain Tuning
-build --linkopt=-fuse-ld=lld
-build --fission=yes
+# Fast Linker & Toolchain Tuning (Linux only; macOS uses Apple Clang / ld64)
+build:linux --linkopt=-fuse-ld=lld
+build:linux --fission=yes
 
 # Platform shorthand configurations for cross-compilation
 build:android_arm64   --platforms=//build/platforms:android_arm64
