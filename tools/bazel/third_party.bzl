@@ -311,6 +311,13 @@ for root, dirs, files in os.walk('.'):
 def _overlay_repository_impl(repository_ctx):
     dest_dir = repository_ctx.path(".")
 
+    # Register DEPS as a watched dependency so any DEPS roll automatically
+    # invalidates and re-materializes the overlay repository.
+    if repository_ctx.attr.deps_file:
+        if hasattr(repository_ctx, "watch"):
+            repository_ctx.watch(repository_ctx.attr.deps_file)
+        repository_ctx.read(repository_ctx.attr.deps_file)
+
     # 1. Determine if we should use local path or fetch remote
     local_path = repository_ctx.path(str(repository_ctx.workspace_root) + "/" + repository_ctx.attr.path)
     use_local = local_path.exists and not repository_ctx.attr.force_remote
