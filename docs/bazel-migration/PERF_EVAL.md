@@ -11,7 +11,7 @@ This document specifies the standard verification suite and benchmarking methodo
 - **Depot Tools**: `gclient` must be available in `$PATH`.
 
 ### Pre-Flight Synchronization
-Always sync both the git tree and the pinned `DEPS` dependencies (CIPD toolchains and third-party packages) before running evaluations:
+Always sync both the git tree and the pinned `DEPS` dependencies (CIPD toolchains, package dependencies, and prebuilt SDK) before running evaluations:
 
 ```bash
 cd ~/github/dart-sdk/bazel/main/sdk
@@ -20,8 +20,12 @@ cd ~/github/dart-sdk/bazel/main/sdk
 git checkout main
 git pull origin main
 
-# 2. Synchronize external third_party repositories and CIPD prebuilts
-gclient sync -D --no-history
+# 2. Synchronize worktree dependencies, prebuilts, and package configs (AGENTS.md Rule 4)
+.agents/scripts/mkagenttree --sync ~/github/dart-sdk/bazel/main/sdk
+
+# 3. Sanity check prebuilt SDK tag matches DEPS pinned revision
+cat tools/sdks/dart-sdk/version
+grep sdk_tag DEPS
 ```
 
 ---
@@ -35,11 +39,8 @@ bazel build //tools/bazel/dart:test_hello --nobuild
 ```
 
 ### Platform-Specific Notes:
-- **Linux**: Utilizes `--sandbox_base=/dev/shm` (RAM disk), `--linkopt=-fuse-ld=lld` (LLD linker), and `--fission=yes` (Split DWARF `.dwo` files).
-- **macOS (Darwin)**:
-  - `--sandbox_base=/dev/shm` is ignored by Bazel on macOS without error.
-  - `-fuse-ld=lld` is supported by the in-tree CIPD LLVM Clang toolchain.
-  - `--fission=yes` is ignored gracefully for Mach-O binaries.
+- **Linux**: Utilizes `--sandbox_base=/dev/shm` (RAM disk), `--linkopt=-fuse-ld=lld` (LLD linker), and `--fission=yes` (Split DWARF `.dwo` files) scoped under `build:linux` via `common --enable_platform_specific_config` (#104).
+- **macOS (Darwin)**: Linux-only flags (`/dev/shm`, `lld`, `fission`) are not applied on macOS. The dry-run should show standard Darwin toolchain configuration without error.
 
 ---
 
@@ -140,7 +141,7 @@ bazel clean
 time bazel build //runtime/bin:dart //runtime/bin:gen_snapshot --remote_cache= --disk_cache=
 ```
 
-*Verification Invariant*: The process summary must read `1384 processes: ... N linux-sandbox` (or `darwin-sandbox`) with **zero** `cache hit` terms.
+*Verification Invariant*: The process summary must read `N processes: ... N linux-sandbox` (or `darwin-sandbox`) with **zero** `cache hit` terms (no disk or remote cache hits).
 
 ---
 
@@ -151,7 +152,7 @@ After executing the benchmark suite, verify that the git working tree is clean:
 ```bash
 git status --short
 ```
-*Expected Output*: Empty (no modified or untracked files). If stray files exist, clean them via `git checkout -- .` and `git clean -fd`.
+*Expected Output*: Empty (all benchmark mutations were cleaned up by the inline `git checkout -- <file>` commands).
 
 ---
 
