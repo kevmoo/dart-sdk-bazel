@@ -86,6 +86,16 @@ When reporting benchmarks, always provide:
 1. **Elapsed Time & Critical Path** (from the `INFO: Elapsed time:` line).
 2. **Process Summary** (the `INFO: N processes:` line showing worker, sandbox, and cache hit distributions).
 
+> **Mutations must be unique per run.** Bazel keys the action cache, disk cache
+> (`~/.bazelrc` sets `--disk_cache`) and remote cache on input *content*. A fixed
+> mutation such as `echo "// bench" >> file` produces the same inputs on every run, so
+> the second run of Benchmark A/B is served from the disk cache (`3 processes: 2 disk
+> cache hit, 1 internal`, ~0.25s) and never exercises the worker or the linker. The
+> `$(date +%s)` suffix in the commands below makes each run's inputs unique.
+>
+> Incremental timings vary run to run (Benchmark B measured 7.07s and 1.77s on the same
+> Linux host); report the median of 3 runs.
+
 ---
 
 ### Benchmark A: Incremental Dart Kernel Compilation (Warm CFE Worker)
@@ -95,8 +105,8 @@ Measures persistent worker JIT throughput when recompiling a leaf Dart library i
 # 1. Warm the build and start persistent worker
 bazel build //utils/analysis_server:analysis_server_dill
 
-# 2. Mutate a leaf file in pkg/analyzer
-echo "// bench" >> pkg/analyzer/lib/dart/analysis/analysis_context.dart
+# 2. Mutate a leaf file in pkg/analyzer (unique per run — see note below)
+echo "// bench $(date +%s)" >> pkg/analyzer/lib/dart/analysis/analysis_context.dart
 
 # 3. Measure incremental compilation time
 time bazel build //utils/analysis_server:analysis_server_dill
@@ -116,8 +126,8 @@ Measures C++ incremental compilation and link latency with Split DWARF and fast 
 # 1. Warm the VM binary build
 bazel build //runtime/bin:dart
 
-# 2. Mutate a C++ leaf source file (modifying code to change object bytes)
-echo "int dart_bench_marker_var = 1;" >> runtime/vm/double_conversion.cc
+# 2. Mutate a C++ leaf source file (changes object bytes; unique per run — see note below)
+echo "int dart_bench_marker_$(date +%s) = 1;" >> runtime/vm/double_conversion.cc
 
 # 3. Measure incremental compile + link time
 time bazel build //runtime/bin:dart
