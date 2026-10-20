@@ -745,8 +745,6 @@ template("bin_to_linkable") {
   }
 }
 
-# For documentation on the various snapshot embedding families, preprocessor symbols,
-# and JIT vs AOT routing mechanisms, see runtime/bin/snapshots.md.
 bin_to_linkable("core_snapshot_data_linkable") {
   deps = [ ":core_snapshot_bin" ]
   input = "$target_out_dir/core_snapshot_data.bin"

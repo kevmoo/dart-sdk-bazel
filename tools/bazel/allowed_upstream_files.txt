@@ -165,7 +165,6 @@ runtime/bin/ffi_unit_test/BUILD.bazel
 runtime/bin/gen_targets.bzl
 runtime/bin/main_impl.cc
 runtime/bin/run_vm_tests.cc
-runtime/bin/snapshot_empty.cc
 runtime/bin/snapshots.md
 runtime/bin/snapshot_utils.cc
 runtime/BUILD.bazel
