@@ -139,9 +139,9 @@
       "buildtools/linux-arm64/clang/bin/",
       "buildtools/linux-x64/clang/bin/",
       "buildtools/mac-arm64/clang/bin/",
-      "buildtools/mac-arm64/clang/lib/clang/23/lib/darwin/",
+      "buildtools/mac-arm64/clang/lib/clang/24/lib/darwin/",
       "buildtools/mac-x64/clang/bin/",
-      "buildtools/mac-x64/clang/lib/clang/23/lib/darwin/",
+      "buildtools/mac-x64/clang/lib/clang/24/lib/darwin/",
       "buildtools/win-x64/clang/bin/clang.exe",
       "buildtools/win-x64/clang/bin/lld-link.exe",
       "buildtools/win-x64/clang/bin/llvm-strip.exe",
@@ -638,6 +638,14 @@
         "hot-reload-rollback": true
       }
     },
+    "vm-resident-(linux|mac|win)-(debug|release)-(ia32|x64|arm64|arm64e)": {
+      "options": {
+        "builder-tag": "resident_compiler",
+        "vm-options": [
+          "-DUSE_RESIDENT_COMPILER=true"
+        ]
+      }
+    },
     "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true
@@ -653,19 +661,10 @@
         "compiler": "app_jitk"
       }
     },
-    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
-      "options": {
-        "compiler": "dart2bytecode"
-      }
-    },
-    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
-      "options": {
-        "compiler": "dart2bytecode"
-      }
-    },
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {},
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {},
     "vm-dyn-mac-(debug|product|release)-simarm64_arm64": {
       "options": {
-        "compiler": "dart2bytecode",
         "vm-options": [
           "--use_simulator=true"
         ]
@@ -673,7 +672,6 @@
     },
     "vm-dyn-mac-(debug|product|release)-simarm64_arm64-nosim": {
       "options": {
-        "compiler": "dart2bytecode",
         "vm-options": [
           "--use_simulator=false"
         ]
@@ -1163,6 +1161,15 @@
           ],
           "fileset": "vm",
           "shards": 16
+        },
+        {
+          "name": "vm service resident tests",
+          "arguments": [
+            "-nvm-resident-${system}-${mode}-${arch}",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1203,6 +1210,15 @@
           ],
           "fileset": "vm",
           "shards": 16
+        },
+        {
+          "name": "vm service resident tests",
+          "arguments": [
+            "-nvm-resident-${system}-${mode}-${arch}",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -3594,6 +3610,10 @@
         {
           "name": "build devtools",
           "script": "tools/build_devtools.py"
+        },
+        {
+          "name": "test devtools",
+          "script": "tools/test_devtools.py"
         }
       ]
     }

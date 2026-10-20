@@ -114,8 +114,8 @@ class FfiCallbackMetadata {
     // safe because Instructions objects are never moved by the GC.
     uword target_entry_point_;
 
-    // A persistent handle to the callback's function if available,
-    // otherwise nullptr.
+    // A persistent handle to the callback's function if the callback target
+    // is interpreted, otherwise nullptr.
     PersistentHandle* function_handle_;
 
     // For async callbacks, this is the send port. For sync callbacks this
@@ -284,12 +284,6 @@ class FfiCallbackMetadata {
   // Returns the Metadata object for the given trampoline.
   Metadata LookupMetadataForTrampolineUnlocked(Trampoline trampoline) const;
 
-#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
-  // Returns the persistent function handle for the given trampoline.
-  PersistentHandle* LookupFunctionHandleForTrampolineUnlocked(
-      Trampoline trampoline) const;
-#endif
-
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
     return (kPageSize - kNativeCallbackSharedStubSize -
@@ -363,8 +357,8 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 6;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 260;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 6;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 288;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 8;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
   static constexpr intptr_t kNativeCallbackSharedStubSize = 210;
@@ -376,6 +370,8 @@ class FfiCallbackMetadata {
 #else
 #error What architecture?
 #endif
+
+  static bool IsInterpretedTrampolineEntryPoint(uword entry_point);
 
   // Visible for testing.
 #if defined(TESTING)
@@ -410,8 +406,7 @@ class FfiCallbackMetadata {
                                        MetadataEntry** list_head);
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
-  static PersistentHandle* CreatePersistentHandle(Isolate* isolate,
-                                                  IsolateGroup* isolate_group,
+  static PersistentHandle* CreatePersistentHandle(IsolateGroup* isolate_group,
                                                   const Object& obj);
 
   static FfiCallbackMetadata* singleton_;

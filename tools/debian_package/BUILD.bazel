@@ -43,7 +43,7 @@ genrule(
     outs = ["dart.deb"],
     cmd = """
     # 1. Symlink the SDK to dart-sdk at the root of the build directory
-    SDK_FILE="$(location //sdk:copy_dart)"
+    SDK_FILE="$(execpath //sdk:copy_dart)"
     SDK_DIR="$$(dirname $$(dirname $$(dirname $$SDK_FILE)))"
     cp -R "$$SDK_DIR/dart-sdk" dart-sdk
     chmod -R +w dart-sdk
@@ -67,9 +67,9 @@ genrule(
         exit 1
     fi
 
-    python3 $(location create_debian_package.py) \
-        --version="$$(python3 $(location get_version.py))" \
-        --timestamp="$$(python3 $(location get_timestamp.py))" \
+    python3 $(execpath create_debian_package.py) \
+        --version="$$(python3 $(execpath get_version.py))" \
+        --timestamp="$$(python3 $(execpath get_timestamp.py))" \
         --arch="$$DEB_ARCH" \
         --lib_dir="$$LIB_DIR"
 

@@ -170,6 +170,18 @@ def _packages_repo_impl(ctx):
     packages_json = []
     all_cloned_files = []
 
+    # Read bootstrap SDK version dynamically so Dart minor rolls (3.14, 3.15, ...)
+    # never require manual languageVersion cap edits.
+    sdk_max_major = 3
+    sdk_max_minor = 15
+    sdk_ver_file = ctx.path(ctx.attr.prebuilt_sdk_version)
+    if sdk_ver_file.exists:
+        ver_str = ctx.read(sdk_ver_file).strip().split("-")[0]
+        ver_parts = ver_str.split(".")
+        if len(ver_parts) >= 2 and ver_parts[0].isdigit() and ver_parts[1].isdigit():
+            sdk_max_major = int(ver_parts[0])
+            sdk_max_minor = int(ver_parts[1])
+
     for name in sorted(pkgs.keys()):
         pkg = pkgs[name]
 
@@ -367,13 +379,13 @@ def _packages_repo_impl(ctx):
         if pkg.language_version:
             lang_ver = pkg.language_version
 
-            # Cap languageVersion at 3.13 for bootstrap compatibility with @prebuilt_dart_sdk
+            # Cap languageVersion dynamically for bootstrap compatibility with @prebuilt_dart_sdk
             parts = lang_ver.split(".")
             if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
                 major = int(parts[0])
                 minor = int(parts[1])
-                if major > 3 or (major == 3 and minor > 13):
-                    lang_ver = "3.13"
+                if major > sdk_max_major or (major == sdk_max_major and minor > sdk_max_minor):
+                    lang_ver = "%d.%d" % (sdk_max_major, sdk_max_minor)
             pkg_entry["languageVersion"] = lang_ver
         packages_json.append(pkg_entry)
 
@@ -416,6 +428,7 @@ dart_packages_repo = repository_rule(
     environ = ["CI"],
     attrs = {
         "devtools_marker": attr.label(default = Label("@devtools//:web")),
+        "prebuilt_sdk_version": attr.label(default = Label("@prebuilt_dart_sdk//:version")),
     },
 )
 

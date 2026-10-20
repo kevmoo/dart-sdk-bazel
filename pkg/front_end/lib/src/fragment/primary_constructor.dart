@@ -101,15 +101,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$formalsOffset)';
 }
 
-class _PrimaryConstructorBodyBuildingContext
-    implements FunctionBodyBuildingContext {
-  final PrimaryConstructorFragment _fragment;
-
-  @override
-  final bool shouldFinishFunction;
-
-  new(this._fragment, {required this.shouldFinishFunction});
-
+class _PrimaryConstructorBodyBuildingContext(
+  final PrimaryConstructorFragment _fragment, {
+  @override required final bool shouldFinishFunction,
+}) implements FunctionBodyBuildingContext {
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder

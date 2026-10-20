@@ -320,6 +320,23 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
         ASSERT(local_function_id > 0);
       }
 
+      intptr_t depth = -1;
+      intptr_t index = -1;
+      if ((flags & ClosureCode::kHasAwaiterLinkFlag) != 0) {
+        depth = reader_.ReadUInt();
+        index = reader_.ReadUInt();
+        if (Utils::IsUint(8, depth) && Utils::IsUint(8, index)) {
+          closure.set_awaiter_link(
+              {static_cast<uint8_t>(depth), static_cast<uint8_t>(index)});
+        } else {
+          OS::PrintErr(
+              "Warning: @pragma('vm:awaiter-link') marked variable is visible "
+              "from the function %s but the link {%" Pd ", %" Pd
+              "} can't be encoded\n",
+              closure.ToFullyQualifiedCString(), depth, index);
+        }
+      }
+
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
 
@@ -507,6 +524,7 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       }
     }
   }
+  signature.FinalizeNameArray();
 
   type ^= ReadObject();
   signature.set_result_type(type);
@@ -1909,7 +1927,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if (is_shared && !FLAG_experimental_shared_data &&
-        !Library::Handle(Z, cls.library()).IsAnyCoreLibrary()) {
+        !Library::Handle(Z, cls.library()).is_dart_scheme()) {
       // Keep synced with error in KernelLoader::ReadVMAnnotations.
       FATAL(
           "Encountered vm:shared when functionality is disabled. "
@@ -2298,6 +2316,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         }
       }
     }
+    signature.FinalizeNameArray();
 
     type ^= ReadObject();
     signature.set_result_type(type);
@@ -3130,7 +3149,9 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
         vars.Add(LocalVarDescriptorsBuilder::VarDesc{
-            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+            &String::Handle(zone, parent_vars.GetName(i)),
+            &AbstractType::Handle(zone, parent_vars.GetStaticType(i)),
+            var_info});
       }
     }
   }

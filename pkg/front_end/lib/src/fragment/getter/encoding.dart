@@ -144,7 +144,7 @@ sealed class GetterEncoding implements InferredTypeListener {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -206,10 +206,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders;
+      _fragment.declaredTypeParameterBuilders;
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.declaredFormals;
@@ -259,16 +256,11 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    _fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders
-        // Coverage-ignore(suite): Not run.
-        .buildOutlineExpressions(
-          classHierarchy: classHierarchy,
-          libraryBuilder: libraryBuilder,
-          bodyBuilderContext: bodyBuilderContext,
-        );
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+    );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -282,7 +274,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -296,10 +288,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -333,7 +322,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -345,10 +334,8 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required bool isAbstract,
     required bool isExternal,
   }) {
-    List<SourceNominalParameterBuilder>? typeParameters = _fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders;
+    List<SourceNominalParameterBuilder>? typeParameters =
+        _fragment.declaredTypeParameterBuilders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
@@ -389,10 +376,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -409,10 +393,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -424,10 +405,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       );
     }
     return context.computeDefaultTypesForVariables(
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
       inErrorRecovery: hasErrors,
     );
   }
@@ -484,10 +462,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           _fragment.declaredTypeParameters != null
       ? [
           ...?_clonedDeclarationTypeParameters,
-          ...?_fragment
-              .declaredTypeParameters
-              // Coverage-ignore(suite): Not run.
-              ?.builders,
+          ...?_fragment.declaredTypeParameterBuilders,
         ]
       : null;
 
@@ -549,16 +524,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    _fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders
-        // Coverage-ignore(suite): Not run.
-        .buildOutlineExpressions(
-          classHierarchy: classHierarchy,
-          libraryBuilder: libraryBuilder,
-          bodyBuilderContext: bodyBuilderContext,
-        );
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+    );
     _fragment.declaredFormals.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
       declarationBuilder: declarationBuilder,
@@ -585,7 +555,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -609,7 +579,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -618,10 +589,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -655,7 +623,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -667,10 +635,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     required bool isAbstract,
     required bool isExternal,
   }) {
-    List<SourceNominalParameterBuilder>? typeParameters = _fragment
-        .declaredTypeParameters
-        // Coverage-ignore(suite): Not run.
-        ?.builders;
+    List<SourceNominalParameterBuilder>? typeParameters =
+        _fragment.declaredTypeParameterBuilders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
@@ -712,7 +678,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -729,10 +695,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment
-          .declaredTypeParameters
-          // Coverage-ignore(suite): Not run.
-          ?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -753,7 +716,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!.builders,
+        ..._fragment.declaredTypeParameterBuilders!,
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
@@ -762,10 +725,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       );
     } else {
       return context.computeDefaultTypesForVariables(
-        _fragment
-            .declaredTypeParameters
-            // Coverage-ignore(suite): Not run.
-            ?.builders,
+        _fragment.declaredTypeParameterBuilders,
         inErrorRecovery: hasErrors,
       );
     }

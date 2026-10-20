@@ -56,11 +56,6 @@ DEFINE_FLAG(
     max_subtype_cache_entries,
     kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(
-    int,
-    regexp_optimization_counter_threshold,
-    1000,
-    "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(int,
             reoptimization_counter_threshold,
             4000,
@@ -461,6 +456,13 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
+DEFINE_RUNTIME_ENTRY(UnsupportedError, 1) {
+  const auto& message = String::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+}
+
 DEFINE_RUNTIME_ENTRY(DoubleToInteger, 1) {
   // Unboxed value is passed through a dedicated slot in Thread.
   double val = arguments.thread()->unboxed_double_runtime_arg();
@@ -543,12 +545,19 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   RuntimeAllocationEpilogue(thread);
 }
 
-DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
+  arguments.SetReturn(Object::Handle(
+      zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt, 0) {
+  const int64_t val = thread->unboxed_int64_runtime_arg();
   arguments.SetReturn(
-      Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
+      Object::Handle(zone, Integer::New(val, SpaceForRuntimeAllocation())));
   RuntimeAllocationEpilogue(thread);
 }
 
@@ -573,12 +582,19 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
   RuntimeAllocationEpilogue(thread);
 }
 
-DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt32x4, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(
+      Object::Handle(zone, Int32x4::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(
-      zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
+  arguments.SetReturn(
+      Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
   RuntimeAllocationEpilogue(thread);
 }
 
@@ -854,7 +870,7 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   }
 }
 
-// Instantiate type.
+// Assert supertype-subtype relationship.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
 // Arg2: type to be a subtype of the other
@@ -1258,12 +1274,14 @@ struct FfiCallArguments {
   uword fpu_registers[kNumberOfFpuRegisters];
   uword target;
 
-  const char* ToCString(Zone* zone) const {
+  const char* ToCString(Zone* zone, bool print_stack_as_words = false) const {
     ZoneTextBuffer buffer(zone);
+    buffer.AddString("FfiCallArguments {\n");
     buffer.Printf("  Target: %#" Px "\n", target);
     buffer.AddString("  CPU registers:\n");
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-      const char* name = RegisterNames::RegisterName(static_cast<Register>(i));
+      const char* name =
+          RegisterNames::RegisterAbiName(static_cast<Register>(i));
       buffer.Printf("   %5s: %#" Px "\n", name, cpu_registers[i]);
     }
     buffer.AddString("  FPU registers:\n");
@@ -1272,18 +1290,25 @@ struct FfiCallArguments {
           RegisterNames::FpuRegisterName(static_cast<FpuRegister>(i));
       buffer.Printf("   %5s: %#" Px "\n", name, fpu_registers[i]);
     }
-    buffer.Printf("  Stack area (size %" Pu "):", stack_area_end - stack_area);
-    auto* current = reinterpret_cast<const uint8_t*>(stack_area);
-    auto* const end = reinterpret_cast<const uint8_t*>(stack_area_end);
-    for (; current < end; ++current) {
-      if (((end - current) % kWordSize) == 0) {
-        buffer.Printf("\n    %#" Px ": ", reinterpret_cast<uword>(current));
-      } else if (((end - current) % kWordSize) == (kWordSize / 2)) {
+    const intptr_t stack_size = stack_area_end - stack_area;
+    buffer.Printf("  Stack area (size %" Pu "):", stack_size);
+    const intptr_t kIncrement = print_stack_as_words ? kWordSize : 1;
+    const intptr_t kBytesPerLine = print_stack_as_words ? kWordSize : 16;
+    for (intptr_t i = 0; i < stack_size; i += kIncrement) {
+      if ((i % kBytesPerLine) == 0) {
+        buffer.Printf("\n    %#" Px ": ", stack_area + i);
+      } else if ((i % kWordSize) == 0) {
         buffer.AddString("  ");
       }
-      buffer.Printf("%02x", *current);
+      if (print_stack_as_words) {
+        buffer.Printf("%#" Px "",
+                      *reinterpret_cast<const uword*>(stack_area + i));
+      } else {
+        buffer.Printf("%02.2x",
+                      *reinterpret_cast<const uint8_t*>(stack_area + i));
+      }
     }
-    buffer.AddString("\n");
+    buffer.AddString("\n}\n");
     return buffer.buffer();
   }
 };
@@ -1545,6 +1570,7 @@ static void PassFfiCallArguments(
   for (intptr_t i = 0; i < marshaller.num_args(); ++i) {
     arg = argv[i];
     const auto& loc = marshaller.Location(i);
+    PRINT_IF_TRACING_INTERPRETER("Arg %" Pd " -> %s\n", i, loc.ToCString());
     if (marshaller.IsCompoundCType(i)) {
       compound_contents ^= Instance::Cast(arg).GetField(typed_data_field);
       intptr_t offset_in_bytes = Smi::Value(
@@ -1605,6 +1631,7 @@ static void PassFfiCallArguments(
       SetLocationInFfiCallArguments(thread, args, ptr_loc, ptr);
     }
   }
+  PRINT_IF_TRACING_INTERPRETER("%s", args->ToCString(zone));
 }
 
 static uword RetrieveLocationFromFfiCallArguments(
@@ -1629,10 +1656,12 @@ static ObjectPtr ReceiveFfiCallResult(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
     const FfiCallArguments& args) {
+  auto* const zone = thread->zone();
   const intptr_t arg_index = compiler::ffi::kResultIndex;
   const auto& loc = marshaller.Location(arg_index);
+  PRINT_IF_TRACING_INTERPRETER("%s", args.ToCString(zone));
+  PRINT_IF_TRACING_INTERPRETER("Return value <- %s\n", loc.ToCString());
   if (marshaller.IsCompoundCType(arg_index)) {
-    auto* const zone = thread->zone();
     const auto& compound_contents = TypedData::Handle(
         zone, TypedData::New(kTypedDataUint8ArrayCid,
                              marshaller.CompoundReturnSizeInBytes()));
@@ -1822,10 +1851,10 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       zone, function, first_argument_parameter_offset, c_signature, &error);
   // AbiSpecificTypes can have an incomplete mapping.
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
 
   RELEASE_ASSERT(marshaller_ptr != nullptr);
@@ -1842,7 +1871,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
 
-  PRINT_IF_TRACING_INTERPRETER("calling native entry point %#" Px "\n", target);
+  PRINT_IF_TRACING_INTERPRETER("calling native entry point %#" Px " for %s\n",
+                               target, function.ToFullyQualifiedCString());
   if (is_leaf) {
     NoSafepointScope no_safepoint;
     PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
@@ -1873,10 +1903,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if defined(HOST_ARCH_ARM64) &&                                                \
-    (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
-
-#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void CopyLocationFromCallbackContextStack(
     void* dst,
     const CallbackContext& ctxt,
@@ -1890,23 +1918,35 @@ static void CopyLocationFromCallbackContextStack(
 static uword RetrieveLocationFromCallbackContext(
     Thread* thread,
     const CallbackContext& ctxt,
+    intptr_t arg_index,
     const compiler::ffi::NativeLocation& loc) {
+  const bool is_return = arg_index == compiler::ffi::kResultIndex;
   if (loc.IsRegisters()) {
     ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
     const auto dst_reg = loc.AsRegisters().reg_at(0);
     ASSERT(dst_reg >= 0);
-    if (dst_reg == R8) {
-      return ctxt.r8;
+    if (is_return) {
+      // The only use when exiting is to load the pointer to result struct.
+      ASSERT_EQUAL(dst_reg,
+                   CallingConventions::kPointerToReturnStructRegisterReturn);
+      return ctxt.return_struct_pointer;
+    }
+    // If the pointer to return struct register overlaps with one of the
+    // argument registers, then they're both set to the same value on entry.
+    if (dst_reg == CallingConventions::kPointerToReturnStructRegisterCall) {
+      return ctxt.return_struct_pointer;
     } else {
-      ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextIntegerArguments - 1);
+      ASSERT_LESS_OR_EQUAL(dst_reg, CallbackContext::kNumIntegerArguments - 1);
       return ctxt.integer_arguments[dst_reg];
     }
   } else if (loc.IsFpuRegisters()) {
+    ASSERT(!is_return);  // FPU registers are only set, never read on exit.
     const auto dst_reg = loc.AsFpuRegisters().fpu_reg();
     ASSERT(dst_reg >= 0);
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextDoubleArguments - 1);
+    ASSERT_LESS_OR_EQUAL(dst_reg, CallbackContext::kNumDoubleArguments - 1);
     return ctxt.double_arguments[dst_reg];
   } else if (loc.IsStack()) {
+    ASSERT(!is_return);  // The stack is only set, never read on exit.
     ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
     uword result;
     CopyLocationFromCallbackContextStack(&result, ctxt, loc.AsStack());
@@ -1924,13 +1964,15 @@ static ObjectPtr ReceiveFfiCallbackArgument(
   ASSERT(!marshaller.IsVoid(arg_index));
   auto* const zone = thread->zone();
   const auto& loc = marshaller.Location(arg_index);
+  PRINT_IF_TRACING_INTERPRETER("Arg %" Pd " <- %s\n", arg_index,
+                               loc.ToCString());
   if (marshaller.IsCompoundCType(arg_index)) {
     const intptr_t size_in_bytes = loc.payload_type().SizeInBytes();
     const auto& compound_contents = TypedData::Handle(
         zone, TypedData::New(kTypedDataUint8ArrayCid, size_in_bytes));
     if (loc.IsPointerToMemory()) {
       const uword ptr = RetrieveLocationFromCallbackContext(
-          thread, ctxt, loc.AsPointerToMemory().pointer_location());
+          thread, ctxt, arg_index, loc.AsPointerToMemory().pointer_location());
       auto* const src = reinterpret_cast<const void*>(ptr);
       NoSafepointScope scope;
       memcpy(compound_contents.DataAddr(0), src, size_in_bytes);  // NOLINT
@@ -1953,8 +1995,8 @@ static ObjectPtr ReceiveFfiCallbackArgument(
         }
         auto const size = portion.payload_type().SizeInBytes();
         ASSERT(size <= kWordSize);
-        const uword value =
-            RetrieveLocationFromCallbackContext(thread, ctxt, portion);
+        const uword value = RetrieveLocationFromCallbackContext(
+            thread, ctxt, arg_index, portion);
         NoSafepointScope scope;
         auto* dst = compound_contents.DataAddr(offset_in_bytes);
         memcpy(dst, &value, size);  // NOLINT
@@ -1986,7 +2028,8 @@ static ObjectPtr ReceiveFfiCallbackArgument(
       FATAL("Unimplemented location %s", loc.ToCString(zone));
     }
     ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
-    const uword value = RetrieveLocationFromCallbackContext(thread, ctxt, loc);
+    const uword value =
+        RetrieveLocationFromCallbackContext(thread, ctxt, arg_index, loc);
     return FfiConvertPrimitiveToDart(thread, marshaller, arg_index, value);
   }
 }
@@ -2000,11 +2043,11 @@ static void SetLocationInCallbackContext(
     ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
     const auto dst_reg = loc.AsRegisters().reg_at(0);
     ASSERT(dst_reg >= 0);
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextIntegerArguments - 1);
+    ASSERT_LESS_OR_EQUAL(dst_reg, CallbackContext::kNumIntegerArguments - 1);
     ctxt->integer_arguments[dst_reg] = value;
   } else if (loc.IsFpuRegisters()) {
     const auto dst_reg = loc.AsFpuRegisters().fpu_reg();
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextDoubleArguments - 1);
+    ASSERT_LESS_OR_EQUAL(dst_reg, CallbackContext::kNumDoubleArguments - 1);
     ctxt->double_arguments[dst_reg] = value;
   } else {
     FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
@@ -2050,6 +2093,7 @@ static void PassFfiCallbackResult(
   const intptr_t arg_index = compiler::ffi::kResultIndex;
   auto* const zone = thread->zone();
   const auto& loc = marshaller.Location(arg_index);
+  PRINT_IF_TRACING_INTERPRETER("Return value -> %s\n", loc.ToCString());
   if (marshaller.IsCompoundCType(arg_index)) {
     auto& compound_contents = Instance::Handle(zone);
     intptr_t offset_in_bytes = 0;
@@ -2078,8 +2122,8 @@ static void PassFfiCallbackResult(
       // the space pointed to by the pointer location, instead of replacing
       // the pointer stored in the pointer location.
       const auto& ptr_loc = loc.AsPointerToMemory().pointer_location();
-      const uword ptr =
-          RetrieveLocationFromCallbackContext(thread, *ctxt, ptr_loc);
+      const uword ptr = RetrieveLocationFromCallbackContext(thread, *ctxt,
+                                                            arg_index, ptr_loc);
       auto* const dst = reinterpret_cast<void*>(ptr);
       NoSafepointScope scope;
       const void* const src =
@@ -2100,173 +2144,185 @@ static void PassFfiCallbackResult(
         FfiConvertPrimitiveToNative(thread, marshaller, arg_index, result);
     SetLocationInCallbackContext(thread, ctxt, loc, value);
   }
+  PRINT_IF_TRACING_INTERPRETER(
+      "%s", ctxt->ToCString(zone, marshaller.StackTopInBytes()));
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-static void DoInterpretedFfiCallback(Thread* thread,
-                                     uword trampoline,
-                                     CallbackContext* ctxt,
-                                     const CallbackMetadata& metadata) {
+extern "C" void DLRT_DoInterpretedFfiCallback(
+    Thread* thread,
+    CallbackContext* ctxt,
+    const PersistentHandle* function_handle) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT_EQUAL(thread->execution_state(), Thread::kThreadInVM);
-  ASSERT(metadata.type == 0 || metadata.type == 1);
-  const bool is_async = metadata.type == 1;
+  // Either this is a callback without an active zone (e.g., isolate
+  // group bound callbacks) or avoid leaking handles in the caller's zone.
+  StackZone stack_zone(thread);
+  auto* const zone = stack_zone.GetZone();
+
+  ASSERT(function_handle != nullptr);
+  const auto& function =
+      Function::ZoneHandle(zone, Function::RawCast(function_handle->ptr()));
+  ASSERT(!function.IsNull());
+  ASSERT(function.IsFfiCallbackTrampoline());
+  const bool is_async =
+      function.GetFfiCallbackKind() == FfiCallbackKind::kAsyncCallback;
+
   const int64_t context = thread->unboxed_int64_runtime_arg();
   PRINT_IF_TRACING_INTERPRETER("calling %s FFI callback, context %#" Px64 "\n",
                                is_async ? "async" : "sync", context);
-
-  // Either this is a callback without an active zone (e.g., isolate
-  // group bound callbacks) or avoid leaking handles in the caller's zone.
-  {
-    StackZone stack_zone(thread);
-    auto* const zone = stack_zone.GetZone();
-
-    auto& closure = Closure::Handle(zone);
-    if (!is_async) {
-      // The context stores a pointer to a persistent handle, if any.
-      if (auto* const handle = reinterpret_cast<PersistentHandle*>(context)) {
-        closure = Closure::RawCast(handle->ptr());
-      }
+  auto& closure = Closure::Handle(zone);
+  if (!is_async) {
+    // The context stores a pointer to a persistent handle, if any.
+    if (auto* const handle = reinterpret_cast<PersistentHandle*>(context)) {
+      closure = Closure::RawCast(handle->ptr());
     }
+  }
 
-    // Retrieve the stored function handle via FfiCallbackMetadata since it's
-    // not part of the CallbackMetadata.
-    // See DLRT_GetFfiCallbackMetadata as to why this is okay without a lock.
-    auto* const function_handle =
-        FfiCallbackMetadata::Instance(trampoline)
-            ->LookupFunctionHandleForTrampolineUnlocked(trampoline);
-    ASSERT(function_handle != nullptr);
-    const auto& function =
-        Function::ZoneHandle(zone, Function::RawCast(function_handle->ptr()));
-    ASSERT(!function.IsNull());
-    ASSERT(function.IsFfiCallbackTrampoline());
+  const char* error = nullptr;
+  auto* const marshaller_ptr =
+      compiler::ffi::CallbackMarshaller::FromFunction(zone, function, &error);
+  // AbiSpecificTypes can have an incomplete mapping.
+  if (error != nullptr) {
+    const auto& language_error = LanguageError::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Exceptions::ThrowCompileTimeError(language_error);
+  }
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
 
-    const char* error = nullptr;
-    auto* const marshaller_ptr =
-        compiler::ffi::CallbackMarshaller::FromFunction(zone, function, &error);
-    // AbiSpecificTypes can have an incomplete mapping.
-    if (error != nullptr) {
-      const auto& language_error = Error::Handle(
-          LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
-                             Report::kError, Heap::kOld));
-      Report::LongJump(language_error);
+  PRINT_IF_TRACING_INTERPRETER(
+      "%s", ctxt->ToCString(zone, marshaller.StackTopInBytes()));
+
+  const intptr_t type_args_len = 0;
+  const intptr_t num_implicit_args = !closure.IsNull() ? 1 : 0;
+  intptr_t num_args = num_implicit_args + marshaller.num_args();
+  const auto& arguments = Array::Handle(zone, Array::New(num_args));
+  const auto& argdesc = Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(type_args_len, num_args));
+
+  // Convert all the native arguments to Dart values.
+  if (!closure.IsNull()) {
+    arguments.SetAt(0, closure);
+  }
+  auto& obj = Object::Handle(zone);
+  for (intptr_t i = num_implicit_args; i < num_args; ++i) {
+    obj = ReceiveFfiCallbackArgument(thread, *ctxt, marshaller,
+                                     i - num_implicit_args);
+    arguments.SetAt(i, obj);
+  }
+
+  PRINT_IF_TRACING_INTERPRETER("performing FFI callback %s\n",
+                               function.ToFullyQualifiedCString());
+  if (is_async) {
+    PRINT_IF_TRACING_INTERPRETER(
+        "sending arguments to listener of async FFI callback\n");
+    // See DRT_FfiAsyncCallbackSend.
+    Dart_Port target_port = static_cast<Dart_Port>(context);
+    const Array& msg_array = Array::Handle(zone, Array::New(3));
+    msg_array.SetAt(0, arguments);
+    PersistentHandle* handle =
+        thread->isolate_group()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(msg_array);
+    PortMap::PostMessage(
+        Message::New(target_port, handle, Message::kNormalPriority));
+  } else {
+    auto& target = Function::Handle(zone, function.FfiCallbackTarget());
+    if (target.IsNull()) {
+      ASSERT(!closure.IsNull());
+      target = closure.function();
     }
-    RELEASE_ASSERT(marshaller_ptr != nullptr);
-    const auto& marshaller = *marshaller_ptr;
+    ASSERT(!target.IsNull());
+    ASSERT(target.IsInterpreted());
+    PRINT_IF_TRACING_INTERPRETER("calling FFI callback target %s\n",
+                                 target.ToFullyQualifiedCString());
 
-    const intptr_t type_args_len = 0;
-    const intptr_t num_implicit_args = !closure.IsNull() ? 1 : 0;
-    intptr_t num_args = num_implicit_args + marshaller.num_args();
-    const auto& arguments = Array::Handle(zone, Array::New(num_args));
-    const auto& argdesc = Array::Handle(
-        zone, ArgumentsDescriptor::NewBoxed(type_args_len, num_args));
-
-    // Convert all the native arguments to Dart values.
-    if (!closure.IsNull()) {
-      arguments.SetAt(0, closure);
-    }
-    auto& obj = Object::Handle(zone);
-    for (intptr_t i = num_implicit_args; i < num_args; ++i) {
-      obj = ReceiveFfiCallbackArgument(thread, *ctxt, marshaller,
-                                       i - num_implicit_args);
-      arguments.SetAt(i, obj);
-    }
-
-    // Call the interpreter with the Dart arguments.
-    PRINT_IF_TRACING_INTERPRETER("calling FFI callback %s\n",
-                                 function.ToFullyQualifiedCString());
-    if (is_async) {
-      PRINT_IF_TRACING_INTERPRETER(
-          "sending arguments to listener of async FFI callback\n");
-      // See DRT_FfiAsyncCallbackSend.
-      Dart_Port target_port = static_cast<Dart_Port>(context);
-      const Array& msg_array = Array::Handle(zone, Array::New(3));
-      msg_array.SetAt(0, arguments);
-      PersistentHandle* handle =
-          thread->isolate_group()->api_state()->AllocatePersistentHandle();
-      handle->set_ptr(msg_array);
-      PortMap::PostMessage(
-          Message::New(target_port, handle, Message::kNormalPriority));
-    } else {
-      auto& target = Function::Handle(zone, function.FfiCallbackTarget());
-      if (target.IsNull()) {
-        ASSERT(!closure.IsNull());
-        target = closure.function();
-      }
-      ASSERT(target.ptr() != Object::null());
-      ASSERT(target.IsInterpreted());
-
+    auto& result = Object::Handle(zone);
+    {
       // Interpreter::Current() ensures the current thread has an interpreter,
       // which it may not if this is an isolate group bound callback with a
       // fresh isolate.
       ASSERT(thread == Thread::Current());
       auto* const interpreter = Interpreter::Current();
-      auto& result = Object::Handle(zone);
-      {
-        TransitionVMToGenerated transition(thread);
-        result = interpreter->Call(target, argdesc, arguments, thread);
-      }
-      if (result.IsError()) {
-        PRINT_IF_TRACING_INTERPRETER("FFI callback threw exception %s\n",
-                                     Error::Cast(result).ToErrorCString());
-        // See catch body in FlowGraphBuilder::BuildGraphOfSyncFfiCallback.
-        if (function.FfiCallbackExceptionalReturn() != Object::null()) {
-          result = function.FfiCallbackExceptionalReturn();
-          PRINT_IF_TRACING_INTERPRETER("returning %s instead\n",
-                                       result.ToCString());
-        } else if (marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
-          PRINT_IF_TRACING_INTERPRETER("returning exception as handle\n");
-        } else {
-          ASSERT(marshaller.IsVoid(compiler::ffi::kResultIndex) ||
-                 marshaller.IsPointerPointer(compiler::ffi::kResultIndex) ||
-                 marshaller.IsCompoundCType(compiler::ffi::kResultIndex));
-          // PassFfiCallbackResult prints an appropriate trace statement.
-        }
-      } else {
-        PRINT_IF_TRACING_INTERPRETER("returning from FFI callback with %s\n",
+      TransitionVMToGenerated transition(thread);
+      result = interpreter->Call(target, argdesc, arguments, thread);
+    }
+    if (result.IsError()) {
+      PRINT_IF_TRACING_INTERPRETER("FFI callback threw exception %s\n",
+                                   Error::Cast(result).ToErrorCString());
+      // See catch body in FlowGraphBuilder::BuildGraphOfSyncFfiCallback.
+      if (function.FfiCallbackExceptionalReturn() != Object::null()) {
+        result = function.FfiCallbackExceptionalReturn();
+        PRINT_IF_TRACING_INTERPRETER("returning %s instead\n",
                                      result.ToCString());
+      } else if (marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
+        PRINT_IF_TRACING_INTERPRETER("returning exception as handle\n");
+      } else {
+        ASSERT(marshaller.IsVoid(compiler::ffi::kResultIndex) ||
+               marshaller.IsPointerPointer(compiler::ffi::kResultIndex) ||
+               marshaller.IsCompoundCType(compiler::ffi::kResultIndex));
+        // PassFfiCallbackResult prints an appropriate trace statement.
       }
-      PassFfiCallbackResult(thread, ctxt, marshaller, result);
+    } else {
+      PRINT_IF_TRACING_INTERPRETER("returning from FFI callback with %s\n",
+                                   result.ToCString());
+    }
+    PassFfiCallbackResult(thread, ctxt, marshaller, result);
+  }
+  // The first-level trampoline calls the epilogue after this returns.
+#else
+  UNIMPLEMENTED();  // Interpreted callbacks are not currently handled in AOT.
+#endif
+}
+#endif  // defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
+
+const char* CallbackContext::ToCString(Zone* zone,
+                                       intptr_t stack_top_in_bytes,
+                                       bool print_stack_as_words) const {
+  ZoneTextBuffer buffer(zone);
+  buffer.AddString("CallbackContext {\n");
+  buffer.AddString("  Integer registers:\n");
+  for (intptr_t i = 0; i < kNumIntegerArguments; ++i) {
+    auto const reg = static_cast<Register>(i);
+    buffer.Printf("    %5s: %#" Px "\n", RegisterNames::RegisterAbiName(reg),
+                  integer_arguments[i]);
+  }
+  buffer.AddString("  Double registers:\n");
+  for (intptr_t i = 0; i < kNumDoubleArguments; ++i) {
+    auto const reg = static_cast<FpuRegister>(i);
+    buffer.Printf("    %5s: %#" Px "\n", RegisterNames::FpuRegisterName(reg),
+                  double_arguments[i]);
+  }
+  buffer.Printf("  Pointer to return struct (%s): %#" Px "\n",
+                RegisterNames::RegisterAbiName(
+                    CallingConventions::kPointerToReturnStructRegisterCall),
+                return_struct_pointer);
+  buffer.Printf("  Stack pointer: %#" Px "", sp);
+  if (stack_top_in_bytes >= 0) {
+    buffer.Printf(" (size %" Pd ")", stack_top_in_bytes);
+    const intptr_t kIncrement = print_stack_as_words ? kWordSize : 1;
+    const intptr_t kBytesPerLine = print_stack_as_words ? kWordSize : 16;
+    for (intptr_t i = 0; i < stack_top_in_bytes; i += kIncrement) {
+      if ((i % kBytesPerLine) == 0) {
+        buffer.Printf("\n  %#" Px ": ", sp + i);
+      } else if ((i % kWordSize == 0)) {
+        buffer.AddString("  ");
+      }
+      if (print_stack_as_words) {
+        buffer.Printf("%#" Px "", *reinterpret_cast<const uword*>(sp + i));
+      } else {
+        buffer.Printf("%.2x", *reinterpret_cast<const uint8_t*>(sp + i));
+      }
     }
   }
-
-  // Now that the StackZone for handling the call has been destructed,
-  // run the epilogue. This may exit the current isolate and/or isolate group
-  // and so is the last action performed by this function.
-  if (is_async) {
-    ASSERT_EQUAL(metadata.epilogue,
-                 reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate));
-    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata.epilogue);
-    epilogue(thread);
-  } else {
-    auto* const caller_isolate =
-        reinterpret_cast<Isolate*>(metadata.caller_isolate);
-    auto* const caller_isolate_group =
-        reinterpret_cast<IsolateGroup*>(metadata.caller_isolate_group);
-    ASSERT(metadata.epilogue !=
-           reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate));
-    auto epilogue =
-        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
-            metadata.epilogue);
-    epilogue(thread, caller_isolate, caller_isolate_group);
-  }
+  buffer.AddString("\n}\n");
+  return buffer.buffer();
 }
-#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
-  // Assumptions in ffi_trampolines_arm64.S
-  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
-  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
-#elif defined(DART_TARGET_OS_MACOS)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2013);
-#else
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
-#endif
-
   CallbackMetadata out;
   Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
   if (thread == nullptr) {
@@ -2275,37 +2331,12 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
     return;
   }
 
-  // Either the interpreter or the simulator are in use if this was called.
-  ASSERT(FLAG_interpreter || FLAG_use_simulator);
-  // Return to the FfiCallbackTrampoline stub immediately after calling
-  // either DoInterpretedFfiCallback or Simulator::DoRedirectedFfiCallback,
-  // as those functions run the epilogue as their last action.
-
-#if defined(DART_DYNAMIC_MODULES)
-  if (FLAG_interpreter) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    DoInterpretedFfiCallback(thread, trampoline, ctxt, out);
-    return;
-#else
-    UNREACHABLE();  // Not currently handled for dynamic modules in AOT mode.
-#endif
-  }
-#endif
-
-#if defined(SIMULATOR_FFI)
-  if (FLAG_use_simulator) {
-    Simulator* sim = Simulator::Current();
-    ASSERT(sim != nullptr);
-    sim->DoRedirectedFfiCallback(thread, ctxt, &out);
-    return;
-  }
-#endif
-
-  UNREACHABLE();
+  ASSERT(FLAG_use_simulator);
+  Simulator* sim = Simulator::Current();
+  ASSERT(sim != nullptr);
+  sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
-
-#endif  // defined(HOST_ARCH_ARM64) &&
-        // (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+#endif  // defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 
 // Check that argument types are valid for the given function.
 // Arg0: function
@@ -2676,9 +2707,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         zone, CheckHashBasedSubtypeTestCache(
                   zone, thread, src_instance, dst_type,
                   instantiator_type_arguments, function_type_arguments, cache));
-    if (!result.IsNull()) {
+    if (result.ptr() == Bool::True().ptr()) {
       // Early exit because an entry already exists in the cache.
-      arguments.SetReturn(result);
+      arguments.SetReturn(src_instance);
       return;
     }
   }
@@ -3038,8 +3069,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
                                      const String& target_name,
                                      const String& demangled,
                                      const Array& arguments_descriptor,
+                                     bool allow_add,
                                      Function* result) {
-  const bool create_if_absent = !FLAG_precompiled_mode;
   const String& getter_name = String::Handle(Field::GetterName(demangled));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
@@ -3047,7 +3078,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(Resolver::ResolveDynamicForReceiverClass(
-          receiver_class, getter_name, args_desc, create_if_absent));
+          receiver_class, getter_name, args_desc, allow_add));
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
@@ -3058,9 +3089,9 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           dispatcher_name, arguments_descriptor,
-          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent,
-          getter.is_dynamically_callable()));
-  ASSERT(!create_if_absent || !target_function.IsNull());
+          UntaggedFunction::kInvokeFieldDispatcher,
+          /*create_if_absent=*/allow_add, getter.is_dynamically_callable()));
+  ASSERT(!allow_add || !target_function.IsNull());
   if (FLAG_trace_ic) {
     OS::PrintErr(
         "InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -3074,7 +3105,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
 // Handle other invocations (implicit closures, noSuchMethod).
 FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
                                   const Array& args_descriptor,
-                                  const String& target_name) {
+                                  const String& target_name,
+                                  bool allow_add) {
   // Create a demangled version of the target_name, if necessary, This is used
   // for the field getter in ResolveCallThroughGetter and as the target name
   // for the NoSuchMethod dispatcher (if needed).
@@ -3087,19 +3119,15 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
   const bool is_dyn_implicit_call =
       target_name.ptr() == Symbols::DynamicImplicitCall().ptr();
   Function& result = Function::Handle();
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const bool create_if_absent = false;
-#else
-  const bool create_if_absent = true;
-#endif
   if (is_getter || (is_dyn_implicit_call && !receiver_class.IsClosureClass()) ||
       !ResolveCallThroughGetter(receiver_class, target_name, *demangled,
-                                args_descriptor, &result)) {
+                                args_descriptor, allow_add, &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent,
+            UntaggedFunction::kNoSuchMethodDispatcher,
+            /*create_if_absent=*/allow_add,
             /* is_dynamically_callable = */ true));
     if (FLAG_trace_ic) {
       OS::PrintErr(
@@ -3111,7 +3139,7 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
   }
   // May be null if in the precompiled runtime, in which case dispatch will be
   // handled by NoSuchMethodFromCallStub.
-  ASSERT(!create_if_absent || !result.IsNull());
+  ASSERT(!allow_add || !result.IsNull());
   return result.ptr();
 }
 
@@ -3223,12 +3251,12 @@ static FunctionPtr Resolve(
     const GrowableArray<const Instance*>& caller_arguments,
     const Class& receiver_class,
     const String& name,
-    const Array& descriptor) {
+    const Array& descriptor,
+    bool allow_add) {
   ASSERT(name.IsSymbol());
   auto& target_function = Function::Handle(zone);
   ArgumentsDescriptor args_desc(descriptor);
 
-  const bool allow_add = !FLAG_precompiled_mode;
   if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
     target_function = Resolver::ResolveDynamicForReceiverClass(
         receiver_class, name, args_desc, allow_add);
@@ -3244,7 +3272,8 @@ static FunctionPtr Resolve(
   }
 
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver_class, descriptor, name);
+    target_function =
+        InlineCacheMissHelper(receiver_class, descriptor, name, allow_add);
   }
   ASSERT(!allow_add || !target_function.IsNull());
   return target_function.ptr();
@@ -3621,7 +3650,7 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
       Class::Handle(zone_, isolate_group_->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
-                     name_, args_descriptor_));
+                     name_, args_descriptor_, /*allow_add=*/false));
 
   const auto& ic_data = ICData::Handle(
       zone_, old_target.IsNull()
@@ -4030,7 +4059,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
   }
   const Class& cls = Class::Handle(zone_, receiver().clazz());
   return Resolve(thread_, zone_, caller_arguments_, cls, name_,
-                 args_descriptor_);
+                 args_descriptor_, /*allow_add=*/!FLAG_precompiled_mode);
 }
 
 void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
@@ -4254,7 +4283,8 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 
   if (target_function.IsNull()) {
     target_function =
-        InlineCacheMissHelper(receiver_class, arg_desc, target_name);
+        InlineCacheMissHelper(receiver_class, arg_desc, target_name,
+                              /*allow_add=*/!FLAG_precompiled_mode);
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(!target_function.IsNull());
@@ -4265,7 +4295,6 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
 // Used to find the correct receiver and function to invoke or to fall back to
 // invoking noSuchMethod when lazy dispatchers are disabled. Returns the
 // result of the invocation or an Error.
@@ -4421,7 +4450,6 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
                                     orig_arguments, orig_arguments_desc));
   return result.ptr();
 }
-#endif
 
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
@@ -4452,6 +4480,140 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   FATAL("Dispatcher for %s should have been lazily created",
         target_name.ToCString());
 #endif
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static ArrayPtr CollectArgumentsToArray(Thread* thread,
+                                        Zone* zone,
+                                        const Array& args_descriptor) {
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& args =
+      Array::Handle(zone, Array::New(args_desc.CountWithTypeArgs()));
+  auto& arg = Object::Handle(zone);
+  for (intptr_t i = args.Length() - 1; i >= 0; --i) {
+    arg = *argv++;
+    args.SetAt(i, arg);
+  }
+  return args.ptr();
+}
+
+static void PatchTypeArgumentsForDynamicCallModAOT(
+    Thread* thread,
+    Zone* zone,
+    const Array& args_descriptor,
+    const TypeArguments& default_type_args) {
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+  ArgumentsDescriptor args_desc(args_descriptor);
+  argv = argv + args_desc.Count();
+  // Dynamic calls in modular AOT always provide type arguments or
+  // reserve a slot for type arguments.
+  RELEASE_ASSERT(*argv == Object::null());
+  *argv = default_type_args.ptr();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Handles inline cache misses in the modular AOT.
+// Resolves the target function and update the IC data array if found.
+// Also handles calls through getters and noSuchMethod.
+//   Arg0: Placeholder for the result of the call.
+//   Arg1: Receiver object.
+//   Arg2: IC data object.
+//   Returns: target function or null if call was handled.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerModAOT, 3) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
+  GrowableArray<const Instance*> args(1);
+  args.Add(&receiver);
+
+  const auto& name = String::Handle(zone, ic_data.target_name());
+  const auto& args_descriptor =
+      Array::Handle(zone, ic_data.arguments_descriptor());
+  const auto& cls = Class::Handle(zone, receiver.clazz());
+  const auto& target_function =
+      Function::Handle(zone, Resolve(thread, zone, args, cls, name,
+                                     args_descriptor, /*allow_add=*/true));
+  arguments.SetReturn(target_function);
+
+  if (!target_function.IsNull()) {
+    ic_data.EnsureHasReceiverCheck(cls.id(), target_function);
+    return;
+  }
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& orig_arguments = Array::Handle(
+      zone, CollectArgumentsToArray(thread, zone, args_descriptor));
+  ASSERT(orig_arguments.At(args_desc.FirstArgIndex()) == receiver.ptr());
+
+  const auto& result = Object::Handle(
+      zone, InvokeCallThroughGetterOrNoSuchMethod(
+                thread, zone, receiver, name, orig_arguments, args_descriptor));
+  ThrowIfError(result);
+  arguments.SetArgAt(0, result);
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+// Check that argument types are valid for the given dynamic invocation
+// forwarder function. Pass default type arguments if needed.
+// Arg0: dynamic invocation forwarder function
+// Arg1: arguments descriptor
+// Return value: target function.
+DEFINE_RUNTIME_ENTRY(DynamicInvocationForwarderModAOT, 2) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& args_descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& target = Function::Handle(zone, function.ForwardingTarget());
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& args = Array::Handle(
+      zone, CollectArgumentsToArray(thread, zone, args_descriptor));
+
+  // Ensured during resolution.
+  ASSERT(target.AreValidArguments(args_desc, nullptr));
+
+  const auto& result =
+      Object::Handle(zone, target.DoArgumentTypesMatch(args, args_desc));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+
+  if (target.IsGeneric() && (args_desc.TypeArgsLen() == 0)) {
+    // Adjust arguments descriptor to pass default type arguments.
+    auto& default_type_args =
+        TypeArguments::Handle(zone, target.DefaultTypeArguments(zone));
+    if (!default_type_args.IsNull() && !default_type_args.IsInstantiated()) {
+      ASSERT(!target.is_static());
+      const auto& receiver =
+          Object::Handle(zone, args.At(args_desc.FirstArgIndex()));
+      const auto& instantiator_type_arguments = TypeArguments::Handle(
+          zone, Instance::Cast(receiver).GetTypeArguments());
+      default_type_args = default_type_args.InstantiateFrom(
+          instantiator_type_arguments, Object::null_type_arguments(), kAllFree,
+          Heap::kOld);
+    }
+    const auto& arg_names = Array::Handle(zone, args_desc.GetArgumentNames());
+    const auto& new_args_desc = Array::Handle(
+        zone, ArgumentsDescriptor::NewBoxed(target.NumTypeArguments(),
+                                            args_desc.Count(), arg_names));
+    arguments.SetArgAt(1, new_args_desc);
+    PatchTypeArgumentsForDynamicCallModAOT(thread, zone, new_args_desc,
+                                           default_type_args);
+  }
+  arguments.SetReturn(target);
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Invoke appropriate noSuchMethod function.
@@ -5018,11 +5180,7 @@ static bool IsSuspendedFrame(Zone* zone,
 void DeoptimizeAt(Thread* mutator_thread,
                   const Code& optimized_code,
                   StackFrame* frame) {
-  ASSERT(optimized_code.is_optimized());
-
-  // Force-optimized code is optimized code which cannot deoptimize and doesn't
-  // have unoptimized code to fall back to.
-  ASSERT(!optimized_code.is_force_optimized());
+  ASSERT(optimized_code.can_be_deoptimized());
 
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -5078,6 +5236,7 @@ void DeoptimizeAt(Thread* mutator_thread,
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
   auto thread = Thread::Current();
+  ASSERT_EQUAL(thread->execution_state(), Thread::kThreadInVM);
   // Have to grab program_lock before stopping everybody else.
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
@@ -5096,8 +5255,8 @@ void DeoptimizeFunctionsOnStack() {
           while (frame != nullptr) {
             if (!frame->is_interpreted()) {
               optimized_code = frame->LookupDartCode();
-              if (optimized_code.is_optimized() &&
-                  !optimized_code.is_force_optimized()) {
+              // TODO(61635): handle code generated by modular AOT.
+              if (optimized_code.can_be_deoptimized()) {
                 DeoptimizeAt(mutator_thread, optimized_code, frame);
               }
             }
@@ -5125,8 +5284,8 @@ static void DeoptimizeLastDartFrameIfOptimized() {
     StackFrame* frame = iterator.NextFrame();
     if (frame != nullptr && !frame->is_interpreted()) {
       const auto& optimized_code = Code::Handle(frame->LookupDartCode());
-      if (optimized_code.is_optimized() &&
-          !optimized_code.is_force_optimized()) {
+      // TODO(61635): handle code generated by modular AOT.
+      if (optimized_code.can_be_deoptimized()) {
         DeoptimizeAt(mutator_thread, optimized_code, frame);
       }
     }
@@ -5368,8 +5527,7 @@ DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
   ASSERT(Function::Handle(zone, frame->LookupDartFunction())
              .IsSuspendableFunction());
   const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
-  if (caller_code.IsDisabled() && caller_code.is_optimized() &&
-      !caller_code.is_force_optimized()) {
+  if (caller_code.IsDisabled() && caller_code.can_be_deoptimized()) {
     const uword deopt_pc = frame->pc();
     thread->pending_deopts().AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
@@ -5724,6 +5882,128 @@ DEFINE_RUNTIME_ENTRY(AllocateBytecodeCoverageArray, 1) {
         // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+static ArrayPtr PrepareNoSuchMethodErrorArguments(Thread* thread,
+                                                  Zone* zone,
+                                                  const Function& target,
+                                                  const Array& argdesc) {
+  auto const kind = InvocationMirror::Kind::kMethod;
+  const auto& owner = Class::Handle(target.Owner());
+  auto& receiver = Instance::Handle();
+  auto level = InvocationMirror::Level::kDynamic;
+  if (owner.IsTopLevel()) {
+    level = InvocationMirror::Level::kTopLevel;
+  } else if (target.IsConstructor()) {
+    level = InvocationMirror::Level::kConstructor;
+  } else if (target.is_static()) {
+    level = InvocationMirror::Level::kStatic;
+  }
+  const auto& member_name = String::Handle(zone, target.name());
+  const auto& invocation_type =
+      Smi::Handle(zone, Smi::New(InvocationMirror::EncodeType(level, kind)));
+
+  // Collect the arguments to report for the NSM error by retrieving
+  // the arguments to the old implicit closure from the stack.
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  auto* const caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->is_interpreted());
+
+  ArgumentsDescriptor args_desc(argdesc);
+  const intptr_t type_args_len = args_desc.TypeArgsLen();
+  const intptr_t argc = args_desc.CountWithTypeArgs();
+  const intptr_t receiver_idx = args_desc.FirstArgIndex();
+  // The reported arguments don't include either the type arguments or
+  // the receiver, as those are passed separately.
+  const bool is_instance = !target.IsConstructor() && !target.is_static();
+  const intptr_t arg_count =
+      argc - (type_args_len > 0 ? 1 : 0) - (is_instance ? 1 : 0);
+  const auto& orig_arguments = Array::Handle(zone, Array::New(arg_count));
+  auto& obj = Object::Handle(zone);
+  auto* const argv = reinterpret_cast<ObjectPtr*>(caller_frame->fp()) -
+                     (kKBCDartFrameFixedSize + argc);
+  auto& type_args = TypeArguments::Handle(zone);
+  if (type_args_len > 0) {
+    type_args ^= argv[0];
+  }
+  if (is_instance) {
+    // The "context" of an implicit instance closure is the receiver.
+    const auto& closure = Closure::CheckedHandle(zone, argv[receiver_idx]);
+    receiver ^= closure.RawContext();
+  } else {
+    // The "receiver" of the NSM error is the class (represented as a type).
+    receiver = owner.RareType();
+  }
+  for (intptr_t i = 0; i < arg_count; i++) {
+    obj = argv[receiver_idx + i];
+    orig_arguments.SetAt(i, obj);
+  }
+
+  // NoSuchMethodError._throwNew takes the following arguments:
+  //   Object receiver,
+  //   String memberName,
+  //   int invocationType,
+  //   int typeArgumentsLength,
+  //   Object? typeArguments,
+  //   List? arguments,
+  //   List? argumentNames
+  const auto& args = Array::Handle(zone, Array::New(7));
+  args.SetAt(0, receiver);
+  args.SetAt(1, member_name);
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, Smi::Handle(zone, Smi::New(type_args_len)));
+  args.SetAt(4, type_args);
+  args.SetAt(5, orig_arguments);
+  args.SetAt(6, Object::null_object());
+  return args.ptr();
+}
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Re-resolves the function for an interpreted implicit closure after reload.
+// Either returns the new implicit closure function or an array of arguments
+// to pass to NoSuchMethodError._throwNew.
+//
+// Arg0: Implicit closure function that should be re-resolved.
+// Arg1: Arguments descriptor array for the call.
+DEFINE_RUNTIME_ENTRY(ResolveReloadedImplicitClosureFunction, 2) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& argdesc = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  ASSERT(function.IsImplicitClosureFunction());
+  ASSERT(function.IsReloadedImplicitClosure());
+
+  // The owner of the old implicit closure is the new class (via a PatchClass).
+  const auto& klass = Class::Handle(zone, function.Owner());
+  const auto& selector = String::Handle(zone, function.name());
+  auto& result =
+      Object::Handle(zone, Resolver::ResolveFunction(zone, klass, selector));
+  if (!result.IsNull()) {
+    // Get the new implicit closure function for the given target.
+    result = Function::Cast(result).ImplicitClosureFunction();
+    ASSERT(!Function::Cast(result).IsReloadedImplicitClosure());
+    ArgumentsDescriptor args_desc(argdesc);
+    if (!Function::Cast(result).AreValidArguments(args_desc,
+                                                  /*error_message=*/nullptr)) {
+      // Discard the resolved function and throw NSM instead as the arguments
+      // have changed in an incompatible way.
+      result = Function::null();
+    }
+  }
+  if (result.IsNull()) {
+    const auto& target = Function::Handle(zone, function.parent_function());
+    result = PrepareNoSuchMethodErrorArguments(thread, zone, target, argdesc);
+  }
+  ASSERT(!result.IsNull());
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 DEFINE_RUNTIME_ENTRY(FatalError, 1) {
   const String& message = String::CheckedHandle(zone, arguments.ArgAt(0));
   FATAL("%s", message.ToCString());
@@ -5941,17 +6221,23 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   Thread* thread = nullptr;
 
   out->entry_point = metadata.target_entry_point();
+  out->function_handle = reinterpret_cast<uword>(metadata.function_handle());
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
+  out->interpreted_runtime_entry =
+      reinterpret_cast<uword>(DLRT_DoInterpretedFfiCallback);
+#endif
+
   switch (metadata.trampoline_type()) {
     default:
-      out->type = 0;  // Call
+      out->type = CallbackMetadata::kCall;
       break;
     case FfiCallbackMetadata::TrampolineType::kAsync:
-      out->type = 1;  // Tail call.
+      out->type = CallbackMetadata::kTailCall;
       break;
 #if defined(TARGET_ARCH_IA32)
     case FfiCallbackMetadata::TrampolineType::kSyncStackDelta4:
     case FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBoundStackDelta4:
-      out->type = 2;  // Call, ret4.
+      out->type = CallbackMetadata::kCallRet4;
       break;
 #endif
   }

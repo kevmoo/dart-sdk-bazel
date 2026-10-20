@@ -9,29 +9,13 @@ import subprocess
 import json
 import argparse
 
-# Repositories to clone
-REPOS = [
-    "third_party/pkg/core",
-    "third_party/pkg/tools",
-    "third_party/pkg/test",
-    "third_party/pkg/native",
-    "third_party/pkg/ecosystem",
-    "third_party/pkg/dart_style",
-    "third_party/pkg/dartdoc",
-    "third_party/pkg/http",
-    "third_party/pkg/i18n",
-    "third_party/pkg/leak_tracker",
-    "third_party/pkg/protobuf",
-    "third_party/pkg/pub",
-    "third_party/pkg/shelf",
-    "third_party/pkg/sync_http",
-    "third_party/pkg/tar",
-    "third_party/pkg/vector_math",
-    "third_party/pkg/webdev",
-    "third_party/pkg/webdriver",
-    "third_party/pkg/webkit_inspection_protocol",
-    "third_party/pkg/web",
-]
+def discover_pkg_repos(deps):
+    """Discover all third_party/pkg/* git entries directly from DEPS."""
+    repos = []
+    for key in sorted(deps.keys()):
+        if key.startswith("sdk/third_party/pkg/"):
+            repos.append(key[len("sdk/"):])
+    return repos
 
 
 def parse_deps(deps_file_path):
@@ -257,18 +241,8 @@ def main():
         sys.exit(1)
 
     try:
-        for repo in REPOS:
-            dep_key = None
-            for k in deps.keys():
-                if k.endswith(repo):
-                    dep_key = k
-                    break
-
-            if not dep_key:
-                print(
-                    f"Warning: Repository {repo} not found in DEPS, skipping.")
-                continue
-
+        for repo in discover_pkg_repos(deps):
+            dep_key = "sdk/" + repo
             clone_repo(os.path.join(dest_root, repo), deps[dep_key])
 
         # Create sentinel file to signal successful clone to Bzlmod

@@ -186,7 +186,7 @@ genrule(
     ],
     outs = ["dart-sdk/bin/dart.sym"],
     cmd = select({
-        "//build/config:os_macos": "python3 $(location //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
+        "//build/config:os_macos": "python3 $(execpath //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
         "//conditions:default": "objcopy --only-keep-debug $$(echo '$(SRCS)' | cut -d' ' -f1) $@",
     }),
 )
@@ -290,7 +290,7 @@ genrule(
     ],
     outs = ["dart-sdk/bin/dartaotruntime.sym"],
     cmd = select({
-        "//build/config:os_macos": "python3 $(location //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
+        "//build/config:os_macos": "python3 $(execpath //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
         "//conditions:default": "objcopy --only-keep-debug $$(echo '$(SRCS)' | cut -d' ' -f1) $@",
     }),
 )
@@ -393,7 +393,7 @@ genrule(
     ],
     outs = ["dart-sdk/bin/dartvm.sym"],
     cmd = select({
-        "//build/config:os_macos": "python3 $(location //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
+        "//build/config:os_macos": "python3 $(execpath //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
         "//conditions:default": "objcopy --only-keep-debug $$(echo '$(SRCS)' | cut -d' ' -f1) $@",
     }),
 )
@@ -561,7 +561,7 @@ genrule(
     ],
     outs = ["dart-sdk/bin/utils/gen_snapshot.sym"],
     cmd = select({
-        "//build/config:os_macos": "python3 $(location //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
+        "//build/config:os_macos": "python3 $(execpath //runtime/tools:dart_profiler_symbols.py) --nm nm --output $@ --binary $$(echo '$(SRCS)' | cut -d' ' -f1)",
         "//conditions:default": "objcopy --only-keep-debug $$(echo '$(SRCS)' | cut -d' ' -f1) $@",
     }),
 )
@@ -933,7 +933,7 @@ genrule(
         "//tools:write_dartdoc_options_file.py",
     ],
     outs = ["dart-sdk/dartdoc_options.yaml"],
-    cmd = "python3 $(location //tools:write_dartdoc_options_file.py) --output $@ --no-git-hash",
+    cmd = "python3 $(execpath //tools:write_dartdoc_options_file.py) --output $@ --no-git-hash",
 )
 
 genrule(

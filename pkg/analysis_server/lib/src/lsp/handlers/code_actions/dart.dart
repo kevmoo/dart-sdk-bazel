@@ -117,7 +117,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         arguments: [
           // TODO(dantup): Change this to a single entry that is a Map once
           //  enough time has passed that old versions of Dart-Code prior to
-          //  to June 2022 need not be supported against newer SDKs.
+          //  to v3.42 (2022-06-01) need not be supported against newer SDKs.
           refactorKind.toJson(clientUriConverter: server.uriConverter),
           path,
           docIdentifier.version,
@@ -364,12 +364,13 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       if (shouldIncludeKind(CodeActionKind.RefactorExtract)) {
         var timer = Stopwatch()..start();
         // Extract Method
-        if (ExtractMethodRefactoring(
-          server.searchEngine,
-          unitResult,
-          offset,
-          length,
-        ).isAvailable()) {
+        if (server.prefersLegacyRefactors &&
+            ExtractMethodRefactoring(
+              server.searchEngine,
+              unitResult,
+              offset,
+              length,
+            ).isAvailable()) {
           refactorActions.add(
             createRefactor(
               CodeActionKind.RefactorExtract,
@@ -399,12 +400,13 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         );
 
         // Extract Widget
-        if (ExtractWidgetRefactoring(
-          server.searchEngine,
-          unitResult,
-          offset,
-          length,
-        ).isAvailable()) {
+        if (server.prefersLegacyRefactors &&
+            ExtractWidgetRefactoring(
+              server.searchEngine,
+              unitResult,
+              offset,
+              length,
+            ).isAvailable()) {
           refactorActions.add(
             createRefactor(
               CodeActionKind.RefactorExtract,

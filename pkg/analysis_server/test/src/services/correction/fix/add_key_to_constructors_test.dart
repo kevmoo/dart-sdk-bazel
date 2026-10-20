@@ -58,10 +58,10 @@ class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 
+  @override
+  List<String> get lintCodes => [LintNames.use_key_in_widget_constructors];
+
   Future<void> test_file() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.use_key_in_widget_constructors],
-    );
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
@@ -84,7 +84,7 @@ class MyWidget extends StatelessWidget {
 }
 
 @reflectiveTest
-class AddKeyToConstructorsTest extends FixProcessorLintTest {
+class AddKeyToConstructorsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -740,7 +740,7 @@ class MyWidget extends ParentWidget {
 
 @reflectiveTest
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -785,7 +785,7 @@ class B extends A {
 
 @reflectiveTest
 class AddKeyToConstructorsWithoutSuperParametersTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

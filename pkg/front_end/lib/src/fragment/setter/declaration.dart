@@ -63,7 +63,7 @@ abstract class SetterDeclaration {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -80,12 +80,12 @@ abstract class SetterDeclaration {
 
   int computeSetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  });
 
   void ensureSetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -93,10 +93,6 @@ abstract class SetterDeclaration {
     required ClassMembersBuilder membersBuilder,
     required Set<ClassMember>? setterOverrideDependencies,
   });
-
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  );
 
   List<ClassMember> get localSetters;
 }
@@ -190,7 +186,7 @@ class RegularSetterDeclaration
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -198,7 +194,7 @@ class RegularSetterDeclaration
       libraryBuilder: libraryBuilder,
       problemReporting: problemReporting,
       nameScheme: nameScheme,
-      f: f,
+      callback: callback,
       references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
@@ -246,12 +242,12 @@ class RegularSetterDeclaration
   }
 
   @override
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  }) {
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -294,11 +290,6 @@ class RegularSetterDeclaration
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
   }
-
-  @override
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) => [references.setterReference];
 
   @override
   List<ClassMember> get localSetters => [
@@ -358,6 +349,9 @@ class RegularSetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].

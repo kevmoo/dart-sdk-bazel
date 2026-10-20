@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -32,7 +32,7 @@ main(List<String> args) {
 }
 
 class _WhyNotPromotedDataComputer extends DataComputer<String?> {
-  const _WhyNotPromotedDataComputer();
+  const new();
 
   @override
   DataInterpreter<String?> get dataValidator =>
@@ -45,7 +45,7 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String?>> actualMap,
+    ActualDataMap<String?> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
@@ -56,7 +56,7 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
 class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _WhyNotPromotedDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
@@ -77,7 +77,7 @@ class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
 }
 
 class _WhyNotPromotedDataInterpreter implements DataInterpreter<String?> {
-  const _WhyNotPromotedDataInterpreter();
+  const new();
 
   @override
   String getText(String? actualData, [String? indentation]) =>

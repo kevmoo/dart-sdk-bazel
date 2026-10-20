@@ -9,7 +9,7 @@ import("//build/toolchain/rbe.gni")
 
 template("fuchsia_toolchain") {
   toolchain(target_name) {
-    if (use_rbe) {
+    if (use_rbe && !use_siso) {
       compiler_args =
           rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
       if (target_cpu == "x64") {
@@ -40,8 +40,8 @@ template("fuchsia_toolchain") {
       link_prefix = ""
     }
 
-    toolchain_bin =
-        rebase_path("//buildtools/$host_os-x64/clang/bin", root_out_dir)
+    toolchain_bin = rebase_path("//buildtools/${host_os}-${host_cpu}/clang/bin",
+                                root_out_dir)
     fuchsia_sdk =
         rebase_path("//third_party/fuchsia/sdk/$host_os", root_out_dir)
 

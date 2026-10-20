@@ -43,6 +43,7 @@
     "lib/src/lsp/handlers/handler_execute_command.dart",
     "lib/src/lsp/handlers/handler_states.dart",
     "lib/src/lsp/handlers/handlers.dart",
+    "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/plugin/notification_manager.dart",
     "lib/src/plugin/plugin_isolate.dart",
     "lib/src/plugin/plugin_manager.dart",
@@ -274,7 +275,8 @@
     "lib/src/handler/legacy/legacy_handler.dart",
     "lib/src/legacy_analysis_server.dart",
     "lib/src/plugin/result_merger.dart",
-    "lib/src/request_handler_mixin.dart"
+    "lib/src/request_handler_mixin.dart",
+    "lib/src/utilities/navigation/analysis_options_navigation_computer.dart"
   ],
   "lib/src/handler/legacy/analysis_get_signature.dart": [
     "lib/protocol/protocol.dart",
@@ -502,6 +504,12 @@
     "lib/src/legacy_analysis_server.dart",
     "lib/src/protocol/protocol_internal.dart"
   ],
+  "lib/src/handler/legacy/lsp_notification_over_legacy_handler.dart": [
+    "lib/protocol/protocol.dart",
+    "lib/protocol/protocol_generated.dart",
+    "lib/src/legacy_analysis_server.dart",
+    "lib/src/lsp/handlers/handlers.dart"
+  ],
   "lib/src/handler/legacy/lsp_over_legacy_handler.dart": [
     "lib/protocol/protocol.dart",
     "lib/protocol/protocol_generated.dart",
@@ -552,7 +560,8 @@
   "lib/src/handler/legacy/server_set_client_capabilities.dart": [
     "lib/protocol/protocol.dart",
     "lib/protocol/protocol_generated.dart",
-    "lib/src/handler/legacy/legacy_handler.dart"
+    "lib/src/handler/legacy/legacy_handler.dart",
+    "lib/src/lsp/semantic_tokens/legend.dart"
   ],
   "lib/src/handler/legacy/server_set_subscriptions.dart": [
     "lib/protocol/protocol.dart",
@@ -622,6 +631,7 @@
     "lib/src/handler/legacy/flutter_set_subscriptions.dart",
     "lib/src/handler/legacy/flutter_set_widget_property_value.dart",
     "lib/src/handler/legacy/legacy_handler.dart",
+    "lib/src/handler/legacy/lsp_notification_over_legacy_handler.dart",
     "lib/src/handler/legacy/lsp_over_legacy_handler.dart",
     "lib/src/handler/legacy/search_find_element_references.dart",
     "lib/src/handler/legacy/search_find_member_declarations.dart",
@@ -639,6 +649,7 @@
     "lib/src/lsp/client_configuration.dart",
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/handlers/handler_states.dart",
+    "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/operation/operation_analysis.dart",
     "lib/src/plugin/notification_manager.dart",
     "lib/src/protocol_server.dart",
@@ -794,32 +805,22 @@
   ],
   "lib/src/lsp/handlers/commands/fix_all.dart": [
     "lib/lsp_protocol/protocol.dart",
-    "lib/src/analysis_server.dart",
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/commands/simple_edit_handler.dart",
     "lib/src/lsp/handlers/handlers.dart",
     "lib/src/lsp/lsp_analysis_server.dart",
-    "lib/src/lsp/mapping.dart",
-    "lib/src/lsp/progress.dart",
-    "lib/src/lsp/temporary_overlay_operation.dart",
-    "lib/src/services/correction/bulk_fix_processor.dart",
-    "lib/src/utilities/source_change_merger.dart"
+    "lib/src/lsp/operations/fix_all_in_file.dart",
+    "lib/src/lsp/progress.dart"
   ],
   "lib/src/lsp/handlers/commands/fix_all_in_workspace.dart": [
-    "lib/lsp_protocol/protocol.dart",
-    "lib/src/analysis_server.dart",
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/commands/simple_edit_handler.dart",
     "lib/src/lsp/handlers/handlers.dart",
     "lib/src/lsp/lsp_analysis_server.dart",
-    "lib/src/lsp/mapping.dart",
-    "lib/src/lsp/progress.dart",
-    "lib/src/lsp/source_edits.dart",
-    "lib/src/lsp/temporary_overlay_operation.dart",
-    "lib/src/services/correction/bulk_fix_processor.dart",
-    "lib/src/utilities/source_change_merger.dart"
+    "lib/src/lsp/operations/fix_all_in_workspace.dart",
+    "lib/src/lsp/progress.dart"
   ],
   "lib/src/lsp/handlers/commands/log_action.dart": [
     "lib/lsp_protocol/protocol.dart",
@@ -855,6 +856,7 @@
     "lib/src/lsp/client_capabilities.dart",
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
+    "lib/src/lsp/handlers/commands/abstract_refactor.dart",
     "lib/src/lsp/handlers/commands/refactor_command_handler_mixin.dart",
     "lib/src/lsp/handlers/commands/simple_edit_handler.dart",
     "lib/src/lsp/mapping.dart",
@@ -982,6 +984,13 @@
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/handlers.dart"
   ],
+  "lib/src/lsp/handlers/custom/handler_get_fixes.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/constants.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/lsp/handlers/handlers.dart",
+    "lib/src/lsp/operations/fix_all_in_workspace.dart"
+  ],
   "lib/src/lsp/handlers/custom/handler_get_widget_previews.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/src/lsp/constants.dart",
@@ -1002,10 +1011,13 @@
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/custom/migration/migration_extensions.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_registry.dart",
     "lib/src/lsp/handlers/custom/migration/migration_runner.dart",
     "lib/src/lsp/handlers/custom/migration/migration_summary_builder.dart",
     "lib/src/lsp/handlers/handlers.dart",
+    "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/lsp/mapping.dart",
+    "lib/src/lsp/progress.dart",
     "lib/src/utilities/pubspec.dart",
     "lib/src/utilities/source_change_merger.dart"
   ],
@@ -1052,10 +1064,19 @@
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/custom/migration/migration_extensions.dart",
     "lib/src/lsp/handlers/custom/migration/migration_registry.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_schedule.dart",
     "lib/src/lsp/handlers/custom/migration/migration_summary_builder.dart",
+    "lib/src/lsp/progress.dart",
     "lib/src/lsp/temporary_overlay_operation.dart",
     "lib/src/services/correction/bulk_fix_processor.dart",
     "lib/src/utilities/package_config.dart",
+    "lib/src/utilities/pubspec.dart"
+  ],
+  "lib/src/lsp/handlers/custom/migration/migration_schedule.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_extensions.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_registry.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_summary_builder.dart",
     "lib/src/utilities/pubspec.dart"
   ],
   "lib/src/lsp/handlers/custom/migration/migration_summary_builder.dart": [
@@ -1137,12 +1158,14 @@
   "lib/src/lsp/handlers/handler_definition.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/protocol/protocol_generated.dart",
+    "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/handlers.dart",
     "lib/src/lsp/mapping.dart",
     "lib/src/lsp/registration/feature_registration.dart",
     "lib/src/plugin/result_merger.dart",
     "lib/src/protocol_server.dart",
+    "lib/src/utilities/navigation/analysis_options_navigation_computer.dart",
     "lib/src/utilities/navigation/keyword_navigation_computer.dart"
   ],
   "lib/src/lsp/handlers/handler_document_color.dart": [
@@ -1376,6 +1399,7 @@
     "lib/src/lsp/handlers/custom/handler_connect_to_dtd.dart",
     "lib/src/lsp/handlers/custom/handler_diagnostic_server.dart",
     "lib/src/lsp/handlers/custom/handler_experimental_echo.dart",
+    "lib/src/lsp/handlers/custom/handler_get_fixes.dart",
     "lib/src/lsp/handlers/custom/handler_get_widget_previews.dart",
     "lib/src/lsp/handlers/custom/handler_imports.dart",
     "lib/src/lsp/handlers/custom/handler_migrate.dart",
@@ -1524,7 +1548,6 @@
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/dartdoc.dart",
     "lib/src/lsp/error_or.dart",
-    "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/lsp/snippets.dart",
     "lib/src/lsp/source_edits.dart",
     "lib/src/protocol_server.dart",
@@ -1539,6 +1562,28 @@
     "lib/src/lsp/mapping.dart",
     "lib/src/plugin/notification_manager.dart",
     "lib/src/protocol_server.dart"
+  ],
+  "lib/src/lsp/operations/abstract_fix_all.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/protocol/protocol_generated.dart",
+    "lib/src/analysis_server.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/lsp/handlers/handlers.dart",
+    "lib/src/lsp/mapping.dart",
+    "lib/src/lsp/source_edits.dart",
+    "lib/src/lsp/temporary_overlay_operation.dart",
+    "lib/src/services/correction/bulk_fix_processor.dart",
+    "lib/src/utilities/source_change_merger.dart"
+  ],
+  "lib/src/lsp/operations/fix_all_in_file.dart": [
+    "lib/src/lsp/operations/abstract_fix_all.dart",
+    "lib/src/lsp/source_edits.dart",
+    "lib/src/services/correction/bulk_fix_processor.dart"
+  ],
+  "lib/src/lsp/operations/fix_all_in_workspace.dart": [
+    "lib/src/lsp/operations/abstract_fix_all.dart",
+    "lib/src/lsp/source_edits.dart",
+    "lib/src/services/correction/bulk_fix_processor.dart"
   ],
   "lib/src/lsp/progress.dart": [
     "lib/lsp_protocol/protocol.dart",
@@ -1623,6 +1668,7 @@
     "lib/src/computer/computer_overrides.dart",
     "lib/src/domains/analysis/implemented_dart.dart",
     "lib/src/legacy_analysis_server.dart",
+    "lib/src/lsp/mapping.dart",
     "lib/src/protocol_server.dart"
   ],
   "lib/src/plugin/notification_manager.dart": [
@@ -1701,7 +1747,8 @@
     "lib/src/lsp/constants.dart",
     "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/scheduler/scheduled_message.dart",
-    "lib/src/server/error_notifier.dart"
+    "lib/src/server/error_notifier.dart",
+    "lib/src/services/refactoring/framework/refactoring_processor.dart"
   ],
   "lib/src/scheduler/scheduled_message.dart": [
     "lib/lsp_protocol/protocol.dart",
@@ -2001,7 +2048,7 @@
     "lib/src/services/correction/dart/data_driven.dart",
     "lib/src/services/correction/dart/organize_imports.dart",
     "lib/src/services/correction/dart/remove_unused_import.dart",
-    "lib/src/services/correction/fix/pubspec/fix_generator.dart",
+    "lib/src/services/correction/fix/pubspec/pubspec_fix_processor.dart",
     "lib/src/services/correction/organize_imports.dart"
   ],
   "lib/src/services/correction/dart/add_async.dart": [
@@ -2016,6 +2063,10 @@
   "lib/src/services/correction/dart/add_class_modifier.dart": [
     "lib/src/services/correction/fix.dart",
     "lib/src/utilities/extensions/object.dart"
+  ],
+  "lib/src/services/correction/dart/add_closure.dart": [
+    "lib/src/services/correction/fix.dart",
+    "lib/src/utilities/extensions/numeric.dart"
   ],
   "lib/src/services/correction/dart/add_const.dart": [
     "lib/src/services/correction/fix.dart",
@@ -2154,7 +2205,8 @@
     "lib/src/services/correction/fix.dart",
     "lib/src/services/correction/levenshtein.dart",
     "lib/src/services/correction/util.dart",
-    "lib/src/services/search/hierarchy.dart"
+    "lib/src/services/search/hierarchy.dart",
+    "lib/src/utilities/extensions/ast.dart"
   ],
   "lib/src/services/correction/dart/change_to_nearest_precise_value.dart": [
     "lib/src/services/correction/fix.dart"
@@ -2379,6 +2431,7 @@
   ],
   "lib/src/services/correction/dart/create_class.dart": [
     "lib/src/services/correction/fix.dart",
+    "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/string.dart"
   ],
   "lib/src/services/correction/dart/create_constructor.dart": [
@@ -2394,17 +2447,20 @@
   ],
   "lib/src/services/correction/dart/create_enum_constant.dart": [
     "lib/src/services/correction/fix.dart",
-    "lib/src/services/correction/util.dart"
+    "lib/src/services/correction/util.dart",
+    "lib/src/utilities/extensions/ast.dart"
   ],
   "lib/src/services/correction/dart/create_extension_member.dart": [
     "lib/src/services/correction/fix.dart",
     "lib/src/services/correction/util.dart",
+    "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/object.dart"
   ],
   "lib/src/services/correction/dart/create_field.dart": [
     "lib/src/services/correction/dart/create_getter.dart",
     "lib/src/services/correction/fix.dart",
     "lib/src/services/correction/util.dart",
+    "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/dart_type.dart"
   ],
   "lib/src/services/correction/dart/create_file.dart": [
@@ -2417,10 +2473,12 @@
   "lib/src/services/correction/dart/create_getter.dart": [
     "lib/src/services/correction/fix.dart",
     "lib/src/services/correction/util.dart",
+    "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/dart_type.dart"
   ],
   "lib/src/services/correction/dart/create_local_variable.dart": [
-    "lib/src/services/correction/fix.dart"
+    "lib/src/services/correction/fix.dart",
+    "lib/src/utilities/extensions/ast.dart"
   ],
   "lib/src/services/correction/dart/create_method.dart": [
     "lib/src/services/correction/fix.dart",
@@ -2436,6 +2494,7 @@
   ],
   "lib/src/services/correction/dart/create_mixin.dart": [
     "lib/src/services/correction/fix.dart",
+    "lib/src/utilities/extensions/ast.dart",
     "lib/src/utilities/extensions/string.dart"
   ],
   "lib/src/services/correction/dart/create_no_such_method.dart": [
@@ -2445,7 +2504,8 @@
     "lib/src/services/correction/fix.dart"
   ],
   "lib/src/services/correction/dart/create_parameter.dart": [
-    "lib/src/services/correction/fix.dart"
+    "lib/src/services/correction/fix.dart",
+    "lib/src/utilities/extensions/ast.dart"
   ],
   "lib/src/services/correction/dart/create_setter.dart": [
     "lib/src/services/correction/fix.dart",
@@ -2524,6 +2584,8 @@
   "lib/src/services/correction/dart/import_library.dart": [
     "lib/src/services/correction/fix.dart",
     "lib/src/services/correction/namespace.dart",
+    "lib/src/utilities/extensions/ast.dart",
+    "lib/src/utilities/extensions/element.dart",
     "lib/src/utilities/extensions/iterable.dart"
   ],
   "lib/src/services/correction/dart/inline_invocation.dart": [
@@ -2679,9 +2741,6 @@
   "lib/src/services/correction/dart/remove_default_value.dart": [
     "lib/src/services/correction/fix.dart"
   ],
-  "lib/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart": [
-    "lib/src/services/correction/fix.dart"
-  ],
   "lib/src/services/correction/dart/remove_digit_separators.dart": [
     "lib/src/services/correction/assist.dart"
   ],
@@ -2776,6 +2835,10 @@
   ],
   "lib/src/services/correction/dart/remove_returned_value.dart": [
     "lib/src/services/correction/fix.dart"
+  ],
+  "lib/src/services/correction/dart/remove_this_alias.dart": [
+    "lib/src/services/correction/fix.dart",
+    "lib/src/services/correction/util.dart"
   ],
   "lib/src/services/correction/dart/remove_this_expression.dart": [
     "lib/src/services/correction/fix.dart"
@@ -3013,7 +3076,8 @@
   ],
   "lib/src/services/correction/dart/sort_constructor_first.dart": [
     "lib/src/services/correction/fix.dart",
-    "lib/src/utilities/extensions/ast.dart"
+    "lib/src/utilities/extensions/ast.dart",
+    "lib/src/utilities/extensions/range_factory.dart"
   ],
   "lib/src/services/correction/dart/sort_unnamed_constructor_first.dart": [
     "lib/src/services/correction/fix.dart"
@@ -3177,11 +3241,16 @@
     "lib/src/services/correction/fix/pubspec/fix_kind.dart",
     "lib/src/utilities/yaml_node_locator.dart"
   ],
+  "lib/src/services/correction/fix/pubspec/pubspec_fix_processor.dart": [
+    "lib/protocol/protocol_generated.dart",
+    "lib/src/services/correction/fix/pubspec/fix_generator.dart"
+  ],
   "lib/src/services/correction/fix_internal.dart": [
     "lib/src/services/correction/dart/add_async.dart",
     "lib/src/services/correction/dart/add_await.dart",
     "lib/src/services/correction/dart/add_call_super.dart",
     "lib/src/services/correction/dart/add_class_modifier.dart",
+    "lib/src/services/correction/dart/add_closure.dart",
     "lib/src/services/correction/dart/add_const.dart",
     "lib/src/services/correction/dart/add_diagnostic_property_reference.dart",
     "lib/src/services/correction/dart/add_empty_argument_list.dart",
@@ -3327,7 +3396,6 @@
     "lib/src/services/correction/dart/remove_dead_code.dart",
     "lib/src/services/correction/dart/remove_dead_if_null.dart",
     "lib/src/services/correction/dart/remove_default_value.dart",
-    "lib/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart",
     "lib/src/services/correction/dart/remove_duplicate_case.dart",
     "lib/src/services/correction/dart/remove_empty_catch.dart",
     "lib/src/services/correction/dart/remove_empty_constructor_body.dart",
@@ -3358,6 +3426,7 @@
     "lib/src/services/correction/dart/remove_question_mark.dart",
     "lib/src/services/correction/dart/remove_required.dart",
     "lib/src/services/correction/dart/remove_returned_value.dart",
+    "lib/src/services/correction/dart/remove_this_alias.dart",
     "lib/src/services/correction/dart/remove_this_expression.dart",
     "lib/src/services/correction/dart/remove_to_list.dart",
     "lib/src/services/correction/dart/remove_type_annotation.dart",
@@ -3469,6 +3538,7 @@
     "lib/lsp_protocol/protocol.dart",
     "lib/src/analysis_server.dart",
     "lib/src/lsp/client_capabilities.dart",
+    "lib/src/lsp/constants.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/handlers/handler_states.dart",
     "lib/src/lsp/handlers/handlers.dart",
@@ -3489,13 +3559,18 @@
     "lib/src/services/perf_witness/perf_witness_io.dart",
     "lib/src/services/perf_witness/perf_witness_js.dart"
   ],
+  "lib/src/services/pub/pub_api.dart": [
+    "lib/src/session_logger/session_logger.dart"
+  ],
   "lib/src/services/pub/pub_command.dart": [
+    "lib/src/session_logger/session_logger.dart",
     "lib/src/utilities/process.dart",
     "lib/src/utilities/sdk.dart"
   ],
   "lib/src/services/pub/pub_package_service.dart": [
     "lib/src/services/pub/pub_api.dart",
-    "lib/src/services/pub/pub_command.dart"
+    "lib/src/services/pub/pub_command.dart",
+    "lib/src/session_logger/session_logger.dart"
   ],
   "lib/src/services/refactoring/add_constructor_name.dart": [
     "lib/src/lsp/constants.dart",
@@ -3542,6 +3617,24 @@
     "lib/src/services/refactoring/framework/refactoring_producer.dart",
     "lib/src/services/refactoring/framework/write_invocation_arguments.dart"
   ],
+  "lib/src/services/refactoring/extract_method.dart": [
+    "lib/src/lsp/constants.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/services/interactive_forms/interactive_forms.dart",
+    "lib/src/services/refactoring/client_side_validators.dart",
+    "lib/src/services/refactoring/framework/refactoring_producer.dart",
+    "lib/src/services/refactoring/legacy/naming_conventions.dart",
+    "lib/src/services/refactoring/legacy/refactoring.dart"
+  ],
+  "lib/src/services/refactoring/extract_widget.dart": [
+    "lib/src/lsp/constants.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/services/interactive_forms/interactive_forms.dart",
+    "lib/src/services/refactoring/client_side_validators.dart",
+    "lib/src/services/refactoring/framework/refactoring_producer.dart",
+    "lib/src/services/refactoring/legacy/naming_conventions.dart",
+    "lib/src/services/refactoring/legacy/refactoring.dart"
+  ],
   "lib/src/services/refactoring/framework/refactoring_context.dart": [
     "lib/src/analysis_server.dart",
     "lib/src/lsp/client_capabilities.dart",
@@ -3554,6 +3647,8 @@
     "lib/src/services/refactoring/add_import_prefix.dart",
     "lib/src/services/refactoring/convert_all_formal_parameters_to_named.dart",
     "lib/src/services/refactoring/convert_selected_formal_parameters_to_named.dart",
+    "lib/src/services/refactoring/extract_method.dart",
+    "lib/src/services/refactoring/extract_widget.dart",
     "lib/src/services/refactoring/framework/refactoring_context.dart",
     "lib/src/services/refactoring/framework/refactoring_producer.dart",
     "lib/src/services/refactoring/move_selected_formal_parameters_left.dart",
@@ -3937,7 +4032,11 @@
     "lib/src/services/user_prompts/user_prompts.dart"
   ],
   "lib/src/services/user_prompts/survey_manager.dart": [
-    "lib/src/analysis_server.dart"
+    "lib/src/analysis_server.dart",
+    "lib/src/session_logger/session_logger.dart"
+  ],
+  "lib/src/services/user_prompts/user_prompts.dart": [
+    "lib/src/session_logger/session_logger.dart"
   ],
   "lib/src/session_logger/log_entry.dart": [
     "lib/src/session_logger/entry_keys.dart",
@@ -3946,6 +4045,12 @@
   ],
   "lib/src/session_logger/log_normalizer.dart": [
     "lib/lsp_protocol/protocol.dart",
+    "lib/src/session_logger/log_entry.dart"
+  ],
+  "lib/src/session_logger/log_sanitizer.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/session_logger/entry_keys.dart",
+    "lib/src/session_logger/entry_kind.dart",
     "lib/src/session_logger/log_entry.dart"
   ],
   "lib/src/session_logger/session_logger.dart": [
@@ -3999,6 +4104,7 @@
     "lib/src/status/pages/exceptions_page.dart",
     "lib/src/status/pages/feedback_page.dart",
     "lib/src/status/pages/file_byte_store_timing_page.dart",
+    "lib/src/status/pages/file_io_timing_page.dart",
     "lib/src/status/pages/fixes_page.dart",
     "lib/src/status/pages/legacy_plugins_page.dart",
     "lib/src/status/pages/lsp_capabilities_page.dart",
@@ -4007,6 +4113,7 @@
     "lib/src/status/pages/memory_and_cpu_page.dart",
     "lib/src/status/pages/message_scheduler_page.dart",
     "lib/src/status/pages/not_found_page.dart",
+    "lib/src/status/pages/performance_page.dart",
     "lib/src/status/pages/plugins_page.dart",
     "lib/src/status/pages/refactorings_page.dart",
     "lib/src/status/pages/session_log_page.dart",
@@ -4089,6 +4196,10 @@
     "lib/src/status/diagnostics.dart",
     "lib/src/status/pages.dart"
   ],
+  "lib/src/status/pages/file_io_timing_page.dart": [
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages.dart"
+  ],
   "lib/src/status/pages/fixes_page.dart": [
     "lib/src/services/correction/fix_performance.dart",
     "lib/src/status/diagnostics.dart",
@@ -4126,6 +4237,11 @@
   "lib/src/status/pages/not_found_page.dart": [
     "lib/src/status/diagnostics.dart"
   ],
+  "lib/src/status/pages/performance_page.dart": [
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages.dart",
+    "lib/src/status/utilities/library_cycle_extensions.dart"
+  ],
   "lib/src/status/pages/plugins_page.dart": [
     "lib/src/analysis_server.dart",
     "lib/src/plugin/plugin_isolate.dart",
@@ -4139,6 +4255,7 @@
     "lib/src/status/pages.dart"
   ],
   "lib/src/status/pages/session_log_page.dart": [
+    "lib/src/session_logger/log_sanitizer.dart",
     "lib/src/session_logger/session_logger_sink.dart",
     "lib/src/status/diagnostics.dart",
     "lib/src/status/pages.dart"
@@ -4192,7 +4309,8 @@
     "lib/protocol/protocol.dart",
     "lib/src/channel/channel.dart",
     "lib/src/plugin/plugin_isolate.dart",
-    "lib/src/plugin/plugin_manager.dart"
+    "lib/src/plugin/plugin_manager.dart",
+    "lib/src/session_logger/session_logger.dart"
   ],
   "lib/src/utilities/request_statistics.dart": [
     "lib/protocol/protocol.dart",
@@ -4201,14 +4319,6 @@
   ],
   "lib/src/utilities/source_change_merger.dart": [
     "lib/src/collections.dart"
-  ],
-  "test/abstract_context.dart": [
-    "lib/src/services/correction/assist_internal.dart",
-    "lib/src/services/correction/fix_internal.dart",
-    "test/support/configuration_files.dart"
-  ],
-  "test/abstract_single_unit.dart": [
-    "test/abstract_context.dart"
   ],
   "test/analysis/get_errors_test.dart": [
     "lib/protocol/protocol.dart",
@@ -4347,7 +4457,6 @@
     "lib/src/utilities/mocks.dart",
     "test/constants.dart",
     "test/mocks.dart",
-    "test/support/configuration_files.dart",
     "test/utils/message_scheduler_test_view.dart"
   ],
   "test/analysis_server_test.dart": [
@@ -4736,6 +4845,12 @@
     "test/utils/matchers.dart",
     "test/utils/test_code_extensions.dart"
   ],
+  "test/lsp/get_fixes_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/services/correction/fix_internal.dart",
+    "test/lsp/server_abstract.dart",
+    "test/tool/lsp_spec/matchers.dart"
+  ],
   "test/lsp/hover_test.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/src/lsp/constants.dart",
@@ -4787,7 +4902,11 @@
   "test/lsp/migrate_test.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/src/lsp/constants.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_registry.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_runner.dart",
+    "lib/src/lsp/handlers/custom/migration/migration_summary_builder.dart",
     "lib/src/services/correction/fix_internal.dart",
+    "lib/src/utilities/pubspec.dart",
     "test/lsp/server_abstract.dart",
     "test/tool/lsp_spec/matchers.dart"
   ],
@@ -4809,6 +4928,7 @@
     "lib/src/services/pub/pub_api.dart",
     "lib/src/services/pub/pub_command.dart",
     "lib/src/services/pub/pub_package_service.dart",
+    "lib/src/session_logger/session_logger.dart",
     "test/lsp/server_abstract.dart",
     "test/mocks.dart"
   ],
@@ -4847,15 +4967,14 @@
     "test/utils/test_code_extensions.dart"
   ],
   "test/lsp/semantic_tokens_test.dart": [
-    "lib/lsp_protocol/protocol.dart",
-    "lib/src/lsp/constants.dart",
     "lib/src/lsp/semantic_tokens/legend.dart",
-    "lib/src/protocol/protocol_internal.dart",
     "test/lsp/server_abstract.dart",
+    "test/lsp/utils/semantic_tokens.dart",
     "test/utils/test_code_extensions.dart"
   ],
   "test/lsp/server_abstract.dart": [
     "lib/lsp_protocol/protocol.dart",
+    "lib/src/analysis_server.dart",
     "lib/src/analytics/analytics_manager.dart",
     "lib/src/legacy_analysis_server.dart",
     "lib/src/lsp/client_capabilities.dart",
@@ -4874,7 +4993,6 @@
     "test/mocks_lsp.dart",
     "test/shared/mixins/analytics_test_mixin.dart",
     "test/shared/shared_test_interface.dart",
-    "test/support/configuration_files.dart",
     "test/utils/message_scheduler_test_view.dart"
   ],
   "test/lsp/server_test.dart": [
@@ -4897,7 +5015,6 @@
     "lib/lsp_protocol/protocol.dart",
     "lib/src/lsp/error_or.dart",
     "lib/src/lsp/source_edits.dart",
-    "test/abstract_single_unit.dart",
     "test/lsp/request_helpers_mixin.dart",
     "test/utils/lsp_protocol_extensions.dart"
   ],
@@ -4947,6 +5064,7 @@
     "test/lsp/flutter_outline_test.dart",
     "test/lsp/folding_test.dart",
     "test/lsp/format_test.dart",
+    "test/lsp/get_fixes_test.dart",
     "test/lsp/hover_test.dart",
     "test/lsp/implementation_test.dart",
     "test/lsp/import_test.dart",
@@ -4993,6 +5111,12 @@
   "test/lsp/update_diagnostic_information_test.dart": [
     "test/lsp/server_abstract.dart"
   ],
+  "test/lsp/utils/semantic_tokens.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/constants.dart",
+    "lib/src/lsp/semantic_tokens/legend.dart",
+    "lib/src/protocol/protocol_internal.dart"
+  ],
   "test/lsp/will_rename_files_test.dart": [
     "lib/lsp_protocol/protocol.dart",
     "test/lsp/server_abstract.dart"
@@ -5018,6 +5142,7 @@
   "test/lsp_over_legacy/abstract_lsp_over_legacy.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/protocol/protocol_constants.dart",
+    "lib/src/analysis_server.dart",
     "lib/src/analytics/analytics_manager.dart",
     "lib/src/lsp/client_capabilities.dart",
     "lib/src/protocol/protocol_internal.dart",
@@ -5037,6 +5162,15 @@
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
     "test/utils/test_code_extensions.dart"
   ],
+  "test/lsp_over_legacy/closing_labels_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/protocol/protocol_constants.dart",
+    "lib/protocol/protocol_generated.dart",
+    "lib/src/lsp/constants.dart",
+    "lib/src/protocol_server.dart",
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
   "test/lsp_over_legacy/code_action_assists_test.dart": [
     "test/lsp_over_legacy/abstract_code_actions.dart",
     "test/shared/shared_code_actions_assists_tests.dart"
@@ -5047,10 +5181,6 @@
   ],
   "test/lsp_over_legacy/code_action_refactors_test.dart": [
     "lib/lsp_protocol/protocol.dart",
-    "lib/protocol/protocol.dart",
-    "lib/protocol/protocol_constants.dart",
-    "lib/protocol/protocol_generated.dart",
-    "lib/src/lsp/constants.dart",
     "test/lsp_over_legacy/abstract_code_actions.dart",
     "test/shared/shared_code_actions_refactor_tests.dart"
   ],
@@ -5058,6 +5188,24 @@
     "lib/src/lsp/constants.dart",
     "test/lsp_over_legacy/abstract_code_actions.dart",
     "test/shared/shared_code_actions_source_tests.dart"
+  ],
+  "test/lsp_over_legacy/completion_resolve_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/lsp_protocol_extensions.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/completion_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/lsp_protocol_extensions.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/configuration_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/protocol/protocol.dart",
+    "lib/protocol/protocol_constants.dart",
+    "lib/protocol/protocol_generated.dart",
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
   ],
   "test/lsp_over_legacy/definition_test.dart": [
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
@@ -5075,6 +5223,10 @@
     "test/utils/test_code_extensions.dart"
   ],
   "test/lsp_over_legacy/document_highlights_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/document_link_test.dart": [
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
     "test/utils/test_code_extensions.dart"
   ],
@@ -5101,6 +5253,11 @@
     "lib/src/lsp/constants.dart",
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart"
   ],
+  "test/lsp_over_legacy/folding_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
   "test/lsp_over_legacy/format_test.dart": [
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart"
   ],
@@ -5118,7 +5275,33 @@
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
     "test/utils/test_code_extensions.dart"
   ],
+  "test/lsp_over_legacy/prepare_rename_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/reanalyze_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/protocol/protocol.dart",
+    "lib/protocol/protocol_constants.dart",
+    "lib/protocol/protocol_generated.dart",
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart"
+  ],
   "test/lsp_over_legacy/references_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/rename_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/selection_range_test.dart": [
+    "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
+    "test/utils/test_code_extensions.dart"
+  ],
+  "test/lsp_over_legacy/semantic_tokens_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/semantic_tokens/legend.dart",
+    "test/lsp/utils/semantic_tokens.dart",
     "test/lsp_over_legacy/abstract_lsp_over_legacy.dart",
     "test/utils/test_code_extensions.dart"
   ],
@@ -5129,24 +5312,35 @@
   "test/lsp_over_legacy/test_all.dart": [
     "test/lsp_over_legacy/apply_code_action_test.dart",
     "test/lsp_over_legacy/call_hierarchy_test.dart",
+    "test/lsp_over_legacy/closing_labels_test.dart",
     "test/lsp_over_legacy/code_action_assists_test.dart",
     "test/lsp_over_legacy/code_action_fixes_test.dart",
     "test/lsp_over_legacy/code_action_refactors_test.dart",
     "test/lsp_over_legacy/code_action_source_test.dart",
+    "test/lsp_over_legacy/completion_resolve_test.dart",
+    "test/lsp_over_legacy/completion_test.dart",
+    "test/lsp_over_legacy/configuration_test.dart",
     "test/lsp_over_legacy/definition_test.dart",
     "test/lsp_over_legacy/diagnostics_test.dart",
     "test/lsp_over_legacy/document_color_test.dart",
     "test/lsp_over_legacy/document_highlights_test.dart",
+    "test/lsp_over_legacy/document_link_test.dart",
     "test/lsp_over_legacy/document_symbols_test.dart",
     "test/lsp_over_legacy/edit_argument_test.dart",
     "test/lsp_over_legacy/editable_arguments_test.dart",
     "test/lsp_over_legacy/execute_command_test.dart",
     "test/lsp_over_legacy/flutter_widget_previews_test.dart",
+    "test/lsp_over_legacy/folding_test.dart",
     "test/lsp_over_legacy/format_test.dart",
     "test/lsp_over_legacy/hover_test.dart",
     "test/lsp_over_legacy/implementation_test.dart",
     "test/lsp_over_legacy/inlay_hint_test.dart",
+    "test/lsp_over_legacy/prepare_rename_test.dart",
+    "test/lsp_over_legacy/reanalyze_test.dart",
     "test/lsp_over_legacy/references_test.dart",
+    "test/lsp_over_legacy/rename_test.dart",
+    "test/lsp_over_legacy/selection_range_test.dart",
+    "test/lsp_over_legacy/semantic_tokens_test.dart",
     "test/lsp_over_legacy/signature_help_test.dart",
     "test/lsp_over_legacy/type_definition_test.dart",
     "test/lsp_over_legacy/type_hierarchy_test.dart",
@@ -5187,7 +5381,7 @@
   ],
   "test/plugin/protocol_dart_test.dart": [
     "lib/plugin/protocol/protocol_dart.dart",
-    "test/abstract_single_unit.dart",
+    "test/find_element.dart",
     "test/utils/test_code_extensions.dart"
   ],
   "test/plugin/test_all.dart": [
@@ -5196,7 +5390,6 @@
   "test/protocol_server_test.dart": [
     "lib/src/protocol_server.dart",
     "lib/src/services/search/search_engine.dart",
-    "test/abstract_context.dart",
     "test/constants.dart"
   ],
   "test/protocol_test.dart": [
@@ -5250,9 +5443,6 @@
     "lib/protocol/protocol.dart",
     "lib/protocol/protocol_generated.dart",
     "test/analysis_server_base.dart"
-  ],
-  "test/selection_mixin.dart": [
-    "test/abstract_single_unit.dart"
   ],
   "test/services/completion/dart/completion_check.dart": [
     "lib/src/protocol_server.dart"
@@ -5427,6 +5617,9 @@
   "test/services/completion/dart/location/enum_declaration_test.dart": [
     "test/client/completion_driver_test.dart"
   ],
+  "test/services/completion/dart/location/export_directive_test.dart": [
+    "test/client/completion_driver_test.dart"
+  ],
   "test/services/completion/dart/location/extends_clause_test.dart": [
     "test/client/completion_driver_test.dart",
     "test/services/completion/dart/completion_printer.dart"
@@ -5587,6 +5780,9 @@
   "test/services/completion/dart/location/switch_statement_test.dart": [
     "test/client/completion_driver_test.dart"
   ],
+  "test/services/completion/dart/location/symbol_test.dart": [
+    "test/client/completion_driver_test.dart"
+  ],
   "test/services/completion/dart/location/test_all.dart": [
     "test/services/completion/dart/location/argument_list_test.dart",
     "test/services/completion/dart/location/as_expression_test.dart",
@@ -5611,6 +5807,7 @@
     "test/services/completion/dart/location/dot_shorthand_property_access_test.dart",
     "test/services/completion/dart/location/enum_constant_test.dart",
     "test/services/completion/dart/location/enum_declaration_test.dart",
+    "test/services/completion/dart/location/export_directive_test.dart",
     "test/services/completion/dart/location/extends_clause_test.dart",
     "test/services/completion/dart/location/extension_body_test.dart",
     "test/services/completion/dart/location/extension_declaration_test.dart",
@@ -5663,6 +5860,7 @@
     "test/services/completion/dart/location/switch_expression_test.dart",
     "test/services/completion/dart/location/switch_pattern_case_test.dart",
     "test/services/completion/dart/location/switch_statement_test.dart",
+    "test/services/completion/dart/location/symbol_test.dart",
     "test/services/completion/dart/location/try_statement_test.dart",
     "test/services/completion/dart/location/type_argument_list_test.dart",
     "test/services/completion/dart/location/type_test_test.dart",
@@ -5755,16 +5953,14 @@
   ],
   "test/services/completion/postfix/postfix_completion_test.dart": [
     "lib/src/protocol_server.dart",
-    "lib/src/services/completion/postfix/postfix_completion.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/completion/postfix/postfix_completion.dart"
   ],
   "test/services/completion/postfix/test_all.dart": [
     "test/services/completion/postfix/postfix_completion_test.dart"
   ],
   "test/services/completion/statement/statement_completion_test.dart": [
     "lib/src/protocol_server.dart",
-    "lib/src/services/completion/statement/statement_completion.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/completion/statement/statement_completion.dart"
   ],
   "test/services/completion/statement/test_all.dart": [
     "test/services/completion/statement/statement_completion_test.dart"
@@ -5783,22 +5979,22 @@
   ],
   "test/services/correction/name_suggestion_test.dart": [
     "lib/src/services/correction/name_suggestion.dart",
-    "test/abstract_single_unit.dart"
+    "test/find_element.dart",
+    "test/find_node.dart"
   ],
   "test/services/correction/organize_directives_test.dart": [
-    "lib/src/services/correction/organize_imports.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/correction/organize_imports.dart"
   ],
   "test/services/correction/sort_members_test.dart": [
-    "lib/src/services/correction/sort_members.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/correction/sort_members.dart"
   ],
   "test/services/correction/status_test.dart": [
     "lib/src/protocol_server.dart",
     "lib/src/services/correction/status.dart",
     "lib/src/services/search/search_engine.dart",
     "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_single_unit.dart"
+    "test/find_element.dart",
+    "test/find_node.dart"
   ],
   "test/services/correction/test_all.dart": [
     "test/services/correction/change_test.dart",
@@ -5808,6 +6004,18 @@
     "test/services/correction/sort_members_test.dart",
     "test/services/correction/status_test.dart"
   ],
+  "test/services/dart_tooling_daemon/dtd_services_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/analysis_server.dart",
+    "lib/src/lsp/constants.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/lsp/handlers/handlers.dart",
+    "lib/src/services/dart_tooling_daemon/dtd_services.dart",
+    "lib/src/session_logger/session_logger.dart"
+  ],
+  "test/services/dart_tooling_daemon/test_all.dart": [
+    "test/services/dart_tooling_daemon/dtd_services_test.dart"
+  ],
   "test/services/refactoring/agnostic/change_method_signature_test.dart": [
     "lib/src/lsp/client_capabilities.dart",
     "lib/src/protocol_server.dart",
@@ -5815,8 +6023,7 @@
     "lib/src/services/refactoring/framework/formal_parameter.dart",
     "lib/src/services/refactoring/framework/refactoring_context.dart",
     "lib/src/services/refactoring/framework/write_invocation_arguments.dart",
-    "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_context.dart"
+    "lib/src/services/search/search_engine_internal.dart"
   ],
   "test/services/refactoring/agnostic/test_all.dart": [
     "test/services/refactoring/agnostic/change_method_signature_test.dart"
@@ -5831,8 +6038,8 @@
     "lib/src/services/refactoring/legacy/refactoring.dart",
     "lib/src/services/search/search_engine.dart",
     "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_single_unit.dart",
-    "test/selection_mixin.dart"
+    "test/find_element.dart",
+    "test/find_node.dart"
   ],
   "test/services/refactoring/legacy/abstract_rename.dart": [
     "lib/src/services/correction/namespace.dart",
@@ -5903,6 +6110,7 @@
     "test/services/refactoring/legacy/abstract_rename.dart"
   ],
   "test/services/refactoring/legacy/rename_parameter_test.dart": [
+    "lib/src/services/refactoring/legacy/refactoring.dart",
     "test/services/refactoring/legacy/abstract_rename.dart"
   ],
   "test/services/refactoring/legacy/rename_type_parameter_test.dart": [
@@ -5939,18 +6147,16 @@
     "test/services/refactoring/legacy/test_all.dart"
   ],
   "test/services/search/element_visitors_test.dart": [
-    "lib/src/services/search/element_visitors.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/search/element_visitors.dart"
   ],
   "test/services/search/hierarchy_test.dart": [
     "lib/src/services/search/hierarchy.dart",
     "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_single_unit.dart"
+    "test/find_element.dart"
   ],
   "test/services/search/search_engine_test.dart": [
     "lib/src/services/search/search_engine.dart",
-    "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_context.dart"
+    "lib/src/services/search/search_engine_internal.dart"
   ],
   "test/services/search/test_all.dart": [
     "test/services/search/element_visitors_test.dart",
@@ -6040,8 +6246,7 @@
     "lib/src/protocol_server.dart",
     "lib/src/services/snippets/dart_snippet_request.dart",
     "lib/src/services/snippets/snippet.dart",
-    "lib/src/services/snippets/snippet_manager.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/snippets/snippet_manager.dart"
   ],
   "test/services/snippets/dart/try_catch_statement_test.dart": [
     "lib/src/services/snippets/dart/try_catch_statement.dart",
@@ -6056,13 +6261,11 @@
     "lib/src/services/snippets/snippet.dart",
     "lib/src/services/snippets/snippet_context.dart",
     "lib/src/services/snippets/snippet_manager.dart",
-    "lib/src/services/snippets/snippet_producer.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/snippets/snippet_producer.dart"
   ],
   "test/services/snippets/snippet_request_test.dart": [
     "lib/src/services/snippets/dart_snippet_request.dart",
-    "lib/src/services/snippets/snippet_context.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/snippets/snippet_context.dart"
   ],
   "test/services/snippets/test_all.dart": [
     "test/services/snippets/dart/test_all.dart",
@@ -6072,6 +6275,7 @@
   "test/services/test_all.dart": [
     "test/services/completion/test_all.dart",
     "test/services/correction/test_all.dart",
+    "test/services/dart_tooling_daemon/test_all.dart",
     "test/services/refactoring/test_all.dart",
     "test/services/search/test_all.dart",
     "test/services/snippets/test_all.dart",
@@ -6088,14 +6292,17 @@
     "lib/src/lsp/lsp_analysis_server.dart",
     "lib/src/services/user_prompts/dart_fix_prompt_manager.dart",
     "lib/src/services/user_prompts/user_prompts.dart",
+    "lib/src/session_logger/session_logger.dart",
     "test/lsp/server_abstract.dart"
   ],
   "test/services/user_prompts/preferences_test.dart": [
-    "lib/src/services/user_prompts/user_prompts.dart"
+    "lib/src/services/user_prompts/user_prompts.dart",
+    "lib/src/session_logger/session_logger.dart"
   ],
   "test/services/user_prompts/survey_manager_test.dart": [
     "lib/src/analysis_server.dart",
-    "lib/src/services/user_prompts/survey_manager.dart"
+    "lib/src/services/user_prompts/survey_manager.dart",
+    "lib/src/session_logger/session_logger.dart"
   ],
   "test/services/user_prompts/test_all.dart": [
     "test/services/user_prompts/dart_fix_prompt_manager_test.dart",
@@ -6141,12 +6348,17 @@
   ],
   "test/shared/shared_code_actions_refactor_tests.dart": [
     "lib/lsp_protocol/protocol.dart",
+    "lib/src/analysis_server.dart",
     "lib/src/lsp/constants.dart",
+    "lib/src/lsp/extensions/code_action.dart",
     "lib/src/lsp/handlers/commands/perform_refactor.dart",
+    "lib/src/services/refactoring/extract_method.dart",
+    "lib/src/services/refactoring/extract_widget.dart",
     "test/lsp/code_actions_mixin.dart",
     "test/lsp/request_helpers_mixin.dart",
     "test/lsp/server_abstract.dart",
     "test/shared/shared_test_interface.dart",
+    "test/support/interactive_forms.dart",
     "test/tool/lsp_spec/matchers.dart",
     "test/utils/test_code_extensions.dart"
   ],
@@ -6273,46 +6485,37 @@
   "test/src/computer/call_hierarchy_computer_test.dart": [
     "lib/src/computer/computer_call_hierarchy.dart",
     "lib/src/services/search/search_engine.dart",
-    "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/search/search_engine_internal.dart"
   ],
   "test/src/computer/closing_labels_computer_test.dart": [
     "lib/protocol/protocol_generated.dart",
-    "lib/src/computer/computer_closing_labels.dart",
-    "test/abstract_context.dart"
+    "lib/src/computer/computer_closing_labels.dart"
   ],
   "test/src/computer/color_computer_test.dart": [
-    "lib/src/computer/computer_color.dart",
-    "test/abstract_context.dart"
+    "lib/src/computer/computer_color.dart"
   ],
   "test/src/computer/folding_computer_test.dart": [
     "lib/src/computer/computer_folding.dart",
-    "lib/src/protocol_server.dart",
-    "test/abstract_context.dart"
+    "lib/src/protocol_server.dart"
   ],
   "test/src/computer/highlights_computer_test.dart": [
     "lib/src/computer/computer_highlights.dart",
-    "lib/src/protocol_server.dart",
-    "test/abstract_context.dart"
+    "lib/src/protocol_server.dart"
   ],
   "test/src/computer/import_elements_computer_test.dart": [
     "lib/protocol/protocol_generated.dart",
-    "lib/src/computer/import_elements_computer.dart",
-    "test/abstract_context.dart"
+    "lib/src/computer/import_elements_computer.dart"
   ],
   "test/src/computer/imported_elements_computer_test.dart": [
     "lib/protocol/protocol_generated.dart",
-    "lib/src/computer/imported_elements_computer.dart",
-    "test/abstract_context.dart"
+    "lib/src/computer/imported_elements_computer.dart"
   ],
   "test/src/computer/outline_computer_test.dart": [
     "lib/src/computer/computer_outline.dart",
-    "test/abstract_context.dart",
     "test/utils/test_code_extensions.dart"
   ],
   "test/src/computer/selection_range_computer_test.dart": [
-    "lib/src/computer/computer_selection_ranges.dart",
-    "test/abstract_context.dart"
+    "lib/src/computer/computer_selection_ranges.dart"
   ],
   "test/src/computer/test_all.dart": [
     "test/src/computer/call_hierarchy_computer_test.dart",
@@ -6329,8 +6532,7 @@
   "test/src/computer/type_hierarchy_computer_test.dart": [
     "lib/src/computer/computer_lazy_type_hierarchy.dart",
     "lib/src/services/search/search_engine.dart",
-    "lib/src/services/search/search_engine_internal.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/search/search_engine_internal.dart"
   ],
   "test/src/domains/flutter/base.dart": [
     "lib/src/protocol_server.dart",
@@ -6353,8 +6555,7 @@
   ],
   "test/src/flutter/flutter_outline_computer_test.dart": [
     "lib/src/flutter/flutter_outline_computer.dart",
-    "lib/src/protocol_server.dart",
-    "test/abstract_context.dart"
+    "lib/src/protocol_server.dart"
   ],
   "test/src/flutter/flutter_outline_notification_test.dart": [
     "lib/protocol/protocol.dart",
@@ -6415,8 +6616,7 @@
   "test/src/plugin/plugin_watcher_test.dart": [
     "lib/src/plugin/plugin_locator.dart",
     "lib/src/plugin/plugin_watcher.dart",
-    "lib/src/utilities/mocks.dart",
-    "test/abstract_context.dart"
+    "lib/src/utilities/mocks.dart"
   ],
   "test/src/plugin/protocol_test_utilities.dart": [
     "lib/protocol/protocol_generated.dart"
@@ -6456,10 +6656,14 @@
   "test/src/plugin2/test_all.dart": [
     "test/src/plugin2/generator_test.dart"
   ],
+  "test/src/server/performance_test.dart": [
+    "test/lsp/server_abstract.dart"
+  ],
   "test/src/server/sdk_configuration_test.dart": [
     "lib/src/server/sdk_configuration.dart"
   ],
   "test/src/server/test_all.dart": [
+    "test/src/server/performance_test.dart",
     "test/src/server/sdk_configuration_test.dart"
   ],
   "test/src/services/completion/dart/completion_test.dart": [
@@ -6467,14 +6671,13 @@
     "test/completion_test_support.dart"
   ],
   "test/src/services/completion/dart/feature_computer_test.dart": [
-    "lib/src/services/completion/dart/feature_computer.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/completion/dart/feature_computer.dart"
   ],
   "test/src/services/completion/dart/suggestion_builder_test.dart": [
     "lib/src/protocol_server.dart",
     "lib/src/services/completion/dart/completion_manager.dart",
     "lib/src/services/completion/dart/suggestion_builder.dart",
-    "test/abstract_single_unit.dart"
+    "test/find_element.dart"
   ],
   "test/src/services/completion/dart/test_all.dart": [
     "test/src/services/completion/dart/completion_test.dart",
@@ -6498,6 +6701,7 @@
     "lib/src/services/pub/pub_api.dart",
     "lib/src/services/pub/pub_command.dart",
     "lib/src/services/pub/pub_package_service.dart",
+    "lib/src/session_logger/session_logger.dart",
     "test/mocks.dart",
     "test/src/services/completion/yaml/yaml_generator_test_support.dart"
   ],
@@ -6539,9 +6743,8 @@
     "test/src/services/correction/assist/assist_processor.dart"
   ],
   "test/src/services/correction/assist/assist_processor.dart": [
-    "test/abstract_single_unit.dart",
-    "test/selection_mixin.dart",
-    "test/utils/test_instrumentation_service.dart"
+    "lib/src/services/correction/assist_internal.dart",
+    "lib/src/services/correction/fix_internal.dart"
   ],
   "test/src/services/correction/assist/bind_all_to_fields_test.dart": [
     "lib/src/services/correction/assist.dart",
@@ -7031,6 +7234,10 @@
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
   ],
+  "test/src/services/correction/fix/add_closure_test.dart": [
+    "lib/src/services/correction/fix.dart",
+    "test/src/services/correction/fix/fix_processor.dart"
+  ],
   "test/src/services/correction/fix/add_const_test.dart": [
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
@@ -7187,8 +7394,7 @@
   "test/src/services/correction/fix/bulk_fix_processor_test.dart": [
     "lib/src/lsp/handlers/handlers.dart",
     "lib/src/services/correction/bulk_fix_processor.dart",
-    "test/src/services/correction/fix/fix_processor.dart",
-    "test/utils/test_instrumentation_service.dart"
+    "test/src/services/correction/fix/fix_processor.dart"
   ],
   "test/src/services/correction/fix/change_argument_name_test.dart": [
     "lib/src/services/correction/fix.dart",
@@ -7510,7 +7716,6 @@
     "lib/src/services/correction/fix/data_driven/transform.dart",
     "lib/src/services/correction/fix/data_driven/transform_set.dart",
     "lib/src/services/correction/fix/data_driven/transform_set_manager.dart",
-    "test/abstract_single_unit.dart",
     "test/src/services/correction/fix/fix_processor.dart"
   ],
   "test/src/services/correction/fix/data_driven/diagnostics/conflicting_key_test.dart": [
@@ -7635,6 +7840,7 @@
     "lib/src/services/correction/fix/data_driven/element_descriptor.dart",
     "lib/src/services/correction/fix/data_driven/element_kind.dart",
     "lib/src/services/correction/fix/data_driven/element_matcher.dart",
+    "test/find_node.dart",
     "test/src/services/correction/fix/data_driven/data_driven_test_support.dart"
   ],
   "test/src/services/correction/fix/data_driven/end_to_end_test.dart": [
@@ -7714,8 +7920,7 @@
   "test/src/services/correction/fix/data_driven/transform_set_manager_test.dart": [
     "lib/src/services/correction/fix/data_driven/element_kind.dart",
     "lib/src/services/correction/fix/data_driven/element_matcher.dart",
-    "lib/src/services/correction/fix/data_driven/transform_set_manager.dart",
-    "test/abstract_context.dart"
+    "lib/src/services/correction/fix/data_driven/transform_set_manager.dart"
   ],
   "test/src/services/correction/fix/data_driven/transform_set_parser_test.dart": [
     "lib/src/diagnostic.dart",
@@ -7759,8 +7964,7 @@
   ],
   "test/src/services/correction/fix/fix_processor.dart": [
     "lib/src/services/correction/bulk_fix_processor.dart",
-    "test/abstract_single_unit.dart",
-    "test/utils/test_instrumentation_service.dart"
+    "lib/src/services/correction/fix_internal.dart"
   ],
   "test/src/services/correction/fix/fix_processor_map_test.dart": [
     "lib/src/services/correction/fix_internal.dart"
@@ -7963,10 +8167,6 @@
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
   ],
-  "test/src/services/correction/fix/remove_deprecated_new_in_comment_reference_test.dart": [
-    "lib/src/services/correction/fix.dart",
-    "test/src/services/correction/fix/fix_processor.dart"
-  ],
   "test/src/services/correction/fix/remove_duplicate_case_test.dart": [
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
@@ -8088,6 +8288,10 @@
     "test/src/services/correction/fix/fix_processor.dart"
   ],
   "test/src/services/correction/fix/remove_returned_value_test.dart": [
+    "lib/src/services/correction/fix.dart",
+    "test/src/services/correction/fix/fix_processor.dart"
+  ],
+  "test/src/services/correction/fix/remove_this_alias_test.dart": [
     "lib/src/services/correction/fix.dart",
     "test/src/services/correction/fix/fix_processor.dart"
   ],
@@ -8408,6 +8612,7 @@
     "test/src/services/correction/fix/add_await_test.dart",
     "test/src/services/correction/fix/add_call_super_test.dart",
     "test/src/services/correction/fix/add_class_modifier_test.dart",
+    "test/src/services/correction/fix/add_closure_test.dart",
     "test/src/services/correction/fix/add_const_test.dart",
     "test/src/services/correction/fix/add_curly_braces_test.dart",
     "test/src/services/correction/fix/add_diagnostic_property_reference_test.dart",
@@ -8568,7 +8773,6 @@
     "test/src/services/correction/fix/remove_constructor_test.dart",
     "test/src/services/correction/fix/remove_dead_code_test.dart",
     "test/src/services/correction/fix/remove_default_value_test.dart",
-    "test/src/services/correction/fix/remove_deprecated_new_in_comment_reference_test.dart",
     "test/src/services/correction/fix/remove_duplicate_case_test.dart",
     "test/src/services/correction/fix/remove_empty_catch_test.dart",
     "test/src/services/correction/fix/remove_empty_constructor_body_test.dart",
@@ -8600,6 +8804,7 @@
     "test/src/services/correction/fix/remove_question_mark_test.dart",
     "test/src/services/correction/fix/remove_required_test.dart",
     "test/src/services/correction/fix/remove_returned_value_test.dart",
+    "test/src/services/correction/fix/remove_this_alias_test.dart",
     "test/src/services/correction/fix/remove_this_expression_test.dart",
     "test/src/services/correction/fix/remove_type_annotation_test.dart",
     "test/src/services/correction/fix/remove_type_arguments_test.dart",
@@ -8745,8 +8950,7 @@
   "test/src/services/flutter/widget_description.dart": [
     "lib/protocol/protocol_generated.dart",
     "lib/src/protocol_server.dart",
-    "lib/src/services/flutter/widget_descriptions.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/services/flutter/widget_descriptions.dart"
   ],
   "test/src/services/flutter/widget_descriptions_test.dart": [
     "lib/protocol/protocol_generated.dart",
@@ -8762,10 +8966,13 @@
   ],
   "test/src/services/refactoring/add_constructor_name_test.dart": [
     "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/constants.dart",
     "lib/src/lsp/extensions/code_action.dart",
+    "lib/src/lsp/handlers/commands/refactor_command_handler_mixin.dart",
     "lib/src/services/refactoring/add_constructor_name.dart",
     "test/src/services/refactoring/refactoring_test_support.dart",
     "test/support/interactive_forms.dart",
+    "test/tool/lsp_spec/matchers.dart",
     "test/utils/lsp_protocol_extensions.dart"
   ],
   "test/src/services/refactoring/add_import_prefix_test.dart": [
@@ -8799,11 +9006,19 @@
     "test/support/interactive_forms.dart",
     "test/utils/lsp_protocol_extensions.dart"
   ],
+  "test/src/services/refactoring/refactoring_producer_test.dart": [
+    "lib/lsp_protocol/protocol.dart",
+    "lib/src/lsp/error_or.dart",
+    "lib/src/services/interactive_forms/interactive_forms.dart",
+    "lib/src/services/refactoring/framework/refactoring_context.dart",
+    "lib/src/services/refactoring/framework/refactoring_producer.dart"
+  ],
   "test/src/services/refactoring/refactoring_test_support.dart": [
     "lib/lsp_protocol/protocol.dart",
     "lib/src/lsp/extensions/code_action.dart",
     "test/lsp/code_actions_mixin.dart",
     "test/lsp/server_abstract.dart",
+    "test/shared/shared_code_actions_refactor_tests.dart",
     "test/utils/test_code_extensions.dart"
   ],
   "test/src/services/refactoring/remove_constructor_name_test.dart": [
@@ -8824,6 +9039,7 @@
     "test/src/services/refactoring/convert_selected_formal_parameters_to_named_test.dart",
     "test/src/services/refactoring/move_selected_formal_parameters_left_test.dart",
     "test/src/services/refactoring/move_top_level_to_file_test.dart",
+    "test/src/services/refactoring/refactoring_producer_test.dart",
     "test/src/services/refactoring/remove_constructor_name_test.dart",
     "test/src/services/refactoring/remove_import_prefix_test.dart"
   ],
@@ -8839,13 +9055,58 @@
     "lib/src/session_logger/log_entry.dart",
     "lib/src/session_logger/log_normalizer.dart"
   ],
+  "test/src/session_logger/log_sanitizer_test.dart": [
+    "lib/src/session_logger/entry_keys.dart",
+    "lib/src/session_logger/entry_kind.dart",
+    "lib/src/session_logger/log_sanitizer.dart"
+  ],
   "test/src/session_logger/session_logger_sink_test.dart": [
     "lib/src/session_logger/log_normalizer.dart",
     "lib/src/session_logger/session_logger_sink.dart"
   ],
   "test/src/session_logger/test_all.dart": [
     "test/src/session_logger/log_normalizer_test.dart",
+    "test/src/session_logger/log_sanitizer_test.dart",
     "test/src/session_logger/session_logger_sink_test.dart"
+  ],
+  "test/src/status/contexts_page_test.dart": [
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages/contexts_page.dart",
+    "test/analysis_server_base.dart",
+    "test/src/status/test_socket_server.dart"
+  ],
+  "test/src/status/file_io_timing_page_test.dart": [
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages/file_io_timing_page.dart",
+    "test/analysis_server_base.dart",
+    "test/src/status/test_socket_server.dart"
+  ],
+  "test/src/status/performance_page_test.dart": [
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages.dart",
+    "lib/src/status/pages/exceptions_page.dart",
+    "lib/src/status/pages/performance_page.dart",
+    "test/analysis_server_base.dart",
+    "test/src/status/test_socket_server.dart"
+  ],
+  "test/src/status/session_log_page_test.dart": [
+    "lib/src/session_logger/session_logger_sink.dart",
+    "lib/src/status/diagnostics.dart",
+    "lib/src/status/pages/session_log_page.dart",
+    "test/analysis_server_base.dart",
+    "test/src/status/test_socket_server.dart"
+  ],
+  "test/src/status/test_all.dart": [
+    "test/src/status/contexts_page_test.dart",
+    "test/src/status/file_io_timing_page_test.dart",
+    "test/src/status/performance_page_test.dart",
+    "test/src/status/session_log_page_test.dart"
+  ],
+  "test/src/status/test_socket_server.dart": [
+    "lib/src/analysis_server.dart",
+    "lib/src/legacy_analysis_server.dart",
+    "lib/src/server/diagnostic_server.dart",
+    "lib/src/socket_server.dart"
   ],
   "test/src/test_all.dart": [
     "test/src/analytics/test_all.dart",
@@ -8860,6 +9121,7 @@
     "test/src/server/test_all.dart",
     "test/src/services/test_all.dart",
     "test/src/session_logger/test_all.dart",
+    "test/src/status/test_all.dart",
     "test/src/utilities/test_all.dart"
   ],
   "test/src/utilities/extensions/ast_test.dart": [
@@ -8871,11 +9133,10 @@
   ],
   "test/src/utilities/extensions/range_factory_test.dart": [
     "lib/src/utilities/extensions/range_factory.dart",
-    "test/abstract_single_unit.dart"
+    "test/find_node.dart"
   ],
   "test/src/utilities/extensions/selection_test.dart": [
-    "lib/src/utilities/extensions/selection.dart",
-    "test/abstract_single_unit.dart"
+    "lib/src/utilities/extensions/selection.dart"
   ],
   "test/src/utilities/extensions/string_test.dart": [
     "lib/src/utilities/extensions/string.dart"
@@ -8888,7 +9149,8 @@
     "test/src/utilities/extensions/string_test.dart"
   ],
   "test/src/utilities/flutter_test.dart": [
-    "test/abstract_single_unit.dart"
+    "test/find_element.dart",
+    "test/find_node.dart"
   ],
   "test/src/utilities/import_analyzer_test.dart": [
     "lib/src/utilities/import_analyzer.dart",
@@ -8898,6 +9160,12 @@
     "lib/protocol/protocol_generated.dart",
     "lib/src/protocol/protocol_internal.dart",
     "lib/src/protocol_server.dart"
+  ],
+  "test/src/utilities/navigation/analysis_options_navigation_test.dart": [
+    "lib/src/utilities/navigation/analysis_options_navigation_computer.dart"
+  ],
+  "test/src/utilities/navigation/test_all.dart": [
+    "test/src/utilities/navigation/analysis_options_navigation_test.dart"
   ],
   "test/src/utilities/package_config_test.dart": [
     "lib/src/utilities/package_config.dart"
@@ -8909,7 +9177,6 @@
     "lib/src/utilities/pubspec.dart"
   ],
   "test/src/utilities/selection_test.dart": [
-    "test/abstract_single_unit.dart",
     "test/services/completion/dart/text_expectations.dart"
   ],
   "test/src/utilities/source_change_merger_test.dart": [
@@ -8923,6 +9190,7 @@
     "test/src/utilities/flutter_test.dart",
     "test/src/utilities/import_analyzer_test.dart",
     "test/src/utilities/json_test.dart",
+    "test/src/utilities/navigation/test_all.dart",
     "test/src/utilities/package_config_test.dart",
     "test/src/utilities/profiling_test.dart",
     "test/src/utilities/pubspec_test.dart",
@@ -8983,6 +9251,7 @@
     "test/tool/test_all.dart",
     "test/utilities/test_all.dart",
     "test/verify_error_fix_status_test.dart",
+    "test/verify_no_io_platform_test.dart",
     "test/verify_no_utf8_encode_test.dart",
     "test/verify_sorted_test.dart",
     "test/verify_tests_test.dart",
@@ -9116,6 +9385,10 @@
     "tool/lsp_spec/meta_model.dart",
     "tool/lsp_spec/utils.dart"
   ],
+  "tool/lsp_spec/custom/workspace_fixes.dart": [
+    "tool/lsp_spec/meta_model.dart",
+    "tool/lsp_spec/utils.dart"
+  ],
   "tool/lsp_spec/generate_all.dart": [
     "tool/lsp_spec/codegen_dart.dart",
     "tool/lsp_spec/custom/completion.dart",
@@ -9125,6 +9398,7 @@
     "tool/lsp_spec/custom/interactive_refactors.dart",
     "tool/lsp_spec/custom/outlines.dart",
     "tool/lsp_spec/custom/widget_preview.dart",
+    "tool/lsp_spec/custom/workspace_fixes.dart",
     "tool/lsp_spec/meta_model.dart",
     "tool/lsp_spec/utils.dart"
   ],

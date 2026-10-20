@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -44,7 +44,7 @@ main(List<String> args) {
 }
 
 class _ExhaustivenessDataComputer extends DataComputer<Features> {
-  const _ExhaustivenessDataComputer();
+  const new();
 
   @override
   DataInterpreter<Features> get dataValidator =>
@@ -57,7 +57,7 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<Features>> actualMap,
+    ActualDataMap<Features> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var exhaustivenessData = testingData.uriToExhaustivenessData[unitUri]!;
@@ -72,11 +72,7 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
 class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
-  _ExhaustivenessDataExtractor(
-    super.uri,
-    super.actualMap,
-    this._exhaustivenessData,
-  );
+  new(super.uri, super.actualMap, this._exhaustivenessData);
 
   @override
   Features? computeNodeValue(Id id, AstNode node) {

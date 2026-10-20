@@ -362,6 +362,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitLoadExternalField(LoadExternalField instr) {}
 
   @override
+  void visitStoreExternalField(StoreExternalField instr) {}
+
+  @override
   void visitLoadArrayElement(LoadArrayElement instr) {
     assert(instr.index.type is IntType);
   }
@@ -375,6 +378,13 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
     assert(instr.array.type is IntType);
     assert(instr.index.type is IntType);
+  }
+
+  @override
+  void visitCopyArrayElements(CopyArrayElements instr) {
+    assert(instr.srcStart.type is IntType);
+    assert(instr.dstStart.type is IntType);
+    assert(instr.length.type is IntType);
   }
 
   @override

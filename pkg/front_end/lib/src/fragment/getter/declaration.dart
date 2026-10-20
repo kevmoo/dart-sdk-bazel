@@ -59,7 +59,7 @@ abstract class GetterDeclaration {
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -78,12 +78,12 @@ abstract class GetterDeclaration {
 
   int computeGetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  });
 
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -91,10 +91,6 @@ abstract class GetterDeclaration {
     required ClassMembersBuilder membersBuilder,
     required Set<ClassMember>? getterOverrideDependencies,
   });
-
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  );
 
   List<ClassMember> get localMembers;
 }
@@ -186,14 +182,14 @@ class RegularGetterDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder: libraryBuilder,
       nameScheme: nameScheme,
-      f: f,
+      callback: callback,
       references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
@@ -245,12 +241,12 @@ class RegularGetterDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  }) {
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -297,11 +293,6 @@ class RegularGetterDeclaration
   }
 
   @override
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) => [references.getterReference];
-
-  @override
   List<ClassMember> get localMembers => [
     new GetterClassMember(_fragment.builder),
   ];
@@ -335,6 +326,9 @@ class RegularGetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].

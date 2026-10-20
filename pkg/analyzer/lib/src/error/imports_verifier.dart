@@ -54,7 +54,7 @@ class ImportsVerifier {
   final Map<NamespaceDirective, List<CombinatorName>> _duplicateShownNamesMap =
       {};
 
-  ImportsVerifier({required this.fileAnalysis});
+  new({required this.fileAnalysis});
 
   void addImports(CompilationUnit node) {
     var importsWithLibraries = <_NamespaceDirective>[];
@@ -237,8 +237,8 @@ class ImportsVerifier {
           continue;
         }
 
-        // Ignore the group of imports with a prefix in a comment reference.
-        if (tracking.hasPrefixUsedInCommentReference) {
+        // Ignore the group of imports with a prefix used without a name.
+        if (tracking.hasPrefixUsedWithoutName) {
           continue;
         }
 
@@ -395,7 +395,7 @@ class _NamespaceDirective {
   final NamespaceDirective node;
   final LibraryElement library;
 
-  _NamespaceDirective({required this.node, required this.library});
+  new({required this.node, required this.library});
 
   /// Returns the absolute URI of the library.
   String get libraryUriStr => '${library.uri}';

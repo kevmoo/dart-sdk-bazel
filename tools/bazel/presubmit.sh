@@ -55,6 +55,16 @@ else
   if git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
     MERGE_BASE=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "$BASE_BRANCH")
     modified_files=$(git diff --name-only "$MERGE_BASE" || true)
+    if git rev-parse --verify upstream-sdk/main >/dev/null 2>&1; then
+      if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+        UPSTREAM_BASE=$(git rev-parse MERGE_HEAD)
+      else
+        UPSTREAM_BASE=$(git merge-base HEAD upstream-sdk/main 2>/dev/null || echo "upstream-sdk/main")
+      fi
+      modified_files=$(comm -12 \
+        <(printf '%s\n' "$modified_files" | sort -u) \
+        <(git diff --name-only "$UPSTREAM_BASE" | sort -u))
+    fi
     
     allowed_external_files=()
     if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
@@ -134,8 +144,8 @@ if [ -n "$concat_matches" ]; then
 fi
 
 step "starlark macro unit tests"
-if ! bazel test //tools/bazel/dart/tests:dart_rules_tests; then
-  fail "bazel test //tools/bazel/dart/tests:dart_rules_tests"
+if ! bazel test --config=cloudtop-safe //tools/bazel/dart/tests:dart_rules_tests; then
+  fail "bazel test --config=cloudtop-safe //tools/bazel/dart/tests:dart_rules_tests"
 fi
 
 step "genrule hermeticity audit"
@@ -183,7 +193,7 @@ if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py
 fi
 
 step "bazel analysis (--nobuild) of flagship targets"
-if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build --nobuild \
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build --config=cloudtop-safe --nobuild \
   //sdk:create_sdk \
   //runtime/bin:dartvm \
   //utils:gen_kernel_exe \

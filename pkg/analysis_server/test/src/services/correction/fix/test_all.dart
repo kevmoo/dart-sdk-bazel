@@ -8,6 +8,7 @@ import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
 import 'add_call_super_test.dart' as add_call_super;
 import 'add_class_modifier_test.dart' as add_class_modifier;
+import 'add_closure_test.dart' as add_closure_parameters;
 import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
@@ -200,8 +201,6 @@ import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_constructor_test.dart' as remove_constructor;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_default_value_test.dart' as remove_default_value;
-import 'remove_deprecated_new_in_comment_reference_test.dart'
-    as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
@@ -238,6 +237,7 @@ import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
 import 'remove_required_test.dart' as remove_required;
 import 'remove_returned_value_test.dart' as remove_returned_value;
+import 'remove_this_alias_test.dart' as remove_this_alias;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
@@ -348,6 +348,7 @@ void main() {
     add_await.main();
     add_call_super.main();
     add_class_modifier.main();
+    add_closure_parameters.main();
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
@@ -508,7 +509,6 @@ void main() {
     remove_constructor_name.main();
     remove_dead_code.main();
     remove_default_value.main();
-    remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
@@ -540,6 +540,7 @@ void main() {
     remove_question_mark.main();
     remove_required.main();
     remove_returned_value.main();
+    remove_this_alias.main();
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();

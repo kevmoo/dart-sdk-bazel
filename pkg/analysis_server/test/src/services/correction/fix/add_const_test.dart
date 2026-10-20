@@ -61,7 +61,8 @@ void f(Object c) {
 }
 
 @reflectiveTest
-class AddConst_InvalidCasePatternsTest extends FixProcessorLintTest {
+class AddConst_InvalidCasePatternsTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -154,7 +155,8 @@ void f(Object o) {
 }
 
 @reflectiveTest
-class AddConst_NonConstGenerativeEnumConstructorTest extends FixProcessorTest {
+class AddConst_NonConstGenerativeEnumConstructorTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -194,7 +196,8 @@ enum E {
 }
 
 @reflectiveTest
-class AddConst_PatternExpressionMustBeValidConst extends FixProcessorTest {
+class AddConst_PatternExpressionMustBeValidConst
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -516,6 +519,31 @@ final c = const C(C()), f = Future.value(7);
 ''');
   }
 
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix(r'''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
+}
+''');
+  }
+
   Future<void> test_noKeyword() async {
     await resolveTestCode(r'''
 class C {
@@ -567,7 +595,7 @@ class A {
 
 @reflectiveTest
 class AddConst_PreferConstConstructorsInImmutablesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 
@@ -668,7 +696,8 @@ class A {
 }
 
 @reflectiveTest
-class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
+class AddConst_PreferConstConstructorsTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -740,6 +769,31 @@ class C {
 void f() {
   const c = C();
   print(c);
+}
+''');
+  }
+
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode('''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
 }
 ''');
   }
@@ -846,7 +900,7 @@ void f() {
 
 @reflectiveTest
 class AddConst_PreferConstLiteralsToCreateImmutablesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

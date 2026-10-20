@@ -22,9 +22,9 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
         analyzeQuote,
-        unescape,
         unescapeFirstStringPart,
         unescapeLastStringPart,
+        unescapeMiddleStringPart,
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
@@ -158,7 +158,7 @@ abstract class BodyBuilder {
   });
 
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   });
 
@@ -1667,11 +1667,11 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
-    assert(startToken.isA(Keyword.THIS));
-    Token token = startToken;
+    assert(thisToken.isA(Keyword.THIS));
+    Token token = thisToken;
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -2682,8 +2682,11 @@ class BodyBuilderImpl extends StackListenerImpl
     if (send is Selector) {
       Object? receiver = pop();
       push(send.withReceiver(receiver, token.charOffset));
-    } else if (send is IncompleteErrorGenerator) {
-      // Pop the "receiver" and push the error.
+    } else if (send is IncompleteErrorGenerator ||
+        send is ParserErrorGenerator) {
+      // Pop the "receiver" and push the error. A [ParserErrorGenerator] is
+      // for an error that the parser has already reported, e.g. the missing
+      // name in `a.(b)`.
       pop();
       push(send);
     } else {
@@ -2729,6 +2732,11 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? send = pop();
     if (send is Selector) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
+    } else if (send is ParserErrorGenerator) {
+      // The parser has already reported the error, e.g. the missing name in
+      // `a?.(b)`. Pop the "receiver" and push the error.
+      pop();
+      push(send);
     } else {
       pop();
       token = token.next!;
@@ -4742,7 +4750,12 @@ class BodyBuilderImpl extends StackListenerImpl
         Object part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            String value = unescape(part.lexeme, quote, part, this);
+            String value = unescapeMiddleStringPart(
+              part.lexeme,
+              quote,
+              part,
+              this,
+            );
             expressions.add(
               intern.createStringLiteral(offsetForToken(part), value),
             );
@@ -6216,10 +6229,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   InternalExpression evaluateArgumentsBefore(
-    ActualArguments? arguments,
+    ActualArguments arguments,
     InternalExpression expression,
   ) {
-    if (arguments == null) return expression;
     for (Argument argument in arguments.argumentList.reversed) {
       expression = intern.createLetForEffect(
         effect: argument.expression,
@@ -8402,6 +8414,52 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("Send");
     Object? arguments = pop();
     List<TypeBuilder>? typeArgumentBuilders = pop() as List<TypeBuilder>?;
+    _handleSend(beginToken, arguments, typeArgumentBuilders);
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("SendWithoutArguments");
+    _handleSend(beginToken, null, null);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([ValueKinds.ArgumentsOrNull, ValueKinds.ParserRecovery]),
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("InvocationWithoutTypeArguments");
+    Object? arguments = pop();
+    _handleSend(beginToken, arguments, null);
+  }
+
+  void _handleSend(
+    Token beginToken,
+    Object? arguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+  ) {
     Object receiver = pop()!;
     // Delay adding [typeArgumentBuilders] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.
@@ -10192,12 +10250,9 @@ class BodyBuilderImpl extends StackListenerImpl
         aliasBuilder.typedef,
         Nullability.nonNullable,
         typeArgumentBuilders != null
-            ? new List.generate(
-                typeArgumentBuilders.length,
-                (int index) => typeArgumentBuilders[index].build(
-                  libraryBuilder,
-                  TypeUse.constructorTypeArgument,
-                ),
+            ? DartTypeList.mapped(
+                typeArgumentBuilders,
+                (a) => a.build(libraryBuilder, TypeUse.constructorTypeArgument),
               )
             : null,
       );
@@ -10955,7 +11010,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableDeclaration.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableDeclaration];
     } else if (variableOrExpression is InternalVariableDeclaration) {
@@ -10963,7 +11018,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableOrExpression.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableOrExpression];
     } else if (variableOrExpression is InternalExpression) {
@@ -11036,7 +11091,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (declaration.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (declaration.variable case InternalConstVariable variable) {
@@ -11063,7 +11118,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (lvalue.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (lvalue.variable case InternalConstVariable variable) {

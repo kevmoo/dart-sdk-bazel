@@ -63,15 +63,15 @@ sealed class MethodEncoding implements InferredTypeListener {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -94,8 +94,6 @@ sealed class MethodEncoding implements InferredTypeListener {
     SourceLibraryBuilder libraryBuilder,
     ClassHierarchyBase hierarchy,
   );
-
-  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,
@@ -141,7 +139,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
-      _fragment.declaredTypeParameters?.builders;
+      _fragment.declaredTypeParameterBuilders;
 
   @override
   List<FormalParameterBuilder>? get formals => _fragment.declaredFormals;
@@ -188,6 +186,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -199,7 +198,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
@@ -214,13 +213,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
@@ -233,7 +231,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -265,7 +263,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       _procedureKind,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -279,7 +277,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -288,7 +286,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters?.builders;
+        _fragment.declaredTypeParameterBuilders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
     }
@@ -307,7 +305,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -324,7 +322,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -336,7 +334,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
     }
     return context.computeDefaultTypesForVariables(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       inErrorRecovery: hasErrors,
     );
   }
@@ -380,9 +378,6 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       }
     }
   }
-
-  @override
-  FunctionParameter? getTearOffParameter(int index) => null;
 
   @override
   void onInferredType(DartType type) {
@@ -449,13 +444,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         .sublist(0, _clonedDeclarationTypeParameters!.length)
       : null;
 
-  /// If this is an extension instance method then
-  /// [_extensionTearOffParameterMap] holds a map from the parameters of
-  /// the methods to the parameter of the closure returned in the tear-off.
-  ///
-  /// This map is used to set the default values on the closure parameters when
-  /// these have been built.
-  Map<Variable, FunctionParameter>? _extensionTearOffParameterMap;
+  DelayedDefaultValueCloner? _extensionTearOffDefaultValueCloner;
 
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
@@ -463,7 +452,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
           _fragment.declaredTypeParameters != null
       ? [
           ...?_clonedDeclarationTypeParameters,
-          ...?_fragment.declaredTypeParameters?.builders,
+          ...?_fragment.declaredTypeParameterBuilders,
         ]
       : null;
 
@@ -517,6 +506,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -529,7 +519,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    _fragment.declaredTypeParameters?.builders.buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
@@ -554,16 +544,19 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    if (_extensionTearOffDefaultValueCloner != null) {
+      delayedDefaultValueCloners.add(_extensionTearOffDefaultValueCloner!);
+      _extensionTearOffDefaultValueCloner = null;
+    }
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -586,7 +579,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -595,7 +589,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     buildTypeParametersAndFormals(
       libraryBuilder,
       function,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
       _fragment.declaredFormals,
       classTypeParameters: classTypeParameters,
       supportsTypeParameters: true,
@@ -627,7 +621,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       ProcedureKind.Method,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -643,13 +637,18 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
     if (!_isOperator) {
       _extensionTearOff = _buildExtensionTearOff(
-        procedure,
-        nameScheme,
-        tearOffReference,
+        libraryBuilder: libraryBuilder,
+        procedure: procedure,
+        nameScheme: nameScheme,
+        tearOffReference: references?.tearOffReference,
       );
     }
 
-    f(kind: _builtMemberKind, member: procedure, tearOff: _extensionTearOff);
+    callback(
+      kind: _builtMemberKind,
+      member: procedure,
+      tearOff: _extensionTearOff,
+    );
   }
 
   @override
@@ -658,7 +657,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameters?.builders;
+        _fragment.declaredTypeParameterBuilders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
       checkTypeParameterDependencies(problemReporting, typeParameters);
     }
@@ -678,7 +677,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
       typeEnvironment,
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     sourceClassBuilder.checkVarianceInFormals(
       typeEnvironment,
@@ -695,7 +694,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredTypeParameterBuilders,
     );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
@@ -715,7 +714,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!.builders,
+        ..._fragment.declaredTypeParameterBuilders!,
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
@@ -724,7 +723,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
     } else {
       return context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters?.builders,
+        _fragment.declaredTypeParameterBuilders,
         inErrorRecovery: hasErrors,
       );
     }
@@ -778,14 +777,6 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _extensionTearOffParameterMap?[_fragment
-        .declaredFormals![index]
-        .variable
-        .astVariable];
-  }
-
-  @override
   void onInferredType(DartType type) {
     function.returnType = type;
   }
@@ -826,13 +817,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ///       return (S s, Y y) => E|method<T, S>(#this, s, y);
   ///     }
   ///
-  Procedure _buildExtensionTearOff(
-    Procedure procedure,
-    NameScheme nameScheme,
-    Reference? tearOffReference,
-  ) {
-    _extensionTearOffParameterMap = {};
-
+  Procedure _buildExtensionTearOff({
+    required SourceLibraryBuilder libraryBuilder,
+    required Procedure procedure,
+    required NameScheme nameScheme,
+    required Reference? tearOffReference,
+  }) {
     int fileStartOffset = _fragment.startOffset;
     int fileOffset = _fragment.nameOffset;
     int fileEndOffset = _fragment.endOffset;
@@ -879,27 +869,23 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       PositionalParameter parameter,
       DartType type,
     ) {
-      PositionalParameter newParameter = new PositionalParameter(
+      return new PositionalParameter(
         parameterName: parameter.parameterName,
         type: type,
         isFinal: parameter.isFinal,
         isLowered: parameter.isLowered,
         isRequired: parameter.isRequired,
       )..fileOffset = parameter.fileOffset;
-      _extensionTearOffParameterMap![parameter] = newParameter;
-      return newParameter;
     }
 
     NamedParameter copyNamedParameter(NamedParameter parameter, DartType type) {
-      NamedParameter newParameter = new NamedParameter(
+      return new NamedParameter(
         parameterName: parameter.parameterName,
         type: type,
         isFinal: parameter.isFinal,
         isLowered: parameter.isLowered,
         isRequired: parameter.isRequired,
       )..fileOffset = parameter.fileOffset;
-      _extensionTearOffParameterMap![parameter] = newParameter;
-      return newParameter;
     }
 
     PositionalParameter extensionThis = copyPositionalParameter(
@@ -988,6 +974,13 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       fileOffset: fileStartOffset,
     );
 
+    _extensionTearOffDefaultValueCloner = new DelayedDefaultValueCloner(
+      source: procedure,
+      target: closure,
+      parameterMapping: const _ExtensionInstanceTearOffParameterMapping(),
+      libraryBuilder: libraryBuilder,
+    );
+
     FunctionNode function = extern.createFunctionNode(
       extern.createReturnStatement(closure, fileOffset: fileOffset),
       typeParameters: tearOffTypeParameters,
@@ -1020,9 +1013,38 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 }
 
-class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
-  const new();
+class const _ExtensionInstanceTearOffParameterMapping()
+    implements ParameterMapping<FunctionExpression> {
+  @override
+  FunctionNode getTargetFunctionNode(FunctionExpression target) =>
+      target.function;
 
+  @override
+  Uri? getTargetFileUriForCheckingTypes(FunctionExpression target) => null;
+
+  @override
+  NamedParameter? getNamedSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+    required NamedParameterCache namedParameterCache,
+  }) {
+    return source.namedParameters[targetIndex];
+  }
+
+  @override
+  PositionalParameter? getPositionalSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+  }) {
+    // Skip the extension this parameter of the source procedure.
+    return source.positionalParameters[targetIndex + 1];
+  }
+}
+
+class const _ExtensionInstanceMethodStrategy()
+    implements MethodEncodingStrategy {
   @override
   MethodEncoding createMethodEncoding(
     SourceMethodBuilder builder,

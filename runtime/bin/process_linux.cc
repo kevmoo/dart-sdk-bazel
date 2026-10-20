@@ -737,8 +737,8 @@ class ProcessStarter {
 
   void SetChildOsErrorMessage() {
     char* error_message = DartUtils::ScopedCString(kErrorBufferSize);
-    Utils::StrError(errno, error_message, kErrorBufferSize);
-    *os_error_message_ = error_message;
+    *os_error_message_ =
+        Utils::StrError(errno, error_message, kErrorBufferSize);
   }
 
   void ReportChildError() {
@@ -880,7 +880,7 @@ bool Process::Wait(intptr_t pid,
   union {
     uint8_t bytes[8];
     int32_t ints[2];
-  } exit_code_data;
+  } exit_code_data = {};
 
   struct pollfd fds[3];
   fds[0].fd = out;
@@ -903,7 +903,7 @@ bool Process::Wait(intptr_t pid,
       if ((fds[i].revents & (POLLNVAL | POLLERR)) != 0) {
         return CloseProcessBuffers(fds, alive);
       }
-      if ((fds[i].revents & POLLIN) != 0) {
+      if ((fds[i].revents & (POLLIN | POLLHUP)) != 0) {
         intptr_t avail = FDUtils::AvailableBytes(fds[i].fd);
         if (fds[i].fd == out) {
           if (!out_data.Read(out, avail)) {

@@ -35,6 +35,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
+import '../api_prototype/deprecated_js_interop_libraries.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
 import '../base/common.dart';
@@ -631,10 +632,9 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
 
     _checkForDartCore(uri, compilationUnit);
 
-    if (uri.isScheme("dart") && originImportUri.isScheme("dart")) {
+    if (uri.isScheme("dart") && originImportUri == uri) {
       // We only read the patch files if the [compilationUnit] is loaded as a
-      // dart: library (through [uri]) and is considered a dart: library
-      // (through [originImportUri]).
+      // root of a dart: library.
       //
       // This is to avoid reading patches and when reading dart: parts, and to
       // avoid reading patches of non-dart: libraries that claim to be a part of
@@ -775,7 +775,11 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       isSupportedBySpec:
           (importability == Importability.always || importableWithFlag),
     )) {
-      diagnostic = diag.unavailableDartLibrary.withArguments(uri: importUri);
+      // Web compilers disallow the deprecated JS interop libraries by
+      // considering them unsupported. Explain how to migrate away from them.
+      diagnostic = deprecatedJsInteropLibraryNames.contains(importUri.path)
+          ? diag.deprecatedJsInteropLibraryImport.withArguments(uri: importUri)
+          : diag.unavailableDartLibrary.withArguments(uri: importUri);
     }
     // Coverage-ignore(suite): Not run.
     else if (importableWithFlag) {
@@ -1059,9 +1063,9 @@ severity: $severity
 
   void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
     MemberBuilder constructor = getNativeAnnotation();
-    Arguments arguments = new Arguments(<Expression>[
-      new StringLiteral(nativeMethodName),
-    ]);
+    Arguments arguments = new Arguments(
+      new ExpressionList(new StringLiteral(nativeMethodName)),
+    );
     Expression annotation;
     if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
@@ -1790,20 +1794,12 @@ severity: $severity
     ticker.logMs("Resolved $count constructors");
   }
 
-  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
-    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+  void installTypedefTearOffs() {
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
       for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-        List<DelayedDefaultValueCloner>? libraryDelayedDefaultValueCloners =
-            library.installTypedefTearOffs();
-        if (libraryDelayedDefaultValueCloners != null) {
-          (delayedDefaultValueCloners ??= []).addAll(
-            libraryDelayedDefaultValueCloners,
-          );
-        }
+        library.installTypedefTearOffs();
       }
     }
-    return delayedDefaultValueCloners;
   }
 
   void finishTypeParameters(
@@ -2714,7 +2710,14 @@ severity: $severity
     );
     ClassBuilder classBuilder =
         coreLibrary.lookupRequiredLocalMember(name) as ClassBuilder;
-    return new InterfaceType(classBuilder.cls, nullability, typeArguments);
+    DartTypeList finalTypeArguments;
+    if (typeArguments != null) {
+      // Coverage-ignore-block(suite): Not run.
+      finalTypeArguments = new DartTypeList.from(typeArguments);
+    } else {
+      finalTypeArguments = DartTypeList.empty;
+    }
+    return new InterfaceType(classBuilder.cls, nullability, finalTypeArguments);
   }
 
   void computeCoreTypes(Component component) {
@@ -2728,17 +2731,17 @@ severity: $severity
     _futureOfBottom = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
     _iterableOfBottom = new InterfaceType(
       coreTypes.iterableClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
     _streamOfBottom = new InterfaceType(
       coreTypes.streamClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      DartTypeList.never1,
     );
 
     ticker.logMs("Computed core types");
@@ -3231,7 +3234,7 @@ severity: $severity
     DartType listOfString = new InterfaceType(
       coreTypes.listClass,
       Nullability.nonNullable,
-      [coreTypes.stringNonNullableRawType],
+      new DartTypeList(coreTypes.stringNonNullableRawType),
     );
 
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {

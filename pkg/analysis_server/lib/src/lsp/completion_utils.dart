@@ -193,6 +193,8 @@ lsp.CompletionItem? toLspCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   CandidateSuggestion suggestion, {
+  required DartCompletionRequest request,
+  String? hiddenLabelPrefix,
   required ClientUriConverter uriConverter,
   required path.Context pathContext,
   required String completionFilePath,
@@ -204,7 +206,6 @@ lsp.CompletionItem? toLspCompletionItem(
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
   lsp.CompletionResolutionInfo? resolutionData,
-  required DartCompletionRequest request,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
@@ -286,6 +287,11 @@ lsp.CompletionItem? toLspCompletionItem(
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
     label = label.substring(0, label.length - 1);
+  }
+
+  // Finally, strip any prefix we want hidden from label.
+  if (hiddenLabelPrefix != null && label.startsWith(hiddenLabelPrefix)) {
+    label = label.substring(hiddenLabelPrefix.length);
   }
 
   var colorPreviewHex =
@@ -641,9 +647,16 @@ CompletionDetail _getCompletionDetail(
     // the suggestion (handles records).
     String? parameterType;
     if (element is FormalParameterElement) {
-      parameterType = element.type.getDisplayString();
+      parameterType = element.type.getDisplayString(
+        includePositionalParameterNames: true,
+      );
     }
-    returnType = server.getReturnTypeString(element) ?? parameterType;
+    returnType =
+        server.getReturnTypeString(
+          element,
+          includePositionalParameterNames: true,
+        ) ??
+        parameterType;
 
     // Extract the type from setters to be shown in the place a return type
     // would usually be shown.
@@ -657,7 +670,9 @@ CompletionDetail _getCompletionDetail(
     // Function calls may not have an element (for example the call method on
     // Function), so use the function type to get parameters if available.
     parameters = getParametersListString(suggestion.type.formalParameters);
-    returnType = suggestion.type.returnType.getDisplayString();
+    returnType = suggestion.type.returnType.getDisplayString(
+      includePositionalParameterNames: true,
+    );
   }
 
   var truncatedParameters = switch (parameters) {

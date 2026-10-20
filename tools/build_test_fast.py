@@ -3,219 +3,176 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# build_test_fast.py
-#
-# A smart wrapper around tools/build.py and tools/test.py that uses a
-# minimal, hardcoded mapping to determine exactly what needs to be built.
-# This avoids building the entire SDK (like CI does) just to run a single test.
+"""build_test_fast.py
 
-import sys
+A smart wrapper around tools/build.py and tools/test.py that uses a minimal,
+declarative mapping to determine exactly what needs to be built for a given test.
+This avoids building the entire SDK (like CI does) during local iteration.
+"""
+
+import argparse
 import os
 import subprocess
-import platform
+import sys
+import utils
 
+# Declarative mapping: (Path substring, Default compiler, Default build targets)
+SUITE_RULES = [
+    ('tests/web/wasm', 'dart2wasm', ['dart2wasm_bot']),
+    ('pkg/dart2wasm', 'dart2wasm', ['dart2wasm_bot']),
+    ('tests/dartdevc', 'ddc', ['ddc_stable_test_local']),
+    ('pkg/dev_compiler', 'ddc', ['ddc_stable_test_local']),
+    ('tests/web', 'dart2js', ['dart2js_bot']),
+    ('pkg/compiler', 'dart2js', ['dart2js_bot']),
+    ('pkg/analyzer', 'dart2analyzer', ['analyzer_bot']),
+    ('pkg/analysis_server', 'dart2analyzer', ['analyzer_bot']),
+    ('pkg/front_end', 'fasta', ['front-end_bot']),
+]
 
-def get_host_os():
-    if sys.platform == 'win32':
-        return 'win'
-    elif sys.platform == 'darwin':
-        return 'mac'
-    return 'linux'
-
-
-def get_host_arch():
-    machine = platform.machine().lower()
-    if machine in ['arm64', 'aarch64']:
-        return 'arm64'
-    return 'x64'
-
-
-
-def guess_compiler_from_paths(test_paths):
-    # Try to guess the best compiler based on the test paths
-    for path in test_paths:
-        # Wasm tests
-        if 'tests/web/wasm' in path or 'pkg/dart2wasm' in path:
-            return 'dart2wasm'
-        # DDC specific tests
-        elif 'tests/dartdevc' in path or 'pkg/dev_compiler' in path:
-            return 'ddc'
-        # General web / dart2js tests
-        elif 'tests/web' in path or 'pkg/compiler' in path:
-            return 'dart2js'
-        # Analyzer / language server tests
-        elif 'pkg/analyzer' in path or 'pkg/analysis_server' in path:
-            return 'dart2analyzer'
-
-    # Default to the VM's JIT compiler
-    return 'dartk'
+COMPILER_TARGETS = {
+    'dart2wasm': ['dart2wasm_bot'],
+    'dart2js': ['dart2js_bot'],
+    'ddc': ['ddc_stable_test_local'],
+    'fasta': ['front-end_bot'],
+    'dartkp': ['runtime', 'runtime_precompiled'],
+    'dartk': ['runtime'],
+    'vm': ['runtime'],
+    'dart2analyzer': ['analyzer_bot'],
+    'analyzer': ['analyzer_bot'],
+}
 
 
 def main():
-    args = sys.argv[1:]
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        '-c',
+        '--compiler',
+        dest='compiler',
+        default=None,
+        help='Compiler to use (e.g. dartk, dartkp, dart2js, dart2wasm, ddc, dart2analyzer). Inferred if omitted.',
+    )
+    parser.add_argument(
+        '-m',
+        '--mode',
+        dest='mode',
+        default='release',
+        help='Build and test mode (release, debug, product). Default: release.',
+    )
+    parser.add_argument(
+        '-a',
+        '--arch',
+        dest='arch',
+        default=utils.GuessArchitecture(),
+        help='Build and test architecture (x64, arm64, etc.). Default: host arch.',
+    )
+    parser.add_argument(
+        '-r',
+        '--runtime',
+        dest='runtime',
+        default=None,
+        help='Target runtime (vm, d8, chrome, etc.). Inferred as d8 for web compilers if omitted.',
+    )
 
-    compiler = None
-    runtime = None
-    test_paths = []
+    known, remaining = parser.parse_known_args()
 
-    # test.py defaults to release mode, while build.py defaults to debug.
-    # We MUST pass the mode and arch explicitly to build.py to match.
-    mode = 'release'
-    arch = get_host_arch()
-    system = get_host_os()
+    if not remaining and known.compiler is None:
+        parser.print_help(file=sys.stderr)
+        print(
+            "\n⚠️ Please provide at least one test path or selector (e.g. corelib/uri_test, pkg/analyzer).",
+            file=sys.stderr,
+        )
+        return 1
 
-    # Parse out compiler, mode, arch and test paths
-    skip_next = False
-    for i, arg in enumerate(args):
-        if skip_next:
-            skip_next = False
+    # Discover compiler and targets from paths if compiler not explicitly passed
+    compiler = known.compiler
+    build_targets = set()
+
+    for path in remaining:
+        if path.startswith('-'):
             continue
+        for pattern, default_compiler, targets in SUITE_RULES:
+            if pattern in path:
+                if compiler is None:
+                    compiler = default_compiler
+                build_targets.update(targets)
+        if 'tests/ffi' in path:
+            build_targets.update(
+                ['ffi_test_functions', 'ffi_test_dynamic_library'])
 
-        if arg == '-c' or arg == '--compiler':
-            compiler = args[i + 1]
-            skip_next = True
-        elif arg.startswith('--compiler='):
-            compiler = arg.split('=', 1)[1]
-        elif arg == '-m' or arg == '--mode':
-            mode = args[i + 1]
-            skip_next = True
-        elif arg.startswith('--mode='):
-            mode = arg.split('=', 1)[1]
-        elif arg == '-a' or arg == '--arch':
-            arch = args[i + 1]
-            skip_next = True
-        elif arg.startswith('--arch='):
-            arch = arg.split('=', 1)[1]
-        elif arg == '-r' or arg == '--runtime':
-            runtime = args[i + 1]
-            skip_next = True
-        elif arg.startswith('--runtime='):
-            runtime = arg.split('=', 1)[1]
-        elif not arg.startswith('-'):
-            test_paths.append(arg)
-
-    # 1. Discover tests and exact metadata via dump-test-metadata
-    tools_dir = os.path.dirname(os.path.abspath(__file__))
-    test_script = os.path.join(tools_dir, 'test.py')
-    if not os.path.exists(test_script):
-        tools_dir = os.path.join(os.getcwd(), 'tools')
-        test_script = os.path.join(tools_dir, 'test.py')
-
-    import tempfile
-    meta_json_path = os.path.join(tempfile.gettempdir(), 'build_test_fast_meta.json')
-    if os.path.exists(meta_json_path):
-        try:
-            os.remove(meta_json_path)
-        except:
-            pass
-
-    # If compiler wasn't explicitly passed, guess the compiler to seed test discovery correctly
-    inferred = False
-    meta_args = list(args)
     if compiler is None:
-        guessed = guess_compiler_from_paths(test_paths)
-        meta_args = ['-c', guessed] + meta_args
-        inferred = True
+        compiler = 'dartk'
 
-    meta_cmd = [sys.executable, test_script] + meta_args + [f'--dump-test-metadata={meta_json_path}']
-    print(f"🔍 Discovering test graph: python3 tools/test.py {' '.join(meta_args)} --dump-test-metadata=...")
-    meta_result = subprocess.run(meta_cmd, stdout=subprocess.DEVNULL)
-    if meta_result.returncode != 0 or not os.path.exists(meta_json_path):
-        print("❌ Test discovery failed! Please check your test selectors and arguments.")
-        sys.exit(meta_result.returncode if meta_result.returncode != 0 else 1)
+    # If targets weren't filled by path rules, resolve from compiler
+    if not build_targets:
+        build_targets.update(COMPILER_TARGETS.get(compiler, ['runtime']))
 
-    import json
-    with open(meta_json_path, 'r') as f:
-        test_cases = json.load(f)
-
-    if not test_cases:
-        print("❓ No tests matched your selectors! Please check your test paths/arguments.\n")
-        sys.exit(0)
-
-    # Extract all required compilers from the discovered test cases
-    if compiler is None:
-        discovered_compilers = set(tc.get('compiler', 'dartk').lower() for tc in test_cases)
-        discovered_compilers = set('dartk' if c == 'dart2bytecode' else c for c in discovered_compilers)
-        compiler = list(discovered_compilers)[0] if discovered_compilers else 'dartk'
-        print(f"🔮 Empirically discovered compilers from test matrix: {' '.join(f'[{c}]' for c in discovered_compilers)}")
-    else:
-        discovered_compilers = {compiler.lower()}
-
-    # Default to d8 for web tests to reduce noise, if no runtime specified
-    inferred_runtime = False
-    if runtime is None and any(c in ['dart2js', 'dart2wasm', 'ddc'] for c in discovered_compilers):
+    # Default web tests to d8 to avoid browser popup spam
+    runtime = known.runtime
+    if runtime is None and compiler in ['dart2js', 'dart2wasm', 'ddc']:
         runtime = 'd8'
-        inferred_runtime = True
-        print(f"🔮 Inferred runtime '\033[1m{runtime}\033[0m' for web compiler to reduce noise.")
 
-    build_args = set()
-    for tc in test_cases:
-        build_args.update(tc.get('build_targets', []))
+    tools_dir = os.path.dirname(os.path.abspath(__file__))
+    separator = "🔹 " * 35
 
-    build_args = list(build_args)
-    targets_str = ' '.join(build_args) if build_args else '(none)'
-    print(f"🎯 Determined minimal build targets: \033[1m{targets_str}\033[0m")
-
-    stars_line = "🔹 " * 35
-
-    if build_args:
-        # 3. Build Dart using the minimal targets, matching test.py's mode and arch defaults
-        build_script = os.path.join(tools_dir, 'build.py')
-        build_cmd = [sys.executable, build_script, '-m', mode, '-a', arch] + build_args
+    # 1. Build Phase
+    if build_targets:
+        build_cmd = [
+            sys.executable,
+            os.path.join(tools_dir, 'build.py'),
+            '-m',
+            known.mode,
+            '-a',
+            known.arch,
+            *sorted(build_targets),
+        ]
         print(f"🚀 Building: python3 tools/build.py {' '.join(build_cmd[2:])}")
-        print(stars_line)
-
-        build_result = subprocess.run(build_cmd)
-        print(stars_line)
-
-        if build_result.returncode != 0:
-            print("❌ Build failed! Aborting test run.")
-            sys.exit(build_result.returncode)
-
+        print(separator)
+        res = subprocess.run(build_cmd)
+        print(separator)
+        if res.returncode != 0:
+            print("❌ Build failed! Aborting test run.", file=sys.stderr)
+            return res.returncode
         print("⭐⭐⭐ Build succeeded! ⭐⭐⭐\n")
     else:
         print("❓ No build targets required!\n")
 
-    # 4. Run the tests
-    if inferred:
-        args = ['-c', compiler] + args
+    # 2. Test Phase
+    test_args = [
+        '-c',
+        compiler,
+        '-m',
+        known.mode,
+        '-a',
+        known.arch,
+    ]
+    if runtime:
+        test_args.extend(['-r', runtime])
+    test_args.extend(remaining)
 
-    if inferred_runtime:
-        args = ['-r', runtime] + args
+    test_cmd = [sys.executable, os.path.join(tools_dir, 'test.py'), *test_args]
+    print(f"🧪 Running tests: python3 tools/test.py {' '.join(test_args)}")
+    print(separator)
+    test_res = subprocess.run(test_cmd)
+    print(separator)
 
-    # Ensure mode and arch match our build execution exactly
-    if not any(a in ['-m', '--mode'] for a in args):
-        args = ['-m', mode] + args
-    if not any(a in ['-a', '--arch'] for a in args):
-        args = ['-a', arch] + args
-
-    test_cmd = [sys.executable, test_script] + args
-    print(f"🧪 Running tests: python3 tools/test.py {' '.join(args)}")
-    print(stars_line)
-    test_result = subprocess.run(test_cmd)
-    print(stars_line)
-
-    if test_result.returncode != 0:
-        print("\n" + "⚠️ " * 35)
-        print("  TEST FAILED!")
+    if test_res.returncode != 0:
+        print("\n" + "⚠️ " * 35, file=sys.stderr)
+        print("  TEST FAILED!", file=sys.stderr)
         print(
-            "If this failure looks like a missing file, missing snapshot, or compilation error,"
+            "  If this failure looks like a missing build dependency,",
+            file=sys.stderr,
         )
         print(
-            "it's possible that `build_test_fast.py` didn't build all the required dependencies."
+            "  update COMPILER_TARGETS or SUITE_RULES in tools/build_test_fast.py.",
+            file=sys.stderr,
         )
-        print(
-            "💡 You may need to update the `get_minimal_build_targets()` mapping in this script."
-        )
-        print(
-            "   (Check tools/bots/test_matrix.json to see what CI builds for this test suite!)"
-        )
-        print("⚠️ " * 35 + "\n")
-    else:
-        print("⭐⭐⭐ Tests succeeded! ⭐⭐⭐")
+        print("⚠️ " * 35 + "\n", file=sys.stderr)
 
-    sys.exit(test_result.returncode)
+    return test_res.returncode
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

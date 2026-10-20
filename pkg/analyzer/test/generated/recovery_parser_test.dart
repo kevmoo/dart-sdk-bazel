@@ -25,14 +25,14 @@ var v = + y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -51,14 +51,14 @@ var v = +;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -75,14 +75,14 @@ var v = x +;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: +
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -99,14 +99,14 @@ var v = super +;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: +
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -127,19 +127,19 @@ var v = * +;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: *
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: multiply
   operator: +
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -164,18 +164,18 @@ var v = + *;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: *
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: multiply
   binaryOperator: add
 V1: BinaryExpression
@@ -199,19 +199,19 @@ var v = super + +;
 //               ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: +
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   operator: +
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -232,18 +232,17 @@ var v = a.b[];
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
-IndexExpression2
-  receiver: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-    period: .
-    identifier: SimpleIdentifier
-      token: b
+ReceiverIndexExpression
+  receiver: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: b
   leftBracket: [
-  index: SimpleIdentifier
-    token: <empty> <synthetic>
+  index: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   rightBracket: ]
 V1: IndexExpression
   target: PrefixedIdentifier
@@ -265,7 +264,7 @@ var v = = y = 0;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 DirectAssignment
   target: UnqualifiedNameAssignmentTarget
@@ -296,7 +295,7 @@ var v = x = = 0;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 DirectAssignment
   target: UnqualifiedNameAssignmentTarget
@@ -327,7 +326,7 @@ var v = x = y =;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 DirectAssignment
   target: UnqualifiedNameAssignmentTarget
@@ -337,8 +336,8 @@ DirectAssignment
     target: UnqualifiedNameAssignmentTarget
       name: y
     operator: =
-    value: SimpleIdentifier
-      token: <empty> <synthetic>
+    value: ParsedUnqualifiedName
+      name: <empty> <synthetic>
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -358,7 +357,7 @@ var v = = 0;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 DirectAssignment
   target: UnqualifiedNameAssignmentTarget
@@ -381,14 +380,14 @@ var v = x =;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 DirectAssignment
   target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
-  value: SimpleIdentifier
-    token: <empty> <synthetic>
+  value: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -404,14 +403,14 @@ var v = & y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -430,14 +429,14 @@ var v = &;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -454,14 +453,14 @@ var v = x &;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: &
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -478,14 +477,14 @@ var v = super &;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: &
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -506,19 +505,19 @@ var v = == &&;
 //           ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ==
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -542,18 +541,18 @@ var v = && ==;
 //           ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ==
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -576,19 +575,19 @@ var v = super &  &;
 //                ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: &
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   operator: &
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -609,14 +608,14 @@ var v = | y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -635,14 +634,14 @@ var v = |;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -659,14 +658,14 @@ var v = x |;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: |
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -683,14 +682,14 @@ var v = super |;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: |
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -711,19 +710,19 @@ var v = ^ |;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ^
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   operator: |
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -748,18 +747,18 @@ var v = | ^;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ^
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   binaryOperator: bitwiseOr
 V1: BinaryExpression
@@ -783,19 +782,19 @@ var v = super |  |;
 //                ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: |
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
   operator: |
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -816,14 +815,14 @@ var v = ^ y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -842,14 +841,14 @@ var v = ^;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -866,14 +865,14 @@ var v = x ^;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -890,14 +889,14 @@ var v = super ^;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -918,19 +917,19 @@ var v = & ^;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -955,18 +954,18 @@ var v = ^ &;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   binaryOperator: bitwiseXor
 V1: BinaryExpression
@@ -990,19 +989,19 @@ var v = super ^  ^;
 //                ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ^
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   operator: ^
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -1080,6 +1079,12 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1122,16 +1127,22 @@ var v = x ? y :;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: x
+  condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: ParsedUnqualifiedName
+    name: y
+  thenExpression(v1): SimpleIdentifier
     token: y
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -1142,16 +1153,22 @@ var v = x ? : z;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: x
+  condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  thenExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: ParsedUnqualifiedName
+    name: z
+  elseExpression(v1): SimpleIdentifier
     token: z
 ''');
   }
@@ -1162,16 +1179,23 @@ var v = x ? super : z;
 //          ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: x
+  condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: SuperExpression
+  thenExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+  thenExpression(v1): SuperExpression
     superKeyword: super
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: ParsedUnqualifiedName
+    name: z
+  elseExpression(v1): SimpleIdentifier
     token: z
 ''');
   }
@@ -1182,16 +1206,23 @@ var v = x ? z : super;
 //              ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: x
+  condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: ParsedUnqualifiedName
+    name: z
+  thenExpression(v1): SimpleIdentifier
     token: z
   colon: :
-  elseExpression2: SuperExpression
+  elseExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+  elseExpression(v1): SuperExpression
     superKeyword: super
 ''');
   }
@@ -1228,13 +1259,16 @@ var v = .;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
-DotShorthandPropertyAccess
+ParsedDotShorthandExpression
+  expression: DotShorthandNameExpression
+    period: .
+    name: <empty> <synthetic>
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: <empty> <synthetic>
-  isDotShorthand: true
 ''');
   }
 
@@ -1244,14 +1278,14 @@ var v = == y;
 //      ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1270,14 +1304,14 @@ var v = ==;
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1294,14 +1328,14 @@ var v = x ==;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1318,14 +1352,14 @@ var v = super ==;
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -1346,15 +1380,15 @@ var v = == is;
 //           ^
 // [diag.expectedTypeName] Expected a type name.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
   rightOperand: IsExpression
-    expression2: SimpleIdentifier
-      token: <empty> <synthetic>
+    expression2: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     isOperator: is
     type: NamedType
       name: <empty> <synthetic>
@@ -1381,19 +1415,19 @@ var v = super ==  ==;
 //                  ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ==
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -1414,14 +1448,15 @@ var v = 1 == super;
 //           ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: IntegerLiteral
     literal: 1
   operator: ==
-  rightOperand: SuperExpression
-    superKeyword: super
+  rightOperand: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: IntegerLiteral
@@ -1443,6 +1478,15 @@ var v = [, 2, 3, 4];
 ListLiteral
   leftBracket: [
   elements2
+    ParsedUnqualifiedName
+      name: <empty> <synthetic>
+    IntegerLiteral
+      literal: 2
+    IntegerLiteral
+      literal: 3
+    IntegerLiteral
+      literal: 4
+  elements(v1)
     SimpleIdentifier
       token: <empty> <synthetic>
     IntegerLiteral
@@ -1466,6 +1510,15 @@ var v = [1, 2, , 4];
 ListLiteral
   leftBracket: [
   elements2
+    IntegerLiteral
+      literal: 1
+    IntegerLiteral
+      literal: 2
+    ParsedUnqualifiedName
+      name: <empty> <synthetic>
+    IntegerLiteral
+      literal: 4
+  elements(v1)
     IntegerLiteral
       literal: 1
     IntegerLiteral
@@ -1513,12 +1566,10 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+        members2
+          ConstructorDeclaration2
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -1529,6 +1580,32 @@ CompilationUnit
                   token: a
                 equals: =
                 expression2: RecordLiteral
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: v
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: a
+                equals: =
+                expression: RecordLiteral
                   leftParenthesis: (
                   rightParenthesis: )
             body: BlockFunctionBody
@@ -1554,11 +1631,11 @@ var v = m(f() => 0);;
 //                  ^
 // [diag.unexpectedToken] Unexpected text ';'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  methodName: SimpleIdentifier
-    token: m
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: m
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1569,6 +1646,21 @@ MethodInvocation
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: IntegerLiteral
+            literal: 0
+    rightParenthesis: )
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: IntegerLiteral
             literal: 0
     rightParenthesis: )
 ''');
@@ -1582,21 +1674,35 @@ void f() {
 // [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: x
+  expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
-  thenStatement: ExpressionStatement
-    expression2: MethodInvocation
+  thenStatement2: ExpressionStatement
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          ParsedUnqualifiedName
+            name: x
+        arguments(v1)
+          SimpleIdentifier
+            token: x
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: x
         rightParenthesis: )
@@ -1687,16 +1793,20 @@ var v = x ? 0;
 // [diag.expectedToken] Expected to find ':'.
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: x
+  condition(v1): SimpleIdentifier
     token: x
   question: ?
   thenExpression2: IntegerLiteral
     literal: 0
   colon: : <synthetic>
-  elseExpression2: SimpleIdentifier
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -1714,6 +1824,16 @@ C() : {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1740,6 +1860,28 @@ C() : x(3) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: x
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: <empty> <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1754,12 +1896,6 @@ CompilationUnit
       name: x
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: <empty> <synthetic>
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>
@@ -1785,6 +1921,25 @@ C() : this {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1827,6 +1982,34 @@ C() : this.g {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: g
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1879,6 +2062,25 @@ C() : this. {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1915,6 +2117,25 @@ C() : x {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: x
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1944,7 +2165,7 @@ var v = () a => null;
 //         ^
 // [diag.unexpectedToken] Unexpected text 'a'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -1963,7 +2184,7 @@ var v = () a {};
 //         ^
 // [diag.unexpectedToken] Unexpected text 'a'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
@@ -1994,6 +2215,311 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: Map
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: Symbol
+          TypeParameter
+            name: convertStringToSymbolMap
+        rightBracket: > <synthetic>
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BinaryOperatorInvocation
+                leftOperand: ParsedUnqualifiedName
+                  name: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+                binaryOperator: equal
+              expression(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+              rightParenthesis: )
+              thenStatement2: ReturnStatement
+                returnKeyword: return
+                expression2: NullLiteral
+                  literal: null
+                semicolon: ;
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: Map
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: Symbol
+                      NamedType
+                        name: dynamic
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: result
+                    equals: =
+                    initializer: ConstructorInvocation
+                      keyword: new
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: Map
+                          typeArguments: TypeArgumentList
+                            leftBracket: <
+                            arguments
+                              NamedType
+                                name: Symbol
+                              NamedType
+                                name: dynamic
+                            rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              semicolon: ;
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: map
+                  operator: .
+                  name: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        requiredPositionalFormalParameters
+                          RegularFormalParameter
+                            name: name
+                          RegularFormalParameter
+                            name: value
+                        rightParenthesis: )
+                      parameters(v1): FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements2
+                            ExpressionStatement
+                              expression2: DirectAssignment
+                                target: ReceiverIndexAssignmentTarget
+                                  receiver: ParsedUnqualifiedName
+                                    name: result
+                                  leftBracket: [
+                                  index: ConstructorInvocation
+                                    keyword: new
+                                    constructorReference: ConstructorReference2
+                                      typeReference: ConstructorTypeReference
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments2
+                                        ParsedUnqualifiedName
+                                          name: name
+                                      arguments(v1)
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                value: ParsedUnqualifiedName
+                                  name: value
+                              expression(v1): AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                target: SimpleIdentifier
+                  token: map
+                operator: .
+                methodName: SimpleIdentifier
+                  token: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements
+                            ExpressionStatement
+                              expression: AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              semicolon: ;
+            ReturnStatement
+              returnKeyword: return
+              expression2: ParsedUnqualifiedName
+                name: result
+              expression(v1): SimpleIdentifier
+                token: result
+              semicolon: ;
+          statements(v1)
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+              rightParenthesis: )
+              thenStatement: ReturnStatement
+                returnKeyword: return
+                expression: NullLiteral
+                  literal: null
+                semicolon: ;
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: Map
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: Symbol
+                      NamedType
+                        name: dynamic
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: result
+                    equals: =
+                    initializer: InstanceCreationExpression
+                      keyword: new
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: Map
+                          typeArguments: TypeArgumentList
+                            leftBracket: <
+                            arguments
+                              NamedType
+                                name: Symbol
+                              NamedType
+                                name: dynamic
+                            rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              semicolon: ;
+            ExpressionStatement
+              expression: MethodInvocation
+                target: SimpleIdentifier
+                  token: map
+                operator: .
+                methodName: SimpleIdentifier
+                  token: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements
+                            ExpressionStatement
+                              expression: AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              semicolon: ;
+            ReturnStatement
+              returnKeyword: return
+              expression: SimpleIdentifier
+                token: result
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: Map
       functionExpression: FunctionExpression
@@ -2015,14 +2541,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: map
-                  operator: ==
-                  rightOperand: NullLiteral
-                    literal: null
-                  binaryOperator: equal
-                expression(v1): BinaryExpression
+                expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: map
                   operator: ==
@@ -2031,7 +2550,7 @@ CompilationUnit
                 rightParenthesis: )
                 thenStatement: ReturnStatement
                   returnKeyword: return
-                  expression2: NullLiteral
+                  expression: NullLiteral
                     literal: null
                   semicolon: ;
               VariableDeclarationStatement
@@ -2050,23 +2569,7 @@ CompilationUnit
                     VariableDeclaration
                       name: result
                       equals: =
-                      initializer2: ConstructorInvocation
-                        keyword: new
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: Map
-                            typeArguments: TypeArgumentList
-                              leftBracket: <
-                              arguments
-                                NamedType
-                                  name: Symbol
-                                NamedType
-                                  name: dynamic
-                              rightBracket: >
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      initializer(v1): InstanceCreationExpression
+                      initializer: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -2084,25 +2587,17 @@ CompilationUnit
                           rightParenthesis: )
                 semicolon: ;
               ExpressionStatement
-                expression2: MethodInvocation
-                  target2: SimpleIdentifier
+                expression: MethodInvocation
+                  target: SimpleIdentifier
                     token: map
                   operator: .
                   methodName: SimpleIdentifier
                     token: forEach
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       FunctionExpression
                         parameters: FormalParameterList
-                          leftParenthesis: (
-                          requiredPositionalFormalParameters
-                            RegularFormalParameter
-                              name: name
-                            RegularFormalParameter
-                              name: value
-                          rightParenthesis: )
-                        parameters(v1): FormalParameterList
                           leftParenthesis: (
                           parameter: RegularFormalParameter
                             name: name
@@ -2114,27 +2609,7 @@ CompilationUnit
                             leftBracket: {
                             statements
                               ExpressionStatement
-                                expression2: DirectAssignment
-                                  target: IndexAssignmentTarget
-                                    receiver: SimpleIdentifier
-                                      token: result
-                                    leftBracket: [
-                                    index: ConstructorInvocation
-                                      keyword: new
-                                      constructorReference: ConstructorReference2
-                                        typeReference: ConstructorTypeReference
-                                          name: Symbol
-                                      argumentList: ArgumentList
-                                        leftParenthesis: (
-                                        arguments2
-                                          SimpleIdentifier
-                                            token: name
-                                        rightParenthesis: )
-                                    rightBracket: ]
-                                  operator: =
-                                  value: SimpleIdentifier
-                                    token: value
-                                expression(v1): AssignmentExpression
+                                expression: AssignmentExpression
                                   leftHandSide: IndexExpression
                                     target: SimpleIdentifier
                                       token: result
@@ -2160,7 +2635,7 @@ CompilationUnit
                 semicolon: ;
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: result
                 semicolon: ;
             rightBracket: }
@@ -2175,6 +2650,14 @@ foo();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2197,6 +2680,14 @@ foo();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2218,6 +2709,12 @@ String
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: String
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -2238,6 +2735,13 @@ const
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -2259,6 +2763,13 @@ final
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -2280,6 +2791,13 @@ var
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2309,7 +2827,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2340,7 +2865,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2371,7 +2903,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: c
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2401,7 +2940,16 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: c
+            fields
+              Field
+                name: x
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2434,7 +2982,13 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2464,7 +3018,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -2486,24 +3047,32 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        LocalVariable
+          name: item
+    variables(v1): VariableDeclarationList
       type: NamedType
         name: String
       variables
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition2: SimpleIdentifier
+    condition2: ParsedUnqualifiedName
+      name: i
+    condition(v1): SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2519,24 +3088,32 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        LocalVariable
+          name: item
+    variables(v1): VariableDeclarationList
       type: NamedType
         name: String
       variables
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition2: SimpleIdentifier
+    condition2: ParsedUnqualifiedName
+      name: i
+    condition(v1): SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2551,9 +3128,17 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: String
+    variables
+      LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: String
@@ -2575,9 +3160,16 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    constFinalOrVarKeyword: final
+    variables
+      LocalVariable
+        name: <empty> <synthetic>
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     keyword: final
     variables
@@ -2595,9 +3187,17 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: String
+    variables
+      LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: String
@@ -2616,9 +3216,17 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: String
+    variables
+      LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: String
@@ -2637,9 +3245,17 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: String
+    variables
+      LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: String
@@ -2658,9 +3274,23 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+        rightBracket: >
+    variables
+      LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: List
@@ -2695,7 +3325,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: > <synthetic>
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2824,6 +3469,17 @@ f() sync {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: sync
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2854,7 +3510,27 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: A
+                      NamedType
+                        name: B
+                    rightBracket: >
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -2862,7 +3538,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SetOrMapLiteral
+                  initializer: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: <
                       arguments
@@ -2897,7 +3573,23 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: G
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: double
+                rightBracket: >
+            fields
+              Field
+                name: g
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -2974,16 +3666,58 @@ CompilationUnit
           rightBracket: >
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
+        members2
+          MethodDeclaration2
             name: m
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements2
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression2: IsExpression
+                      expression2: ParsedUnqualifiedName
+                        name: x
+                      expression(v1): SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement2: ReturnStatement
+                      returnKeyword: return
+                      semicolon: ;
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression2: IsExpression
+                      expression2: ParsedUnqualifiedName
+                        name: x
+                      expression(v1): SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      notOperator: !
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement2: ExpressionStatement
+                      expression2: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                      expression(v1): SimpleIdentifier
+                        token: <empty> <synthetic>
+                      semicolon: ; <synthetic>
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -2995,8 +3729,8 @@ CompilationUnit
                   IfStatement
                     ifKeyword: if
                     leftParenthesis: (
-                    expression2: IsExpression
-                      expression2: SimpleIdentifier
+                    expression: IsExpression
+                      expression: SimpleIdentifier
                         token: x
                       isOperator: is
                       type: NamedType
@@ -3008,8 +3742,8 @@ CompilationUnit
                   IfStatement
                     ifKeyword: if
                     leftParenthesis: (
-                    expression2: IsExpression
-                      expression2: SimpleIdentifier
+                    expression: IsExpression
+                      expression: SimpleIdentifier
                         token: x
                       isOperator: is
                       notOperator: !
@@ -3017,7 +3751,7 @@ CompilationUnit
                         name: <empty> <synthetic>
                     rightParenthesis: )
                     thenStatement: ExpressionStatement
-                      expression2: SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: <empty> <synthetic>
                       semicolon: ; <synthetic>
                 rightBracket: }
@@ -3043,10 +3777,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3055,7 +3801,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3078,10 +3824,26 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3117,17 +3879,27 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: ( <synthetic>
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3150,10 +3922,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3162,7 +3946,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3187,10 +3971,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3199,7 +3995,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3215,6 +4011,16 @@ do() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: do
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: do
       functionExpression: FunctionExpression
@@ -3234,14 +4040,14 @@ var v = && y;
 //      ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3259,14 +4065,14 @@ var v = &&;
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3282,14 +4088,14 @@ var v = x &&;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -3309,19 +4115,19 @@ var v = | &&;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: |
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -3345,18 +4151,18 @@ var v = && |;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: |
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -3377,14 +4183,14 @@ var v = || y;
 //      ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3402,14 +4208,14 @@ var v = ||;
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3425,14 +4231,14 @@ var v = x ||;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ||
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -3452,18 +4258,18 @@ var v = && ||;
 //           ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalOr
   leftOperand: LogicalAnd
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &&
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
   operator: ||
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -3487,18 +4293,18 @@ var v = || &&;
 //           ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
   rightOperand: LogicalAnd
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &&
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3528,7 +4334,17 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            name: b
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        members(v1)
           MethodDeclaration
             name: b
             parameters: FormalParameterList
@@ -3548,11 +4364,11 @@ var v = f(x: 1 y: 2);
 //             ^
 // [diag.expectedToken] Expected to find ','.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  methodName: SimpleIdentifier
-    token: f
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
+    name: f
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -3565,6 +4381,23 @@ MethodInvocation
         name: y
         colon: :
         argumentExpression2: IntegerLiteral
+          literal: 2
+    rightParenthesis: )
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
+          literal: 1
+      NamedArgument
+        name: y
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 2
     rightParenthesis: )
 ''');
@@ -3588,6 +4421,19 @@ MethodInvocation
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: a
+      variables
+        TopLevelVariable
+          name: b
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: c
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -3624,7 +4470,30 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: length
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration2
+            returnType: NamedType
+              name: void
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3675,6 +4544,22 @@ String n x = "";
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        TopLevelVariable
+          name: n
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: SimpleStringLiteral
+            literal: ""
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -3689,7 +4574,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: SimpleStringLiteral
+            initializer: SimpleStringLiteral
               literal: ""
       semicolon: ;
 ''');
@@ -3701,14 +4586,14 @@ var v = * y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -3727,14 +4612,14 @@ var v = *;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -3751,14 +4636,14 @@ var v = x *;
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -3775,14 +4660,14 @@ var v = super *;
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -3799,17 +4684,17 @@ var v = -x *;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: UnaryOperatorInvocation
     operator: -
-    operand: SimpleIdentifier
-      token: x
+    operand: ParsedUnqualifiedName
+      name: x
     unaryOperator: negate
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: PrefixExpression
@@ -3828,16 +4713,16 @@ var v = * -y;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
   rightOperand: UnaryOperatorInvocation
     operator: -
-    operand: SimpleIdentifier
-      token: y
+    operand: ParsedUnqualifiedName
+      name: y
     unaryOperator: negate
   binaryOperator: multiply
 V1: BinaryExpression
@@ -3860,19 +4745,19 @@ var v = super ==  ==;
 //                  ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ==
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: ==
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -3905,10 +4790,10 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
+        members2
+          MethodDeclaration2
             name: b
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -3928,7 +4813,14 @@ CompilationUnit
                 RegularFormalParameter
                   name: e
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: b
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: c
@@ -3978,6 +4870,24 @@ CompilationUnit
         literal: "" <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: dart
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: io
+      semicolon: ;
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -4006,12 +4916,12 @@ var v = -;
 //       ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: SimpleIdentifier
-    token: <empty> <synthetic>
+  operand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   unaryOperator: negate
 V1: PrefixExpression
   operator: -
@@ -4029,16 +4939,22 @@ var v = ?a;
 // [diag.expectedToken] Expected to find ':'.
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  condition(v1): SimpleIdentifier
     token: <empty> <synthetic>
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: ParsedUnqualifiedName
+    name: a
+  thenExpression(v1): SimpleIdentifier
     token: a
   colon: : <synthetic>
-  elseExpression2: SimpleIdentifier
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -4049,10 +4965,12 @@ var v = is y;
 //      ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  expression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   isOperator: is
   type: NamedType
@@ -4068,10 +4986,12 @@ var v = is;
 //        ^
 // [diag.expectedTypeName] Expected a type name.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
+  expression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   isOperator: is
   type: NamedType
@@ -4085,10 +5005,12 @@ var v = x is;
 //          ^
 // [diag.expectedTypeName] Expected a type name.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: x
+  expression(v1): SimpleIdentifier
     token: x
   isOperator: is
   type: NamedType
@@ -4106,15 +5028,15 @@ var v = << is;
 //           ^
 // [diag.expectedTypeName] Expected a type name.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 IsExpression
   expression2: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: <<
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: shiftLeft
   expression(v1): BinaryExpression
     leftOperand: SimpleIdentifier
@@ -4134,14 +5056,14 @@ var v = << y;
 //      ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4160,14 +5082,14 @@ var v = <<;
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4184,14 +5106,14 @@ var v = x <<;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4208,14 +5130,14 @@ var v = super <<;
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -4236,19 +5158,19 @@ var v = + <<;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: +
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -4273,18 +5195,18 @@ var v = << +;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
   rightOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: +
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   binaryOperator: shiftLeft
 V1: BinaryExpression
@@ -4308,19 +5230,19 @@ var v = super << <<;
 //                 ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: <<
-    rightOperand: SimpleIdentifier
-      token: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: shiftLeft
   operator: <<
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -4347,6 +5269,14 @@ typedef n
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      name: n
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: n
@@ -4363,11 +5293,11 @@ var v = +2;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
   rightOperand: IntegerLiteral
     literal: 2

@@ -3574,8 +3574,8 @@ genrule(
     name = "dart_icudata_S",
     srcs = ["@icu//flutter:icudtl.dat"],
     outs = ["dart_icudata.S"],
-    cmd = "python3 $(location //runtime/tools:bin_to_assembly.py) " +
-          "--input $(location @icu//flutter:icudtl.dat) " +
+    cmd = "python3 $(execpath //runtime/tools:bin_to_assembly.py) " +
+          "--input $(execpath @icu//flutter:icudtl.dat) " +
           "--output $@ " +
           "--symbol_name kIcuData " +
           select({
@@ -4677,9 +4677,9 @@ genrule(
         "core_snapshot_data.bin",
         "core_snapshot_text.bin",
     ],
-    cmd = "$(location //runtime/bin:gen_snapshot) --deterministic --snapshot_kind=core " +
-          "--snapshot_data=$(location core_snapshot_data.bin) --snapshot_text=$(location core_snapshot_text.bin) " +
-          "$(location //runtime/vm:vm_platform_stripped.dill)",
+    cmd = "$(execpath //runtime/bin:gen_snapshot) --deterministic --snapshot_kind=core " +
+          "--snapshot_data=$(execpath core_snapshot_data.bin) --snapshot_text=$(execpath core_snapshot_text.bin) " +
+          "$(execpath //runtime/vm:vm_platform_stripped.dill)",
     tools = [
         "//runtime/bin:gen_snapshot",
     ],

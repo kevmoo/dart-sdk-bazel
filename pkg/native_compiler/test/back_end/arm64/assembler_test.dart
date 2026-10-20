@@ -98,6 +98,14 @@ void main() {
         'stpw r1, r2, [r17, #4]\n',
       );
     });
+    test('fieldAddress', () {
+      asm.ldr(R1, asm.fieldAddress(R0, 42), .s32);
+      asm.ldr(R1, asm.fieldAddress(R0, 42), .u32);
+      expectDisassembly(
+        'ldrsw r1, [r0, #41]\n'
+        'ldrw r1, [r0, #41]\n',
+      );
+    });
     test('enterDartFrame', () {
       asm.enterDartFrame();
       expectDisassembly(
@@ -523,32 +531,60 @@ void main() {
       );
     });
     test('loadClassId', () {
-      asm.loadClassId(R0, R0);
-      asm.loadClassId(R1, R5);
+      asm.loadClassId(R0, R0, canBeSmi: false);
+      asm.loadClassId(R1, R5, canBeSmi: false);
+      asm.loadClassId(R0, R0, canBeSmi: false, asTagged: true);
+      asm.loadClassId(R1, R0, canBeSmi: true);
+      asm.loadClassId(R0, R0, canBeSmi: true);
+      asm.loadClassId(R1, R2, canBeSmi: true, asTagged: true);
+      asm.loadClassId(R1, R1, canBeSmi: true, scratch: R2);
+      asm.loadClassId(R3, R3, canBeSmi: true, asTagged: true, scratch: R2);
       final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
       final highBit =
           vmOffsets.UntaggedObject_kClassIdTagPos +
           vmOffsets.UntaggedObject_kClassIdTagSize -
           1;
       expectDisassembly(
+        // R0, R0, canBeSmi: false
         'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
+        // R1, R5, canBeSmi: false
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
-        'ubfm r1, r1, #$lowBit, #$highBit\n',
-      );
-    });
-    test('loadClassIdMayBeSmi', () {
-      asm.loadClassIdMayBeSmi(R1, R0);
-      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
-      final highBit =
-          vmOffsets.UntaggedObject_kClassIdTagPos +
-          vmOffsets.UntaggedObject_kClassIdTagSize -
-          1;
-      expectDisassembly(
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R0, R0, canBeSmi: false, asTagged: true
+        'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        'lsl r0, r0, #${smiShift}\n'
+        // R1, R0, canBeSmi: true
         'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r0, #${smiBit}, +12\n'
         'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
-        'ubfm r1, r1, #$lowBit, #$highBit\n',
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R0, R0, canBeSmi: true
+        'mov r17, r0\n'
+        'movz r0, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r17, #${smiBit}, +12\n'
+        'ldr r0, [r17, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        // R1, R2, canBeSmi: true, asTagged: true
+        'movz r1, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +16\n'
+        'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        'lsl r1, r1, #${smiShift}\n'
+        // R1, R1, canBeSmi: true, scratch: R2
+        'mov r2, r1\n'
+        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +12\n'
+        'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R3, R3, canBeSmi: true, asTagged: true, scratch: R2
+        'mov r2, r3\n'
+        'movz r3, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +16\n'
+        'ldr r3, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r3, r3, #$lowBit, #$highBit\n'
+        'lsl r3, r3, #${smiShift}\n',
       );
     });
     test('loadIsolateGroup', () {
@@ -563,6 +599,68 @@ void main() {
         'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n'
         'ldr r2, [r2, #${vmOffsets.IsolateGroup_cached_class_table_table_offset}]\n'
         'ldr r2, [r2, r1 uxtx scaled]\n',
+      );
+    });
+    test('loadIndexed', () {
+      asm.loadIndexed(R2, R1, R3, 0, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 42, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 4231, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 0, OperandSize.s64);
+      asm.loadIndexed(R2, R1, R3, 42, OperandSize.s64);
+      asm.loadIndexed(R2, R1, R3, 4231, OperandSize.s64);
+      expectDisassembly(
+        'ldrsw r2, [r1, r3 uxtx scaled]\n'
+        'add r2, r1, r3 lsl #2\n'
+        'ldrsw r2, [r2, #42]\n'
+        'add r2, r1, r3 lsl #2\n'
+        'add r17, r2, #0x1000\n'
+        'ldrsw r2, [r17, #135]\n'
+        'ldr r2, [r1, r3 uxtx scaled]\n'
+        'add r2, r1, r3 lsl #3\n'
+        'ldr r2, [r2, #42]\n'
+        'add r2, r1, r3 lsl #3\n'
+        'add r17, r2, #0x1000\n'
+        'ldr r2, [r17, #135]\n',
+      );
+    });
+    test('loadAcquire', () {
+      asm.loadAcquire(R2, R1, 0, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s64, R3);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s64, R3);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s64, R3);
+      expectDisassembly(
+        'ldarw r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'ldarw r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'ldarw r2, [r17]\n'
+        'ldar r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'ldar r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'ldar r2, [r17]\n'
+        'ldarw r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'ldarw r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'ldarw r2, [r3]\n'
+        'ldar r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'ldar r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'ldar r2, [r3]\n',
       );
     });
     test('combineHashes', () {
@@ -790,6 +888,27 @@ void main() {
       });
     });
 
+    test('msub', () {
+      asm.msub(R0, R1, R2, R3);
+      asm.msub(R0, R0, R0, R0, .s32);
+      expectDisassembly(
+        'msub r0, r1, r2, r3\n'
+        'msubw r0, r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.msub(SP, R1, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, R2, SP);
+      });
+    });
+
     test('umulh', () {
       asm.umulh(R1, R2, R3);
       asm.umulh(R0, R0, R0);
@@ -945,6 +1064,24 @@ void main() {
       });
       expectThrows(() {
         asm.csneg(R0, R1, SP, .negative);
+      });
+    });
+
+    test('cneg', () {
+      asm.cneg(R5, R6, .less);
+      asm.cneg(R0, R0, .unsignedGreater, .s32);
+      expectDisassembly(
+        'cneg r5, r6, lt\n'
+        'cnegw r0, r0, hi\n',
+      );
+      expectThrows(() {
+        asm.cneg(SP, R0, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, SP, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, R0, .unconditional);
       });
     });
 
@@ -1178,6 +1315,24 @@ void main() {
       });
       expectThrows(() {
         asm.lsrv(R0, R1, SP);
+      });
+    });
+
+    test('sdiv', () {
+      asm.sdiv(R0, R1, R2);
+      asm.sdiv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'sdiv r0, r1, r2\n'
+        'sdivw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.sdiv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, R1, SP);
       });
     });
 
@@ -1594,6 +1749,8 @@ void main() {
       asm.fldr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fldr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fldr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fldr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fldr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .s32);
       asm.fldr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fldr(
         V6,
@@ -1607,6 +1764,8 @@ void main() {
         'fldrs v2, [r1, #32]\n'
         'fldrd v3, [r1, #-5]\n'
         'fldrq v4, [csp, #32768]\n'
+        'fldrd v0, [r0, r1 uxtx scaled]\n'
+        'fldrs v31, [csp, r0 sxtw]\n'
         'fldrd v5, [r1], #16 !\n'
         'fldrq v6, [r1, #-8]!\n'
         'fldrs v0, [r0], #8 !\n',
@@ -1619,6 +1778,9 @@ void main() {
       });
       expectThrows(() {
         asm.fldr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fldr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fldr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
@@ -1634,6 +1796,8 @@ void main() {
       asm.fstr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fstr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fstr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fstr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fstr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .simd128);
       asm.fstr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fstr(
         V6,
@@ -1647,6 +1811,8 @@ void main() {
         'fstrs v2, [r1, #32]\n'
         'fstrd v3, [r1, #-5]\n'
         'fstrq v4, [csp, #32768]\n'
+        'fstrd v0, [r0, r1 uxtx scaled]\n'
+        'fstrq v31, [csp, r0 sxtw]\n'
         'fstrd v5, [r1], #16 !\n'
         'fstrq v6, [r1, #-8]!\n'
         'fstrs v0, [r0], #8 !\n',
@@ -1659,6 +1825,9 @@ void main() {
       });
       expectThrows(() {
         asm.fstr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fstr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fstr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
@@ -1975,7 +2144,115 @@ void main() {
         asm.scvtf(V0, SP);
       });
     });
-
+    test('fcvt', () {
+      asm.fcvt(V0, V0, .s32, .s64);
+      asm.fcvt(V1, V2, .s64, .s32);
+      // TODO: extend disassembler to handle half precision.
+      expectDisassembly(
+        'fcvtds v0, v0\n'
+        'fcvtsd v1, v2\n',
+      );
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .s64);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s32, .u32);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .simd128);
+      });
+    });
+    test('fcvtas', () {
+      asm.fcvtas(R0, V0);
+      asm.fcvtas(R2, V31, .s64, .s32);
+      asm.fcvtas(ZR, V1);
+      expectDisassembly(
+        'fcvtas r0, v0\n'
+        'fcvtasw r2, v31\n'
+        'fcvtas zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtas(SP, V0);
+      });
+    });
+    test('fcvtzs', () {
+      asm.fcvtzs(R0, V0);
+      asm.fcvtzs(R2, V31, .s64, .s32);
+      asm.fcvtzs(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtzs r0, v0\n'
+        'fcvtzsw r2, v31\n'
+        'fcvtzs zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtzs(SP, V0);
+      });
+    });
+    test('fcvtms', () {
+      asm.fcvtms(R0, V0);
+      asm.fcvtms(R2, V31, .s64, .s32);
+      asm.fcvtms(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtms r0, v0\n'
+        'fcvtmsw r2, v31\n'
+        'fcvtms zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtms(SP, V0);
+      });
+    });
+    test('fcvtps', () {
+      asm.fcvtps(R0, V0);
+      asm.fcvtps(R2, V31, .s64, .s32);
+      asm.fcvtps(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtps r0, v0\n'
+        'fcvtpsw r2, v31\n'
+        'fcvtps zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtps(SP, V0);
+      });
+    });
     test('fmov', () {
       asm.fmov(V0, R0);
       asm.fmov(V2, ZR);
@@ -1983,13 +2260,19 @@ void main() {
       asm.fmov(V0, Immediate(doubleToIntBits(1.0)));
       asm.fmov(V1, Immediate(doubleToIntBits(2.0)));
       asm.fmov(V31, Immediate(doubleToIntBits(-0.25)));
+      asm.fmov(R0, V0);
+      asm.fmov(ZR, V31);
+      asm.fmov(R1, V2, .s32);
       expectDisassembly(
         'fmovdr v0, r0\n'
         'fmovdr v2, zr\n'
         'fmovsrw v3, r2\n'
         'fmovd v0, 1.0\n'
         'fmovd v1, 2.0\n'
-        'fmovd v31, -0.25\n',
+        'fmovd v31, -0.25\n'
+        'fmovrd r0, v0\n'
+        'fmovrd zr, v31\n'
+        'fmovrsw r1, v2\n',
       );
       expectThrows(() {
         asm.fmov(V0, Immediate(doubleToIntBits(0.0)));
@@ -1997,6 +2280,79 @@ void main() {
       expectThrows(() {
         asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
       });
+      expectThrows(() {
+        asm.fmov(SP, V0);
+      });
+    });
+
+    test('fabs', () {
+      asm.fabs(V0, V1);
+      asm.fabs(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fabsd v0, v1\n'
+        'fabsd v31, v31\n',
+      );
+    });
+
+    test('fneg', () {
+      asm.fneg(V0, V0);
+      asm.fneg(V31, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fnegd v0, v0\n'
+        'fnegd v31, v30\n',
+      );
+    });
+
+    test('fsqrt', () {
+      asm.fsqrt(V1, V1);
+      asm.fsqrt(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fsqrtd v1, v1\n'
+        'fsqrtd v0, v31\n',
+      );
+    });
+
+    test('frintp', () {
+      asm.frintp(V0, V0);
+      asm.frintp(V31, V3);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintp v0, v0\n'
+        'frintp v31, v3\n',
+      );
+    });
+
+    test('frintm', () {
+      asm.frintm(V1, V1);
+      asm.frintm(V0, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintm v1, v1\n'
+        'frintm v0, v30\n',
+      );
+    });
+
+    test('frintz', () {
+      asm.frintz(V15, V16);
+      asm.frintz(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintz v15, v16\n'
+        'frintz v0, v31\n',
+      );
+    });
+
+    test('frinta', () {
+      asm.frinta(V1, V2);
+      asm.frinta(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frinta v1, v2\n'
+        'frinta v31, v31\n',
+      );
     });
 
     test('fadd', () {

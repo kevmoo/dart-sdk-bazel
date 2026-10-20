@@ -1439,7 +1439,6 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     __ CompareWithMemoryValue(new_top_reg,
                               Address(THR, target::Thread::end_offset()));
     __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
-    __ CheckAllocationCanary(result_reg);
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
@@ -1487,20 +1486,17 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+      for (intptr_t offset = 0; offset < target::kWordSize;
            offset += target::kCompressedWordSize) {
         __ StoreCompressedIntoObjectNoBarrier(
             result_reg, FieldAddress(field_reg, offset), null_reg);
       }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ AddImmediate(field_reg, target::kObjectAlignment);
+      __ AddImmediate(field_reg, target::kWordSize);
       __ CompareRegisters(field_reg, new_top_reg);
       __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
       __ Bind(&done);
     }
 
-    __ WriteAllocationCanary(new_top_reg);  // Fix overshoot.
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1760,6 +1756,10 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub() {
   __ Breakpoint();  // Marker stub.
 }
 
+void StubCodeCompiler::GenerateDynamicInvocationForwarderStub() {
+  __ Breakpoint();  // Implemented in modular AOT.
+}
+
 void StubCodeCompiler::GenerateUnknownDartCodeStub() {
   // Enter frame to include caller into the backtrace.
   __ EnterStubFrame();
@@ -1844,6 +1844,16 @@ void StubCodeCompiler::GenerateBoxFloat64x2Stub() {
 #if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
   GenerateBoxFpuValueStub(assembler, compiler::Float64x2Class(),
                           kBoxFloat64x2RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
+void StubCodeCompiler::GenerateBoxInt32x4Stub() {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Int32x4Class(),
+                          kBoxInt32x4RuntimeEntry,
                           &Assembler::StoreUnboxedSimd128);
 #else
   __ Stop("Not supported on RISC-V.");
@@ -1958,7 +1968,6 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
   __ CompareWithMemoryValue(temp_reg,
                             Address(THR, target::Thread::end_offset()));
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_case);
-  __ CheckAllocationCanary(result_reg);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -2148,7 +2157,7 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   // Write barrier.
   __ AndImmediate(kTemp, kSuspendState, target::Page::kPageMask);
-  __ LoadFromOffset(kTemp, kTemp, target::Page::original_top_offset());
+  __ LoadFromOffset(kTemp, kTemp, target::Page::survivor_end_offset());
   __ CompareRegisters(kSuspendState, kTemp);
   __ BranchIf(UNSIGNED_LESS, &remember_object);
   // Assumption: SuspendStates are always on non-image pages.

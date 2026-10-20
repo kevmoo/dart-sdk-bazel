@@ -67,6 +67,11 @@ class SetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters
+      // Coverage-ignore(suite): Not run.
+      ?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,
@@ -125,11 +130,17 @@ class SetterFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _SetterFunctionBodyBuildingContext
+class _SetterFunctionBodyBuildingContext(final SetterFragment _fragment)
     implements FunctionBodyBuildingContext {
-  SetterFragment _fragment;
+  @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
 
-  new(this._fragment);
+  @override
+  LocalScope get formalParameterScope {
+    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
+  }
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -157,18 +168,8 @@ class _SetterFunctionBodyBuildingContext
   InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
-  ExtensionScope get extensionScope {
-    return _fragment.enclosingCompilationUnit.extensionScope;
-  }
-
-  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
-  }
-
-  @override
-  LocalScope get formalParameterScope {
-    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 
   @override

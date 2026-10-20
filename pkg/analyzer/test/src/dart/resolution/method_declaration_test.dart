@@ -26,9 +26,16 @@ class A {
 }
 ''');
 
-    var node = result.findNode.simple('foo + 1');
+    var node = result.findNode.unqualifiedNameExpression('foo + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@getter::foo
   staticType: int
@@ -54,9 +61,15 @@ NamedType
   type: a
 ''');
 
-    var node2 = result.findNode.simple('a;');
+    var node2 = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+    type: a
+  staticType: a
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
   staticType: a
@@ -73,9 +86,16 @@ class A {
 }
 ''');
 
-    var node = result.findNode.simple('_;');
+    var node = result.findNode.unqualifiedNameExpression('_;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::_
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _
   element: <testLibrary>::@class::A::@getter::_
   staticType: int
@@ -93,7 +113,19 @@ class C {
 
     var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@12
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
+V1: MethodDeclaration
   name: _
   parameters: FormalParameterList
     leftParenthesis: (
@@ -121,7 +153,19 @@ class C {
 
     var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@28
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
+V1: MethodDeclaration
   name: _
   parameters: FormalParameterList
     leftParenthesis: (
@@ -146,14 +190,17 @@ class C {
   }
 }
 ''');
-    var node = result.findNode.variableDeclaration('_ = _;');
+    var node = result.findNode.localVariable('_ = _;');
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+LocalVariable
   name: _
   equals: =
-  initializer2: SimpleIdentifier
-    token: _
-    element: <testLibrary>::@class::C::@getter::_
+  initializer: UnqualifiedNameExpression
+    name: _
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_
+      invokeType: int Function()
+      type: int
     staticType: int
   declaredFragment: isPrivate _@51
     element: isPrivate

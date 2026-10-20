@@ -229,6 +229,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           break;
         case PragmaEntryPointType.CanBeUsedAsType:
           throw "Error: only class or extension type can be used-as-type";
+        case PragmaEntryPointType.InitializerOnly:
+          throw "Error: 'init' is not a valid entry-point pragma annotation "
+              "argument for the procedure $proc.\n$_referenceToDocumentation";
       }
     }
 
@@ -299,6 +302,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
                 "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
+          break;
+        case PragmaEntryPointType.InitializerOnly:
+          entryPoints.addRawCall(
+            new DirectSelector(field, callKind: CallKind.SetFieldInConstructor),
+          );
           break;
         case PragmaEntryPointType.Default:
           addSelector(CallKind.PropertyGet);
@@ -445,14 +453,27 @@ class NativeCodeOracle {
       if (pragma is ParsedResultTypeByTypePragma) {
         var type = pragma.type;
         if (type is InterfaceType) {
-          returnType = entryPointsListener.addAllocatedClass(type.classNode);
-          if (pragma.resultTypeUsesPassedTypeArguments) {
+          final concreteClass = entryPointsListener.addAllocatedClass(
+            type.classNode,
+          );
+          if (pragma.resultTypeUsesPassedTypeArguments ||
+              pragma.resultTypeUsesReceiverTypeArguments) {
+            assert(
+              pragma.resultTypeUsesReceiverTypeArguments
+                  ? member.isInstanceMember
+                  : member is Procedure && member.isFactory,
+            );
+            final typeParameters = pragma.resultTypeUsesReceiverTypeArguments
+                ? member.enclosingClass!.typeParameters
+                : member.function!.typeParameters;
             returnType = translator.instantiateConcreteType(
-              returnType as ConcreteType,
-              member.function!.typeParameters
+              concreteClass,
+              typeParameters
                   .map((t) => TypeParameterType.withDefaultNullability(t))
                   .toList(),
             );
+          } else {
+            returnType = concreteClass;
           }
           continue;
         }

@@ -48,6 +48,22 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            importPrefix: ImportPrefixReference
+              name: p
+              period: .
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -91,6 +107,25 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            importPrefix: ImportPrefixReference
+              name: p
+              period: .
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+          selector: ConstructorSelector
+            period: .
+            name2: ctor
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -137,6 +172,19 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       name: SimpleIdentifier
         token: A
       typeArguments: TypeArgumentList
@@ -176,6 +224,22 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+          selector: ConstructorSelector
+            period: .
+            name2: ctor
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       name: SimpleIdentifier
         token: A
       typeArguments: TypeArgumentList
@@ -220,6 +284,18 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedTypeArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: p
+          operator: .
+          name: x
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: A
+          rightBracket: >
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -262,6 +338,15 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedTypeArguments
+        operand: ParsedUnqualifiedName
+          name: x
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: A
+          rightBracket: >
       name: SimpleIdentifier
         token: x
       typeArguments: TypeArgumentList
@@ -297,6 +382,28 @@ ClassDeclaration
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: B
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: #synthetic_function_11 <synthetic>
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -350,6 +457,23 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: ctor
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: ctor
       functionExpression: FunctionExpression

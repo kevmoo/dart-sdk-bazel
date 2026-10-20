@@ -35,14 +35,16 @@ void f(C c) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+    expression2: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
-  propertyName: _foo
+  name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
     invokeType: int? Function()
@@ -77,10 +79,25 @@ void f(C c) {
   c.._field().toString();
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_field()');
+    var node = result.findNode.callInvocation('_field()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: CascadePropertyExtraction
+    name: _field
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_field
+      invokeType: Object? Function()
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
@@ -107,17 +124,28 @@ void f(C c) {
   c.._field.toString();
 }
 ''');
-    var node = result.findNode.methodInvocation('_field.toString');
+    var node = result.findNode.receiverMethodInvocation('_field.toString');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: CascadePropertyExtraction
-    propertyName: _field
+ReceiverMethodInvocation
+  receiver: CascadePropertyExtraction
+    name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
       invokeType: Object? Function()
       type: int
     staticType: int
-  target(v1): PropertyAccess
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::int::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
@@ -152,7 +180,7 @@ void f(C? c) {
     var node2 = result.findNode.cascadePropertyExtraction('_field.toString');
     assertResolvedNodeText(node2, r'''
 CascadePropertyExtraction
-  propertyName: _field
+  name: _field
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_field
     invokeType: Object? Function()
@@ -168,10 +196,24 @@ V1: PropertyAccess
 ''');
     // But the promotion doesn't last beyond the cascade expression, due to the
     // implicit control flow join when the `?..` stops taking effect.
-    var node = result.findNode.propertyAccess('c?._field');
+    var node = result.findNode.receiverPropertyExtraction('c?._field');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C?
+    staticType: C?
+  operator: ?.
+  name: _field
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_field
+    invokeType: Object? Function()
+    type: Object?
+  staticType: Object?
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C?
@@ -210,9 +252,23 @@ void g(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::g::@formalParameter::c
@@ -240,19 +296,42 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: SimpleIdentifier
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
+      staticType: C
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: void Function()? Function()
+      type: void Function()
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: _foo
       element: <testLibrary>::@class::C::@getter::_foo
       staticType: void Function()
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -276,19 +355,42 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: SimpleIdentifier
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
+      staticType: C
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: int? Function() Function()
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: _foo
       element: <testLibrary>::@class::C::@getter::_foo
       staticType: int Function()
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -312,13 +414,39 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: void Function()? Function()
+      type: void Function()
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
@@ -352,13 +480,39 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: ParenthesizedExpression
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
+        staticType: C
+      rightParenthesis: )
+      staticType: C
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: int? Function() Function()
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
@@ -396,10 +550,25 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: void Function()? Function()
+      type: void Function()
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::C::@getter::_foo
     staticType: void Function()
@@ -429,10 +598,25 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: int? Function() Function()
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::C::@getter::_foo
     staticType: int Function()
@@ -462,11 +646,29 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: SuperExpression
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: void Function()? Function()
+      type: void Function()
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -501,11 +703,29 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('_foo()');
+    var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
-    target2: SuperExpression
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: int? Function() Function()
+      type: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -536,9 +756,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -566,9 +800,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('.foo;');
+    var node = result.findNode.receiverPropertyExtraction('.foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -596,9 +844,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -631,14 +893,16 @@ void f(C c) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+    expression2: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     rightParenthesis: )
     staticType: C
   operator: .
-  propertyName: _foo
+  name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
     invokeType: int? Function()
@@ -679,10 +943,20 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.propertyAccess('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: D
   operator: .
@@ -707,9 +981,16 @@ class C {
   }
 }
 ''');
-    var node = result.findNode.simple('_foo; // read');
+    var node = result.findNode.unqualifiedNameExpression('_foo; // read');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _foo
   element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
@@ -728,9 +1009,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -780,9 +1075,23 @@ void f(E e) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: e
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::e
+      type: E
+    staticType: E
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::E::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
     element: <testLibrary>::@function::f::@formalParameter::e
@@ -807,9 +1116,23 @@ void f(A a) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('a._it;');
+    var node = result.findNode.receiverPropertyExtraction('a._it;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: _it
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::_it
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -835,9 +1158,23 @@ void f(C c) {
   c._field;
 }
 ''');
-    var node = result.findNode.prefixed('c._field;');
+    var node = result.findNode.receiverPropertyExtraction('c._field;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _field
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_field
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -885,9 +1222,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -934,9 +1285,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -973,9 +1338,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1016,16 +1395,33 @@ class C extends B {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::_i
+          invokeType: int? Function()
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperReference
+          superKeyword: super
+        operator: .
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::B::@getter::_i
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -1041,16 +1437,33 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::_i
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int?
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperReference
+          superKeyword: super
+        operator: .
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::B::@getter::_i
+          invokeType: int? Function()
+          type: int
+        staticType: int
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -1090,9 +1503,18 @@ class C<T extends Object> extends B<T> {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::C::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T
+        staticType: T
+      expression(v1): SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
@@ -1100,8 +1522,20 @@ Block
         staticType: T
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperReference
+          superKeyword: super
+        operator: .
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::B::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1119,9 +1553,18 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::C::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
@@ -1129,8 +1572,20 @@ Block
         staticType: T?
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperReference
+          superKeyword: super
+        operator: .
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::B::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T
+        staticType: T
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1172,10 +1627,25 @@ class C extends B {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      expression2: CallInvocation
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::C::@getter::_f
+            invokeType: int? Function() Function()
+            type: int Function()
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: int Function()
+          type: int
+        staticType: int
+      expression(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: _f
           element: <testLibrary>::@class::C::@getter::_f
           staticType: int Function()
@@ -1187,9 +1657,27 @@ Block
         staticType: int
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: PropertyAccess
-          target2: SuperExpression
+      expression2: CallInvocation
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperReference
+            superKeyword: super
+          operator: .
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::B::@getter::_f
+            invokeType: int? Function() Function()
+            type: int? Function()
+          staticType: int? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
@@ -1211,10 +1699,25 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      expression2: CallInvocation
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::C::@getter::_f
+            invokeType: int? Function() Function()
+            type: int? Function()
+          staticType: int? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: _f
           element: <testLibrary>::@class::C::@getter::_f
           staticType: int? Function()
@@ -1226,9 +1729,27 @@ Block
         staticType: int?
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: PropertyAccess
-          target2: SuperExpression
+      expression2: CallInvocation
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperReference
+            superKeyword: super
+          operator: .
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::B::@getter::_f
+            invokeType: int? Function() Function()
+            type: int Function()
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: int Function()
+          type: int
+        staticType: int
+      expression(v1): FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
@@ -1274,10 +1795,27 @@ class C<T extends Object> extends B<T> {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      expression2: CallInvocation
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::C::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T Function()
+          staticType: T Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: T Function()
+          type: T
+        staticType: T
+      expression(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: _f
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
@@ -1291,9 +1829,29 @@ Block
         staticType: T
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: PropertyAccess
-          target2: SuperExpression
+      expression2: CallInvocation
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperReference
+            superKeyword: super
+          operator: .
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::B::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T? Function()
+          staticType: T? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .
@@ -1317,10 +1875,27 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      expression2: CallInvocation
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::C::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T? Function()
+          staticType: T? Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: _f
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_f
@@ -1334,9 +1909,29 @@ Block
         staticType: T?
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: PropertyAccess
-          target2: SuperExpression
+      expression2: CallInvocation
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperReference
+            superKeyword: super
+          operator: .
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::B::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T Function()
+          staticType: T Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: T Function()
+          type: T
+        staticType: T
+      expression(v1): FunctionExpressionInvocation
+        function: PropertyAccess
+          target: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .

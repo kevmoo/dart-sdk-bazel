@@ -88,6 +88,11 @@ class LspAnalysisServer {
     );
   }
 
+  /// A stream of work done progress notifications from the analysis server.
+  Stream<ProgressParams> get onProgress {
+    return _stream(Method.progress, ProgressParams.fromJson);
+  }
+
   Future<int> _onExit = Future.value(0);
 
   /// A future that completes when the last spawned process exits with its exit
@@ -172,9 +177,7 @@ class LspAnalysisServer {
               .map(
                 (rootPath) => WorkspaceFolder(
                   name: path.basename(rootPath),
-                  uri: Uri.file(
-                    rootPath,
-                  ),
+                  uri: Uri.file(rootPath),
                 ),
               )
               .toList()
@@ -211,10 +214,7 @@ class LspAnalysisServer {
       ),
     );
 
-    _sendNotification(
-      Method.initialized,
-      InitializedParams(),
-    );
+    _sendNotification(Method.initialized, InitializedParams());
 
     return process.pid;
   }
@@ -262,6 +262,8 @@ class LspAnalysisServer {
     List<Uri> uris, {
     bool? apply,
     List<MigrationStep>? steps,
+    String? targetSdk,
+    ProgressToken? workDoneToken,
   }) {
     return _expectSuccessfulResponse(
       CustomMethods.migrate,
@@ -269,6 +271,8 @@ class LspAnalysisServer {
         uris: uris,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       ),
       DartMigrateResult.fromJson,
     );
@@ -402,17 +406,27 @@ class LspAnalysisServer {
     var response = await _sendRequest(method, params);
 
     if (response.error case var error?) {
-      throw _RequestError(error);
+      throw LspRequestError(error);
     }
 
     return converter(response.result as R);
   }
+
+  Future<DartGetWorkspaceFixesResult> getFixes(List<String> codes) async {
+    return _expectSuccessfulResponse(
+      CustomMethods.getWorkspaceFixes,
+      DartGetWorkspaceFixesParams(
+        diagnosticCodes: codes.isEmpty ? null : codes,
+      ),
+      DartGetWorkspaceFixesResult.fromJson,
+    );
+  }
 }
 
-class _RequestError implements Exception {
+class LspRequestError implements Exception {
   final ResponseError error;
 
-  _RequestError(this.error);
+  LspRequestError(this.error);
 
   @override
   String toString() => 'LspException: ${error.code}: ${error.message}';

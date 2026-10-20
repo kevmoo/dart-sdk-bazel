@@ -40,10 +40,8 @@ import 'token.dart' as analyzer show StringToken;
 import 'token_constants.dart';
 import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
-typedef void LanguageVersionChanged(
-  Scanner scanner,
-  LanguageVersionToken languageVersion,
-);
+typedef LanguageVersionChanged =
+    void Function(Scanner scanner, LanguageVersionToken languageVersion);
 
 abstract class AbstractScanner implements Scanner {
   /**
@@ -130,7 +128,7 @@ abstract class AbstractScanner implements Scanner {
   int recoveryCount = 0;
   final bool allowLazyStrings;
 
-  AbstractScanner(
+  new(
     ScannerConfiguration? config,
     bool includeComments,
     LanguageVersionChanged? languageVersionChanged, {
@@ -145,7 +143,7 @@ abstract class AbstractScanner implements Scanner {
          allowLazyStrings: allowLazyStrings,
        );
 
-  AbstractScanner._(
+  new _(
     ScannerConfiguration? config,
     this.includeComments,
     this.languageVersionChanged,
@@ -162,13 +160,11 @@ abstract class AbstractScanner implements Scanner {
 
   AbstractScanner createRecoveryOptionScanner();
 
-  AbstractScanner.recoveryOptionScanner(AbstractScanner copyFrom)
+  new recoveryOptionScanner(AbstractScanner copyFrom)
     : this._recoveryOptionScanner(copyFrom, new Token.eof(/* offset = */ -1));
 
-  AbstractScanner._recoveryOptionScanner(
-    AbstractScanner copyFrom,
-    Token newEofToken,
-  ) : lineStarts = new LineStarts(
+  new _recoveryOptionScanner(AbstractScanner copyFrom, Token newEofToken)
+    : lineStarts = new LineStarts(
         /*numberOfBytesHint - fake number, but doesn't really matter */ 1000,
       ),
       includeComments = false,
@@ -2545,8 +2541,7 @@ class LineStarts extends Object with ListMixin<int> {
   List<int> array;
   int arrayLength = 0;
 
-  LineStarts(int numberOfBytesHint)
-    : array = _createInitialArray(numberOfBytesHint) {
+  new(int numberOfBytesHint) : array = _createInitialArray(numberOfBytesHint) {
     // The first line starts at character offset 0.
     add(/* value = */ 0);
   }
@@ -2658,7 +2653,7 @@ class ScannerConfiguration {
   /// Experimental flag for enabling 'augment' as a built-in identifier.
   final bool enableAugmentations;
 
-  const ScannerConfiguration({
+  const new({
     required this.enableTripleShift,
     required this.enableAugmentations,
   });

@@ -2638,7 +2638,6 @@
   ],
   "test/annotations/annotations_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_backend/annotations.dart",
@@ -2710,7 +2709,6 @@
   ],
   "test/codegen/codegen_test_helper.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_model/element_map.dart",
@@ -2858,7 +2856,6 @@
   ],
   "test/codegen/model_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/common/codegen.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
@@ -3011,6 +3008,11 @@
   ],
   "test/codegen/unused_empty_map_test.dart": [
     "lib/compiler_api.dart",
+    "lib/src/util/memory_compiler.dart"
+  ],
+  "test/codegen/uri_windows_check_test.dart": [
+    "lib/compiler_api.dart",
+    "lib/src/commandline_options.dart",
     "lib/src/util/memory_compiler.dart"
   ],
   "test/codegen/use_checks_test.dart": [
@@ -3844,7 +3846,6 @@
   ],
   "test/equivalence/id_testing_test.dart": [
     "lib/src/compiler.dart",
-    "lib/src/diagnostics/diagnostic_listener.dart",
     "lib/src/elements/entities.dart",
     "lib/src/kernel/element_map.dart",
     "lib/src/kernel/kernel_strategy.dart",
@@ -3991,7 +3992,6 @@
   ],
   "test/inference/callers_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/inferrer/type_graph_inferrer.dart",
@@ -4020,7 +4020,6 @@
   ],
   "test/inference/inference_data_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_backend/inferred_data.dart",
@@ -4031,7 +4030,6 @@
   ],
   "test/inference/inference_test_helper.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/inferrer/abstract_value_domain.dart",
@@ -4096,7 +4094,6 @@
   ],
   "test/inference/side_effects_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_backend/inferred_data.dart",
@@ -4155,7 +4152,6 @@
   ],
   "test/inlining/inlining_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_model/element_map.dart",
@@ -4206,6 +4202,7 @@
     "lib/src/js/placeholder_safety.dart"
   ],
   "test/js/js_size_estimator_test.dart": [
+    "lib/src/common/codegen.dart",
     "lib/src/js/js.dart",
     "lib/src/js/size_estimator.dart",
     "test/js/debug_size_estimator.dart"
@@ -4231,6 +4228,10 @@
   "test/jsinterop/declaration_test.dart": [
     "lib/src/commandline_options.dart",
     "lib/src/common.dart",
+    "lib/src/util/memory_compiler.dart"
+  ],
+  "test/jsinterop/deprecated_js_interop_disabled_test.dart": [
+    "lib/src/commandline_options.dart",
     "lib/src/util/memory_compiler.dart"
   ],
   "test/jsinterop/internal_annotations_test.dart": [
@@ -4321,7 +4322,6 @@
   "test/model/cfe_constant_test.dart": [
     "lib/src/commandline_options.dart",
     "lib/src/compiler.dart",
-    "lib/src/diagnostics/diagnostic_listener.dart",
     "lib/src/elements/entities.dart",
     "lib/src/kernel/element_map.dart",
     "lib/src/kernel/kernel_strategy.dart",
@@ -4487,7 +4487,6 @@
   ],
   "test/optimization/optimization_test.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_model/element_map.dart",
@@ -4883,7 +4882,6 @@
   ],
   "test/rti/rti_emission_test_helper.dart": [
     "lib/src/closure.dart",
-    "lib/src/common.dart",
     "lib/src/compiler.dart",
     "lib/src/elements/entities.dart",
     "lib/src/js_backend/runtime_types.dart",
@@ -5098,8 +5096,11 @@
   "test/sourcemaps/source_mapping_operators_test.dart": [
     "test/sourcemaps/tools/source_mapping_tester.dart"
   ],
-  "test/sourcemaps/source_mapping_test.dart": [
+  "test/sourcemaps/source_mapping_others_test.dart": [
     "test/sourcemaps/helpers/sourcemap_helper.dart",
+    "test/sourcemaps/tools/source_mapping_tester.dart"
+  ],
+  "test/sourcemaps/source_mapping_test.dart": [
     "test/sourcemaps/tools/source_mapping_tester.dart"
   ],
   "test/sourcemaps/stacktrace_test.dart": [

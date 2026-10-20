@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
+class AddNullCheckReplaceWithNullAwareTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -47,7 +48,7 @@ void f(List<int>? l) {
 void f(List<int>? l) {
   l![0] + 1;
 }
-''', matchFixMessage: "Replace '?' with '!' in invocation");
+''', fixMessageContains: "Replace '?' with '!' in invocation");
   }
 
   Future<void> test_indexExpression_notLast() async {
@@ -132,7 +133,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest {
+class AddNullCheckTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 
@@ -310,6 +311,19 @@ class C {
 int f(C c) => c.func!();
 class C {
   int Function()? get func => null;
+}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(List<int> l, int? y) {
+  l[0] = y;
+}
+''');
+    await assertHasFix('''
+void f(List<int> l, int? y) {
+  l[0] = y!;
 }
 ''');
   }
@@ -674,7 +688,7 @@ Iterable<String> f(List<String>? args) sync* {
 }
 
 @reflectiveTest
-class CastNullableToNonNullableTest extends FixProcessorLintTest {
+class CastNullableToNonNullableTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 

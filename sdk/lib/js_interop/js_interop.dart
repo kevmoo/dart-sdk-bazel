@@ -36,6 +36,7 @@ library;
 
 import 'dart:_internal' show Since;
 import 'dart:_js_types';
+import 'dart:async';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
@@ -245,7 +246,17 @@ external JSObjectType _createObjectLiteral();
 /// JavaScript side.
 @JS('Function')
 extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
-    implements JSObject, JSFunctionType {}
+    implements JSObject, JSFunctionType {
+  /// The number of arguments declared for this function.
+  @Since('3.14')
+  external int get length;
+
+  /// The name used when declaring this function.
+  ///
+  /// Anonymous functions' names are empty strings.
+  @Since('3.14')
+  external String get name;
+}
 
 /// A JavaScript function created from a Dart function.
 ///
@@ -516,6 +527,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
   @Since('3.6')
   external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from an
+  /// JavaScript asynchronous iterable or array-like object that may contain
+  /// JavaScript promises.
+  @Since('3.14')
+  external static JSPromise<JSArray<T>> fromAsync<T extends JSAny>(
+    JSObject arrayLike,
+  );
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;
@@ -557,6 +576,26 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
+
+  /// Returns a promise that resolves to [value].
+  ///
+  /// Throws an [ArgumentError] if [value] is already a [JSPromise].
+  @Since('3.14')
+  static JSPromise<T> resolve<T extends JSAny?>(T value) =>
+      value.isA<JSPromise>()
+      ? throw ArgumentError.value(
+          value,
+          'value',
+          'JSPromise passed to JSPromise.resolve()',
+        )
+      : _resolve<T>(value);
+
+  @JS('resolve')
+  external static JSPromise<T> _resolve<T extends JSAny?>(T value);
+
+  /// Returns a promise that rejects with [reason].
+  @Since('3.14')
+  external static JSPromise<Null> reject(JSAny reason);
 }
 
 /// Exception for when a [JSPromise] that is converted via
@@ -1239,6 +1278,41 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
   external JSExportedDartFunction<T> get toJSCaptureThis;
 }
 
+/// Conversion from [Function] to a [JSFunction] that takes any number of
+/// arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes all of its
+  /// arguments as a [List] to this function.
+  ///
+  /// This is less efficient than [FunctionToJSExportedDartFunction.toJS], and
+  /// should only be used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs;
+}
+
+/// Conversion from [Function] to a [JSFunction] that takes the `this` value
+/// along with any number of arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes the `this` value
+  /// along with all of its arguments as a [List] to this function.
+  ///
+  /// This is less efficient than
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis], and should only be
+  /// used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs;
+}
+
 /// Conversions from [JSBoxedDartObject] to [Object].
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   /// The Dart [Object] that this [JSBoxedDartObject] wrapped.
@@ -1309,6 +1383,17 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   external Future<T> get toDart;
 }
 
+/// Conversions from [JSAny] to [FutureOr].
+@Since('3.14')
+extension JSAnyToFutureOr on JSAny? {
+  /// If this is a [JSPromise], returns it as a [Future].
+  ///
+  /// Otherwise, returns it as-is.
+  FutureOr<JSAny?> get toDartFutureOr => (this?.isA<JSPromise>() ?? false)
+      ? (this as JSPromise<JSAny?>).toDart
+      : this;
+}
+
 JSAny _convertError(Object error, StackTrace stackTrace) {
   if (error.isA<JSAny>()) return error as JSAny;
   final errorConstructor = globalContext['Error'] as JSFunction;
@@ -1373,6 +1458,32 @@ extension FutureOfVoidToJSPromise on Future<void> {
       }.toJS,
     );
   }
+}
+
+/// Conversions from [FutureOr] with a nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToNullableJSAny<T extends JSAny?> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny? get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny?,
+  };
+}
+
+/// Conversions from [FutureOr] with a non-nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny,
+  };
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].

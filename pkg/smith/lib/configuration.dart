@@ -124,6 +124,12 @@ class Configuration {
       words.remove("vm");
       words.add("dart_precompiled");
     }
+    // "vm-dyn" -> "vm-dart2bytecode"
+    // "vm-aot-dyn" -> "dart_precompiled-aot-dart2bytecode"
+    if (words.contains("dyn")) {
+      words.remove("dyn");
+      words.add("dart2bytecode");
+    }
     var optionsCopy = Map.of(optionsJson);
 
     // Apply overrides from the global environment variable.
@@ -939,6 +945,7 @@ enum Compiler {
   ),
   appJitk._('app_jitk', supportedRuntimes: [Runtime.vm]),
   dartk._('dartk', supportedRuntimes: [Runtime.vm]),
+  dartResident._('dart_resident', supportedRuntimes: [Runtime.vm]),
   dartkp._('dartkp', supportedRuntimes: [Runtime.dartPrecompiled]),
   specParser._('spec_parser'),
   fasta._('fasta', defaultMode: Mode.release),
