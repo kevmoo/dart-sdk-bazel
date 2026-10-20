@@ -18,5 +18,3 @@ export 'src/stdio_process.dart' show StdioProcess;
 export 'src/run.dart' show run, runMe;
 
 export 'src/expectation.dart' show Expectation, ExpectationSet;
-
-export 'src/runfiles.dart' show resolveTestResource;

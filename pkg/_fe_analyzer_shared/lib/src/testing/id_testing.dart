@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:testing/testing.dart' as testing;
+
 import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
 import '../util/colors.dart' as colors;
 import '../util/options.dart';
+
+export 'runfiles.dart' show resolveTestResource;
 
 const String cfeMarker = 'cfe';
 const String dart2jsMarker = 'dart2js';
@@ -1080,9 +1082,8 @@ Future<void> runTests<T>(
             annotations,
           );
           Uri fileUri = testToFileUri[uri]!;
-          new File.fromUri(
-            fileUri,
-          ).writeAsStringSync(postProcessFile(generated.toText()));
+          new File.fromUri(fileUri)
+              .writeAsStringSync(postProcessFile(generated.toText()));
           print('Generated annotations for ${fileUri}');
         });
       } else {
@@ -1225,7 +1226,3 @@ Future<void> updateAllTests(List<String> relativeTestPaths) async {
     await process.exitCode;
   }
 }
-
-/// Encapsulates dual-mode test resource resolution.
-Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) =>
-    testing.resolveTestResource(runfilesPath, baseUri: baseUri);
