@@ -13,6 +13,7 @@
 !clang.tar.gz.sha1
 !unittest.tar.gz.sha1
 !update.sh
+!fallback_root_certificates
 
 # Perfetto source is in subdirectory.
 !perfetto

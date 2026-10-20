@@ -120,9 +120,6 @@ pkg/dart2wasm/test/wasm_read_write_test.dart
 pkg/dart2wasm/tool/compile_benchmark
 pkg/_fe_analyzer_shared/lib/src/testing/id_testing.dart
 pkg/_fe_analyzer_shared/pubspec.yaml
-pkg/front_end/lib/src/kernel/assigned_variables_impl.dart
-pkg/front_end/parser_testcases/general/directives_11.dart
-pkg/front_end/testcases/closure_context_lowering/constructor_initializers.dart
 pkg/front_end/test/id_tests/assigned_variables_test.dart
 pkg/front_end/test/id_tests/constant_test.dart
 pkg/front_end/test/id_tests/definite_assignment_test.dart
@@ -147,7 +144,6 @@ pkg/test_runner/bin/BUILD.bazel
 pkg/test_runner/bin/run_ddc_test.dart
 pkg/test_runner/bin/run_single_test.dart
 pkg/test_runner/bin/test_runner.dart
-pkg/test_runner/lib/src/android.dart
 pkg/test_runner/lib/src/build_configurations.dart
 pkg/test_runner/lib/src/co19_test_config.dart
 pkg/test_runner/lib/src/compiler_configuration.dart
@@ -185,7 +181,6 @@ runtime/lib/gen_targets.bzl
 runtime/platform/assert.h
 runtime/platform/BUILD.bazel
 runtime/runtime_args.gni
-runtime/tests/concurrency/generate_stress_test_list.dart
 runtime/tools/BUILD.bazel
 runtime/tools/dartfuzz/BUILD.bazel
 runtime/tools/dartfuzz/flag_fuzzer.dart
@@ -227,7 +222,6 @@ third_party/binaryen/BUILD.bazel
 third_party/boringssl/BUILD.bazel
 third_party/d8/BUILD.bazel
 third_party/double-conversion/src/BUILD.bazel
-third_party/.gitignore
 third_party/perfetto/BUILD.bazel
 third_party/perfetto/BUILD.gn
 third_party/perfetto/perfetto_build_flags.h
@@ -243,7 +237,6 @@ tools/setup_worktree_links.dart
 tools/test.py
 tools/test_wrapper_test.py
 tools/utils.py
-tools/VERSION
 utils/analysis_server/BUILD.bazel
 utils/bazel/BUILD.bazel
 utils/BUILD.bazel
