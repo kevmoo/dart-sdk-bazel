@@ -245,11 +245,13 @@ def main():
             dep_key = "sdk/" + repo
             clone_repo(os.path.join(dest_root, repo), deps[dep_key])
 
-        # Create sentinel file to signal successful clone to Bzlmod
+        # Create sentinel file to signal successful clone to Bzlmod without
+        # mutating mtime when already present.
         sentinel_path = os.path.join(dest_root, 'third_party', 'pkg', '.cloned_sentinel')
-        os.makedirs(os.path.dirname(sentinel_path), exist_ok=True)
-        with open(sentinel_path, 'w') as f:
-            f.write('cloned')
+        if not os.path.exists(sentinel_path):
+            os.makedirs(os.path.dirname(sentinel_path), exist_ok=True)
+            with open(sentinel_path, 'w') as f:
+                f.write('cloned')
     finally:
         try:
             os.remove(os.path.join(lock_dir, 'pid'))
