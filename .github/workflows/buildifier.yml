@@ -15,8 +15,10 @@ jobs:
 
       - name: Setup Buildifier
         run: |
-          sudo curl -L https://github.com/bazelbuild/buildtools/releases/download/v8.2.1/buildifier-linux-amd64 -o /usr/local/bin/buildifier
-          sudo chmod +x /usr/local/bin/buildifier
+          curl -fsSL https://github.com/bazelbuild/buildtools/releases/download/v8.2.1/buildifier-linux-amd64 -o /tmp/buildifier
+          echo "6ceb7b0ab7cf66fceccc56a027d21d9cc557a7f34af37d2101edb56b92fcfa1a  /tmp/buildifier" | sha256sum -c -
+          sudo install -m 0755 /tmp/buildifier /usr/local/bin/buildifier
+          rm -f /tmp/buildifier
 
       - name: Run Buildifier
         run: |

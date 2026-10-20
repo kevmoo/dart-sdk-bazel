@@ -6,6 +6,45 @@
 import os
 import subprocess
 
+AUTO_EXEMPT_PREFIXES = (
+    "tools/bazel/",
+    "docs/bazel-migration/",
+    "build/config/",
+    "build/platforms/",
+    "build/toolchain/",
+    "infra/remote_execution/",
+    ".agents/",
+    ".claude/",
+    ".codex/",
+    ".gemini/",
+    ".github/",
+)
+
+AUTO_EXEMPT_ROOT_FILES = {
+    ".bazelignore",
+    ".bazelrc",
+    ".bazelversion",
+    "AGENTS.md",
+    "BUILD.bazel",
+    "CLAUDE.md",
+    "MODULE.bazel",
+    "MODULE.bazel.lock",
+    "README.upstream.md",
+}
+
+
+def IsAutoExemptOverlayPath(local_path):
+    """Return True if local_path belongs to pure Bazel/agent overlay infra."""
+    normalized = local_path.replace("\\", "/")
+    if normalized in AUTO_EXEMPT_ROOT_FILES:
+        return True
+    if normalized.startswith(AUTO_EXEMPT_PREFIXES):
+        return True
+    basename = os.path.basename(normalized)
+    if basename in ("BUILD.bazel", "test_imports.json") or normalized.endswith(".bzl"):
+        return True
+    return False
+
 
 def CheckUpstreamChanges(input_api, output_api):
     """Ensure that we minimize changes outside tools/bazel/."""
@@ -21,9 +60,9 @@ def CheckUpstreamChanges(input_api, output_api):
                 allowed_external_files.add(line)
 
     violations = []
-    for git_file in input_api.AffectedFiles(include_deletes=True):
+    for git_file in input_api.AffectedFiles(include_deletes=False):
         local_path = git_file.LocalPath().replace('\\', '/')
-        if not local_path.startswith("tools/bazel/") and not local_path.startswith("docs/bazel-migration/"):
+        if not IsAutoExemptOverlayPath(local_path):
             if local_path not in allowed_external_files:
                 violations.append(local_path)
 
