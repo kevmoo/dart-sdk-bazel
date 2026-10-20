@@ -4,6 +4,8 @@
 
 """Bzlmod module extensions for staging external third-party dependencies non-invasively."""
 
+load("//tools/bazel:deps_hashes.bzl", "DEPS_SHA256")
+
 def _symlink_local(repository_ctx, src_dir, dest_dir, prefix):
     # Define a python script to recursively symlink the local directory,
     # supporting an optional subdirectory prefix, and skipping conflicting build files.
@@ -88,17 +90,30 @@ def _backoff_sleep(repository_ctx, attempt, multiplier = 5):
     if res.return_code != 0:
         repository_ctx.execute(["python", "-c", "import time; time.sleep(" + backoff_sec + ")"])
 
+def _resolve_tarball_source(url, commit):
+    clean = url[:-4] if url.endswith(".git") else url
+    if clean.startswith("https://github.com/") or clean.startswith("http://github.com/"):
+        repo_name = clean.rsplit("/", 1)[-1]
+        return clean + "/archive/" + commit + ".tar.gz", repo_name + "-" + commit
+    if "/external/github.com/" in clean:
+        gh_path = clean.split("/external/github.com/", 1)[1]
+        repo_name = gh_path.rsplit("/", 1)[-1]
+        return "https://github.com/" + gh_path + "/archive/" + commit + ".tar.gz", repo_name + "-" + commit
+    if clean == "https://boringssl.googlesource.com/boringssl":
+        return "https://github.com/google/boringssl/archive/" + commit + ".tar.gz", "boringssl-" + commit
+    return clean + "/+archive/" + commit + ".tar.gz", ""
+
 def _fetch_git_or_tarball(repository_ctx, url, commit, output_dir):
-    if url.startswith("https://github.com") or url.startswith("http://github.com"):
-        tarball_url = url + "/archive/" + commit + ".tar.gz"
-    else:
-        tarball_url = url + "/+archive/" + commit + ".tar.gz"
+    tarball_url, strip_prefix = _resolve_tarball_source(url, commit)
+    expected_sha256 = DEPS_SHA256.get(tarball_url, "")
 
     for i in range(4):
         res = repository_ctx.download_and_extract(
             url = tarball_url,
             output = output_dir,
             type = "tar.gz",
+            strip_prefix = strip_prefix,
+            sha256 = expected_sha256,
             allow_fail = True,
         )
         if res.success:
@@ -120,10 +135,12 @@ def _fetch_git_or_tarball(repository_ctx, url, commit, output_dir):
     repository_ctx.delete(repository_ctx.path(output_dir).get_child(".git"))
 
 def _retry_download(repository_ctx, url, output):
+    expected_sha256 = DEPS_SHA256.get(url, "")
     for i in range(5):
         res = repository_ctx.download(
             url = url,
             output = output,
+            sha256 = expected_sha256,
             allow_fail = True,
         )
         if res.success:
@@ -134,12 +151,14 @@ def _retry_download(repository_ctx, url, output):
     fail("Failed to download {} after 5 attempts".format(url))
 
 def _retry_download_and_extract(repository_ctx, url, output, type, strip_prefix = ""):
+    expected_sha256 = DEPS_SHA256.get(url, "")
     for i in range(5):
         res = repository_ctx.download_and_extract(
             url = url,
             output = output,
             type = type,
             strip_prefix = strip_prefix,
+            sha256 = expected_sha256,
             allow_fail = True,
         )
         if res.success:

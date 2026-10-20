@@ -130,6 +130,11 @@ PY
   fi
 fi
 
+step "DEPS SHA-256 lockfile parity"
+if ! python3 tools/bazel/sync_deps_hashes.py --check; then
+  fail "DEPS SHA-256 lockfile check (run: python3 tools/bazel/sync_deps_hashes.py --update)"
+fi
+
 step "Starlark copy audit"
 starlark_cp_matches=$(git grep -n -E "(ctx|repository_ctx)\.execute *\(.*['\" ]cp['\" ]" -- '*.bzl' 2>/dev/null | grep -v '^third_party/' | grep -v '# exempt-starlark-copy: ok' || true)
 if [ -n "$starlark_cp_matches" ]; then
