@@ -74,14 +74,12 @@ runtime/include/BUILD.gn
 runtime/lib/BUILD.gn
 runtime/lib/core_sources.gni
 runtime/lib/ffi_sources.gni
-runtime/platform/assert.h
 runtime/runtime_args.gni
 runtime/tools/dartfuzz/flag_fuzzer.dart
 runtime/tools/dartfuzz/flag_fuzzer_dart2js.dart
 runtime/tools/dartfuzz/flag_fuzzer_dart2wasm.dart
 runtime/vm/BUILD.gn
 runtime/vm/compiler/backend/il_test_helper.cc
-runtime/vm/compiler/frontend/kernel_translation_helper.cc
 runtime/vm/dart_api_impl_test.cc
 runtime/vm/unit_test.cc
 runtime/vm/unit_test.h
