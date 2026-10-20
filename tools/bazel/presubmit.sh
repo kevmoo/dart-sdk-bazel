@@ -31,6 +31,11 @@ if [ "${CI:-}" != "true" ] && [ "${BAZEL_USE_SHM:-0}" = "1" ] && [ -w /dev/shm ]
   BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
 fi
 
+BAZEL_CONFIG_ARGS=("--config=cloudtop-safe")
+if [ "${CI:-}" = "true" ]; then
+  BAZEL_CONFIG_ARGS=("--config=ci")
+fi
+
 step() {
   echo
   echo "=== $1 ==="
@@ -168,8 +173,8 @@ if [ -n "$concat_matches" ]; then
 fi
 
 step "starlark & wrapper unit tests"
-if ! bazel "${BAZEL_STARTUP_ARGS[@]}" test --config=cloudtop-safe //tools/bazel/...; then
-  fail "bazel test --config=cloudtop-safe //tools/bazel/..."
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" test "${BAZEL_CONFIG_ARGS[@]}" //tools/bazel/...; then
+  fail "bazel test ${BAZEL_CONFIG_ARGS[*]} //tools/bazel/..."
 fi
 if ! python3 tools/test_wrapper_test.py; then
   fail "python3 tools/test_wrapper_test.py"
@@ -195,7 +200,7 @@ if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py
 fi
 
 step "bazel analysis (--nobuild) of flagship targets"
-if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build --config=cloudtop-safe --nobuild \
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build "${BAZEL_CONFIG_ARGS[@]}" --nobuild \
   //sdk:create_sdk \
   //runtime/bin:dartvm \
   //utils:gen_kernel_exe \
