@@ -9,6 +9,8 @@ The repository_rule symlinks the in-tree clang dir into the repo overlay and
 generates a BUILD.bazel exposing the binaries as a filegroup.
 """
 
+load("@//tools/bazel:deps_hashes.bzl", "DEPS_SHA256")
+
 _BUILD_FILE = """
 package(default_visibility = ["//visibility:public"])
 
@@ -19,6 +21,9 @@ filegroup(
 """
 
 def _dart_linux_clang_impl(repo_ctx):
+    deps_file = repo_ctx.path(Label("@//:DEPS"))
+    repo_ctx.read(deps_file)
+
     # repo_ctx.workspace_root is the main repo root in Bazel 7+.
     src = repo_ctx.workspace_root.get_child("buildtools").get_child(
         "linux-x64",
@@ -38,7 +43,6 @@ def _dart_linux_clang_impl(repo_ctx):
         CLANG_ROOT_REAL_VAL = "external/{}".format(repo_ctx.name)
     else:
         # Fetch dynamically!
-        deps_file = repo_ctx.path(Label("@//:DEPS"))
         parse_script = repo_ctx.path(Label("@//tools/bazel:parse_deps.py"))
 
         res = repo_ctx.execute([
@@ -61,6 +65,7 @@ def _dart_linux_clang_impl(repo_ctx):
             url = url,
             output = ".",
             type = "zip",
+            sha256 = DEPS_SHA256.get(url, ""),
         )
         CLANG_BIN_VAL = "external/{}/bin".format(repo_ctx.name)
 
@@ -83,6 +88,9 @@ filegroup(
 """
 
 def _dart_linux_sysroot_impl(repo_ctx):
+    deps_file = repo_ctx.path(Label("@//:DEPS"))
+    repo_ctx.read(deps_file)
+
     src = repo_ctx.workspace_root.get_child("buildtools").get_child("sysroot").get_child("linux")
     use_local = src.exists
 
@@ -120,7 +128,6 @@ for root, dirs, files in os.walk(src, followlinks=True):
         SYSROOT_ROOT_VAL = "external/{}".format(repo_ctx.name)
     else:
         # Fetch dynamically!
-        deps_file = repo_ctx.path(Label("@//:DEPS"))
         parse_script = repo_ctx.path(Label("@//tools/bazel:parse_deps.py"))
 
         res = repo_ctx.execute([
@@ -142,6 +149,7 @@ for root, dirs, files in os.walk(src, followlinks=True):
             url = url,
             output = ".",
             type = "zip",
+            sha256 = DEPS_SHA256.get(url, ""),
         )
 
         # Use relative paths under external repository to ensure sandbox safety

@@ -4,8 +4,7 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -13,7 +12,7 @@ class ConstructorInitializerResolver {
   final Linker _linker;
   final LibraryBuilder _libraryBuilder;
 
-  ConstructorInitializerResolver(this._linker, this._libraryBuilder);
+  new(this._linker, this._libraryBuilder);
 
   void resolve() {
     var libraryElement = _libraryBuilder.element;
@@ -43,36 +42,14 @@ class ConstructorInitializerResolver {
         case ConstructorDeclarationImpl():
           var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-
-          var localElementsVisitor = ElementBindingVisitor(
-            fragment.libraryFragment,
-          );
-          for (var initializer in node.initializers) {
-            localElementsVisitor.bindSubtree(
-              fragment as FragmentImpl,
-              initializer,
-            );
-          }
-          if (node.factoryRedirectionTarget
-              case var factoryRedirectionTarget?) {
-            localElementsVisitor.bindSubtree(
-              fragment as FragmentImpl,
-              factoryRedirectionTarget,
-            );
-          }
-
-          var astResolver = AstResolver(
-            _linker,
-            fragment.libraryFragment,
-            initializerScope,
-            analysisOptions,
+          var astResolver = AstResolver.forLinking(
+            inheritance: _linker.inheritance,
+            libraryFragment: fragment.libraryFragment,
+            nameScope: initializerScope,
+            analysisOptions: analysisOptions,
             enclosingClassElement: interfaceElement,
             enclosingExecutableElement: element,
           );
-
-          var body = node.body;
-          body.localVariableInfo = LocalVariableInfo();
-
           astResolver.resolveConstructorDeclaration(node);
 
           if (node.factoryKeyword != null) {
@@ -89,11 +66,11 @@ class ConstructorInitializerResolver {
           if (node.body case var body?) {
             var initializerScope = body.formalParameterInitializerScope!;
             var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-            var astResolver = AstResolver(
-              _linker,
-              fragment.libraryFragment,
-              initializerScope,
-              analysisOptions,
+            var astResolver = AstResolver.forLinking(
+              inheritance: _linker.inheritance,
+              libraryFragment: fragment.libraryFragment,
+              nameScope: initializerScope,
+              analysisOptions: analysisOptions,
               enclosingClassElement: interfaceElement,
               enclosingExecutableElement: element,
             );

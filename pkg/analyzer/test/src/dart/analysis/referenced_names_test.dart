@@ -35,6 +35,26 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadeName_lexicalShadowing() {
+    var names = _computeReferencedNames('''
+f(A a, m, p) {
+  a..m(m)..p;
+}
+''');
+    expect(names, unorderedEquals(['A', 'm', 'p']));
+  }
+
+  test_cascadePropertyAssignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..foo = 0;
+  a..bar += 1;
+  a..baz ??= 2;
+}
+''');
+    expect(names, unorderedEquals(['A', 'foo', 'bar', '+', 'baz']));
+  }
+
   test_class_constructor() {
     var names = _computeReferencedNames('''
 class U {
@@ -245,6 +265,18 @@ class U<T> {
     expect(names, unorderedEquals(['A']));
   }
 
+  test_combinatorName() {
+    var names = _computeReferencedNames('''
+import 'a.dart' show A hide B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+export 'b.dart' show C hide D;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_extensionType_typeParameters() {
     var names = _computeReferencedNames('''
 extension type Z<T>(int it) {
@@ -432,6 +464,15 @@ A f(B b) {}
     expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
   }
 
+  test_unit_function_doc_prefixed() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+/// [p.C.d]
+A f(B b) {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
+  }
+
   test_unit_function_dontHideQualified() {
     var names = _computeReferencedNames('''
 class U {
@@ -574,6 +615,15 @@ A get aaa {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_unit_getter_recoveryFormalParameters() {
+    var names = _computeReferencedNames('''
+A get aaa(B b) => b;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
+    expect(names, unorderedEquals(['A', 'B']));
+  }
+
   test_unit_setter() {
     var names = _computeReferencedNames('''
 set aaa(A a) {
@@ -581,6 +631,15 @@ set aaa(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B']));
+  }
+
+  test_unit_setter_parameter() {
+    var names = _computeReferencedNames('''
+set aaa(A a) {
+  a;
+}
+''');
+    expect(names, unorderedEquals(['A']));
   }
 
   test_unit_topLevelDeclarations() {

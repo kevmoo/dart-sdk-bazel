@@ -136,6 +136,23 @@ const Set<Register> allRegisters = {
   ZR,
 };
 
+/// Argument registers according to C ABI.
+const List<Register> abiArgumentRegisters = [R0, R1, R2, R3, R4, R5, R6, R7];
+
+/// Registers preserved by a call according to C ABI.
+const List<Register> abiPreservedRegisters = [
+  R19,
+  R20,
+  R21,
+  R22,
+  R23,
+  R24,
+  R25,
+  R26,
+  R27,
+  R28,
+];
+
 const Set<Register> reservedRegisters = {
   stackPointerReg,
   tempReg,
@@ -786,7 +803,25 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
 
   @override
   void callLeafRuntime(LeafRuntimeEntry entry) {
-    unimplemented("callLeafRuntime $entry");
+    final savedSP = abiPreservedRegisters.first;
+    mov(savedSP, SP);
+    mov(SP, stackPointerReg);
+
+    ldr(
+      LR,
+      address(
+        threadReg,
+        vmOffsets.Thread_leaf_runtime_entry_offset(entry, wordSize),
+      ),
+    );
+    str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
+
+    blr(LR);
+
+    loadImmediate(LR, vmOffsets.VMTag_kDartTagId);
+    str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
+
+    mov(SP, savedSP);
   }
 
   @override
@@ -817,6 +852,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadConstant(R0, ConstantValue.fromString(message));
     push(R0);
     callRuntime(RuntimeEntry.FatalError, 1);
+    breakpoint();
   }
 
   @override
@@ -969,7 +1005,23 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
-  void loadClassId(Register result, Register object) {
+  void loadClassId(
+    Register result,
+    Register object, {
+    required bool canBeSmi,
+    bool asTagged = false,
+    Register scratch = temp2Reg,
+  }) {
+    final done = Label();
+    if (canBeSmi) {
+      if (result == object) {
+        // Use another register to avoid clobbering [object].
+        mov(scratch, object);
+        object = scratch;
+      }
+      loadImmediate(result, ClassId.SmiCid.index << (asTagged ? smiShift : 0));
+      branchIfSmi(object, done);
+    }
     ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
     ubfx(
       result,
@@ -977,15 +1029,9 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
-  }
-
-  @override
-  void loadClassIdMayBeSmi(Register result, Register object) {
-    assert(result != object);
-    final done = Label();
-    loadImmediate(result, ClassId.SmiCid.index);
-    branchIfSmi(object, done);
-    loadClassId(result, object);
+    if (asTagged) {
+      smiTag(result);
+    }
     bind(done);
   }
 
@@ -1003,6 +1049,42 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(result, vmOffsets.IsolateGroup_cached_class_table_table_offset),
     );
     ldr(result, RegExtRegAddress(result, classId, Extend.UXTX, scaled: true));
+  }
+
+  /// Load array element from `[base + index*elemSize + offset]`.
+  @override
+  void loadIndexed(
+    Register result,
+    Register base,
+    Register index,
+    int offset, [
+    OperandSize elemSize = .s64,
+  ]) {
+    if (offset == 0) {
+      ldr(result, RegExtRegAddress(base, index, .UXTX, scaled: true), elemSize);
+    } else {
+      add(
+        result,
+        base,
+        ShiftedRegOperand(index, .LSL, elemSize.log2sizeInBytes),
+      );
+      ldr(result, address(result, offset), elemSize);
+    }
+  }
+
+  void loadAcquire(
+    Register result,
+    Register base,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+    Register scratch = temp2Reg,
+  ]) {
+    if (offset != 0) {
+      addImmediate(scratch, base, offset, .s64, scratch);
+      ldar(result, scratch, sz);
+    } else {
+      ldar(result, base, sz);
+    }
   }
 
   @override
@@ -1248,6 +1330,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     madd(rd, rn, rm, ZR, sz);
   }
 
+  void msub(
+    Register rd,
+    Register rn,
+    Register rm,
+    Register ra, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitMul(B15 | B24 | B25 | B27 | B28, rd, rn, rm, ra, sz);
+  }
+
   void umulh(Register rd, Register rn, Register rm) {
     _emitMul(
       B22 | B23 | B24 | B25 | B27 | B28,
@@ -1362,6 +1454,15 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       condition,
       sz,
     );
+  }
+
+  void cneg(
+    Register rd,
+    Register rn,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csneg(rd, rn, rn, condition.inverted, sz);
   }
 
   void _emitConditionalSelect(
@@ -1574,7 +1675,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B11, rd, rn, rm, sz);
+    _emitDataProcessing2(B11 | B13, rd, rn, rm, sz);
   }
 
   void lslv(
@@ -1583,7 +1684,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(0, rd, rn, rm, sz);
+    _emitDataProcessing2(B13, rd, rn, rm, sz);
   }
 
   void lsrv(
@@ -1592,10 +1693,19 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B10, rd, rn, rm, sz);
+    _emitDataProcessing2(B10 | B13, rd, rn, rm, sz);
   }
 
-  void _emitVariableShift(
+  void sdiv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitDataProcessing2(B10 | B11, rd, rn, rm, sz);
+  }
+
+  void _emitDataProcessing2(
     int opcode,
     Register rd,
     Register rn,
@@ -1604,7 +1714,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   ) {
     assert(sz.is32or64);
     emit(
-      (B13 | B22 | B23 | B25 | B27 | B28) |
+      (B22 | B23 | B25 | B27 | B28) |
           opcode |
           rd.encodingRd() |
           rn.encodingRn() |
@@ -1991,6 +2101,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.is128 ? B23 : 0) |
               ((sz.log2sizeInBytes & 3) << 30),
         );
+      case RegExtRegAddress():
+        emit(
+          opcode |
+              rt.encodingRt |
+              a.encoding |
+              (sz.is128 ? B23 : 0) |
+              ((sz.log2sizeInBytes & 3) << 30),
+        );
       case WritebackRegOffsetAddress():
         emit(
           opcode |
@@ -2213,54 +2331,231 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
-  void fmov(FPRegister rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+  void fcvt(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    assert(srcSize.is16or32or64);
+    assert(dstSize.is16or32or64);
+    assert(srcSize.sizeInBytes != dstSize.sizeInBytes);
+    emit(
+      B14 |
+          B17 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          rd.encodingRd |
+          rn.encodingRn |
+          (dstSize.is64 ? B15 : (dstSize.is32 ? 0 : (B15 | B16))) |
+          (srcSize.is64 ? B22 : (srcSize.is32 ? 0 : (B22 | B23))),
+    );
+  }
+
+  void fcvtas(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B18, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtzs(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B19 | B20, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtms(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B20, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtps(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B19, rd, rn, srcSize, dstSize);
+  }
+
+  void _emitFPConversionToInteger(
+    int opcode,
+    Register rd,
+    FPRegister rn,
+    OperandSize srcSize,
+    OperandSize dstSize,
+  ) {
+    assert(srcSize.is16or32or64);
+    assert(dstSize.is32or64);
+    emit(
+      B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn |
+          (srcSize.is64 ? B22 : (dstSize.is32 ? 0 : (B22 | B23))) |
+          (dstSize.is64 ? B31 : 0),
+    );
+  }
+
+  void fmov(
+    PhysicalRegister rd,
+    Operand o, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
     assert(sz.is16or32or64);
-    switch (o) {
+    switch (rd) {
       case FPRegister():
-        emit(
-          B14 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              o.encodingRn |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
-        );
-        break;
+        switch (o) {
+          case FPRegister():
+            emit(
+              B14 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  o.encodingRn |
+                  (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+            );
+            break;
+          case Register():
+            assert(sz.is32or64);
+            emit(
+              B16 |
+                  B17 |
+                  B18 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  o.encodingRn() |
+                  (sz.is64 ? (B22 | B31) : 0),
+            );
+            break;
+          case Immediate():
+            emit(
+              B12 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  (o.encodingFpImm(sz) << 13) |
+                  (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+            );
+            break;
+          default:
+            throw 'Unexpect operand ${o.runtimeType}';
+        }
       case Register():
-        emit(
-          B16 |
+        switch (o) {
+          case FPRegister():
+            assert(sz.is32or64);
+            emit(
               B17 |
-              B18 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              o.encodingRn() |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))) |
-              (sz.is64 ? B31 : 0),
-        );
-        break;
-      case Immediate():
-        emit(
-          B12 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              (o.encodingFpImm(sz) << 13) |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
-        );
-        break;
+                  B18 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd() |
+                  o.encodingRn |
+                  (sz.is64 ? (B22 | B31) : 0),
+            );
+            break;
+          default:
+            throw 'Unexpect operand ${o.runtimeType}';
+        }
       default:
-        throw 'Unexpect operand ${o.runtimeType}';
+        throw 'Unexpect destination register ${rd.runtimeType}';
     }
+  }
+
+  void fabs(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B15, rd, rn, sz);
+  }
+
+  void fneg(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B16, rd, rn, sz);
+  }
+
+  void fsqrt(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B15 | B16, rd, rn, sz);
+  }
+
+  void frintp(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B15 | B18, rd, rn, sz);
+  }
+
+  void frintm(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B16 | B18, rd, rn, sz);
+  }
+
+  void frintz(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B15 | B16 | B18, rd, rn, sz);
+  }
+
+  void frinta(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B17 | B18, rd, rn, sz);
+  }
+
+  void _emitFPDataProcessing1(
+    int opcode,
+    FPRegister rd,
+    FPRegister rn,
+    OperandSize sz,
+  ) {
+    assert(sz.is16or32or64);
+    emit(
+      B14 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd |
+          rn.encodingRn |
+          (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+    );
   }
 
   void fadd(

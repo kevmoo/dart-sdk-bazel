@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show ExpressionImpl, V1Projection;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -67,7 +69,7 @@ class ElementTextConfiguration {
   bool withSyntheticDartCoreImport = false;
   bool withSyntheticGetters = true;
 
-  ElementTextConfiguration({this.filter = _filterTrue});
+  new({this.filter = _filterTrue});
 
   void forClassConstructors({Set<String> classNames = const {}}) {
     filter = (o) {
@@ -125,12 +127,11 @@ abstract class _AbstractElementWriter {
   final ElementPrinter _elementPrinter;
   final ElementTextConfiguration configuration;
 
-  _AbstractElementWriter({
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
+  new({
+    required this._sink,
+    required this._elementPrinter,
     required this.configuration,
-  }) : _sink = sink,
-       _elementPrinter = elementPrinter;
+  });
 
   IdMap get _idMap => _elementPrinter.idMap;
 
@@ -228,7 +229,7 @@ abstract class _AbstractElementWriter {
 
 /// Writes the canonical text presentation of elements.
 class _Element2Writer extends _AbstractElementWriter {
-  _Element2Writer({
+  new({
     required super.sink,
     required super.elementPrinter,
     required super.configuration,
@@ -329,6 +330,23 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {
+    expect(
+      expression.thisOrAncestorOfType2<CompilationUnit>(),
+      isNull,
+      reason: 'Element constant initializers must be detached.',
+    );
+
+    // ignore: analyzer_v1_ast_use
+    var v1 = V1Projection.toV1Expression(expression as ExpressionImpl);
+    if (!identical(v1, expression)) {
+      expect(
+        // ignore: analyzer_v1_ast_use
+        v1.thisOrAncestorOfType<CompilationUnit>(),
+        isNull,
+        reason: 'V1 projections of element initializers must be detached.',
+      );
+    }
+
     if (_idMap.existingExpressionId(expression) case var id?) {
       _sink.writelnWithIndent('$name: $id');
     } else {
@@ -454,6 +472,18 @@ class _Element2Writer extends _AbstractElementWriter {
 
       if (f.thisKeywordOffset case var thisKeywordOffset?) {
         _sink.writelnWithIndent('thisKeywordOffset: $thisKeywordOffset');
+      }
+
+      if (f.primaryHeaderCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryHeaderCodeRange: ${range.offset} + ${range.length}',
+        );
+      }
+
+      if (f.primaryBodyCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryBodyCodeRange: ${range.offset} + ${range.length}',
+        );
       }
 
       _writeFragmentList(

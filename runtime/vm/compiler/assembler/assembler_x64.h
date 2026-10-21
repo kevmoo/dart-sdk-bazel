@@ -468,6 +468,9 @@ class Assembler : public AssemblerBase {
   XX(L, pcmpeqd, 0x76, 0x0F, 0x66)
   XX(L, subpl, 0xFA, 0x0F, 0x66)
   XX(L, addpl, 0xFE, 0x0F, 0x66)
+  XX(L, pslld, 0xF2, 0x0F, 0x66)
+  XX(L, psrad, 0xE2, 0x0F, 0x66)
+  XX(L, psrld, 0xD2, 0x0F, 0x66)
 #undef XX
 #undef AX
 #undef XA
@@ -560,6 +563,7 @@ class Assembler : public AssemblerBase {
   void negatepd(XmmRegister dst, XmmRegister src);
   void abspd(XmmRegister dst, XmmRegister src);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
+  void pshufd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
@@ -1350,21 +1354,6 @@ class Assembler : public AssemblerBase {
                         Register instance,
                         Register end_address,
                         Register temp);
-
-  void CheckAllocationCanary(Register top) {
-#if defined(DEBUG)
-    Label okay;
-    cmpl(Address(top, 0), Immediate(kAllocationCanary));
-    j(EQUAL, &okay, Assembler::kNearJump);
-    Stop("Allocation canary");
-    Bind(&okay);
-#endif
-  }
-  void WriteAllocationCanary(Register top) {
-#if defined(DEBUG)
-    movl(Address(top, 0), Immediate(kAllocationCanary));
-#endif
-  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

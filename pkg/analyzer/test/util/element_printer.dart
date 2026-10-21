@@ -18,11 +18,7 @@ class ElementPrinter {
   final ElementPrinterConfiguration _configuration;
   final IdMap idMap = IdMap();
 
-  ElementPrinter({
-    required TreeStringSink sink,
-    required ElementPrinterConfiguration configuration,
-  }) : _sink = sink,
-       _configuration = configuration;
+  new({required this._sink, required this._configuration});
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
@@ -130,6 +126,11 @@ class ElementPrinter {
         _sink.writeln('Never@-1');
       case PrefixElementImpl element:
         _sink.writeln(_libraryImportPrefixElementToReferenceString(element));
+        if (_configuration.withImportPrefixScopeLibraries) {
+          _sink.withIndent(() {
+            writeElementList2('scopeLibraries', element.scopeLibraries);
+          });
+        }
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -354,7 +355,10 @@ class ElementPrinter {
       fragmentStr = '$libraryStr::@fragment::${_toPosixUriStr(fragmentUriStr)}';
     }
 
-    return '$fragmentStr::@prefix::${element.localId}';
+    var kind = element is DocImportPrefixElementImpl
+        ? '@docImportPrefix'
+        : '@prefix';
+    return '$fragmentStr::$kind::${element.localId}';
   }
 
   String _referenceToString(Reference reference) {
@@ -427,6 +431,7 @@ class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
   bool withSuperConstructors = false;
+  bool withImportPrefixScopeLibraries = false;
 }
 
 class IdMap {

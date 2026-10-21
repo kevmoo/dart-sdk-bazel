@@ -22,7 +22,7 @@ Future main() async {
       'self_compile_benchmark.opt.wasm',
     );
     final wasmFile = File(wasmFilename);
-    final optWasmFile = File(wasmFilename);
+    final optWasmFile = File(optWasmFilename);
 
     // Ensure we can print unoptimized dart2wasm modules
     await run([

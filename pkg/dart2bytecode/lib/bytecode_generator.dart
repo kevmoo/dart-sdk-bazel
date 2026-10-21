@@ -41,7 +41,7 @@ import 'generics.dart'
         isInstantiatedInterfaceCall,
         isUncheckedCall;
 import 'local_variable_table.dart' show LocalVariableTable;
-import 'local_vars.dart' show LocalVariables;
+import 'local_vars.dart' show AwaiterLink, LocalVariables;
 import 'object_table.dart'
     show
         ObjectHandle,
@@ -446,11 +446,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (nodes.isEmpty) {
       return const Annotations(null, false);
     }
-    List<Constant> constants = nodes.map(_getConstant).toList();
+    ConstantList constants = ConstantList.mapped(nodes, _getConstant);
     bool hasPragma = constants.any(_isPragma);
     if (!options.emitAnnotations) {
       if (hasPragma) {
-        constants = constants.where(_isPragma).toList();
+        constants = new ConstantList.from(constants.where(_isPragma).toList());
       } else {
         return const Annotations(null, false);
       }
@@ -484,7 +484,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       return const Annotations(null, false);
     }
 
-    List<Constant> functionConstants = annotations.map(_getConstant).toList();
+    ConstantList functionConstants = ConstantList.mapped(
+      annotations,
+      _getConstant,
+    );
     bool hasPragma = functionConstants.any(_isPragma);
     if (!options.emitAnnotations && !hasPragma) {
       return const Annotations(null, false);
@@ -497,9 +500,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     bytecodeComponent.annotations.add(functionDecl);
 
     for (final parameterNodes in parameterNodeLists) {
-      List<Constant> parameterConstants = parameterNodes
-          .map(_getConstant)
-          .toList();
+      ConstantList parameterConstants = ConstantList.mapped(
+        parameterNodes,
+        _getConstant,
+      );
       final parameterObject = objectTable.getHandle(
         new ListConstant(const DynamicType(), parameterConstants),
       )!;
@@ -1891,7 +1895,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
 
-    locals = new LocalVariables(node, options, staticTypeContext);
+    locals = new LocalVariables(node, options, staticTypeContext, coreTypes);
     locals.enterScope(node);
 
     final int startPosition;
@@ -2189,7 +2193,18 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      asm.emitFrame(locals.frameSize - locals.numParameters);
+      // Frame(rD) initializes the frame slots which are not initialized yet,
+      // so rD is the frame size minus the number of slots already covered by
+      // the entry opcode. EntryOptional copies `numParameters` parameters,
+      // but EntrySuspendable covers one more slot: it nulls the reserved
+      // SuspendState local FP[kKBCSuspendStateSlotFromFp] and then copies the
+      // parameters into locals 1..numParameters. `numParameters` doesn't
+      // account for that reserved slot, so it is subtracted separately.
+      asm.emitFrame(
+        locals.frameSize -
+            locals.numParameters -
+            (locals.isSuspendableFunction ? 1 : 0),
+      );
     } else {
       asm.emitEntry(locals.frameSize);
     }
@@ -2649,6 +2664,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     bool capturesOnlyFinalNotLateVars = locals.capturesOnlyFinalNotLateVars;
 
+    final AwaiterLink? awaiterLink = locals.awaiterLink;
+
     locals.leaveScope();
 
     assert(node.id != LocalFunctionId.invalid);
@@ -2658,6 +2675,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       finalizeSourcePositions(),
       finalizeLocalVariables(),
       finalizeRecordedCoverage(),
+      awaiterLink,
       capturesOnlyFinalNotLateVars,
       node.id.toInt(),
     );
@@ -3187,7 +3205,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.expressions.isEmpty) {
       asm.emitPushConstant(
-        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+        cp.addObjectRef(
+          new ListConstant(const DynamicType(), ConstantList.empty),
+        ),
       );
     } else {
       asm.emitDup();
@@ -3241,7 +3261,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.entries.isEmpty) {
       asm.emitPushConstant(
-        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+        cp.addObjectRef(
+          new ListConstant(const DynamicType(), ConstantList.empty),
+        ),
       );
     } else {
       _genTypeArguments([const DynamicType()]);

@@ -475,3 +475,17 @@ String localFunctionName(LocalFunction function) {
       throw 'Unexpected local function ${function.runtimeType} $function';
   }
 }
+
+InterfaceType interfaceTypeWithDefaultBounds(
+  Class cls,
+  Nullability nullability,
+) {
+  return InterfaceType(
+    cls,
+    nullability,
+    DartTypeList.mapped(
+      cls.typeParameters,
+      (p) => p.defaultType.extensionTypeErasure,
+    ),
+  );
+}

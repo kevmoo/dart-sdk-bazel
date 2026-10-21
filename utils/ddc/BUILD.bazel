@@ -58,9 +58,9 @@ dart_app_jit_snapshot(
     sources = "@dart_packages//pkg/dev_compiler",
     training_args = [
         "--packages",
-        "$(location @dart_packages//:package_config_json)",
+        "$(execpath @dart_packages//:package_config_json)",
         "--dart-sdk-summary",
-        "$(location :ddc_outline.dill)",
+        "$(execpath :ddc_outline.dill)",
         "-o",
         "dartdevc.js",
         "pkg/dev_compiler/bin/dartdevc.dart",
@@ -360,16 +360,16 @@ genrule(
         "@prebuilt_dart_sdk//:bin/dart",
     ],
     outs = ["dart_stack_trace_mapper.js"],
-    cmd = "PLATFORM_DIR=$$(for f in $(locations //utils/compiler:compile_dart2js_platform); do dirname \"$$f\"; break; done) && " +
-          "$(location @prebuilt_dart_sdk//:bin/dart) " +
-          "--packages=$(location @dart_packages//:package_config_json) " +
-          "$$(dirname $(location @dart_packages//:package_config_json))/../pkg/compiler/lib/src/dart2js.dart " +
-          "--packages=$(location @dart_packages//:package_config_json) " +
-          "--libraries-spec=$$(dirname $(location @dart_packages//:package_config_json))/../sdk/lib/libraries.json " +
+    cmd = "PLATFORM_DIR=$$(for f in $(execpaths //utils/compiler:compile_dart2js_platform); do dirname \"$$f\"; break; done) && " +
+          "$(execpath @prebuilt_dart_sdk//:bin/dart) " +
+          "--packages=$(execpath @dart_packages//:package_config_json) " +
+          "$$(dirname $(execpath @dart_packages//:package_config_json))/../pkg/compiler/lib/src/dart2js.dart " +
+          "--packages=$(execpath @dart_packages//:package_config_json) " +
+          "--libraries-spec=$$(dirname $(execpath @dart_packages//:package_config_json))/../sdk/lib/libraries.json " +
           "--platform-binaries=$$PLATFORM_DIR/ " +
           "-m --no-source-maps " +
-          "-o $(location dart_stack_trace_mapper.js) " +
-          "$(location //:pkg/dev_compiler/web/stack_trace_mapper.dart)",
+          "-o $(execpath dart_stack_trace_mapper.js) " +
+          "$(execpath //:pkg/dev_compiler/web/stack_trace_mapper.dart)",
 )
 
 # --- Parallel AOT DDC Targets ---

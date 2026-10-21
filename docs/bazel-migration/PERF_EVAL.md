@@ -1,31 +1,32 @@
 # Dart SDK Bazel Performance & Correctness Evaluation Runbook
 
-This document specifies the standard verification suite and benchmarking methodology for validating toolchain changes, caching optimizations, and performance improvements across Linux (x86_64) and macOS (Apple Silicon).
+This document specifies the standard verification suite and benchmarking methodology for validating toolchain changes, caching optimizations, and performance improvements across Linux (`x86_64`) and macOS (Apple Silicon). For the latest recorded benchmark runs and architectural analysis (`2026-10-20`, `capstone-2026-10` on `Bazel 9.3.0`), see [FINAL_REPORT.md](FINAL_REPORT.md).
 
 ---
 
 ## 1. Environment & Prerequisites
 
 ### Tooling Requirements
-- **Bazel Version**: `9.1.1` (managed via `bazelisk`).
-- **Depot Tools**: `gclient` must be available in `$PATH`.
+
+- **Bazel version alignment is enforced automatically through `bazelisk`.**
+  - Pinned to `9.3.0` in [`.bazelversion`](../../.bazelversion).
+- **Clean Linux builds hydrate third-party inputs directly without `gclient`.**
+  - Fetched from `DEPS` and verified against SHA-256 lockfile [deps_hashes.bzl](../../tools/bazel/deps_hashes.bzl), while `gclient` remains supported when syncing a full local checkout.
+- **Shared Linux workstations require explicit CPU, memory, and worker caps.**
+  - Always pass `--config=cloudtop-safe` (`--jobs=8`, `24 GiB` RAM cap, `--worker_max_instances=2`) on Cloudtop machines to prevent memory pressure or daemon OOM kills.
 
 ### Pre-Flight Synchronization
-Always sync both the git tree and the pinned `DEPS` dependencies (CIPD toolchains, package dependencies, and prebuilt SDK) before running evaluations:
+
+Verify repository hygiene, archive SHA-256 lockfile alignment, and full presubmit checks before running evaluations:
 
 ```bash
 cd ~/github/dart-sdk/bazel/main/sdk
 
-# 1. Update git repository
-git checkout main
-git pull origin main
+# 1. Verify offline SHA-256 lockfile matches DEPS (<0.15s, zero network calls)
+python3 tools/bazel/sync_deps_hashes.py --check
 
-# 2. Synchronize worktree dependencies, prebuilts, and package configs (AGENTS.md Rule 4)
-.agents/scripts/mkagenttree --sync ~/github/dart-sdk/bazel/main/sdk
-
-# 3. Sanity check prebuilt SDK tag matches DEPS pinned revision
-cat tools/sdks/dart-sdk/version
-grep sdk_tag DEPS
+# 2. Run full Bazel presubmit gate (buildifier, 1:1 upstream allowlist, rule tests, analysis)
+./tools/bazel/presubmit.sh
 ```
 
 ---
@@ -35,12 +36,15 @@ grep sdk_tag DEPS
 Run a non-building dry-run analysis to verify `.bazelrc` options on your host platform:
 
 ```bash
-bazel build //tools/bazel/dart:test_hello --nobuild
+bazel build --config=cloudtop-safe //tools/bazel/dart:test_hello --nobuild
 ```
 
-### Platform-Specific Notes:
-- **Linux**: Utilizes `--sandbox_base=/dev/shm` (RAM disk), `--linkopt=-fuse-ld=lld` (LLD linker), and `--fission=yes` (Split DWARF `.dwo` files) scoped under `build:linux` via `common --enable_platform_specific_config` (#104).
-- **macOS (Darwin)**: Linux-only flags (`/dev/shm`, `lld`, `fission`) are not applied on macOS. The dry-run should show standard Darwin toolchain configuration without error.
+### Platform-Specific Notes
+
+- **Linux hosts enable RAM-backed sandboxing, fast linking, and Split DWARF.**
+  - Scoped under `build:linux` via `common --enable_platform_specific_config`: `--sandbox_base=/dev/shm` (RAM disk), `--linkopt=-fuse-ld=lld` (LLD linker), and `--fission=yes` (Split DWARF `.dwo` files).
+- **Apple Silicon hosts skip Linux-only flags and autoconfigure the host Xcode toolchain.**
+  - `/dev/shm`, `lld`, and `--fission=yes` are omitted automatically on macOS so dry-run analysis and host C++ rules configure without error.
 
 ---
 
@@ -49,109 +53,118 @@ bazel build //tools/bazel/dart:test_hello --nobuild
 Execute the following targets to verify compiler and toolchain integrity:
 
 ### Step 1: Dart Persistent Worker Execution
-Compile and execute a test Dart application:
-```bash
-bazel run //tools/bazel/dart:test_hello
-```
-*Expected Output*: `Hello from bazel run! verbose=false`
 
-### Step 2: Dart Unit Tests
-Run the Bazel Dart rules test suite:
+Compile and execute a test Dart application:
+
 ```bash
-bazel test //tools/bazel/dart:suite_paths_test
+bazel run --config=cloudtop-safe //tools/bazel/dart:test_hello
 ```
-*Expected Output*: `//tools/bazel/dart:suite_paths_test PASSED`
+
+_Expected Output_: `Hello from bazel run! verbose=false`
+
+### Step 2: Bazel Tooling & Wrapper Unit Tests
+
+Run the Bazel Starlark/Dart rule tests and Python wrapper unit tests:
+
+```bash
+bazel test --config=cloudtop-safe //tools/bazel/...
+python3 tools/test_wrapper_test.py
+```
+
+_Expected Output_: All targets `PASSED` (`19/19` tests in `test_wrapper_test.py`).
 
 ### Step 3: Kernel Snapshots & AOT Binaries
+
 Build bootstrap and release snapshots (verifying persistent worker compilation):
+
 ```bash
-bazel build //utils/gen_kernel:bootstrap_gen_kernel \
+bazel build --config=cloudtop-safe \
+            //utils/gen_kernel:bootstrap_gen_kernel \
             //utils/gen_kernel:gen_kernel \
             //utils/gen_kernel:gen_kernel_product
 ```
-*Expected Output*: Build completed successfully. Process summary includes `worker` processes.
 
-### Step 4: Dart VM & Generator Binaries
-Build the standalone Dart runtime and AOT snapshot generator:
+_Expected Output_: Build completed successfully. Process summary includes `worker` processes.
+
+### Step 4: Dart VM & SDK Layout Assembly
+
+Build the standalone Dart runtime, snapshot generator, and full SDK layout:
+
 ```bash
-bazel build //runtime/bin:dart //runtime/bin:gen_snapshot
+bazel build --config=cloudtop-safe //runtime/bin:dartvm //runtime/bin:dart //runtime/bin:gen_snapshot //sdk:create_sdk
 ```
-*Expected Output*: Build completed successfully with zero compilation or linker errors.
+
+_Expected Output_: Build completed successfully (`./bazel-bin/sdk/dart-sdk/bin/dart --version` prints `3.15.0-edge`).
 
 ---
 
 ## 4. Performance Benchmarks
 
 When reporting benchmarks, always provide:
-1. **Elapsed Time & Critical Path** (from the `INFO: Elapsed time:` line).
-2. **Process Summary** (the `INFO: N processes:` line showing worker, sandbox, and cache hit distributions).
 
-> **Mutations must be unique per run.** Bazel keys the action cache, disk cache
-> (`~/.bazelrc` sets `--disk_cache`) and remote cache on input *content*. A fixed
-> mutation such as `echo "// bench" >> file` produces the same inputs on every run, so
-> the second run of Benchmark A/B is served from the disk cache (`3 processes: 2 disk
-> cache hit, 1 internal`, ~0.25s) and never exercises the worker or the linker. The
-> `$(date +%s)` suffix in the commands below makes each run's inputs unique.
+1. **Elapsed Time & Critical Path** (from the `INFO: Elapsed time:` line).
+2. **Process Summary** (the `INFO: N processes:` line showing `worker`, `local`, `linux-sandbox`, and cache hit distributions).
+
+> [!IMPORTANT]
 >
-> Incremental timings vary run to run (Benchmark B measured 7.07s and 1.77s on the same
-> Linux host); report the median of 3 runs.
+> **Mutations must be unique per run, and standalone worker comparisons must use `DartCompileDill`.** Bazel keys the action cache, disk cache, and remote cache on input content; use unique timestamps per iteration so cached outputs never mask real work. When comparing resident workers against standalone execution, pass `--strategy=DartCompileDill=standalone` (the mnemonic emitted by `dart_compile_dill` in [defs.bzl](../../tools/bazel/dart/defs.bzl); `--strategy=DartKernel=standalone` is a silent no-op).
 
 ---
 
-### Benchmark A: Incremental Dart Kernel Compilation (Warm CFE Worker)
-Measures persistent worker JIT throughput when recompiling a leaf Dart library in a heavy dependency closure.
+### Benchmark A: Incremental Dart Kernel Compilation (`1 worker` vs. `--strategy=DartCompileDill=standalone`)
+
+Measures whole-program CFE kernel compilation latency with and without resident JSON workers:
 
 ```bash
 # 1. Warm the build and start persistent worker
-bazel build //utils/analysis_server:analysis_server_dill
+bazel build --config=cloudtop-safe //utils/analysis_server:analysis_server_dill
 
-# 2. Mutate a leaf file in pkg/analyzer (unique per run — see note below)
-echo "// bench $(date +%s)" >> pkg/analyzer/lib/dart/analysis/analysis_context.dart
+# 2. Mutate a leaf file in pkg/analyzer (unique per run)
+echo "// bench $(date +%s%N)" >> pkg/analyzer/lib/dart/analysis/analysis_context.dart
 
-# 3. Measure incremental compilation time
-time bazel build //utils/analysis_server:analysis_server_dill
+# 3. Measure resident worker compile (or add --strategy=DartCompileDill=standalone for standalone arm)
+time bazel build --config=cloudtop-safe //utils/analysis_server:analysis_server_dill
 
 # 4. Clean up mutation
 git checkout -- pkg/analyzer/lib/dart/analysis/analysis_context.dart
 ```
 
-*Verification Invariant*: The `INFO: N processes:` summary MUST contain `N worker` (e.g. `3 processes: 1 internal, 1 linux-sandbox, 1 worker`).
+_Verification Invariant_: `INFO: N processes:` reports `1 worker` on the worker arm (`28.121s` median; `39.419s` cold `1.16 GiB` RSS fault-in Run 1) and `1 local` on the `--strategy=DartCompileDill=standalone` arm (`27.157s` median; both execute `dartaotruntime bootstrap_gen_kernel.snapshot`).
 
 ---
 
-### Benchmark B: Incremental C++ Edit-Link Cycle
-Measures C++ incremental compilation and link latency with Split DWARF and fast linker settings.
+### Benchmark B: Incremental C++ Edit-Link Cycle (`lld` + Split DWARF)
+
+Measures C++ single-object compilation and `lld --fission` relink latency:
 
 ```bash
 # 1. Warm the VM binary build
-bazel build //runtime/bin:dart
+bazel build --config=cloudtop-safe //runtime/bin:dartvm
 
-# 2. Mutate a C++ leaf source file (changes object bytes; unique per run — see note below)
-echo "int dart_bench_marker_$(date +%s) = 1;" >> runtime/vm/double_conversion.cc
+# 2. Mutate a C++ leaf source file (changes object bytes; unique per run)
+echo "int dart_bench_marker_$(date +%s%N) = 1;" >> runtime/vm/double_conversion.cc
 
 # 3. Measure incremental compile + link time
-time bazel build //runtime/bin:dart
+time bazel build --config=cloudtop-safe //runtime/bin:dartvm
 
 # 4. Clean up mutation
 git checkout -- runtime/vm/double_conversion.cc
 ```
 
-*Verification Invariant*: The `INFO: N processes:` summary MUST report >= 3 sandboxed actions (compile -> archive -> link).
+_Verification Invariant_: `INFO: N processes:` reports sandboxed compile/archive/link actions (`3.510s` median vs. `267.73s` clean build = `76.3x` speedup).
 
 ---
 
 ### Benchmark C: Clean VM Build (Cold Compiler Throughput)
-Measures un-cached local compilation throughput across all VM source files without disk or remote cache hits.
+
+Measures uncached local compilation throughput across all VM source files without disk or remote cache hits:
 
 ```bash
-# 1. Purge local output tree
 bazel clean
-
-# 2. Measure cold build bypassing disk cache and remote cache
-time bazel build //runtime/bin:dart //runtime/bin:gen_snapshot --remote_cache= --disk_cache=
+time bazel build --config=cloudtop-safe //runtime/bin:dartvm --remote_cache= --disk_cache=
 ```
 
-*Verification Invariant*: The process summary must read `N processes: ... N linux-sandbox` (or `darwin-sandbox`) with **zero** `cache hit` terms (no disk or remote cache hits).
+_Verification Invariant_: Process summary shows `linux-sandbox` actions with zero cache hits (`267.73s` mean across `2,085` processes).
 
 ---
 
@@ -162,34 +175,30 @@ After executing the benchmark suite, verify that the git working tree is clean:
 ```bash
 git status --short
 ```
-*Expected Output*: Empty (all benchmark mutations were cleaned up by the inline `git checkout -- <file>` commands).
 
 ---
 
 ## 6. Feedback & Reporting Template
 
-Post benchmark metrics and observations using the following Markdown schema:
-
 ```markdown
 ### Environment
-- OS: [e.g. Ubuntu 24.04 (AMD Ryzen 9 7950X, 64GB) / macOS Sonoma 14.5 (Apple M3 Max, 36GB)]
-- Bazel Version: 9.1.1
+
+- OS: Linux x86_64 (64 vCPU AMD EPYC 7B13, `--config=cloudtop-safe`)
+- Bazel Version: 9.3.0
 
 ### Correctness Suite
-- [ ] Platform dry-run: Pass
-- [ ] //tools/bazel/dart:test_hello: Pass
-- [ ] //tools/bazel/dart:suite_paths_test: Pass
-- [ ] //utils/gen_kernel snapshots: Pass
-- [ ] //runtime/bin:dart VM build: Pass
 
-### Performance Results
-- **Benchmark A (Incremental Dart compile)**: `X.XXs` elapsed (Critical Path: `X.XXs`)
-  - Processes: `INFO: 3 processes: 1 internal, 1 linux-sandbox, 1 worker.`
-- **Benchmark B (Incremental C++ edit-link)**: `X.XXs` elapsed (Critical Path: `X.XXs`)
-  - Processes: `INFO: 3 processes: 3 linux-sandbox.`
-- **Benchmark C (Clean VM build - no cache)**: `X.XXs` elapsed (Critical Path: `X.XXs`)
-  - Processes: `INFO: 1384 processes: 7 internal, 1377 linux-sandbox.`
+- [x] Platform dry-run: Pass
+- [x] //tools/bazel/dart:test_hello: Pass
+- [x] //tools/bazel/... & tools/test_wrapper_test.py: Pass
+- [x] //utils/gen_kernel snapshots: Pass
+- [x] //runtime/bin:dartvm & //sdk:create_sdk: Pass
 
-### Notes / Platform Anomalies
-- [Observations, flags adjusted, or warnings encountered]
+### Performance Results (Recorded 2026-10-20 Baseline)
+
+- **Warm Presubmit (`./tools/bazel/presubmit.sh`)**: `27.00s` median (`23.21s` latest; down from `300.51s` mean on Bazel 9.1.1 = `11.1x` speedup)
+- **Null Build (`//runtime/bin:dartvm //sdk:create_sdk`)**: `0.693s` median (`1,353x` faster than `937.6s` cold SDK build)
+- **Benchmark A (`analysis_server_dill` worker vs standalone)**: `28.121s` worker median vs `27.157s` standalone median (`0.97x` parity; stateless whole-program CFE pass)
+- **Benchmark B (`double_conversion.cc` -> `dartvm` incremental link)**: `3.510s` median (`76.3x` faster than `267.73s` clean VM build)
+- **Benchmark C (`dartvm` clean uncached build)**: `267.73s` mean (`2,085` processes)
 ```

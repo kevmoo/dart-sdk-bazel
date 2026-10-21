@@ -294,6 +294,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a.dart::@class::A
+                type: A
+              element: package:test/a.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -301,18 +321,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a.dart::@class::A
-                  type: A
-                element: package:test/a.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -391,6 +400,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a_html.dart::@class::A
+                type: A
+              element: package:test/a_html.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -398,18 +427,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a_html.dart::@class::A
-                  type: A
-                element: package:test/a_html.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -598,6 +616,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a_io.dart::@class::A
+                type: A
+              element: package:test/a_io.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -605,18 +643,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a_io.dart::@class::A
-                  type: A
-                element: package:test/a_io.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -905,6 +932,43 @@ ImportDirective
   libraryImport: LibraryImport
     uri: DirectiveUriWithLibrary
       uri: package:test/c.dart
+''');
+  }
+
+  test_inPart_nested_library() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+    newFile('$testPackageLibPath/d.dart', '');
+
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+import 'd.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'd.dart'.
+''',
+    });
+
+    var result = results[c]!;
+
+    var node = result.findNode.import('d.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'd.dart'
+  semicolon: ;
+  libraryImport: LibraryImport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/d.dart
 ''');
   }
 

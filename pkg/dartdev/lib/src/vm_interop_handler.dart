@@ -54,6 +54,10 @@ abstract class VmInteropHandler {
     /// Directory path that will be recursively deleted on VM shutdown.
     String? deleteTempDirOnShutdown,
   }) {
+    assert(
+      useExecProcess || deleteTempDirOnShutdown == null,
+      'deleteTempDirOnShutdown is only supported with useExecProcess',
+    );
     List<String> argsList;
     if (useExecProcess && Platform.isWindows) {
       // On Windows if a new process is used to execute the script we
@@ -63,12 +67,6 @@ abstract class VmInteropHandler {
       if (script.contains(' ') && !script.contains('"')) {
         // Escape paths that may contain spaces
         script = '"$script"';
-      }
-      if (scriptUriOverride != null &&
-          scriptUriOverride.contains(' ') &&
-          !scriptUriOverride.contains('"')) {
-        // Escape paths that may contain spaces
-        scriptUriOverride = '"$scriptUriOverride"';
       }
       argsList = [
         for (int i = 0; i < args.length; i++) _windowsArgumentEscape(args[i]),
@@ -86,7 +84,7 @@ abstract class VmInteropHandler {
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
       argsList,
-      deleteTempDirOnShutdown,
+      if (useExecProcess) deleteTempDirOnShutdown,
     ];
     port.send(message);
   }

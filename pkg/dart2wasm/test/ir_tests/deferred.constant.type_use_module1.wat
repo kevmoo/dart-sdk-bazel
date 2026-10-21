@@ -1,8 +1,8 @@
 (module $M1
   (type $#Top <...>)
   (type $Foo (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $i (mut i64)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)
@@ -10,7 +10,7 @@
   (global $".Foo called " (import "" "Foo called ") (ref extern))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 4 funcref)
   (global $"\"Foo called \"" (ref $JSExternWrapper)
-    (i32.const 66)
+    (i32.const 67)
     (i32.const 0)
     (global.get $".Foo called ")
     (struct.new $JSExternWrapper))

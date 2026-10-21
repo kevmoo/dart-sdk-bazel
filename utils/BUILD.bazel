@@ -41,9 +41,9 @@ genrule(
         "@dart_packages//:package_config_json",
     ],
     outs = ["compile_platform.exe"],
-    cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile exe " +
-          "--packages=$(location @dart_packages//:package_config_json) " +
-          "-o $@ $(location //:pkg/front_end/tool/compile_platform.dart)",
+    cmd = "$(execpath @prebuilt_dart_sdk//:bin/dart) compile exe " +
+          "--packages=$(execpath @dart_packages//:package_config_json) " +
+          "-o $@ $(execpath //:pkg/front_end/tool/compile_platform.dart)",
     tools = ["@prebuilt_dart_sdk//:bin/dart"],
 )
 
@@ -59,9 +59,9 @@ genrule(
         "@dart_packages//:package_config_json",
     ],
     outs = ["gen_kernel.exe"],
-    cmd = "$(location @prebuilt_dart_sdk//:bin/dart) compile exe " +
-          "--packages=$(location @dart_packages//:package_config_json) " +
-          "-o $@ $(location //:pkg/vm/bin/gen_kernel.dart)",
+    cmd = "$(execpath @prebuilt_dart_sdk//:bin/dart) compile exe " +
+          "--packages=$(execpath @dart_packages//:package_config_json) " +
+          "-o $@ $(execpath //:pkg/vm/bin/gen_kernel.dart)",
     tools = ["@prebuilt_dart_sdk//:bin/dart"],
 )
 
@@ -73,5 +73,5 @@ genrule(
         "//tools:VERSION",
     ],
     outs = ["git_version"],
-    cmd = "python3 $(location //tools:make_version.py) > $@",
+    cmd = "python3 $(execpath //tools:make_version.py) > $@",
 )

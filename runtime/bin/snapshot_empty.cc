@@ -4,9 +4,6 @@
 
 // This file is linked into the dart executable when it does not have a
 // snapshot linked into it.
-//
-// See runtime/bin/snapshots.md for complete details on how JIT core snapshots
-// are compiled/routed and why these nullptr stubs exist in AOT configurations.
 
 #include <stdint.h>
 

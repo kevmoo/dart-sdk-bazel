@@ -23,8 +23,8 @@ import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
-final _missingOverrides = Expando<List<InternalExecutableElement>>();
+final _missingMustBeOverriddenNames = Expando<Set<Name>>();
+final _missingOverrideNames = Expando<Set<Name>>();
 
 typedef DisallowedClassDiagnosticCode =
     DiagnosticWithArguments<
@@ -41,13 +41,11 @@ class InheritanceOverrideVerifier {
   final Map<LibraryFragmentImpl, DiagnosticReporter>
   _diagnosticReportersByFragment;
 
-  InheritanceOverrideVerifier(
+  new(
     this._typeSystem,
     this._inheritance, {
-    required Map<LibraryFragmentImpl, DiagnosticReporter>
-    diagnosticReportersByFragment,
-  }) : _typeProvider = _typeSystem.typeProvider,
-       _diagnosticReportersByFragment = diagnosticReportersByFragment;
+    required this._diagnosticReportersByFragment,
+  }) : _typeProvider = _typeSystem.typeProvider;
 
   void verifyUnit(CompilationUnitImpl unit, DiagnosticReporter reporter) {
     var library = unit.declaredFragment!.element;
@@ -73,7 +71,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           primaryConstructor: declaration.namePart.tryCast(),
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
@@ -117,7 +115,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           primaryConstructor: declaration.namePart.tryCast(),
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
@@ -139,7 +137,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           onClause: declaration.onClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
@@ -236,18 +234,16 @@ class InheritanceOverrideVerifier {
     );
   }
 
-  /// Returns [ExecutableElement] members that are in the interface of the
-  /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement> missingMustBeOverridden(
-    CompilationUnitMember node,
-  ) {
-    return _missingMustBeOverridden[node] ?? const [];
+  /// Returns names of members that the given class must override because of
+  /// `@mustBeOverridden`.
+  static List<Name> missingMustBeOverriddenNames(CompilationUnitMember node) {
+    return _missingMustBeOverriddenNames[node]?.toList() ?? const [];
   }
 
-  /// Returns [ExecutableElement] members that are in the interface of the
-  /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(CompilationUnitMember node) {
-    return _missingOverrides[node] ?? const [];
+  /// Returns names of inherited abstract members that the given class must
+  /// override.
+  static List<Name> missingOverrideNames(CompilationUnitMember node) {
+    return _missingOverrideNames[node]?.toList() ?? const [];
   }
 }
 
@@ -265,7 +261,7 @@ class _ClassVerifier {
 
   final CompilationUnitMember node;
   final Token classNameToken;
-  final List<ClassMember> members;
+  final List<AnnotatedNode> members;
   final ImplementsClause? implementsClause;
   final MixinOnClause? onClause;
   final PrimaryConstructorDeclarationImpl? primaryConstructor;
@@ -285,7 +281,7 @@ class _ClassVerifier {
     (e) => e.isDartCoreEnum,
   );
 
-  _ClassVerifier({
+  new({
     required this.typeSystem,
     required this.typeProvider,
     required this.inheritance,
@@ -370,34 +366,38 @@ class _ClassVerifier {
     // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
     for (var member in members) {
-      if (member is FieldDeclarationImpl) {
-        var fieldList = member.fields;
-        for (var field in fieldList.variables) {
-          var fieldFragment = field.declaredFragment! as FieldFragmentImpl;
+      if (member is FieldsDeclarationImpl) {
+        var isStatic = member.staticKeyword != null;
+        for (var field in member.fields) {
+          var fieldFragment = field.declaredFragment!;
           _checkDeclaredField(field.name, fieldFragment.element);
-          if (!member.isStatic && element is! EnumElementImpl) {
+          if (!isStatic && element is! EnumElementImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
-          if (!member.isStatic) {
+          if (!isStatic) {
             _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
-      } else if (member is MethodDeclarationImpl) {
+      } else if (member is MethodDeclarationV1OriginImpl) {
         var hasError = _reportNoCombinedSuperSignature(member);
         if (hasError) {
           continue;
         }
 
+        var isStatic = member.staticKeyword != null;
         _checkDeclaredMember(
-          member.name,
+          member.nameToken,
           member.declaredFragment!.element,
-          methodParameterNodes: member.parameters?.allFormalParameters,
+          methodParameterNodes:
+              member.writtenFormalParameters?.allFormalParameters,
         );
-        if (!(member.isStatic || !member.isComplete || member.isSetter)) {
-          _checkIllegalConcreteEnumMemberDeclaration(member.name);
+        if (!(isStatic ||
+            !member.isComplete ||
+            member is SetterDeclarationImpl)) {
+          _checkIllegalConcreteEnumMemberDeclaration(member.nameToken);
         }
-        if (!member.isStatic && element is! EnumElementImpl) {
-          _checkIllegalEnumValuesDeclaration(member.name);
+        if (!isStatic && element is! EnumElementImpl) {
+          _checkIllegalEnumValuesDeclaration(member.nameToken);
         }
       }
     }
@@ -902,7 +902,7 @@ class _ClassVerifier {
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
     bool checkMemberNameCombo(
-      ClassMember member,
+      AstNode member,
       String memberName,
       String displayName,
     ) {
@@ -924,27 +924,27 @@ class _ClassVerifier {
     }
 
     for (var member in members) {
-      if (member is MethodDeclaration) {
+      if (member is MethodDeclarationV1OriginImpl) {
         if (member.augmentKeyword != null) {
           continue;
         }
-        var displayName = member.name.lexeme;
+        var displayName = member.nameToken.lexeme;
         var name = displayName;
-        if (member.isSetter) {
+        if (member is SetterDeclarationImpl) {
           name += '=';
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
-      } else if (member is FieldDeclaration) {
+      } else if (member is FieldsDeclaration) {
         if (member.augmentKeyword != null) {
           continue;
         }
         if (classElement is EnumElement && member.abstractKeyword != null) {
           continue;
         }
-        for (var variableDeclaration in member.fields.variables) {
-          var name = variableDeclaration.name.lexeme;
+        for (var field in member.fields) {
+          var name = field.name.lexeme;
           if (checkMemberNameCombo(member, name, name)) return true;
-          if (!variableDeclaration.isFinal) {
+          if (member.finalKeyword == null) {
             if (checkMemberNameCombo(member, '$name=', name)) return true;
           }
         }
@@ -960,7 +960,10 @@ class _ClassVerifier {
       return;
     }
 
-    _missingOverrides[node] = elements;
+    _missingOverrideNames[node] = elements
+        .map(Name.forElement)
+        .nonNulls
+        .toSet();
 
     var descriptions = <String>[];
     for (var element in elements) {
@@ -1027,7 +1030,7 @@ class _ClassVerifier {
     }
   }
 
-  bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
+  bool _reportNoCombinedSuperSignature(MethodDeclarationV1OriginImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.element.typeInferenceError;
@@ -1038,7 +1041,7 @@ class _ClassVerifier {
                 className: classElement.name ?? '',
                 candidateSignatures: inferenceError.candidateSignatures,
               )
-              .at(node.name),
+              .at(node.nameToken),
         );
         return true;
       }
@@ -1064,7 +1067,14 @@ class _ClassVerifier {
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    var notOverridden = <ExecutableElement>[];
+    var notOverriddenNames = <Name, String>{};
+    void addNotOverridden(ExecutableElement element) {
+      notOverriddenNames.putIfAbsent(
+        Name.forElement(element)!,
+        () => element.name!,
+      );
+    }
+
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
@@ -1081,7 +1091,7 @@ class _ClassVerifier {
         if (method.metadata.hasMustBeOverridden) {
           var methodDeclaration = classElement.getMethod(method.lookupName!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
-            notOverridden.add(method.baseElement);
+            addNotOverridden(method);
           }
         }
       }
@@ -1096,7 +1106,7 @@ class _ClassVerifier {
             (getter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
-            notOverridden.add(getter);
+            addNotOverridden(getter);
           }
         }
       }
@@ -1111,21 +1121,20 @@ class _ClassVerifier {
             (setter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
-            notOverridden.add(setter);
+            addNotOverridden(setter);
           }
         }
       }
     }
-    if (notOverridden.isEmpty) {
+    if (notOverriddenNames.isEmpty) {
       return;
     }
 
-    _missingMustBeOverridden[node] = notOverridden.toList();
-    var namesForError = notOverridden
-        .map((e) {
-          var name = e.name!;
+    _missingMustBeOverriddenNames[node] = notOverriddenNames.keys.toSet();
+    var namesForError = notOverriddenNames.values
+        .map((name) {
           if (name.endsWith('=')) {
-            name = name.substring(0, name.length - 1);
+            return name.substring(0, name.length - 1);
           }
           return name;
         })
@@ -1166,11 +1175,7 @@ class _DiagnosticTarget {
   final int offset;
   final int length;
 
-  _DiagnosticTarget({
-    required this.reporter,
-    required this.offset,
-    required this.length,
-  });
+  new({required this.reporter, required this.offset, required this.length});
 
   void report(LocatableDiagnostic diagnostic) {
     reporter.report(diagnostic.atOffset(offset: offset, length: length));
@@ -1181,5 +1186,5 @@ class _DiagnosticTarget {
 class _InterfaceElementState {
   bool hasReportedRecursiveInterfaceInheritance = false;
 
-  _InterfaceElementState();
+  new();
 }

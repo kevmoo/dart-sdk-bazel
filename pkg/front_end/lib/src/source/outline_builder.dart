@@ -1219,6 +1219,7 @@ class OutlineBuilder extends StackListenerImpl {
             unionOfKinds([
               ValueKinds.ParserRecovery,
               ValueKinds.TypeBuilder,
+              ValueKinds.Modifiers,
               ValueKinds.NominalTypeParametersOrNull,
             ]),
           ]),
@@ -1639,6 +1640,8 @@ class OutlineBuilder extends StackListenerImpl {
       offset,
       typeParameters?.fragments,
     );
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1652,6 +1655,7 @@ class OutlineBuilder extends StackListenerImpl {
       checkState(extensionKeyword, [
         if (onKeyword != null)
           unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.IdentifierOrNull,
         ValueKinds.MetadataListOrNull,
@@ -1677,6 +1681,7 @@ class OutlineBuilder extends StackListenerImpl {
         );
       }
     }
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
@@ -1688,8 +1693,7 @@ class OutlineBuilder extends StackListenerImpl {
       offsetMap: _offsetMap,
       beginToken: beginToken,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extensions?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: name,
       typeParameters: typeParameters?.fragments,
       onType: onType as TypeBuilder,
@@ -1720,11 +1724,15 @@ class OutlineBuilder extends StackListenerImpl {
     int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
     push(typeParameters ?? NullValues.NominalParameters);
+
     _builderFactory.beginExtensionTypeDeclaration(
       name,
       nameOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1738,6 +1746,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(
       checkState(extensionKeyword, [
         ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.Identifier,
         ValueKinds.MetadataListOrNull,
@@ -1751,6 +1760,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier identifier = pop() as Identifier;
@@ -1767,8 +1777,7 @@ class OutlineBuilder extends StackListenerImpl {
     _builderFactory.addExtensionTypeDeclaration(
       offsetMap: _offsetMap,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extension types?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: identifier,
       typeParameters: typeParameters?.fragments,
       interfaces: interfaces,
@@ -2011,6 +2020,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -2705,6 +2715,25 @@ class OutlineBuilder extends StackListenerImpl {
         kind == DeclarationKind.Mixin ||
         kind == DeclarationKind.Enum;
 
+    // A constructor declaration is incomplete if all of:
+    //   * It has no body.
+    //   * It is not marked external.
+    //   * There is no initializer list, initializing formals,
+    //     or super parameters.
+    // If a constructor is not incomplete then it is complete.
+    bool isIncomplete =
+        bodyKind == MethodBody.Abstract &&
+        !modifiers.isExternal &&
+        beginInitializers == null;
+    if (isIncomplete && formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          isIncomplete = false;
+          break;
+        }
+      }
+    }
+
     _builderFactory.addConstructor(
       offsetMap: _offsetMap,
       metadata: metadata,
@@ -2719,6 +2748,7 @@ class OutlineBuilder extends StackListenerImpl {
       initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+      isComplete: !isIncomplete,
     );
 
     nativeMethodName = null;
@@ -2811,17 +2841,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       String classNameForErrors = identifier.name;
       List<TypeBuilder> mixins = mixinApplication as List<TypeBuilder>;
-      if (supertype is TypeBuilder) {
-        if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-          _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArguments(
-              supertypeName: supertype.fullNameForErrors,
-            ),
-            identifier.nameOffset,
-            classNameForErrors.length,
-            uri,
-          );
-        }
+      supertype as TypeBuilder;
+      if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
+        _compilationUnit.addProblem(
+          diag.nullableSuperclassError.withArguments(
+            supertypeName: supertype.fullNameForErrors,
+          ),
+          identifier.nameOffset,
+          classNameForErrors.length,
+          uri,
+        );
       }
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
@@ -2861,7 +2890,7 @@ class OutlineBuilder extends StackListenerImpl {
         name: identifier.name,
         typeParameters: typeParameters?.fragments,
         modifiers: modifiers,
-        supertype: supertype as TypeBuilder?,
+        supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
@@ -2971,6 +3000,22 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
     push(NullValues.TypeArguments);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
   }
 
   @override
@@ -3557,6 +3602,9 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -3572,6 +3620,7 @@ class OutlineBuilder extends StackListenerImpl {
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
       ]),
@@ -3601,7 +3650,6 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as ConstructorReferenceBuilder?;
     Object? enumConstantInfo = pop();
     if (enumConstantInfo is EnumConstantInfo) {
-      push(enumConstantInfo);
       _builderFactory.addEnumElement(
         metadata: enumConstantInfo.metadata,
         name: enumConstantInfo.name,
@@ -3611,14 +3659,12 @@ class OutlineBuilder extends StackListenerImpl {
       );
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(NullValues.EnumConstantInfo);
     }
   }
 
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
-    push(elementsCount);
   }
 
   @override
@@ -3629,58 +3675,27 @@ class OutlineBuilder extends StackListenerImpl {
     int memberCount,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [/* element count */ ValueKinds.Integer]));
     debugEvent("endEnum");
-
-    int elementsCount = pop() as int;
 
     assert(
       checkState(beginToken, [
-        /* enum constants */ ...repeatedKind(
-          ValueKinds.EnumConstantInfoOrNull,
-          elementsCount,
-        ),
-
-        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
         /* metadata */ ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    List<EnumConstantInfo?>? enumConstantInfos =
-        const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
-
-    if (enumConstantInfos != null) {
-      List<EnumConstantInfo?>? parsedEnumConstantInfos;
-      for (int index = 0; index < enumConstantInfos.length; index++) {
-        EnumConstantInfo? info = enumConstantInfos[index];
-        if (parsedEnumConstantInfos != null && info != null) {
-          parsedEnumConstantInfos.add(info);
-        } else if (info == null && parsedEnumConstantInfos == null) {
-          // Skip this one, but copy previous (good) ones.
-          parsedEnumConstantInfos = [];
-          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
-        }
-      }
-      if (parsedEnumConstantInfos != null) {
-        if (parsedEnumConstantInfos.isEmpty) {
-          enumConstantInfos = null;
-        } else {
-          enumConstantInfos = parsedEnumConstantInfos;
-        }
-      }
-    }
-
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeBuilder>? mixins =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Object? identifier = pop();
@@ -3689,15 +3704,6 @@ class OutlineBuilder extends StackListenerImpl {
 
     int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     if (identifier is Identifier) {
-      if (enumConstantInfos == null) {
-        if (!leftBrace.isSynthetic) {
-          addProblem(
-            diag.enumDeclarationEmpty,
-            identifier.token.offset,
-            identifier.token.length,
-          );
-        }
-      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
@@ -3716,12 +3722,14 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.addEnum(
         offsetMap: _offsetMap,
         metadata: metadata,
+        modifiers: modifiers,
         identifier: identifier,
         typeParameters: typeParameters?.fragments,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endToken.charOffset, //endOffset,
+        endOffset: endToken.charOffset,
+        hasErroneousBody: leftBrace.isSynthetic,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(
@@ -4263,13 +4271,16 @@ class OutlineBuilder extends StackListenerImpl {
         /* metadata = */ ValueKinds.MetadataListOrNull,
       ]),
     );
-    if (staticToken != null && abstractToken != null) {
-      handleRecoverableError(
-        diag.abstractStaticField,
-        abstractToken,
-        abstractToken,
-      );
-      abstractToken = null;
+    if (!libraryFeatures.augmentations.isEnabled) {
+      // TODO(johnniwinther): Move this check after applying augmentations.
+      if (staticToken != null && abstractToken != null) {
+        handleRecoverableError(
+          diag.abstractStaticField,
+          abstractToken,
+          abstractToken,
+        );
+        abstractToken = null;
+      }
     }
     if (abstractToken != null && lateToken != null) {
       handleRecoverableError(
@@ -4705,6 +4716,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
       _builderFactory.endFactoryMethodForParserRecovery();
     } else {
+      // A factory constructor declaration is incomplete if all of:
+      //   * It has no body.
+      //   * It is not marked external.
+      //   * There is no redirection.
+      // If a factory constructor is not incomplete then it is complete.
+      bool isIncomplete = kind == MethodBody.Abstract && !modifiers.isExternal;
+
       _builderFactory.addFactoryMethod(
         offsetMap: _offsetMap,
         metadata: metadata,
@@ -4718,6 +4736,7 @@ class OutlineBuilder extends StackListenerImpl {
         endOffset: endToken.charOffset,
         nativeMethodName: nativeMethodName,
         asyncModifier: asyncModifier,
+        isComplete: !isIncomplete,
       );
     }
     nativeMethodName = null;
@@ -4754,7 +4773,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryFeatures.constFunctions.isEnabled) {
+    if (!libraryFeatures.constFunctions.isEnabled &&
+        !libraryFeatures.augmentations.isEnabled) {
       handleRecoverableError(diag.constFactory, constKeyword, constKeyword);
     }
   }
@@ -4942,11 +4962,9 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();
-    push(0); // number of enum constants
   }
 
   @override

@@ -8,7 +8,7 @@ class A {
 }
 
 class B extends A {
-  B(int z) : super(z) {
+  B(int z): super(z) {
     z = 0;
   }
 }

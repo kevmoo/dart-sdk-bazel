@@ -18,6 +18,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/internal_ast.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -57,15 +58,15 @@ abstract class MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
 
@@ -81,12 +82,12 @@ abstract class MethodDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  });
 
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
@@ -152,6 +153,7 @@ class MethodDeclarationImpl
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -161,26 +163,25 @@ class MethodDeclarationImpl
       bodyBuilderContext: createBodyBuilderContext(methodBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
-      libraryBuilder,
-      problemReporting,
-      nameScheme,
-      f,
-      reference: reference,
-      tearOffReference: tearOffReference,
+      libraryBuilder: libraryBuilder,
+      problemReporting: problemReporting,
+      nameScheme: nameScheme,
+      callback: callback,
+      references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
       classTypeParameters: classTypeParameters,
@@ -220,12 +221,12 @@ class MethodDeclarationImpl
   }
 
   @override
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  }) {
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
       _fragment,
@@ -268,11 +269,6 @@ class MethodDeclarationImpl
       enclosingClassBuilder.libraryBuilder,
       membersBuilder.hierarchyBuilder,
     );
-  }
-
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
   }
 
   @override
@@ -327,6 +323,4 @@ abstract class MethodFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  FunctionParameter? getTearOffParameter(int index);
 }

@@ -20,7 +20,7 @@ part of 'ast.dart';
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-@ToBeDeprecated('Use AstVisitor2 instead')
+@V1Ast('The V2 counterpart is AstVisitor2.')
 abstract class AstVisitor<R> {
   R? visitAdjacentStrings(AdjacentStrings node);
 
@@ -439,8 +439,6 @@ abstract class AstVisitor2<R> {
 
   R? visitAssignedVariablePattern(AssignedVariablePattern node);
 
-  R? visitAssignmentExpression(AssignmentExpression node);
-
   R? visitAwaitExpression(AwaitExpression node);
 
   @experimental
@@ -458,6 +456,9 @@ abstract class AstVisitor2<R> {
 
   R? visitBreakStatement(BreakStatement node);
 
+  @experimental
+  R? visitCallInvocation(CallInvocation node);
+
   R? visitCascadeExpression(CascadeExpression node);
 
   @experimental
@@ -465,6 +466,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitCascadeIndexExpression(CascadeIndexExpression node);
+
+  @experimental
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node);
 
   @experimental
   R? visitCascadePropertyAssignmentTarget(CascadePropertyAssignmentTarget node);
@@ -493,6 +497,9 @@ abstract class AstVisitor2<R> {
   R? visitComment(Comment node);
 
   R? visitCommentReference(CommentReference node);
+
+  @experimental
+  R? visitCommentReferenceComponent(CommentReferenceComponent node);
 
   R? visitCompilationUnit(CompilationUnit node);
 
@@ -537,13 +544,16 @@ abstract class AstVisitor2<R> {
 
   R? visitDoStatement(DoStatement node);
 
-  R? visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  @experimental
+  R? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
   );
 
-  R? visitDotShorthandInvocation(DotShorthandInvocation node);
+  @experimental
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node);
 
-  R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
+  @experimental
+  R? visitDotShorthandNameExpression(DotShorthandNameExpression node);
 
   R? visitDottedName(DottedName node);
 
@@ -575,13 +585,18 @@ abstract class AstVisitor2<R> {
 
   R? visitExtensionOnClause(ExtensionOnClause node);
 
-  R? visitExtensionOverride(ExtensionOverride node);
+  @experimental
+  R? visitExtensionOverride2(ExtensionOverride2 node);
 
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
 
-  R? visitFieldDeclaration(FieldDeclaration node);
+  @experimental
+  R? visitField2(Field2 node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
+
+  @experimental
+  R? visitFieldsDeclaration(FieldsDeclaration node);
 
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
 
@@ -603,17 +618,13 @@ abstract class AstVisitor2<R> {
 
   R? visitForStatement(ForStatement node);
 
-  R? visitFunctionDeclaration(FunctionDeclaration node);
-
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
-
   R? visitFunctionExpression(FunctionExpression node);
 
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
+  @experimental
+  R? visitFunctionInstantiation(FunctionInstantiation node);
 
-  R? visitFunctionReference(FunctionReference node);
-
-  R? visitFunctionTypeAlias(FunctionTypeAlias node);
+  @experimental
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node);
 
   R? visitFunctionTypedFormalParameterSuffix(
     FunctionTypedFormalParameterSuffix node,
@@ -621,7 +632,8 @@ abstract class AstVisitor2<R> {
 
   R? visitGenericFunctionType(GenericFunctionType node);
 
-  R? visitGenericTypeAlias(GenericTypeAlias node);
+  @experimental
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node);
 
   @experimental
   R? visitGetterDeclaration(GetterDeclaration node);
@@ -642,19 +654,29 @@ abstract class AstVisitor2<R> {
 
   R? visitImplementsClause(ImplementsClause node);
 
-  R? visitImplicitCallReference(ImplicitCallReference node);
+  @experimental
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node);
+
+  @experimental
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node);
 
   R? visitImportDirective(ImportDirective node);
+
+  @experimental
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node);
+
+  @experimental
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  );
+
+  @experimental
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node);
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
   @experimental
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node);
-
-  R? visitIndexExpression(IndexExpression node);
-
-  @experimental
-  R? visitIndexExpression2(IndexExpression2 node);
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
 
@@ -666,6 +688,22 @@ abstract class AstVisitor2<R> {
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
   );
+
+  @experimental
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  );
+
+  @experimental
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  );
+
+  @experimental
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node);
+
+  @experimental
+  R? visitInvalidSuperExpression(InvalidSuperExpression node);
 
   R? visitIsExpression(IsExpression node);
 
@@ -680,6 +718,20 @@ abstract class AstVisitor2<R> {
   R? visitListLiteral(ListLiteral node);
 
   R? visitListPattern(ListPattern node);
+
+  @experimental
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node);
+
+  @experimental
+  R? visitLocalVariable(LocalVariable node);
+
+  @experimental
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node);
+
+  @experimental
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  );
 
   @experimental
   R? visitLogicalAnd(LogicalAnd node);
@@ -700,12 +752,8 @@ abstract class AstVisitor2<R> {
 
   R? visitMapPatternEntry(MapPatternEntry node);
 
-  R? visitMethodDeclaration(MethodDeclaration node);
-
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
-
-  R? visitMethodInvocation(MethodInvocation node);
 
   R? visitMixinDeclaration(MixinDeclaration node);
 
@@ -741,6 +789,32 @@ abstract class AstVisitor2<R> {
 
   R? visitParenthesizedPattern(ParenthesizedPattern node);
 
+  @experimental
+  R? visitParsedCascadeName(ParsedCascadeName node);
+
+  @experimental
+  R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node);
+
+  @experimental
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node);
+
+  @experimental
+  R? visitParsedNameAccess(ParsedNameAccess node);
+
+  @experimental
+  R? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  );
+
+  @experimental
+  R? visitParsedTypeArguments(ParsedTypeArguments node);
+
+  @experimental
+  R? visitParsedUnqualifiedName(ParsedUnqualifiedName node);
+
+  @experimental
+  R? visitParsedValueArguments(ParsedValueArguments node);
+
   R? visitPartDirective(PartDirective node);
 
   R? visitPartOfDirective(PartOfDirective node);
@@ -757,27 +831,20 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  @experimental
-  R? visitPostfixDecrement(PostfixDecrement node);
-
-  @experimental
-  R? visitPostfixIncrement(PostfixIncrement node);
-
-  @experimental
-  R? visitPrefixDecrement(PrefixDecrement node);
-
-  R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
-  @experimental
-  R? visitPrefixIncrement(PrefixIncrement node);
-
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
 
   R? visitPrimaryConstructorName(PrimaryConstructorName node);
 
-  R? visitPropertyAccess(PropertyAccess node);
+  @experimental
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node);
+
+  @experimental
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node);
+
+  @experimental
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node);
 
   @experimental
   R? visitReceiverPropertyAssignmentTarget(
@@ -826,19 +893,21 @@ abstract class AstVisitor2<R> {
 
   R? visitShowCombinator(ShowCombinator node);
 
-  R? visitSimpleIdentifier(SimpleIdentifier node);
-
   R? visitSimpleStringLiteral(SimpleStringLiteral node);
 
   R? visitSpreadElement(SpreadElement node);
+
+  @experimental
+  R? visitStaticQualifier(StaticQualifier node);
 
   R? visitStringInterpolation(StringInterpolation node);
 
   R? visitSuperConstructorInvocation(SuperConstructorInvocation node);
 
-  R? visitSuperExpression(SuperExpression node);
-
   R? visitSuperFormalParameter(SuperFormalParameter node);
+
+  @experimental
+  R? visitSuperReference(SuperReference node);
 
   R? visitSwitchCase(SwitchCase node);
 
@@ -859,9 +928,19 @@ abstract class AstVisitor2<R> {
   R? visitThrowExpression(ThrowExpression node);
 
   @experimental
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node);
+
+  @experimental
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node);
 
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
+  @experimental
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node);
+
+  @experimental
+  R? visitTopLevelVariable2(TopLevelVariable2 node);
+
+  @experimental
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node);
 
   R? visitTryStatement(TryStatement node);
 
@@ -877,13 +956,13 @@ abstract class AstVisitor2<R> {
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
 
   @experimental
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node);
+
+  @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
 
-  R? visitVariableDeclaration(VariableDeclaration node);
-
-  R? visitVariableDeclarationList(VariableDeclarationList node);
-
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
+  @experimental
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
 
   R? visitWhenClause(WhenClause node);
 

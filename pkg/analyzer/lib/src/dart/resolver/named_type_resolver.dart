@@ -24,6 +24,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart'
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
@@ -52,7 +53,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(
+  new(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
     this._scopeContext,
@@ -258,12 +259,28 @@ class NamedTypeResolver with ScopeHelpers {
         );
         type = InvalidTypeImpl.instance;
       } else if (type is! InterfaceTypeImpl) {
+        // Keep the represented type for invalid function-alias constructor
+        // selections. The enclosing operation reports the selected member;
+        // this qualifier is not a Type-valued receiver.
+        if (type is FunctionTypeImpl &&
+            typeArguments != null &&
+            switch (node.parent2) {
+              ConstructorTearOff() => true,
+              ConstructorReference2(
+                selector: ConstructorSelector(),
+                parent2: ConstructorInvocation(keyword: null),
+              ) =>
+                true,
+              _ => false,
+            }) {
+          return node.type = type;
+        }
         if (_isFactoryRedirectionTarget(node)) {
           _reportRedirectToNonClass(node);
         } else {
           var invocation = node.parent2?.parent2;
           var isConst = switch (invocation) {
-            ConstructorInvocation(isConst: var isConst) => isConst,
+            ConstructorInvocation(:var isConst) => isConst,
             _ => false,
           };
           diagnosticReporter.report(
@@ -283,13 +300,13 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (importPrefix != null && importPrefix.element == null) {
-      diagnosticReporter.report(
-        diag.undefinedIdentifier
-            .withArguments(name: importPrefix.name.lexeme)
-            .atOffset(
-              offset: importPrefix.offset,
-              length: node.name.end - importPrefix.offset,
-            ),
+      LookupFailureReporter(
+        diagnosticReporter,
+        _libraryFragment,
+      ).reportReadFailure(
+        domain: UnqualifiedLookupDomain(),
+        name: importPrefix.name,
+        foundInstead: null,
       );
       return node.type = InvalidTypeImpl.instance;
     }
@@ -297,7 +314,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (!node.name.isSynthetic) {
       var invocation = node.parent2?.parent2;
       var isConst = switch (invocation) {
-        ConstructorInvocation(isConst: var isConst) => isConst,
+        ConstructorInvocation(:var isConst) => isConst,
         _ => false,
       };
       var diagnostic = (isConst ? diag.constWithNonType : diag.newWithNonType)
@@ -327,15 +344,22 @@ class NamedTypeResolver with ScopeHelpers {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
+      // Expression type applications historically highlight the arguments and
+      // recover with dynamic, unlike type annotations.
+      // TODO(scheglov): Update this.
+      var isTypeLiteral = node.parent2 is TypeLiteral;
       diagnosticReporter.report(
         target
             .wrongNumberOfTypeArgumentsError(
               typeParameterCount: parameterCount,
               typeArgumentCount: argumentCount,
             )
-            .at(node),
+            .at(isTypeLiteral ? argumentList : node),
       );
-      return List.filled(parameterCount, InvalidTypeImpl.instance);
+      return List.filled(
+        parameterCount,
+        isTypeLiteral ? DynamicTypeImpl.instance : InvalidTypeImpl.instance,
+      );
     }
 
     if (parameterCount == 0) {
@@ -347,6 +371,24 @@ class NamedTypeResolver with ScopeHelpers {
       (i) => arguments[i].typeOrThrow,
       growable: false,
     );
+  }
+
+  void _checkTypeArgumentsOnNonGenericType(
+    NamedTypeImpl node, {
+    required TypeInstantiationTarget target,
+  }) {
+    if (node.parent2 is TypeLiteral) {
+      // The parser reports the feature error in older language versions.
+      if (_libraryFragment.element.featureSet.isEnabled(
+        Feature.constructor_tearoffs,
+      )) {
+        diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(node.name),
+        );
+      }
+    } else {
+      _buildTypeArguments(node, node.typeArguments!, 0, target: target);
+    }
   }
 
   NullabilitySuffix _getNullability(NamedType node) {
@@ -425,26 +467,20 @@ class NamedTypeResolver with ScopeHelpers {
         );
         return _verifyTypeAliasForContext(node, element, type);
       } else if (element is DynamicElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: const TypeInstantiationTargetDynamicTypeElement(),
         );
         return DynamicTypeImpl.instance;
       } else if (element is NeverElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: const TypeInstantiationTargetNeverTypeElement(),
         );
         return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: TypeInstantiationTargetTypeParameterElement(element),
         );
         return InvalidTypeImpl.instance;
@@ -669,7 +705,7 @@ class NamedTypeResolver with ScopeHelpers {
 class _ErrorHelper {
   final DiagnosticReporter diagnosticReporter;
 
-  _ErrorHelper(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name.isSynthetic) {

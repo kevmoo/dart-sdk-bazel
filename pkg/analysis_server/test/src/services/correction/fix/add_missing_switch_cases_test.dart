@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingSwitchCasesTest_SwitchExpression extends FixProcessorTest {
+class AddMissingSwitchCasesTest_SwitchExpression
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 
@@ -482,7 +483,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -519,7 +520,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -542,7 +543,8 @@ int f(A a) => switch (a) {
 }
 
 @reflectiveTest
-class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
+class AddMissingSwitchCasesTest_SwitchStatement
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 
@@ -1118,7 +1120,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );

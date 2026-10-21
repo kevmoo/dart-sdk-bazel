@@ -424,20 +424,15 @@ def _dart_compile_dill_impl(ctx):
     args.use_param_file("@%s", use_always = True)
     args.set_param_file_format("multiline")
 
+    startup_args = ctx.actions.args()
     if boot_file.extension == "dill":
         executable = toolchain.dart_executable
-        arguments = [
-            "-Dsdk_hash=" + toolchain.sdk_hash,
-            boot_file.path,
-            args,
-        ]
+        startup_args.add("-Dsdk_hash=" + toolchain.sdk_hash)
+        startup_args.add(boot_file.path)
         extra_inputs = [toolchain.dart_executable]
     else:
         executable = ctx.executable._dartaotruntime
-        arguments = [
-            boot_file.path,
-            args,
-        ]
+        startup_args.add(boot_file.path)
         extra_inputs = [ctx.executable._dartaotruntime]
 
     inputs = depset(
@@ -453,11 +448,13 @@ def _dart_compile_dill_impl(ctx):
         ],
     )
 
+    # Both startup_args and args are ctx.actions.args() objects (startup flags + @flagfile).
+    # buildifier: disable=pass-args-to-actions
     ctx.actions.run(
         outputs = [out_file],
         inputs = inputs,
         executable = executable,
-        arguments = arguments,
+        arguments = [startup_args, args],
         mnemonic = "DartCompileDill",
         progress_message = "Compiling Dart kernel dill %{label}",
         execution_requirements = {
@@ -687,11 +684,13 @@ def _dart_kernel_snapshot_rule_impl(ctx):
 
 def _build_devtools_impl(ctx):
     out = ctx.actions.declare_directory(ctx.attr.out_dir)
+    devtools_args = ctx.actions.args()
+    devtools_args.add("--output", out.path)
     ctx.actions.run(
         outputs = [out],
         inputs = ctx.files.srcs,
         executable = ctx.executable._tool,
-        arguments = ["--output", out.path],
+        arguments = [devtools_args],
         mnemonic = "BuildDevTools",
         progress_message = "Building DevTools from source",
         execution_requirements = {"local": "1"},
@@ -803,6 +802,15 @@ def _prebuilt_dart_aot_snapshot_impl(ctx):
     elf = ctx.outputs.out
 
     # Step 1: Compile to AOT kernel dill using prebuilt AOT compiler
+    kernel_args = ctx.actions.args()
+    kernel_args.add_all([
+        ctx.file._gen_kernel_aot.path,
+        "--packages=" + ctx.file._package_config.path,
+        "--platform=" + ctx.file._platform.path,
+        "--aot",
+        "--output=" + dill.path,
+        ctx.file.main.path,
+    ])
     ctx.actions.run(
         inputs = ctx.files.srcs + [
             ctx.file.main,
@@ -812,29 +820,24 @@ def _prebuilt_dart_aot_snapshot_impl(ctx):
         ],
         outputs = [dill],
         executable = ctx.executable._dartaotruntime,
-        arguments = [
-            ctx.file._gen_kernel_aot.path,
-            "--packages=" + ctx.file._package_config.path,
-            "--platform=" + ctx.file._platform.path,
-            "--aot",
-            "--output=" + dill.path,
-            ctx.file.main.path,
-        ],
+        arguments = [kernel_args],
         mnemonic = "PrebuiltDartCompileKernelAOT",
         progress_message = "Compiling %{label} to AOT Kernel (prebuilt)",
     )
 
     # Step 2: Compile dill to AOT ELF snapshot using prebuilt gen_snapshot
+    elf_args = ctx.actions.args()
+    elf_args.add_all([
+        "--deterministic",
+        "--snapshot-kind=app-aot-elf",
+        "--elf=" + elf.path,
+        dill.path,
+    ])
     ctx.actions.run(
         inputs = [dill],
         outputs = [elf],
         executable = ctx.executable._gen_snapshot,
-        arguments = [
-            "--deterministic",
-            "--snapshot-kind=app-aot-elf",
-            "--elf=" + elf.path,
-            dill.path,
-        ],
+        arguments = [elf_args],
         mnemonic = "PrebuiltDartAotElf",
         progress_message = "Generating AOT ELF snapshot %{label} (prebuilt)",
     )

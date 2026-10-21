@@ -15,6 +15,7 @@ import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
 
@@ -33,7 +34,7 @@ class CompilationSet {
   late final StubFactory _stubFactory;
   late final AsmIntrinsics _asmIntrinsics;
 
-  CompilationSet(this.libraries, this.config)
+  CompilationSet(this.config, this.libraries, ast.Procedure? mainMethod)
     : _imageWriter = config.createImageWriter() {
     _snapshot = SnapshotSerializer(
       config.targetCPU,
@@ -43,6 +44,14 @@ class CompilationSet {
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
     _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
+
+    // Currently VM loads declarations of core libraries from core snapshot.
+    if (!config.compilePlatform) {
+      _snapshot.declareLibraries(libraries);
+      if (mainMethod != null) {
+        _snapshot.addMainMethod(mainMethod);
+      }
+    }
   }
 
   /// Add [function] to be compiled.
@@ -96,6 +105,14 @@ class CompilationSet {
         );
         _compilePendingFunctions();
       }
+    }
+
+    if (config.compilePlatform) {
+      // Generate stubs for the VM.
+      _snapshot.addRootStub(
+        StubCode.DynamicInvocationForwarder,
+        _stubFactory.dynamicInvocationForwarderStub,
+      );
     }
   }
 

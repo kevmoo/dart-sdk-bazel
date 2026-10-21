@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -67,7 +69,9 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
     for (var annotation in element.metadata.annotations) {
       var ast = (annotation as ElementAnnotationImpl).annotationAst;
       _detachNode(ast);
-      _sanitizeArguments(ast.arguments?.arguments2);
+      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
+        _sanitizeArguments(argumentList.arguments2);
+      }
     }
     super.visitElement(element);
   }
@@ -122,6 +126,11 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
       // Also detach from the token stream.
       node.beginToken.previous = null;
       node.endToken.next = null;
+      for (Token? token = node.beginToken; token != null; token = token.next) {
+        if (token is SimpleToken) {
+          token.precedingComments = null;
+        }
+      }
     }
   }
 

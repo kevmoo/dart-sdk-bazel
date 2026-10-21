@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
@@ -22,6 +23,8 @@ class MockVmService {
   final HttpServer server;
   final int port;
   final clients = <json_rpc.Peer>[];
+  Uri? existingDdsUri;
+  int? yieldControlErrorCode;
 
   Uri get uri => Uri.parse('http://localhost:$port/');
 
@@ -40,6 +43,37 @@ class MockVmService {
           'name': 'mock-vm',
           'isolates': <Map<String, Object?>>[],
         };
+      });
+
+      peer.registerMethod('getObject', (json_rpc.Parameters params) {
+        return {'type': 'Instance', 'kind': 'Null', 'valueAsString': 'null'};
+      });
+
+      peer.registerMethod('_echo', (json_rpc.Parameters params) {
+        return {
+          'type': '_EchoResponse',
+          'customField': 'customValue',
+          '_privateField': 'secret',
+        };
+      });
+
+      peer.registerMethod('_yieldControlToDDS', (json_rpc.Parameters params) {
+        final errorCode = mock.yieldControlErrorCode;
+        if (errorCode != null) {
+          throw json_rpc.RpcException(errorCode, 'Server error');
+        }
+        final ddsUri = mock.existingDdsUri;
+        if (ddsUri != null) {
+          throw json_rpc.RpcException(
+            100,
+            'Feature is disabled',
+            data: <String, Object?>{
+              'details': 'A DDS instance is already connected at $ddsUri.',
+              'ddsUri': ddsUri.toString(),
+            },
+          );
+        }
+        return vm.Success().toJson();
       });
 
       peer.registerMethod('streamListen', (json_rpc.Parameters params) {
@@ -73,6 +107,14 @@ class MockVmService {
     });
 
     return mock;
+  }
+
+  void registerHangingMethod(String method) {
+    for (final client in clients) {
+      client.registerMethod(method, (json_rpc.Parameters params) {
+        return Completer<Object?>().future;
+      });
+    }
   }
 
   Future<void> shutdown() async {
@@ -112,6 +154,36 @@ void main() {
     test('forward RPC request', () async {
       final vmResult = await ddsClient!.getVM();
       expect(vmResult.name, 'mock-vm');
+    });
+
+    test('forward RPC request returning null instance', () async {
+      final result = await ddsClient!.callMethod(
+        'getObject',
+        isolateId: 'isolates/1',
+        args: <String, Object?>{'objectId': 'objects/null'},
+      );
+      expect(result.json?['type'] ?? result.type, equals('Instance'));
+      expect(result.json?['kind'], equals('Null'));
+    });
+
+    test(
+      'forward RPC request preserving private fields and custom types',
+      () async {
+        final result = await ddsClient!.callMethod('_echo');
+        expect(result.json?['type'] ?? result.type, equals('_EchoResponse'));
+        expect(result.json?['customField'], equals('customValue'));
+        expect(result.json?['_privateField'], equals('secret'));
+      },
+    );
+
+    test('pending raw requests fail when VM service closes', () async {
+      mockVmService!.registerHangingMethod('hangingMethod');
+
+      final pendingCall = ddsClient!.callMethod('hangingMethod');
+
+      await mockVmService!.shutdown();
+
+      await expectLater(pendingCall, throwsA(isA<vm.RPCError>()));
     });
 
     test('getVersion returns VM Service version', () async {
@@ -166,6 +238,98 @@ void main() {
       );
       expect(backend.hostedDartToolingDaemon, isNotNull);
       await service.shutdown();
+    });
+
+    test('throws ExistingDartDevelopmentServiceException when DDS instance '
+        'already connected', () async {
+      mockVmService!.existingDdsUri = ddsService!.httpUri;
+      late DartRuntimeService frontendService;
+      late DartRuntimeServiceDdsBackend backend;
+      await expectLater(
+        DartRuntimeService.initialize(
+          config: const DartRuntimeServiceOptions(serveDevTools: true),
+          backendBuilder: (frontend) {
+            frontendService = frontend;
+            return backend = DartRuntimeServiceDdsBackend(
+              mockVmService!.uri,
+              frontend: frontend,
+              serveDevTools: true,
+            );
+          },
+        ),
+        throwsA(
+          isA<ExistingDartDevelopmentServiceException>()
+              .having(
+                (e) => e.errorCode,
+                'errorCode',
+                DartDevelopmentServiceException.existingDdsInstanceError,
+              )
+              .having((e) => e.ddsUri, 'ddsUri', ddsService!.httpUri),
+        ),
+      );
+      expect(backend.hostedDartToolingDaemon, isNull);
+      expect(frontendService.isServerRunning, isFalse);
+    });
+
+    test(
+      'throws failedToStart when yieldControlToDds fails with server error',
+      () async {
+        mockVmService!.yieldControlErrorCode =
+            vm.RPCErrorKind.kServerError.code;
+        await expectLater(
+          DartRuntimeService.initialize(
+            config: const DartRuntimeServiceOptions(),
+            backendBuilder: (frontend) => DartRuntimeServiceDdsBackend(
+              mockVmService!.uri,
+              frontend: frontend,
+            ),
+          ),
+          throwsA(
+            isA<DartDevelopmentServiceException>().having(
+              (e) => e.errorCode,
+              'errorCode',
+              DartDevelopmentServiceException.failedToStartError,
+            ),
+          ),
+        );
+      },
+    );
+
+    test('CLI entrypoint emits ddsExceptionDetails JSON on existing DDS '
+        'instance error', () async {
+      mockVmService!.existingDdsUri = ddsService!.httpUri;
+      final entrypointUri = await Isolate.resolvePackageUri(
+        Uri.parse('package:dart_runtime_service_dds/'),
+      );
+      final entrypointPath = path.normalize(
+        path.join(
+          entrypointUri!.toFilePath(),
+          '..',
+          'bin',
+          'dds_entrypoint.dart',
+        ),
+      );
+      final result = await Process.run(Platform.resolvedExecutable, <String>[
+        entrypointPath,
+        '--vm-service-uri=${mockVmService!.uri}',
+      ]);
+      expect(result.exitCode, 1);
+      final stderrOutput = (result.stderr as String).trim();
+      final decoded = json.decode(stderrOutput) as Map<String, Object?>;
+      expect(decoded['state'], 'error');
+      final details = decoded['ddsExceptionDetails'] as Map<String, Object?>?;
+      expect(details, isNotNull);
+      final exception = DartDevelopmentServiceException.fromJson(details!);
+      expect(
+        exception,
+        isA<ExistingDartDevelopmentServiceException>()
+            .having(
+              (e) => e.errorCode,
+              'errorCode',
+              DartDevelopmentServiceException.existingDdsInstanceError,
+            )
+            .having((e) => e.ddsUri, 'ddsUri', ddsService!.httpUri),
+      );
     });
   });
 

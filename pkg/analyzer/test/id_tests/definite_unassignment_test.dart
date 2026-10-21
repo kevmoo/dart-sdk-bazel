@@ -4,11 +4,13 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -29,12 +31,22 @@ main(List<String> args) {
     onFailure: onFailure,
     runTest: runTestFor(const _DefiniteAssignmentDataComputer(), [
       analyzerDefaultConfig,
+      TestConfig(
+        analyzerInferenceUpdate4Marker,
+        'analyzer with inference-update-4',
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['inference-update-4'],
+        ),
+      ),
     ]),
   );
 }
 
+const String analyzerInferenceUpdate4Marker = 'analyzer:inference-update-4';
+
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
-  const _DefiniteAssignmentDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator =>
@@ -60,7 +72,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
@@ -75,18 +87,16 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
 class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _DefiniteUnassignmentDataExtractor(
-    super.uri,
-    super.actualMap,
-    this._flowResult,
-  );
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
     Element? element;
     var flowNode = node;
-    if (node is SimpleIdentifier && node.inGetterContext()) {
-      element = node.element;
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement),
+    )) {
+      element = readElement;
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {
@@ -107,7 +117,7 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
 }
 
 class _DefiniteUnassignmentDataInterpreter implements DataInterpreter<String> {
-  const _DefiniteUnassignmentDataInterpreter();
+  const new();
 
   @override
   String getText(String actualData, [String? indentation]) => actualData;

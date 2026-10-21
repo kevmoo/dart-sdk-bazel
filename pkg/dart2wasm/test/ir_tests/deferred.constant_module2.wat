@@ -6,8 +6,8 @@
   (type $Array<_NamedParameter> <...>)
   (type $Array<_Type> <...>)
   (type $H0 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)
@@ -44,7 +44,7 @@
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 37
+      i32.const 51
       i32.const 0
       global.get $global0
       global.get $global2

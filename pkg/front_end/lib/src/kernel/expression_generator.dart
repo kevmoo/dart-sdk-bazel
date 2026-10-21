@@ -2087,32 +2087,14 @@ class SuperIndexedAccessGenerator extends Generator {
         length: noLength,
       );
     } else {
-      if (voidContext) {
-        _helper.readInternalThisVariable();
-        return intern.createSuperMethodInvocation(
-          name: indexSetName,
-          procedure: setter,
-          typeArguments: null,
-          arguments: intern.createArguments(
-            fileOffset,
-            arguments: [
-              new PositionalArgument(index),
-              new PositionalArgument(value),
-            ],
-            hasNamedBeforePositional: false,
-            positionalCount: 2,
-          ),
-          fileOffset: fileOffset,
-        );
-      } else {
-        _helper.readInternalThisVariable();
-        return intern.createSuperIndexSet(
-          setter: setter,
-          index: index,
-          value: value,
-          fileOffset: fileOffset,
-        );
-      }
+      _helper.readInternalThisVariable();
+      return intern.createSuperIndexSet(
+        setter: setter,
+        index: index,
+        value: value,
+        forEffect: voidContext,
+        fileOffset: fileOffset,
+      );
     }
   }
 
@@ -6162,9 +6144,8 @@ class DelayedAssignment extends ContextAwareGenerator {
         fileOffset,
         voidContext: voidContext,
       );
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (identical("^=", assignmentOperator)) {
+    } else if (identical("^=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(
         caretName,
         value,
@@ -6178,7 +6159,9 @@ class DelayedAssignment extends ContextAwareGenerator {
         operatorOffset: fileOffset,
         voidContext: voidContext,
       );
-    } else if (identical("~/=", assignmentOperator)) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (identical("~/=", assignmentOperator)) {
       return generator.buildCompoundAssignment(
         mustacheName,
         value,
@@ -7463,10 +7446,10 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
   }
 }
 
-int adjustForImplicitCall(String? name, int offset) {
+int adjustForImplicitCall(String name, int offset) {
   // Normally the offset is at the start of the token, but in this case,
   // because we insert a '.call', we want it at the end instead.
-  return offset + (name?.length ?? 0);
+  return offset + name.length;
 }
 
 bool isFieldOrGetter(Member? member) {

@@ -21,6 +21,7 @@ jobs:
       uses: dorny/paths-filter@v4
       id: filter
       with:
+        predicate-quantifier: 'some-with-excludes'
         filters: |
           needs-build:
             - '**'
@@ -80,6 +81,7 @@ jobs:
       with:
         bazelisk-cache: true
         cache-save: ${{ github.event_name != 'pull_request' }}
+        cache-version: 1-${{ hashFiles('DEPS') }}
         external-cache: true
         repository-cache: true
 

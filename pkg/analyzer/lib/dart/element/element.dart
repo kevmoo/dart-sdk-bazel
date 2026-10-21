@@ -57,7 +57,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:meta/meta.dart';
@@ -217,6 +217,13 @@ abstract class ClassFragment implements InterfaceFragment {
 abstract class ConstructorElement implements ExecutableElement {
   @override
   ConstructorElement get baseElement;
+
+  /// The name of the enclosing interface followed by `.` and [name].
+  ///
+  /// For example, `A.new` for an unnamed constructor and `A.named` for a named
+  /// constructor.
+  @override
+  String get displayName;
 
   @override
   InterfaceElement get enclosingElement;
@@ -578,9 +585,17 @@ abstract class Element {
   /// by a type alias, then the name of the type alias will be used in the
   /// returned string rather than the name of the type being aliased.
   ///
+  /// If [includePositionalParameterNames] is `true`, names of positional
+  /// parameters will be included in function types (in addition to named
+  /// parameters which are always included).
+  ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  String displayString({bool multiline = false, bool preferTypeAlias = false});
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  });
 
   /// Returns a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`
@@ -982,7 +997,7 @@ class ElementKind implements Comparable<ElementKind> {
   final String displayName;
 
   /// Initialize a newly created element kind to have the given [displayName].
-  const ElementKind(this.name, this.ordinal, this.displayName);
+  const new(this.name, this.ordinal, this.displayName);
 
   @override
   int compareTo(ElementKind other) => ordinal - other.ordinal;
@@ -2447,7 +2462,7 @@ class LibraryLanguageVersion {
   /// The version specified using `@dart` override, `null` if absent or invalid.
   final Version? override;
 
-  LibraryLanguageVersion({required this.package, required this.override});
+  new({required this.package, required this.override});
 
   /// The effective language version for the library.
   Version get effective {
@@ -2867,6 +2882,18 @@ abstract class PrefixElement implements Element {
   /// prefix. The namespace combinators of the import directives are taken
   /// into account.
   Scope get scope;
+
+  /// The libraries that provide the names in [scope].
+  ///
+  /// Unlike [imports], which are the imports with this prefix in the file
+  /// that declares it, this includes the libraries imported with the same
+  /// prefix in the enclosing files, because [scope] extends their scopes,
+  /// unless this prefix is deferred. The libraries of files that don't exist
+  /// are not included.
+  ///
+  /// When this prefix is used alone, such as `[math]` in a documentation
+  /// comment, it references the library, if there is exactly one.
+  List<LibraryElement> get scopeLibraries;
 }
 
 /// The portion of a [PrefixElement] contributed by a single declaration.
@@ -3385,7 +3412,7 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   Expression? get constantInitializer;
 
   /// The constant initializer for this constant variable, or the default

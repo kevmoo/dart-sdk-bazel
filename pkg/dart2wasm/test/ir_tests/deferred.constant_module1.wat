@@ -11,12 +11,12 @@
   (type $Array<_Type> <...>)
   (type $BoxedInt <...>)
   (type $H0 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $H1 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)
@@ -63,12 +63,12 @@
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 37
+      i32.const 51
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 37
+        i32.const 51
         i32.const 0
         global.get $global0
         global.get $global2

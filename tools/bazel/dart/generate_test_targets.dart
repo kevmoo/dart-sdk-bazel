@@ -950,7 +950,7 @@ $targetDepsStr
     ],
 $envAttr
     args = [
-        "--config-json=\$(location :tests_metadata_$configName.json)",
+        "--config-json=\$(rootpath :tests_metadata_$configName.json)",
         "--run-only=$relPathInPkgRoot",
     ],
 )''');
@@ -1066,7 +1066,7 @@ $envAttr
     srcs = ["$runnerScript"],
 $dataRule
 $envRule
-    args = ["--config-json=\$(location :tests_metadata_$configName.json)"],
+    args = ["--config-json=\$(rootpath :tests_metadata_$configName.json)"],
     shard_count = $shardCount,
 )''');
         }

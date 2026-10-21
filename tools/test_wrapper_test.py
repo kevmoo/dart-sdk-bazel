@@ -338,6 +338,47 @@ class TestTestWithBazel(unittest.TestCase):
         finally:
             sys.stdout = sys.__stdout__
 
+    @patch('subprocess.Popen')
+    @patch('utils.ResolveBazelPath', return_value='bazel')
+    def test_resolve_real_pkg_coarse_target(self, mock_resolve_bazel, mock_popen):
+        real_targets = [
+            '@dart_tests//pkg/smith/test:tests_vm_release',
+        ]
+        mock_popen.side_effect = self._mock_popen(
+            query_stdout='\n'.join(real_targets).encode('utf-8'))
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        try:
+            exit_code = test.TestWithBazel(['pkg/smith/smith_test'])
+            self.assertEqual(exit_code, 0)
+            self.assertIn(
+                'Running Bazel Tests: bazel test --test_filter=pkg/smith/smith_test @dart_tests//pkg/smith/test:tests_vm_release',
+                captured_output.getvalue(),
+            )
+        finally:
+            sys.stdout = sys.__stdout__
+
+    @patch('subprocess.Popen')
+    @patch('utils.ResolveBazelPath', return_value='bazel')
+    def test_resolve_real_pkg_fine_grained_target(self, mock_resolve_bazel, mock_popen):
+        real_targets = [
+            '@dart_tests//pkg/analyzer/test/id_tests:test_id_tests_constant_test_dart_vm_release',
+        ]
+        mock_popen.side_effect = self._mock_popen(
+            query_stdout='\n'.join(real_targets).encode('utf-8'))
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+        try:
+            exit_code = test.TestWithBazel(
+                ['pkg/analyzer/test/id_tests/constant_test'])
+            self.assertEqual(exit_code, 0)
+            self.assertIn(
+                'Running Bazel Tests: bazel test @dart_tests//pkg/analyzer/test/id_tests:test_id_tests_constant_test_dart_vm_release',
+                captured_output.getvalue(),
+            )
+        finally:
+            sys.stdout = sys.__stdout__
+
 
 if __name__ == '__main__':
     unittest.main()

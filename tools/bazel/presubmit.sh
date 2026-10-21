@@ -7,20 +7,34 @@
 # section 10 -- each step maps to a regression class that previously reached
 # main):
 #   1. buildifier format+lint (same invocation as buildifier.yml)
-#   2. hardcoded-architecture audit (same patterns as tools/bazel/hooks/
-#      pre-commit, but whole-tree and not skippable via --no-verify)
-#   3. python helper byte-compile
-#   4. bazel analysis (--nobuild) of the flagship targets -- catches missing
-#      $(location) prerequisites, Starlark errors, dangling labels
-#   5. module-extension evaluation (@dart_packages, @dart_tests) -- catches
-#      generator crashes nothing else loads
-#   6. dart analyze over the bazel tooling scripts
+#   2. upstream changes audit (1:1 bidirectional check vs allowed_upstream_files.txt)
+#   3. Starlark & architecture & genrule hermeticity audits
+#   4. starlark & python test-wrapper unit tests
+#   5. python helper byte-compile
+#   6. bazel analysis (--nobuild) of the flagship targets
+#   7. module-extension evaluation (@dart_packages, @dart_tests)
+#   8. dart analyze over the bazel tooling scripts + test_imports.json parity
 #
 # All steps run even after a failure so one invocation reports everything.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 
 FAILURES=()
+
+# Share a single Bazel server across both manual `bazel` runs and `presubmit.sh`
+# by default so @dart_tests doesn't ping-pong `tests_metadata_*.json` across two
+# JVMs or double memory usage. Opt into tmpfs only when explicitly requested via
+# BAZEL_USE_SHM=1.
+BAZEL_STARTUP_ARGS=()
+if [ "${CI:-}" != "true" ] && [ "${BAZEL_USE_SHM:-0}" = "1" ] && [ -w /dev/shm ]; then
+  USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
+  BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
+fi
+
+BAZEL_CONFIG_ARGS=("--config=cloudtop-safe")
+if [ "${CI:-}" = "true" ]; then
+  BAZEL_CONFIG_ARGS=("--config=ci")
+fi
 
 step() {
   echo
@@ -47,51 +61,83 @@ step "upstream changes audit"
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
   echo "SKIP: upstream changes audit skipped in GitHub Actions CI"
 else
-  BASE_BRANCH="origin/main"
-  if ! git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
-    BASE_BRANCH="main"
-  fi
+  if ! python3 - <<'PY'
+import subprocess
+import sys
 
-  if git rev-parse --verify "$BASE_BRANCH" >/dev/null 2>&1; then
-    MERGE_BASE=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "$BASE_BRANCH")
-    modified_files=$(git diff --name-only "$MERGE_BASE" || true)
-    
-    allowed_external_files=()
-    if [ -f "tools/bazel/allowed_upstream_files.txt" ]; then
-      while IFS= read -r line || [ -n "$line" ]; do
-        line="${line%$'\r'}"
-        [[ "$line" =~ ^# ]] && continue
-        [ -z "$line" ] && continue
-        allowed_external_files+=("$line")
-      done < "tools/bazel/allowed_upstream_files.txt"
-    fi
-    
-    violations=()
-    while IFS= read -r file; do
-      [ -z "$file" ] && continue
-      if [[ "$file" =~ ^tools/bazel/ ]] || [[ "$file" =~ ^docs/bazel-migration/ ]]; then
-        continue
-      fi
-      is_allowed=false
-      for allowed in "${allowed_external_files[@]}"; do
-        if [ "$file" = "$allowed" ]; then
-          is_allowed=true
-          break
-        fi
-      done
-      if [ "$is_allowed" = false ]; then
-        violations+=("$file")
-      fi
-    done <<< "$modified_files"
-    
-    if [ "${#violations[@]}" -gt 0 ]; then
-      echo "Modified files outside allowed Bazel directories:"
-      printf ' - %s\n' "${violations[@]}"
-      fail "upstream changes audit: detected changes outside tools/bazel/ or docs/bazel-migration/. Try to keep changes self-contained in Bazel directory."
-    fi
-  else
-    echo "SKIP: base branch (origin/main or main) not found, cannot run upstream changes audit"
+sys.path.insert(0, "tools/bazel")
+from presubmit_checks import IsAutoExemptOverlayPath
+
+
+def rev_exists(rev):
+    return subprocess.call(
+        ["git", "rev-parse", "--verify", "--quiet", rev],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ) == 0
+
+
+allowed = set()
+with open("tools/bazel/allowed_upstream_files.txt", "r") as f:
+    for line in f:
+        line = line.strip()
+        if line and not line.startswith("#"):
+            allowed.add(line)
+
+if rev_exists("MERGE_HEAD"):
+    base = subprocess.check_output(["git", "rev-parse", "MERGE_HEAD"], text=True).strip()
+    strict_stale = True
+elif rev_exists("upstream-sdk/main"):
+    base = subprocess.check_output(
+        ["git", "merge-base", "HEAD", "upstream-sdk/main"], text=True
+    ).strip()
+    strict_stale = True
+else:
+    base_branch = "origin/main" if rev_exists("origin/main") else "main"
+    base = subprocess.check_output(
+        ["git", "merge-base", "HEAD", base_branch], text=True
+    ).strip()
+    strict_stale = False
+
+diff_files = [
+    p.strip()
+    for p in subprocess.check_output(
+        ["git", "diff", "--diff-filter=AM", "--name-only", base], text=True
+    ).splitlines()
+    if p.strip()
+]
+
+non_exempt_actual = {p for p in diff_files if not IsAutoExemptOverlayPath(p)}
+unapproved = sorted(non_exempt_actual - allowed)
+stale = sorted(allowed - non_exempt_actual) if strict_stale else []
+auto_exempt_in_list = sorted(p for p in allowed if IsAutoExemptOverlayPath(p))
+
+ok = True
+if unapproved:
+    print("Modified/added upstream files missing from tools/bazel/allowed_upstream_files.txt:")
+    for p in unapproved:
+        print(f" - {p}")
+    ok = False
+if auto_exempt_in_list:
+    print("Auto-exempt Bazel overlay files redundantly listed in tools/bazel/allowed_upstream_files.txt:")
+    for p in auto_exempt_in_list:
+        print(f" - {p}")
+    ok = False
+if stale:
+    print("Stale entries in tools/bazel/allowed_upstream_files.txt (no longer differ from upstream):")
+    for p in stale:
+        print(f" - {p}")
+    ok = False
+sys.exit(0 if ok else 1)
+PY
+  then
+    fail "upstream changes audit: mismatch against tools/bazel/allowed_upstream_files.txt"
   fi
+fi
+
+step "DEPS SHA-256 lockfile parity"
+if ! python3 tools/bazel/sync_deps_hashes.py --check; then
+  fail "DEPS SHA-256 lockfile check (run: python3 tools/bazel/sync_deps_hashes.py --update)"
 fi
 
 step "Starlark copy audit"
@@ -100,7 +146,6 @@ if [ -n "$starlark_cp_matches" ]; then
   echo "$starlark_cp_matches"
   fail "Starlark copy audit: ctx.execute with 'cp' found (use ctx.read/ctx.file for hermetic copying, or ctx.symlink)"
 fi
-
 
 step "hardcoded-architecture audit"
 # Keep patterns and exclusions in sync with tools/bazel/hooks/pre-commit.
@@ -113,9 +158,6 @@ forbidden_patterns=(
 )
 audit_files=$(git ls-files '*BUILD.bazel' '*MODULE.bazel' '*.bzl' '*.snap' '*.append' \
   | grep -E -v 'gen_targets\.bzl|rules\.bzl|^build/config/' || true)
-# Lines carrying '# arch-pinned-variant: ok' are exempt: explicitly
-# arch-pinned cross variants (e.g. *_product_linux_x64 targets) legitimately
-# carry their arch define; the marker keeps the exemption visible in review.
 for pattern in "${forbidden_patterns[@]}"; do
   matches=$(echo "$audit_files" | xargs grep -H -F -n "$pattern" 2>/dev/null \
     | grep -v '# arch-pinned-variant: ok' || true)
@@ -124,18 +166,18 @@ for pattern in "${forbidden_patterns[@]}"; do
     fail "architecture audit: $pattern is hardcoded (parameterize via select(), or mark an arch-pinned variant with '# arch-pinned-variant: ok')"
   fi
 done
-# Obfuscated concat forms ("TARGET_ARCH_" + "X64") evaluate identically but
-# dodge the literal greps. Never allowed: write the honest literal (plus the
-# marker if the target is a deliberately arch-pinned variant).
 concat_matches=$(echo "$audit_files" | xargs grep -H -n -E '"TARGET_ARCH_"[[:space:]]*\+' 2>/dev/null || true)
 if [ -n "$concat_matches" ]; then
   echo "$concat_matches"
   fail "architecture audit: concat-built TARGET_ARCH_ define evades the literal grep (write the honest literal + marker)"
 fi
 
-step "starlark macro unit tests"
-if ! bazel test //tools/bazel/dart/tests:dart_rules_tests; then
-  fail "bazel test //tools/bazel/dart/tests:dart_rules_tests"
+step "starlark & wrapper unit tests"
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" test "${BAZEL_CONFIG_ARGS[@]}" //tools/bazel/...; then
+  fail "bazel test ${BAZEL_CONFIG_ARGS[*]} //tools/bazel/..."
+fi
+if ! python3 tools/test_wrapper_test.py; then
+  fail "python3 tools/test_wrapper_test.py"
 fi
 
 step "genrule hermeticity audit"
@@ -152,38 +194,13 @@ if [ -n "$ambient_matches" ]; then
   fail "genrule audit: ambient host command (git/date) found inside cmd string (use --workspace_status_command or stamping)"
 fi
 
-BAZEL_STARTUP_ARGS=()
-if [ -w /dev/shm ]; then
-  SHM_EXEC_ALLOWED=false
-  if touch /dev/shm/test_exec_$$ 2>/dev/null; then
-    if chmod +x /dev/shm/test_exec_$$ 2>/dev/null && /dev/shm/test_exec_$$ 2>/dev/null; then
-      SHM_EXEC_ALLOWED=true
-    fi
-    rm -f /dev/shm/test_exec_$$ || true
-  fi
-  if [ "$SHM_EXEC_ALLOWED" = true ]; then
-    SHM_FREE_INODES=$(df -iP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
-    if [[ ! "$SHM_FREE_INODES" =~ ^[0-9]+$ ]]; then
-      SHM_FREE_INODES=0
-    fi
-    SHM_FREE_KB=$(df -kP /dev/shm 2>/dev/null | awk 'NR==2 {print $4}' || echo "0")
-    if [[ ! "$SHM_FREE_KB" =~ ^[0-9]+$ ]]; then
-      SHM_FREE_KB=0
-    fi
-    if [ "$SHM_FREE_INODES" -gt 1000000 ] && [ "$SHM_FREE_KB" -gt 15728640 ]; then
-      USER_ID=$(id -u 2>/dev/null || echo "${USER:-default}")
-      BAZEL_STARTUP_ARGS+=("--output_user_root=/dev/shm/bazel_user_root_$USER_ID")
-    fi
-  fi
-fi
-
 step "python helpers byte-compile"
 if ! git ls-files 'tools/bazel/*.py' 'tools/bazel/**/*.py' | xargs python3 -m py_compile; then
   fail "py_compile of tools/bazel python helpers"
 fi
 
 step "bazel analysis (--nobuild) of flagship targets"
-if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build --nobuild \
+if ! bazel "${BAZEL_STARTUP_ARGS[@]}" build "${BAZEL_CONFIG_ARGS[@]}" --nobuild \
   //sdk:create_sdk \
   //runtime/bin:dartvm \
   //utils:gen_kernel_exe \
@@ -204,8 +221,6 @@ fi
 # Resolve Dart SDK binary
 DART=tools/sdks/dart-sdk/bin/dart
 if [ ! -x "$DART" ]; then
-  # CI: the SDK is downloaded by the third_party extension (which the queries
-  # above just evaluated) instead of living in the gclient-synced workspace.
   OUTPUT_BASE=$(bazel "${BAZEL_STARTUP_ARGS[@]}" info output_base 2>/dev/null || true)
   if [ -n "$OUTPUT_BASE" ]; then
     dart_paths=("$OUTPUT_BASE"/external/*prebuilt_dart_sdk*/bin/dart)
@@ -231,6 +246,7 @@ if [ -n "$DART" ] && [ -x "$DART" ]; then
 else
   echo "SKIP: no dart binary found (tools/sdks/dart-sdk absent and no fetched prebuilt SDK)"
 fi
+
 step "entrypoint script validation: test_everything.sh"
 if ! ./tools/bazel/test_everything.sh --help >/dev/null; then
   fail "tools/bazel/test_everything.sh --help execution"
@@ -250,8 +266,6 @@ if [ -n "$DART" ] && [ -x "$DART" ]; then
     fi
   done
 
-  # Check if git diff detects any changes in those files.
-  # We use git diff --exit-code, which exits with 1 if there are differences.
   if ! git diff --exit-code "${packages[@]/%//test_imports.json}" >/dev/null 2>&1; then
     git diff "${packages[@]/%//test_imports.json}"
     fail "test_imports.json files are out of date. Please run tools/bazel/dart/gen_test_imports.dart for the modified packages and commit the changes."

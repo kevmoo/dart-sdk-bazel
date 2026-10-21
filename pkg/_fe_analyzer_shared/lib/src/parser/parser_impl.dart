@@ -350,7 +350,10 @@ class Parser {
   /// `true` if the 'augmentations' feature is enabled.
   final bool isAugmentationsFeatureEnabled;
 
-  Parser(
+  /// `true` if the 'single-combinators' feature is enabled.
+  final bool _isSingleCombinatorsFeatureEnabled;
+
+  new(
     this.listener, {
     this.useImplicitCreationExpression = true,
     required this.experimentalFeatures,
@@ -365,7 +368,9 @@ class Parser {
            .isExperimentEnabled(ExperimentalFlag.anonymousMethods),
        isAugmentationsFeatureEnabled = experimentalFeatures.isExperimentEnabled(
          ExperimentalFlag.augmentations,
-       );
+       ),
+       _isSingleCombinatorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.singleCombinators);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -1210,8 +1215,14 @@ class Parser {
     while (true) {
       String? value = next.stringValue;
       if (identical('hide', value)) {
+        if (count > 0 && _isSingleCombinatorsFeatureEnabled) {
+          reportRecoverableError(next, diag.multipleCombinators);
+        }
         token = parseHide(token);
       } else if (identical('show', value)) {
+        if (count > 0 && _isSingleCombinatorsFeatureEnabled) {
+          reportRecoverableError(next, diag.multipleCombinators);
+        }
         token = parseShow(token);
       } else {
         listener.endCombinators(count);
@@ -3899,7 +3910,8 @@ class Parser {
   }
 
   Token parsePrimaryConstructorBody(Token token, Token? augmentToken) {
-    Token beginToken = token;
+    Token beginToken = augmentToken ?? token;
+    Token thisToken = token;
     listener.beginPrimaryConstructorBody(token, augmentToken);
 
     Token? beforeInitializers = token;
@@ -3929,6 +3941,7 @@ class Parser {
 
     listener.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beforeInitializers?.next,
       token,
     );
@@ -6133,30 +6146,6 @@ class Parser {
         assert(varFinalOrConst.isA(Keyword.CONST));
         reportRecoverableError(varFinalOrConst, diag.constMethod);
       }
-      switch (kind) {
-        case DeclarationKind.Class:
-        case DeclarationKind.Mixin:
-        case DeclarationKind.Enum:
-          break;
-        case DeclarationKind.Extension:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.ExtensionType:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionTypeDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.TopLevel:
-          throw "Internal error: TopLevel method.";
-      }
       // TODO(danrubel): Remove beginInitializers token from method events
       listener.endMethod(
         kind,
@@ -7273,8 +7262,13 @@ class Parser {
     int level = tokenLevel;
     int lastBinaryExpressionLevel = -1;
     Token? lastCascade;
+    int cascadeSectionCount = 0;
     while (true) {
       Token operator = next;
+      if (cascadeSectionCount > 0 && tokenLevel != CASCADE_PRECEDENCE) {
+        listener.handleCascadeExpressionEnd(cascadeSectionCount);
+        cascadeSectionCount = 0;
+      }
       if (tokenLevel == CASCADE_PRECEDENCE) {
         if (!allowCascades) {
           return token;
@@ -7284,6 +7278,7 @@ class Parser {
         }
         lastCascade = next;
         token = parseCascadeExpression(token);
+        cascadeSectionCount++;
       } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
         // Right associative, so we recurse at the same precedence
         // level.
@@ -7456,15 +7451,15 @@ class Parser {
         if (type == TokenType.BANG) {
           if (tokenLevel == POSTFIX_PRECEDENCE) {
             // This is a suffixed ! which is a null assert pattern.
-            return token;
+            break;
           } else if (next.next!.isA(TokenType.QUESTION)) {
             // This is a suffixed !? which is a null assert pattern in a null
             // check pattern.
-            return token;
+            break;
           }
         } else if (type == TokenType.AS) {
           // This is a suffixed `as` which is a case pattern.
-          return token;
+          break;
         }
       }
 
@@ -7503,6 +7498,9 @@ class Parser {
       }
     }
 
+    if (cascadeSectionCount > 0) {
+      listener.handleCascadeExpressionEnd(cascadeSectionCount);
+    }
     return token;
   }
 
@@ -8217,7 +8215,9 @@ class Parser {
       } else {
         // Fall through to the recovery code.
       }
-    } else if (kind == OPEN_PAREN_TOKEN) {
+    } else if (kind == OPEN_PAREN_TOKEN && !context.isContinuation) {
+      // Not after a period: in `a.(b)` the name is missing, and the recovery
+      // code below inserts a synthetic name and parses `(b)` as its arguments.
       return parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
         token,
         constantPatternContext,
@@ -9417,8 +9417,6 @@ class Parser {
 
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
-    } else {
-      listener.handleNoTypeArguments(token.next!);
     }
     if (constantPatternContext == ConstantPatternContext.explicit &&
         !(token.next!.isA(TokenType.PERIOD) ||
@@ -9430,6 +9428,15 @@ class Parser {
       reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
       // Avoid subsequent errors.
       constantPatternContext = ConstantPatternContext.none;
+    }
+    if (typeArg == noTypeParamOrArg && !token.next!.isA(TokenType.OPEN_PAREN)) {
+      listener.handleSendWithoutArguments(beginToken, token, token.next!);
+      return token;
+    }
+    if (typeArg == noTypeParamOrArg) {
+      token = parseArgumentsOpt(token);
+      listener.handleInvocationWithoutTypeArguments(beginToken, token);
+      return token;
     }
     token = parseArgumentsOpt(token);
     listener.handleSend(beginToken, token);
@@ -9550,9 +9557,7 @@ class Parser {
             // Shortcut common cases:
             // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
             listener.handleIdentifier(next1, IdentifierContext.expression);
-            listener.handleNoTypeArguments(next2);
-            listener.handleNoArguments(next2);
-            listener.handleSend(next1, next1);
+            listener.handleSendWithoutArguments(next1, next1, next2);
             token = next1;
             expressionHandled = true;
           } else if (next2.isA(TokenType.PERIOD)) {
@@ -9565,16 +9570,12 @@ class Parser {
                 // "IDENTIFIER DOT IDENTIFIER COMMA" and
                 // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
                 listener.handleIdentifier(next1, IdentifierContext.expression);
-                listener.handleNoTypeArguments(next2);
-                listener.handleNoArguments(next2);
-                listener.handleSend(next1, next1);
+                listener.handleSendWithoutArguments(next1, next1, next2);
                 listener.handleIdentifier(
                   next3,
                   IdentifierContext.expressionContinuation,
                 );
-                listener.handleNoTypeArguments(next4);
-                listener.handleNoArguments(next4);
-                listener.handleSend(next3, next3);
+                listener.handleSendWithoutArguments(next3, next3, next4);
                 listener.handleDotAccess(
                   next2,
                   next3,
@@ -12588,7 +12589,7 @@ enum PatternContext {
 
   final bool isRefutable;
 
-  const PatternContext({required this.isRefutable});
+  new({required this.isRefutable});
 }
 
 /// Enum describing the different contexts in which a constant pattern is

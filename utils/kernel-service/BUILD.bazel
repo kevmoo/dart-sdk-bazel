@@ -59,8 +59,8 @@ dart_app_jit_snapshot(
     training_args = [
         "--train",
         "--sdk-root=.",
-        "--platform=$(location //runtime/vm:vm_platform.dill)",
-        "$(location //:pkg/frontend_server/bin/frontend_server_starter.dart)",
+        "--platform=$(execpath //runtime/vm:vm_platform.dill)",
+        "$(execpath //:pkg/frontend_server/bin/frontend_server_starter.dart)",
     ],
     training_srcs = [
         "//:pkg/frontend_server/bin/frontend_server_starter.dart",
@@ -128,8 +128,8 @@ dart_app_jit_snapshot(
     sources = "@dart_packages//pkg/vm",
     training_args = [
         "--train",
-        "$(location //:pkg/vm/bin/kernel_service.dart)",
-        "$(location //runtime/vm:vm_platform.dill)",
+        "$(execpath //:pkg/vm/bin/kernel_service.dart)",
+        "$(execpath //runtime/vm:vm_platform.dill)",
     ],
     training_srcs = [
         "//:pkg/vm/bin/kernel_service.dart",

@@ -38,15 +38,19 @@ class DartRuntimeService {
     // environment variables specified at runtime when the service is compiled
     // to a snapshot. This behavior is somewhat undefined and doesn't work
     // in AOT, but is maintained for backwards compatibility.
+    // We use const bool.fromEnvironment('dart.library.io'), because web
+    // compilers don't support non-const bool.fromEnvironment.
     silenceServiceOutput =
+        const bool.fromEnvironment('dart.library.io') &&
+        (
         // TODO(48602): deprecate SILENT_OBSERVATORY in favor of
         // SILENT_VM_SERVICE
         // ignore: prefer_const_constructors
         bool.fromEnvironment('SILENT_OBSERVATORY') ||
-        // ignore: prefer_const_constructors
-        bool.fromEnvironment('SILENT_VM_SERVICE') ||
-        // ignore: prefer_const_constructors
-        bool.fromEnvironment('SILENT_SERVICE');
+            // ignore: prefer_const_constructors
+            bool.fromEnvironment('SILENT_VM_SERVICE') ||
+            // ignore: prefer_const_constructors
+            bool.fromEnvironment('SILENT_SERVICE'));
   }
 
   static Future<DartRuntimeService> initialize({
@@ -88,13 +92,19 @@ class DartRuntimeService {
   ///
   /// It's possible that the returned [Uri] is no longer valid if the server
   /// was recently shut down.
-  Uri get httpUri => uri.replace(
-    scheme: 'http',
-    pathSegments: [
+  Uri get httpUri {
+    final segments = <String>[
       ...uri.pathSegments,
       if (uri.pathSegments.isEmpty || uri.pathSegments.last.isNotEmpty) '',
-    ],
-  );
+    ];
+    if (segments.length == 1) {
+      segments.add('');
+    }
+    return uri.replace(
+      scheme: (uri.isScheme('wss') || uri.isScheme('https')) ? 'https' : 'http',
+      pathSegments: segments,
+    );
+  }
 
   /// The sse:// URI pointing to this [DartRuntimeService]'s server.
   ///
@@ -111,7 +121,10 @@ class DartRuntimeService {
       throw StateError('SSE handler path not configured.');
     }
     return uri.replace(
-      scheme: 'sse',
+      scheme:
+          (uri.isScheme('wss') || uri.isScheme('https') || uri.isScheme('sses'))
+          ? 'sses'
+          : 'sse',
       pathSegments: [...uri.pathSegments, config.sseHandlerPath!],
     );
   }
@@ -188,6 +201,10 @@ class DartRuntimeService {
         return;
       }
       await backend.onServiceReady(this);
+    } catch (_) {
+      _initializedCompleter.complete();
+      await shutdown();
+      rethrow;
     } finally {
       if (!_initializedCompleter.isCompleted) {
         _initializedCompleter.complete();
@@ -325,7 +342,12 @@ class DartRuntimeService {
       port: server.port,
       path: authCode != null ? '/$authCode' : '',
     );
-    await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
+    try {
+      await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
+    } catch (_) {
+      await _shutdownServerLocked();
+      rethrow;
+    }
     _logger.info(
       'Dart Runtime Service HTTP server started successfully and is '
       'listening at $uri.',

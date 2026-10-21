@@ -43,6 +43,8 @@ class RefactorCommandResolver
     LspClientCapabilities clientCapabilities,
     RefactoringContext context,
     List<Object?> arguments,
+    CancellationToken cancellationToken,
+    int? docVersion,
   ) async {
     var producer = generator(context);
 

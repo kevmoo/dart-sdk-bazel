@@ -92,27 +92,6 @@ Future<AdbCommandResult> _executeCommand(
   });
 }
 
-/// Helper class to loop through all adb ports.
-///
-/// The ports come in pairs:
-///  - even number: console connection
-///  - odd number: adb connection
-/// Note that this code doesn't check if the ports are used.
-class AdbServerPortPool {
-  static const _minPort = 5554;
-  static const _maxPort = 5584;
-
-  static int _nextPort = _minPort;
-
-  static int next() {
-    var port = _nextPort;
-    if (port > _maxPort) throw Exception("All ports are used.");
-
-    _nextPort += 2;
-    return port;
-  }
-}
-
 /// Used for communicating with an emulator or with a real device.
 class AdbDevice {
   static const _adbServerStartupTime = Duration(seconds: 3);
@@ -414,7 +393,7 @@ class AndroidEmulators {
 
     p = await Process.start(
       sdkmanager,
-      ["--install", "system-images;android-28;default;x86_64"],
+      ["--install", "system-images;android-30;default;x86_64"],
       environment: _environment,
       mode: ProcessStartMode.inheritStdio,
     );
@@ -446,7 +425,7 @@ class AndroidEmulators {
       "--name",
       "test-$port",
       "--package",
-      "system-images;android-28;default;x86_64",
+      "system-images;android-30;default;x86_64",
     ], environment: _environment);
     _forward(p, "avdmanager create");
     p.stdin.writeln("no"); // Create custom hardware profile?

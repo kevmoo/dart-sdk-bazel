@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -18,23 +18,42 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   final LibraryFragmentImpl _libraryFragment;
   late Scope _scope;
 
-  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+  /// The resolver for annotations, and the scope that it was created for.
+  ///
+  /// Creating a resolver and its visitors costs more than resolving a typical
+  /// annotation, such as `@override`, so it is reused while the scope stays
+  /// the same, for example for all annotations of members of a class.
+  ({Scope scope, AstResolver resolver})? _astResolverCache;
+
+  new(this._linker, this._libraryFragment, this._libraryBuilder)
     : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
+  }
+
+  /// The resolver for annotations in [_scope].
+  AstResolver get _astResolver {
+    var cache = _astResolverCache;
+    if (cache != null && identical(cache.scope, _scope)) {
+      return cache.resolver;
+    }
+
+    var resolver = AstResolver.forLinking(
+      inheritance: _linker.inheritance,
+      libraryFragment: _libraryFragment,
+      nameScope: _scope,
+      analysisOptions: _libraryBuilder.kind.file.analysisOptions,
+      enclosingClassElement: null,
+      enclosingExecutableElement: null,
+    );
+    _astResolverCache = (scope: _scope, resolver: resolver);
+    return resolver;
   }
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-      var astResolver = AstResolver(
-        _linker,
-        _libraryFragment,
-        _scope,
-        analysisOptions,
-      );
-      astResolver.resolveAnnotation(node);
+      _astResolver.resolveAnnotation(node);
     }
   }
 
@@ -154,16 +173,16 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.metadata.accept2(this);
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       functionTypedSuffix.formalParameters.accept2(this);
     }
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    node.metadata.accept2(this);
   }
 
   @override
@@ -173,19 +192,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    node.metadata.accept2(this);
-    node.functionExpression.accept2(this);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    node.typeParameters?.accept2(this);
-    node.parameters?.accept2(this);
-  }
-
-  @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     node.parameters.accept2(this);
@@ -198,13 +205,18 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     // TODO(eernst): Extend this visitor to visit types.
     // E.g., `List<Function<@m X>()> Function()` is not included now.
     var type = node.type;
     if (type is GenericFunctionType) type.accept2(this);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -218,10 +230,8 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-    node.parameters?.accept2(this);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -240,6 +250,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
     node.typeParameters?.accept2(this);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -273,6 +288,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     node.metadata.accept2(this);
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
@@ -281,15 +301,32 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
     node.metadata.accept2(this);
-    var nodeImpl = node as TopLevelGetterDeclarationImpl;
-    nodeImpl.recoveryTypeParameters?.accept2(this);
-    nodeImpl.recoveryFormalParameters?.accept2(this);
+    node.typeParameters?.accept2(this);
+    node.formalParameters.accept2(this);
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.recoveryFormalParameters?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.formalParameters.accept2(this);
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.metadata.accept2(this);
   }
 
@@ -301,5 +338,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept2(this);
+  }
+
+  void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    node.metadata.accept2(this);
+    node.writtenTypeParameters?.accept2(this);
+    node.writtenFormalParameters?.accept2(this);
   }
 }

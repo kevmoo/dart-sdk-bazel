@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:testing/testing.dart' as testing;
+
 import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
 import '../util/colors.dart' as colors;
 import '../util/options.dart';
+
+export 'runfiles.dart' show resolveTestResource;
 
 const String cfeMarker = 'cfe';
 const String dart2jsMarker = 'dart2js';
@@ -364,7 +366,7 @@ class TestData {
   final Map<Uri, AnnotatedCode> code;
   final Map<String, MemberAnnotations<IdValue>> expectedMaps;
 
-  TestData(
+  new(
     this.name,
     this.testFileUri,
     this.entryPoint,
@@ -388,10 +390,10 @@ class TestResult<T> {
   /// The actual data computed for the test.
   final CompiledData<T>? compiledData;
 
-  TestResult(this.interpreter, this.compiledData, this.hasMismatches)
+  new(this.interpreter, this.compiledData, this.hasMismatches)
     : isErroneous = false;
 
-  TestResult.erroneous()
+  new erroneous()
     : isErroneous = true,
       hasMismatches = false,
       interpreter = null,
@@ -413,7 +415,7 @@ abstract class CompiledData<T> {
   /// `dart:core`).
   final Map<Id, ActualData<T>> globalData;
 
-  CompiledData(this.mainUri, this.actualMaps, this.globalData);
+  new(this.mainUri, this.actualMaps, this.globalData);
 
   Map<int, List<String>> computeAnnotations(Uri uri) {
     Map<Id, ActualData<T>> actualMap = actualMaps[uri]!;
@@ -489,7 +491,7 @@ abstract class DataInterpreter<T> {
 
 /// Default data interpreter for string data.
 class StringDataInterpreter implements DataInterpreter<String> {
-  const StringDataInterpreter();
+  const new();
 
   @override
   String? isAsExpected(String actualData, String? expectedData) {
@@ -700,7 +702,7 @@ Future<TestResult<T>> checkCode<T>(
   return new TestResult<T>(dataInterpreter, compiledData, hasFailure);
 }
 
-typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(
+typedef RunTestFunction<T> = Future<Map<String, TestResult<T>>> Function(
   MarkerOptions markerOptions,
   TestData testData, {
   required bool testAfterFailures,
@@ -747,7 +749,7 @@ class MarkerTester {
   /// The resolved file uri for the test.
   final Uri uri;
 
-  MarkerTester(this.marker, this.path, this.uri);
+  new(this.marker, this.path, this.uri);
 
   @override
   String toString() => 'MarkerTester($marker,$path,$uri)';
@@ -759,12 +761,9 @@ class MarkerOptions {
   /// The supported markers and their corresponding testers.
   final Map<String, MarkerTester> markers;
 
-  MarkerOptions.internal(this.markers);
+  new internal(this.markers);
 
-  factory MarkerOptions.fromDataDir(
-    Directory dataDir, {
-    bool shouldFindScript = true,
-  }) {
+  factory fromDataDir(Directory dataDir, {bool shouldFindScript = true}) {
     File file = new File.fromUri(dataDir.uri.resolve('marker.options'));
     File script = new File.fromUri(Platform.script);
     if (!file.existsSync()) {
@@ -1083,9 +1082,8 @@ Future<void> runTests<T>(
             annotations,
           );
           Uri fileUri = testToFileUri[uri]!;
-          new File.fromUri(
-            fileUri,
-          ).writeAsStringSync(postProcessFile(generated.toText()));
+          new File.fromUri(fileUri)
+              .writeAsStringSync(postProcessFile(generated.toText()));
           print('Generated annotations for ${fileUri}');
         });
       } else {
@@ -1228,7 +1226,3 @@ Future<void> updateAllTests(List<String> relativeTestPaths) async {
     await process.exitCode;
   }
 }
-
-/// Encapsulates dual-mode test resource resolution.
-Uri resolveTestResource(String runfilesPath, {Uri? baseUri}) =>
-    testing.resolveTestResource(runfilesPath, baseUri: baseUri);

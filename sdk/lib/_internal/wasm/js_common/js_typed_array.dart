@@ -81,8 +81,8 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
       return new DataView(dst);
     }''',
       wrappedExternRef,
-      offsetInBytes.toDouble(),
-      lengthInBytes.toDouble(),
+      WasmI32.fromInt(offsetInBytes),
+      WasmI32.fromInt(lengthInBytes),
     );
   }
 
@@ -308,7 +308,9 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
   JSDataViewImpl.fromRefUnchecked(WasmExternRef? ref)
     : lengthInBytes = _dataViewByteLength(ref),
       _immutable = false,
-      super(ref);
+      super(ref) {
+    assert(_getRefType(ref) == 1);
+  }
 
   factory JSDataViewImpl.fromRef(WasmExternRef? ref) {
     final refType = _getRefType(ref);
@@ -319,7 +321,7 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
   static JSDataViewImpl? fromRefNullable(WasmExternRef? ref) {
     final refType = _getRefType(ref);
     if (refType == 0) return null;
-    if (refType == 2) return JSDataViewImpl.fromRefUnchecked(ref);
+    if (refType == 1) return JSDataViewImpl.fromRefUnchecked(ref);
     return _throwConversionFailureError("ByteData");
   }
 
@@ -511,7 +513,7 @@ mixin _IntListMixin implements List<int> {
     this[length - 1] = value;
   }
 
-  int indexWhere(bool test(int element), [int start = 0]) {
+  int indexWhere(bool Function(int element) test, [int start = 0]) {
     final length = this.length;
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
@@ -520,7 +522,7 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(int element), [int? start]) {
+  int lastIndexWhere(bool Function(int element) test, [int? start]) {
     final length = this.length;
     int startIndex = (start == null || start >= length) ? length - 1 : start;
     for (int i = startIndex; i >= 0; i--) {
@@ -551,16 +553,17 @@ mixin _IntListMixin implements List<int> {
     }
   }
 
-  Iterable<int> where(bool f(int element)) => WhereIterable<int>(this, f);
+  Iterable<int> where(bool Function(int element) f) =>
+      WhereIterable<int>(this, f);
 
   Iterable<int> take(int n) => SubListIterable<int>(this, 0, n);
 
-  Iterable<int> takeWhile(bool test(int element)) =>
+  Iterable<int> takeWhile(bool Function(int element) test) =>
       TakeWhileIterable<int>(this, test);
 
   Iterable<int> skip(int n) => SubListIterable<int>(this, n, null);
 
-  Iterable<int> skipWhile(bool test(int element)) =>
+  Iterable<int> skipWhile(bool Function(int element) test) =>
       SkipWhileIterable<int>(this, test);
 
   Iterable<int> get reversed => ReversedListIterable<int>(this);
@@ -580,14 +583,14 @@ mixin _IntListMixin implements List<int> {
     return Set<int>.of(this);
   }
 
-  void forEach(void f(int element)) {
+  void forEach(void Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; i++) {
       f(_getUnchecked(i));
     }
   }
 
-  int reduce(int combine(int value, int element)) {
+  int reduce(int Function(int value, int element) combine) {
     final length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     var value = _getUnchecked(0);
@@ -597,7 +600,7 @@ mixin _IntListMixin implements List<int> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, int element)) {
+  T fold<T>(T initialValue, T Function(T initialValue, int element) combine) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       initialValue = combine(initialValue, _getUnchecked(i));
@@ -605,12 +608,13 @@ mixin _IntListMixin implements List<int> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(int element)) => MappedIterable<int, T>(this, f);
+  Iterable<T> map<T>(T Function(int element) f) =>
+      MappedIterable<int, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(int element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(int element) f) =>
       ExpandIterable<int, T>(this, f);
 
-  bool every(bool f(int element)) {
+  bool every(bool Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (!f(_getUnchecked(i))) return false;
@@ -618,7 +622,7 @@ mixin _IntListMixin implements List<int> {
     return true;
   }
 
-  bool any(bool f(int element)) {
+  bool any(bool Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (f(_getUnchecked(i))) return true;
@@ -626,7 +630,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  int firstWhere(bool test(int element), {int orElse()?}) {
+  int firstWhere(bool Function(int element) test, {int Function()? orElse}) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       final element = _getUnchecked(i);
@@ -636,7 +640,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int lastWhere(bool test(int element), {int orElse()?}) {
+  int lastWhere(bool Function(int element) test, {int Function()? orElse}) {
     final length = this.length;
     for (var i = length - 1; i >= 0; --i) {
       final element = _getUnchecked(i);
@@ -648,7 +652,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element), {int orElse()?}) {
+  int singleWhere(bool Function(int element) test, {int Function()? orElse}) {
     var result = null;
     bool foundMatching = false;
     final length = this.length;
@@ -671,7 +675,7 @@ mixin _IntListMixin implements List<int> {
     return this[index];
   }
 
-  void sort([int compare(int a, int b)?]) {
+  void sort([int Function(int a, int b)? compare]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -705,11 +709,11 @@ mixin _IntListMixin implements List<int> {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(int element)) {
+  void removeWhere(bool Function(int element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(int element)) {
+  void retainWhere(bool Function(int element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -1077,7 +1081,7 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
       JSUint8ClampedArrayImpl._(_newDataView(length));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint8ClampedArray', ref);
+      js.JS<WasmI32>('o => o instanceof Uint8ClampedArray', ref).toBool();
 
   factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -1180,7 +1184,7 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
       JSUint16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Uint16Array', ref).toBool();
 
   factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -1305,7 +1309,7 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
       JSInt16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Int16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Int16Array', ref).toBool();
 
   factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -2001,7 +2005,7 @@ mixin _DoubleListMixin implements List<double> {
     this[length - 1] = value;
   }
 
-  int indexWhere(bool test(double element), [int start = 0]) {
+  int indexWhere(bool Function(double element) test, [int start = 0]) {
     final length = this.length;
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
@@ -2010,7 +2014,7 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(double element), [int? start]) {
+  int lastIndexWhere(bool Function(double element) test, [int? start]) {
     final length = this.length;
     int startIndex = (start == null || start >= length) ? length - 1 : start;
     for (int i = startIndex; i >= 0; i--) {
@@ -2041,17 +2045,17 @@ mixin _DoubleListMixin implements List<double> {
     }
   }
 
-  Iterable<double> where(bool f(double element)) =>
+  Iterable<double> where(bool Function(double element) f) =>
       WhereIterable<double>(this, f);
 
   Iterable<double> take(int n) => SubListIterable<double>(this, 0, n);
 
-  Iterable<double> takeWhile(bool test(double element)) =>
+  Iterable<double> takeWhile(bool Function(double element) test) =>
       TakeWhileIterable<double>(this, test);
 
   Iterable<double> skip(int n) => SubListIterable<double>(this, n, null);
 
-  Iterable<double> skipWhile(bool test(double element)) =>
+  Iterable<double> skipWhile(bool Function(double element) test) =>
       SkipWhileIterable<double>(this, test);
 
   Iterable<double> get reversed => ReversedListIterable<double>(this);
@@ -2071,14 +2075,14 @@ mixin _DoubleListMixin implements List<double> {
     return Set<double>.of(this);
   }
 
-  void forEach(void f(double element)) {
+  void forEach(void Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; i++) {
       f(_getUnchecked(i));
     }
   }
 
-  double reduce(double combine(double value, double element)) {
+  double reduce(double Function(double value, double element) combine) {
     final length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     var value = _getUnchecked(0);
@@ -2088,7 +2092,10 @@ mixin _DoubleListMixin implements List<double> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, double element)) {
+  T fold<T>(
+    T initialValue,
+    T Function(T initialValue, double element) combine,
+  ) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       initialValue = combine(initialValue, _getUnchecked(i));
@@ -2096,12 +2103,13 @@ mixin _DoubleListMixin implements List<double> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(double element)) => MappedIterable<double, T>(this, f);
+  Iterable<T> map<T>(T Function(double element) f) =>
+      MappedIterable<double, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(double element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(double element) f) =>
       ExpandIterable<double, T>(this, f);
 
-  bool every(bool f(double element)) {
+  bool every(bool Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (!f(_getUnchecked(i))) return false;
@@ -2109,7 +2117,7 @@ mixin _DoubleListMixin implements List<double> {
     return true;
   }
 
-  bool any(bool f(double element)) {
+  bool any(bool Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (f(_getUnchecked(i))) return true;
@@ -2117,7 +2125,10 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()?}) {
+  double firstWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       final element = _getUnchecked(i);
@@ -2127,7 +2138,10 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()?}) {
+  double lastWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     final length = this.length;
     for (var i = length - 1; i >= 0; --i) {
       final element = _getUnchecked(i);
@@ -2139,7 +2153,10 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()?}) {
+  double singleWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     var result = null;
     bool foundMatching = false;
     final length = this.length;
@@ -2162,7 +2179,7 @@ mixin _DoubleListMixin implements List<double> {
     return this[index];
   }
 
-  void sort([int compare(double a, double b)?]) {
+  void sort([int Function(double a, double b)? compare]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -2196,11 +2213,11 @@ mixin _DoubleListMixin implements List<double> {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(double element)) {
+  void removeWhere(bool Function(double element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(double element)) {
+  void retainWhere(bool Function(double element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -2749,7 +2766,7 @@ final class JSFloat64x2ArrayImpl
 }
 
 void _setRangeFast(WasmExternRef? targetArray, WasmExternRef? sourceArray) =>
-    js.JS<void>('(t, s) => t.set(s)', targetArray, sourceArray);
+    js.JS<WasmVoid>('(t, s) => t.set(s)', targetArray, sourceArray);
 
 @pragma("wasm:prefer-inline")
 WasmExternRef? _newDataView(int length) => js.JS<WasmExternRef?>(
@@ -2811,12 +2828,13 @@ int _getUint8(WasmExternRef? ref, int byteOffset) => js
     .toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
-void _setUint8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
-  'Function.prototype.call.bind(DataView.prototype.setUint8)',
-  ref,
-  WasmI32.fromInt(byteOffset),
-  WasmI32.fromInt(value),
-);
+void _setUint8(WasmExternRef? ref, int byteOffset, int value) =>
+    js.JS<WasmVoid>(
+      'Function.prototype.call.bind(DataView.prototype.setUint8)',
+      ref,
+      WasmI32.fromInt(byteOffset),
+      WasmI32.fromInt(value),
+    );
 
 @pragma("wasm:prefer-inline")
 int _getInt8(WasmExternRef? ref, int byteOffset) => js
@@ -2828,7 +2846,7 @@ int _getInt8(WasmExternRef? ref, int byteOffset) => js
     .toIntSigned();
 
 @pragma("wasm:prefer-inline")
-void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
+void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt8)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2851,7 +2869,7 @@ void _setUint16(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2875,7 +2893,7 @@ void _setInt16(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2899,7 +2917,7 @@ void _setUint32(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2923,7 +2941,7 @@ void _setInt32(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2947,7 +2965,7 @@ void _setBigUint64(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigUint64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2971,7 +2989,7 @@ void _setBigInt64(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigInt64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2995,7 +3013,7 @@ void _setFloat32(
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -3019,7 +3037,7 @@ void _setFloat64(
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat64)',
   ref,
   WasmI32.fromInt(byteOffset),

@@ -66,6 +66,9 @@ class MethodFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,
@@ -125,11 +128,8 @@ class MethodFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
-  MethodFragment _fragment;
-
-  new(this._fragment);
-
+class _MethodBodyBuildingContext(final MethodFragment _fragment)
+    implements FunctionBodyBuildingContext {
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
